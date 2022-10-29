@@ -1,4 +1,4 @@
-package com.ariasaproject.advancerofrpg;
+package com.ariasaproject.technowar;
 
 public interface Application {
     void log(String tag, String message);

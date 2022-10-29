@@ -386,7 +386,8 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                 
                 if (lpause) {
                     appl.pause();
-                    eglDestroyRequest |= (tgf.limitGLESContext() ? 2 : 1);
+                    boolean limitGles = GLES30.glGetString(GLES30.GL_RENDERER).startsWith("Adreno");
+                    eglDestroyRequest |= (limitGles ? 2 : 1);
                 }
                 if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
                     int error = EGL14.eglGetError();

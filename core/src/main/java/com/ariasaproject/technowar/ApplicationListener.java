@@ -1,4 +1,4 @@
-package com.ariasaproject.advancerofrpg;
+package com.ariasaproject.technowar;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
