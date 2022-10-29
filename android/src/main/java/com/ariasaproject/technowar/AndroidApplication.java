@@ -68,8 +68,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
             }
         });
         setContentView(R.layout.main);
-        SurfaceView view = findViewById(R.id.root);
-        
+        LocalSurfaceView view = findViewById(R.id.root);
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
         this.mayorV = (short) (configurationInfo.reqGlEsVersion >> 16);
@@ -78,12 +77,12 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         this.holder = view.getHolder();
         mainTGFThread = new Thread(this, "GLThread");
         mainTGFThread.start();
+        holder.addCallback(this);
     }
 
     @Override
     protected void onStart() {
     		super.onStart();
-        holder.addCallback(this);
     }
     @Override
     protected synchronized void onResume() {
@@ -151,7 +150,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 
     @Override
     protected void onStop() {
-        holder.removeCallback(this);
         super.onStop();
     }
     

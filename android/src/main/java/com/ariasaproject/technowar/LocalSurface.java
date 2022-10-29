@@ -6,7 +6,6 @@ import static android.view.WindowManagerPolicyConstants.APPLICATION_PANEL_SUBLAY
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.compat.annotation.UnsupportedAppUsage;
 import android.content.Context;
 import android.content.res.CompatibilityInfo.Translator;
 import android.graphics.BLASTBufferQueue;
@@ -36,18 +35,20 @@ import com.android.internal.view.SurfaceCallbackHelper;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Consumer; 
+import java.util.function.Consumer;
 
-public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCallback {
+public class LocalSurfaceView extends View implements ViewRootImpl.SurfaceChangedCallback {
     private static final String TAG = "SurfaceView";
     private static final boolean DEBUG = false;
     private static final boolean DEBUG_POSITION = false;
+    
+    final ArrayList<SurfaceHolder.Callback> mCallbacks = new ArrayList<>();
     final int[] mLocation = new int[2];
-    @UnsupportedAppUsage
+    
     final ReentrantLock mSurfaceLock = new ReentrantLock();
-    @UnsupportedAppUsage
+    
     final Surface mSurface = new Surface();       // Current surface in use
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     boolean mDrawingStopped = true;
     // We use this to track if the application has produced a frame
     // in to the Surface. Up until that point, we should be careful not to punch
@@ -66,10 +67,11 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     final Rect mTmpRect = new Rect();
     Paint mRoundedViewportPaint;
     int mSubLayer = APPLICATION_MEDIA_SUBLAYER;
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     boolean mIsCreating = false;
-    private final ViewTreeObserver.OnScrollChangedListener mScrollChangedListener = updateSurface();
-    @UnsupportedAppUsage
+    private final ViewTreeObserver.OnScrollChangedListener mScrollChangedListener =
+            this::updateSurface;
+    
     private final ViewTreeObserver.OnPreDrawListener mDrawListener = () -> {
         // reposition ourselves where the surface is
         mHaveFrame = getWidth() > 0 && getHeight() > 0;
@@ -81,23 +83,19 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     boolean mLastWindowVisibility = false;
     boolean mViewVisibility = false;
     boolean mWindowStopped = false;
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     int mRequestedWidth = -1;
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     int mRequestedHeight = -1;
-    /* Set SurfaceView's format to 565 by default to maintain backward
-     * compatibility with applications assuming this format.
-     */
-    @UnsupportedAppUsage
     int mRequestedFormat = PixelFormat.RGB_565;
     boolean mUseAlpha = false;
     float mSurfaceAlpha = 1f;
     boolean mClipSurfaceToBounds;
     int mBackgroundColor = Color.BLACK;
-    @UnsupportedAppUsage
+    
     boolean mHaveFrame = false;
     boolean mSurfaceCreated = false;
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     long mLastLockTime = 0;
     boolean mVisible = false;
     int mWindowSpaceLeft = -1;
@@ -105,9 +103,9 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     int mSurfaceWidth = -1;
     int mSurfaceHeight = -1;
     float mCornerRadius;
-    @UnsupportedAppUsage
+    
     int mFormat = -1;
-    @UnsupportedAppUsage(maxTargetSdk = Build.VERSION_CODES.P, trackingBug = 115609023)
+    
     final Rect mSurfaceFrame = new Rect();
     int mLastSurfaceWidth = -1, mLastSurfaceHeight = -1;
     @SurfaceControl.BufferTransform int mTransformHint = 0;
@@ -135,20 +133,20 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     SurfaceControlViewHost.SurfacePackage mSurfacePackage;
     private SurfaceControl mBlastSurfaceControl;
     private BLASTBufferQueue mBlastBufferQueue;
-    public SurfaceView(Context context) {
+    public LocalSurfaceView(Context context) {
         this(context, null);
     }
-    public SurfaceView(Context context, AttributeSet attrs) {
+    public LocalSurfaceView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
-    public SurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public LocalSurfaceView(Context context, AttributeSet attrs, int defStyleAttr) {
         this(context, attrs, defStyleAttr, 0);
     }
-    public SurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public LocalSurfaceView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         this(context, attrs, defStyleAttr, defStyleRes, false);
     }
     /** @hide */
-    public SurfaceView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr,
+    public LocalSurfaceView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr,
             int defStyleRes, boolean disableBackgroundLayer) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setWillNotDraw(true);
@@ -179,7 +177,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
         mViewVisibility = getVisibility() == VISIBLE;
         updateRequestedVisibility();
         mAttachedToWindow = true;
-        mParent.requestTransparentRegion(SurfaceView.this);
+        mParent.requestTransparentRegion(LocalSurfaceView.this);
         if (!mGlobalListenersAdded) {
             ViewTreeObserver observer = getViewTreeObserver();
             observer.addOnScrollChangedListener(mScrollChangedListener);
@@ -274,7 +272,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     private void performDrawFinished() {
         mDrawFinished = true;
         if (mAttachedToWindow) {
-            mParent.requestTransparentRegion(SurfaceView.this);
+            mParent.requestTransparentRegion(LocalSurfaceView.this);
             invalidate();
         }
     }
@@ -314,7 +312,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
     }
     /** @hide */
     @Override
-    @UnsupportedAppUsage
+    
     protected boolean setFrame(int left, int top, int right, int bottom) {
         boolean result = super.setFrame(left, top, right, bottom);
         updateSurface();
@@ -810,12 +808,32 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
                         if (!mSurfaceCreated && (surfaceChanged || visibleChanged)) {
                             mSurfaceCreated = true;
                             mIsCreating = true;
-                            callback.surfaceCreated(mSurfaceHolder);
+                            if (DEBUG) Log.i(TAG, System.identityHashCode(this) + " "
+                                    + "visibleChanged -- surfaceCreated");
+                            callbacks = getSurfaceCallbacks();
+                            for (SurfaceHolder.Callback c : callbacks) {
+                                c.surfaceCreated(mSurfaceHolder);
+                            }
                         }
-                        if (creating || formatChanged || sizeChanged || hintChange || visibleChanged || realSizeChanged) {
-                             callback.surfaceChanged(mSurfaceHolder, mFormat, myWidth, myHeight);
+                        if (creating || formatChanged || sizeChanged || hintChanged
+                                || visibleChanged || realSizeChanged) {
+                            if (DEBUG) Log.i(TAG, System.identityHashCode(this) + " "
+                                    + "surfaceChanged -- format=" + mFormat
+                                    + " w=" + myWidth + " h=" + myHeight);
+                            if (callbacks == null) {
+                                callbacks = getSurfaceCallbacks();
+                            }
+                            for (SurfaceHolder.Callback c : callbacks) {
+                                c.surfaceChanged(mSurfaceHolder, mFormat, myWidth, myHeight);
+                            }
                         }
                         if (redrawNeeded) {
+                            if (DEBUG) {
+                                Log.i(TAG, System.identityHashCode(this) + " surfaceRedrawNeeded");
+                            }
+                            if (callbacks == null) {
+                                callbacks = getSurfaceCallbacks();
+                            }
                             if (shouldSyncBuffer) {
                                 handleSyncBufferCallback(callbacks, syncBufferTransactionCallback);
                             } else {
@@ -832,6 +850,10 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
             } catch (Exception ex) {
                 Log.e(TAG, "Exception configuring surface", ex);
             }
+            if (DEBUG) Log.v(
+                TAG, "Layout: x=" + mScreenRect.left + " y=" + mScreenRect.top
+                + " w=" + mScreenRect.width() + " h=" + mScreenRect.height()
+                + ", frame=" + mSurfaceFrame);
         }
     }
     /**
@@ -1102,7 +1124,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
                     Log.d(TAG, String.format(
                             "%d updateSurfacePosition RenderWorker, frameNr = %d, "
                                     + "position = [%d, %d, %d, %d] surfaceSize = %dx%d",
-                            System.identityHashCode(SurfaceView.this), frameNumber,
+                            System.identityHashCode(LocalSurfaceView.this), frameNumber,
                             left, top, right, bottom, mRtSurfaceWidth, mRtSurfaceHeight));
                 }
                 synchronized (mSurfaceControlLock) {
@@ -1152,8 +1174,34 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
                 applyOrMergeTransaction(mRtTransaction, frameNumber);
             }
         }
-    
+    }
     private SurfaceViewPositionUpdateListener mPositionListener = null;
+    private SurfaceHolder.Callback[] getSurfaceCallbacks() {
+        SurfaceHolder.Callback[] callbacks;
+        synchronized (mCallbacks) {
+            callbacks = new SurfaceHolder.Callback[mCallbacks.size()];
+            mCallbacks.toArray(callbacks);
+        }
+        return callbacks;
+    }
+    private void runOnUiThread(Runnable runnable) {
+        Handler handler = getHandler();
+        if (handler != null && handler.getLooper() != Looper.myLooper()) {
+            handler.post(runnable);
+        } else {
+            runnable.run();
+        }
+    }
+    /**
+     * Check to see if the surface has fixed size dimensions or if the surface's
+     * dimensions are dimensions are dependent on its current layout.
+     *
+     * @return true if the surface has dimensions that are fixed in size
+     * @hide
+     */
+    
+    public boolean isFixedSize() {
+        return (mRequestedWidth != -1 || mRequestedHeight != -1);
     }
     private boolean isAboveParent() {
         return mSubLayer >= 0;
@@ -1171,6 +1219,11 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
         applyTransactionOnVriDraw(transaction);
         invalidate();
     }
+    /**
+     * Version of {@link #setResizeBackgroundColor(int)} that allows you to provide
+     * {@link SurfaceControl.Transaction}.
+     * @hide
+     */
     public void setResizeBackgroundColor(@NonNull SurfaceControl.Transaction t, int bgColor) {
         if (mBackgroundControl == null) {
             return;
@@ -1178,7 +1231,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
         mBackgroundColor = bgColor;
         updateBackgroundColor(t);
     }
-    @UnsupportedAppUsage
+    
     private final SurfaceHolder mSurfaceHolder = new SurfaceHolder() {
         private static final String LOG_TAG = "SurfaceHolder";
         @Override
@@ -1186,9 +1239,29 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
             return mIsCreating;
         }
         @Override
+        public void addCallback(Callback callback) {
+            synchronized (mCallbacks) {
+                // This is a linear search, but in practice we'll
+                // have only a couple callbacks, so it doesn't matter.
+                if (!mCallbacks.contains(callback)) {
+                    mCallbacks.add(callback);
+                }
+            }
+        }
+        @Override
+        public void removeCallback(Callback callback) {
+            synchronized (mCallbacks) {
+                mCallbacks.remove(callback);
+            }
+        }
+        @Override
         public void setFixedSize(int width, int height) {
             if (mRequestedWidth != width || mRequestedHeight != height) {
-                
+                if (DEBUG_POSITION) {
+                    Log.d(TAG, String.format("%d setFixedSize %dx%d -> %dx%d",
+                            System.identityHashCode(this), mRequestedWidth, mRequestedHeight, width,
+                                    height));
+                }
                 mRequestedWidth = width;
                 mRequestedHeight = height;
                 requestLayout();
@@ -1224,7 +1297,7 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
         public void setType(int type) { }
         @Override
         public void setKeepScreenOn(boolean screenOn) {
-            runOnUiThread(() -> SurfaceView.this.setKeepScreenOn(screenOn));
+            runOnUiThread(() -> LocalSurfaceView.this.setKeepScreenOn(screenOn));
         }
         /**
          * Gets a {@link Canvas} for drawing into the SurfaceView's Surface
@@ -1467,8 +1540,10 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
         if (mSurface.isValid()) {
             if (DEBUG) Log.i(TAG, System.identityHashCode(this) + " "
                     + "surfaceDestroyed");
-            c.surfaceDestroyed(mSurfaceHolder);
-            
+            SurfaceHolder.Callback[] callbacks = getSurfaceCallbacks();
+            for (SurfaceHolder.Callback c : callbacks) {
+                c.surfaceDestroyed(mSurfaceHolder);
+            }
             // Since Android N the same surface may be reused and given to us
             // again by the system server at a later point. However
             // as we didn't do this in previous releases, clients weren't
@@ -1525,6 +1600,9 @@ public class LocalSurface extends View implements ViewRootImpl.SurfaceChangedCal
             t.apply();
         }
     }
+    /**
+     * @hide
+     */
     public void syncNextFrame(Consumer<Transaction> t) {
         mBlastBufferQueue.syncNextTransaction(t);
     }
