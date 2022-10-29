@@ -1,0 +1,68 @@
+name: Build & Publish Artifacts
+
+on: workflow_dispatch
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Check
+
+      uses: actions/checkout@v3
+
+    - name: Setup JDK 8
+
+      uses: actions/setup-java@v3.4.1
+
+      with:
+
+        java-version: '8'
+
+        distribution: 'temurin'
+
+        cache: 'gradle'
+
+    - name: Setup Gradle
+
+      uses: gradle/gradle-build-action@v2.3.0
+
+      with:
+
+        gradle-version: 6.1.1
+
+    - name: Gradle Build
+
+      run: gradle build
+
+    - name: Get Output
+
+      id: out-path
+
+      run: |
+
+        path0=$(find ${{github.workspace}}/android/build/outputs/apk -name '*.apk' -type f | head -1)
+
+        path1=$(find ${{github.workspace}}/desktop/build/distributions/ -name '*.zip' -type f | head -1)
+
+        echo "::set-output name=path0::$path0"
+
+        echo "::set-output name=path1::$path1"
+
+    - name: Publish Artifacts
+
+      uses: actions/upload-artifact@v3
+
+      with:
+
+        name: All-Output
+
+        path: |
+
+          ${{ steps.out-path.outputs.path0 }}
+
+          ${{ steps.out-path.outputs.path1 }}
+
