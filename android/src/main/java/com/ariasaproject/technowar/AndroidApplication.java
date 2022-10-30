@@ -191,7 +191,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 
     public void error(String tag, String message, Throwable exception) {
         Log.e(tag, message, exception);
-
     }
 
     @Override
@@ -207,6 +206,14 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         width = w;
         height = h;
         resize = true;
+        notifyAll();
+        while (!mExited && resize) {
+		      	try {
+		      			wait();
+		      	} catch (InterruptedException ex) {
+		        		Thread.currentThread().interrupt();
+		        }
+        }
     }
 
     @Override
@@ -242,7 +249,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
             SurfaceHolder mHolder = null;
             while (!destroy) {
                 synchronized (this) {
-                		mHolder = holder;
                     // render notify
                     if (wantRender) {
                         rendered = false;
@@ -252,7 +258,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     if (rendered)
                         wantRender = true;
                     // egl destroy request
-                    if (mEglSurface != null && (eglDestroyRequest > 0 || (mHolder == null))) {
+                    if (mEglSurface != null && (eglDestroyRequest > 0 || (holder == null))) {
                         EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
                         if (!EGL14.eglDestroySurface(mEglDisplay, mEglSurface))
                             throw new RuntimeException("eglDestroySurface failed: " + Integer.toHexString(EGL14.eglGetError()));
@@ -281,10 +287,11 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                         lrunning = true;
                     }
                     // Ready to draw?
-                    if (!lrunning || (mHolder == null)) {
+                    if (!lrunning || (holder == null)) {
                         wait();
                         continue;
                     }
+            				mHolder = holder;
                 }
 
                 if (mEglDisplay == null) {
@@ -357,6 +364,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 						                if (resize) {
                         				resize(width, height);
                         				resize = false;
+                        				notifyAll();
 						                }
 				                }
                         lastFrameTime = System.currentTimeMillis();
@@ -369,6 +377,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                    EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext);
 		                    resize(width, height);
 		                    resize = false;
+		                    notifyAll();
 		                }
                 }
                 long time = System.currentTimeMillis();
@@ -383,10 +392,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 }
                 deltaTime = (time - lastFrameTime) / 1000f;
                 lastFrameTime = time;
-                /*
-                GLES30.glClearColor(1, 1, 0, 1);
-                GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT|GLES30.GL_DEPTH_BUFFER_BIT|GLES30.GL_STENCIL_BUFFER_BIT);
-                */
                 render(deltaTime);
                 
                 if (lpause) {

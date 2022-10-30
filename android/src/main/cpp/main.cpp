@@ -27,3 +27,7 @@ JEx(void, pause) (JNIEnv *e, jobject o) {
 JEx(void, destroy) (JNIEnv *e, jobject o) {
 	Main::destroy();
 }
+
+
+
+
