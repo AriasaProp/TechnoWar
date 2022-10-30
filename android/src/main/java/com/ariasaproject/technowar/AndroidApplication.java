@@ -208,7 +208,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         width = w;
         height = h;
         resize = true;
-        notifyAll();
     }
 
     @Override
@@ -234,7 +233,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 				    };
             byte eglDestroyRequest = 0;// to destroy egl surface, egl contex, egl display, ?....
             boolean wantRender = false, newContext = true, // indicator
-                    created = false, lrunning = true, lresize, lresume = false, lpause = false;// on running state
+                    created = false, lrunning = true, lresume = false, lpause = false;// on running state
             while (!destroy) {
                 synchronized (this) {
                     // render notify
@@ -246,7 +245,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                     if (rendered)
                         wantRender = true;
                     // egl destroy request
-                    if (mEglSurface != null && (eglDestroyRequest > 0 || !hasSurface)) {
+                    if (mEglSurface != null && (eglDestroyRequest > 0 || (holder == null))) {
                         EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
                         if (!EGL14.eglDestroySurface(mEglDisplay, mEglSurface))
                             throw new RuntimeException("eglDestroySurface failed: " + Integer.toHexString(EGL14.eglGetError()));
@@ -264,10 +263,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                         eglDestroyRequest = 0;
                     }
                     // end destroy request
-
-                    lresize = resize;
-                    if (resize)
-                        resize = false;
                     if (lpause)
                         lrunning = false;
                     lpause = pause;
@@ -351,17 +346,23 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                             appl.create();
                             created = true;
                     		}
-                       
-                        appl.resize(width, height);
-                        lresize = false;
+				                synchronized (this) {
+						                if (resize) {
+                        				appl.resize(width, height);
+                        				resize = false;
+						                }
+				                }
                         lastFrameTime = System.currentTimeMillis();
                         newContext = false;
                     }
                 }
-                if (lresize) {
-                    EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
-                    EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext);
-                    appl.resize(width, height);
+                synchronized (this) {
+		                if (resize) {
+		                    EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
+		                    EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext);
+		                    appl.resize(width, height);
+		                    resize = false;
+		                }
                 }
                 long time = System.currentTimeMillis();
                 if (lresume) {
