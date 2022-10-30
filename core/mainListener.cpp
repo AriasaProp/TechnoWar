@@ -2,10 +2,11 @@
 
 void Main::create() {
 	if (!tgf) return;
-	tgf->clearcolormask(TGF::GL_COLOR_BUFFER_BIT|TGF::GL_DEPTH_BUFFER_BIT|TGF::GL_STENCIL_BUFFER_BIT, 1.f, 0.f, 0.f, 1.f);
+	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, 1.f, 0.f, 0.f, 1.f);
 }
 void Main::resume() {
 	if (!tgf) return;
+	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, 0.f, 1.f, 0.f, 1.f);
 	
 }
 void Main::resize(unsigned int width, unsigned int height) {
@@ -18,7 +19,7 @@ void Main::render(float delta) {
 }
 void Main::pause() {
 	if (!tgf) return;
-	tgf->clearcolormask(TGF::GL_COLOR_BUFFER_BIT|TGF::GL_DEPTH_BUFFER_BIT|TGF::GL_STENCIL_BUFFER_BIT, 1.f, 0.f, 0.f, 1.f);
+	//tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, 0.f, 1.f, 0.f, 1.f);
 }
 void Main::destroy() {
 	if (!tgf) return;

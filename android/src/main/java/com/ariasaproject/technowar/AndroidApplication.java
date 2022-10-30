@@ -239,8 +239,10 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
             byte eglDestroyRequest = 0;// to destroy egl surface, egl contex, egl display, ?....
             boolean wantRender = false, newContext = true, // indicator
                     created = false, lrunning = true, lresume = false, lpause = false;// on running state
+            SurfaceHolder mHolder = null;
             while (!destroy) {
                 synchronized (this) {
+                		mHolder = holder;
                     // render notify
                     if (wantRender) {
                         rendered = false;
@@ -250,7 +252,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     if (rendered)
                         wantRender = true;
                     // egl destroy request
-                    if (mEglSurface != null && (eglDestroyRequest > 0 || (holder == null))) {
+                    if (mEglSurface != null && (eglDestroyRequest > 0 || (mHolder == null))) {
                         EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
                         if (!EGL14.eglDestroySurface(mEglDisplay, mEglSurface))
                             throw new RuntimeException("eglDestroySurface failed: " + Integer.toHexString(EGL14.eglGetError()));
@@ -279,7 +281,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                         lrunning = true;
                     }
                     // Ready to draw?
-                    if (!lrunning || (holder == null)) {
+                    if (!lrunning || (mHolder == null)) {
                         wait();
                         continue;
                     }
@@ -338,7 +340,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                             throw new RuntimeException("createContext failed: " + Integer.toHexString(EGL14.eglGetError()));
                         }
                     }
-                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, holder, configsEGL, 6);
+                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, mHolder, configsEGL, 6);
                     if (mEglSurface == null || mEglSurface == EGL14.EGL_NO_SURFACE) {
                         mEglSurface = null;
                         throw new RuntimeException("Create EGL Surface failed: " + Integer.toHexString(EGL14.eglGetError()));
