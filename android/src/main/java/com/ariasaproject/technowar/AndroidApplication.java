@@ -27,9 +27,6 @@ import android.view.View;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.widget.Toast;
 
-import com.ariasaproject.technowar.ApplicationListener;
-import com.ariasaproject.technowar.Application;
-
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.lang.Exception;
@@ -41,7 +38,7 @@ import java.util.List;
 import java.util.Random;
 
 //AndroidApplication include Graphics, Audio and Application
-public class AndroidApplication extends Activity implements Application, Runnable, Callback {
+public class AndroidApplication extends Activity implements Runnable, Callback {
     public static final String TAG = "MainActivity";
     
     static {
@@ -99,7 +96,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         notifyAll();
     }
 
-    @Override
     public synchronized void restart() {
         runOnUiThread(new Runnable() {
           @Override
@@ -114,7 +110,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         });
     }
 
-    @Override
     public synchronized void exit() {
         runOnUiThread(new Runnable() {
           @Override
@@ -173,33 +168,27 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         super.onConfigurationChanged(config);
         //input.setKeyboardAvailable(config.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO);
     }
-
-    @Override
+ 
     public void debug(String tag, String message) {
         Log.d(tag, message);
     }
 
-    @Override
     public void debug(String tag, String message, Throwable exception) {
         Log.d(tag, message, exception);
     }
 
-    @Override
     public void log(String tag, String message) {
         Log.i(tag, message);
     }
 
-    @Override
     public void log(String tag, String message, Throwable exception) {
         Log.i(tag, message, exception);
     }
 
-    @Override
     public void error(String tag, String message) {
         Log.e(tag, message);
     }
 
-    @Override
     public void error(String tag, String message, Throwable exception) {
         Log.e(tag, message, exception);
 
