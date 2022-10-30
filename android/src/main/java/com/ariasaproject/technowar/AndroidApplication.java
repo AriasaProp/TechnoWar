@@ -203,9 +203,9 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
     @Override
     public synchronized void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
         if (this.holder == null) this.holder = holder;
+        resize = true;
         width = w;
         height = h;
-        resize = true;
         notifyAll();
         while (!mExited && resize) {
 		      	try {
