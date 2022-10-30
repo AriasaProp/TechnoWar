@@ -46,13 +46,13 @@ public class AndroidApplication extends Activity implements Application, Runnabl
     final int uiHide = 5382;//hide all system ui as possible
     int mayorV, minorV;
     volatile boolean resume = false, pause = false, destroy = false, resize = false, rendered = false, hasFocus = true,
-            hasSurface = false, mExited = false;
+            mExited = false;
     long frameStart = System.currentTimeMillis(), lastFrameTime = System.currentTimeMillis();
     int frames, fps, width = 0, height = 0;
     float deltaTime = 0;
     Thread mainTGFThread;
     // graphics params
-    private SurfaceHolder holder;
+    private SurfaceHolder holder = null;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,16 +68,15 @@ public class AndroidApplication extends Activity implements Application, Runnabl
             }
         });
         setContentView(R.layout.main);
-        LocalSurfaceView view = findViewById(R.id.root);
+        SurfaceView view = findViewById(R.id.root);
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
         this.mayorV = (short) (configurationInfo.reqGlEsVersion >> 16);
         this.minorV = (short) (configurationInfo.reqGlEsVersion & 0x0000ffff);
         // for graphics loop
-        this.holder = view.getHolder();
         mainTGFThread = new Thread(this, "GLThread");
         mainTGFThread.start();
-        holder.addCallback(this);
+        view.getHolder().addCallback(this);
     }
 
     @Override
@@ -200,7 +199,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
     @Override
     public synchronized void surfaceCreated(SurfaceHolder holder) {
         // fall thru surfaceChanged
-        hasSurface = true;
+        this.holder = holder;
         notifyAll();
     }
 
@@ -214,7 +213,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 
     @Override
     public synchronized void surfaceDestroyed(SurfaceHolder holder) {
-        hasSurface = false;
+        holder = null;
         notifyAll();
     }
 
@@ -280,7 +279,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                         lrunning = true;
                     }
                     // Ready to draw?
-                    if (!lrunning || !hasSurface) {
+                    if (!lrunning || (holder == null)) {
                         wait();
                         continue;
                     }
