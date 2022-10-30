@@ -48,7 +48,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 	    	try {
 	    			System.loadLibrary("ext");
 	    	} catch (Exception e) {
-	    			Log.e(TAG, "failed load library!.")
+	    			Log.e(TAG, "failed load library!.");
 	    	}
     }
     
