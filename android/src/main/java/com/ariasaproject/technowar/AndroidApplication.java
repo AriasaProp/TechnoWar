@@ -43,6 +43,15 @@ import java.util.Random;
 //AndroidApplication include Graphics, Audio and Application
 public class AndroidApplication extends Activity implements Application, Runnable, Callback {
     public static final String TAG = "MainActivity";
+    
+    static {
+	    	try {
+	    			System.loadLibrary("ext");
+	    	} catch (Exception e) {
+	    			Log.e(TAG, "failed load library!.")
+	    	}
+    }
+    
     final int uiHide = 5382;//hide all system ui as possible
     int mayorV, minorV;
     volatile boolean resume = false, pause = false, destroy = false, resize = false, rendered = false, hasFocus = true,
@@ -205,6 +214,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 
     @Override
     public synchronized void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
+        if (this.holder == null) this.holder = holder;
         width = w;
         height = h;
         resize = true;
@@ -212,9 +222,16 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 
     @Override
     public synchronized void surfaceDestroyed(SurfaceHolder holder) {
-        holder = null;
+        this.holder = null;
         notifyAll();
     }
+    
+		private native void create();
+		private native void resume();
+		private native void resize(int w, int h);
+		private native void render(float d);
+		private native void pause();
+		private native void destroy();
 
     // main loop
     @Override
@@ -223,7 +240,6 @@ public class AndroidApplication extends Activity implements Application, Runnabl
         EGLSurface mEglSurface = null;
         EGLConfig mEglConfig = null;
         EGLContext mEglContext = null;
-        ApplicationListener appl = new ApplicationListener();
         try {
 				    final int[] configsEGL = new int[]{
 				  			EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_NONE, //EGLConfig offset 0
@@ -343,12 +359,12 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 
                     if (newContext) {
                         if (!created) {
-                            appl.create();
+                            create();
                             created = true;
                     		}
 				                synchronized (this) {
 						                if (resize) {
-                        				appl.resize(width, height);
+                        				resize(width, height);
                         				resize = false;
 						                }
 				                }
@@ -360,13 +376,13 @@ public class AndroidApplication extends Activity implements Application, Runnabl
 		                if (resize) {
 		                    EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
 		                    EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext);
-		                    appl.resize(width, height);
+		                    resize(width, height);
 		                    resize = false;
 		                }
                 }
                 long time = System.currentTimeMillis();
                 if (lresume) {
-                    appl.resume();
+                    resume();
                     time = frameStart = lastFrameTime = 0;
                 }
                 if (time - frameStart > 1000l) {
@@ -376,14 +392,14 @@ public class AndroidApplication extends Activity implements Application, Runnabl
                 }
                 deltaTime = (time - lastFrameTime) / 1000f;
                 lastFrameTime = time;
-                
+                /*
                 GLES30.glClearColor(1, 1, 0, 1);
                 GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT|GLES30.GL_DEPTH_BUFFER_BIT|GLES30.GL_STENCIL_BUFFER_BIT);
-                
-                appl.render(deltaTime);
+                */
+                render(deltaTime);
                 
                 if (lpause) {
-                    appl.pause();
+                    pause();
                     boolean limitGles = GLES30.glGetString(GLES30.GL_RENDERER).startsWith("Adreno");
                     eglDestroyRequest |= (limitGles ? 2 : 1);
                 }
@@ -414,7 +430,7 @@ public class AndroidApplication extends Activity implements Application, Runnabl
             error(TAG, "error", e);
         }
         // dispose all resources
-        appl.destroy();
+        destroy();
         if (mEglSurface != null) {
             EGL14.eglMakeCurrent(mEglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT);
             EGL14.eglDestroySurface(mEglDisplay, mEglSurface);
