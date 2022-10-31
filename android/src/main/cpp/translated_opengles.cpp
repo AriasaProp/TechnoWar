@@ -9,6 +9,13 @@
 #include <GLES3/gl3.h>
 #endif
 
+char *renderer_gles = nullptr;
+
+char *tgf_gles::renderer() const {
+		if(!renderer_gles) renderer_gles = reinterpret_cast<char*>(glGetString(GL_RENDERER));
+		return renderer_gles;
+}
+
 void tgf_gles::clearcolormask(unsigned int m, float r, float g, float b, float a) {
 		glClearColor(r, g, b, a);
 		glClear(m);

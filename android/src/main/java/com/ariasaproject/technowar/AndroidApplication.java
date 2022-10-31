@@ -15,7 +15,6 @@ import android.opengl.EGLConfig;
 import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLSurface;
-import android.opengl.GLES30;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
