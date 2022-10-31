@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.View;
@@ -72,7 +73,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
             }
         });
         setContentView(R.layout.main);
-        LocalSurfaceView view = findViewById(R.id.root);
+        SurfaceView view = findViewById(R.id.root);
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
         this.mayorV = (short) (configurationInfo.reqGlEsVersion >> 16);
@@ -277,14 +278,17 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     // end destroy request
                     if (lpause)
                         lrunning = false;
-                    lpause = pause;
-                    if (pause)
+                    
+                    if (pause) {
+                    		lpause = true;
                         pause = false;
-                    lresume = resume;
+                    }
                     if (resume) {
+                    		lresume = true;
                         resume = false;
                         lrunning = true;
                     }
+                    notifyAll();
                     // Ready to draw?
                     if (!lrunning || (holder == null)) {
                         wait();
@@ -295,7 +299,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 
                 if (mEglDisplay == null) {
                     final int[] temp = new int[2]; // for chaching value output
-
                     mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
                     if (mEglDisplay == EGL14.EGL_NO_DISPLAY || mEglDisplay == null) {
                         mEglDisplay = null;
@@ -383,6 +386,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 if (lresume) {
                     resume();
                     time = frameStart = lastFrameTime = 0;
+                    lresume = false;
                 }
                 if (time - frameStart > 1000l) {
                     fps = frames;
@@ -396,6 +400,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 if (lpause) {
                     pause();
                     eglDestroyRequest |= (limitRenderer() ? 2 : 1);
+                    lpause = false;
                 }
                 if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
                     int error = EGL14.eglGetError();
