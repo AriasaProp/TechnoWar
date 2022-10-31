@@ -12,7 +12,7 @@ void Main::resume() {
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
-	r = g = 0, b = 1;
+	//r = g = 0, b = 1;
 	
 }
 void Main::render(float delta) {
