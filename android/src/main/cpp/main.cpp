@@ -5,7 +5,7 @@
 #include "mainListener.h"
 #include "translated_opengles.h"
 
-extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JNIEnv *e, jobject o) {
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 	tgf = new tgf_gles();
 }
 
