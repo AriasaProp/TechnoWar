@@ -574,7 +574,7 @@ namespace TGF {
 class TranslatedGraphicsFunction {
 public:
 	virtual ~TranslatedGraphicsFunction() {};
-	virtual char *renderer() const = 0;
+	virtual const unsigned char *renderer() = 0;
 	virtual void clearcolormask(unsigned int, float, float, float, float) = 0;
 	virtual void viewport(unsigned int, unsigned int, unsigned int, unsigned int) = 0;
 };
