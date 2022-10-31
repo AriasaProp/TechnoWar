@@ -9,8 +9,8 @@
 #include <GLES3/gl3.h>
 #endif
 
-const unsigned char *tgf_gles::renderer() {
-		return static_cast<const unsigned char*>(glGetString(GL_RENDERER));
+const char *tgf_gles::renderer() {
+		return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 }
 
 void tgf_gles::clearcolormask(unsigned int m, float r, float g, float b, float a) {
