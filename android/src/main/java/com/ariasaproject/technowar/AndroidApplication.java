@@ -21,7 +21,6 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnSystemUiVisibilityChangeListener;
 import android.widget.Toast;
@@ -73,7 +72,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
             }
         });
         setContentView(R.layout.main);
-        SurfaceView view = findViewById(R.id.root);
+        LocalSurfaceView view = findViewById(R.id.root);
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
         this.mayorV = (short) (configurationInfo.reqGlEsVersion >> 16);
