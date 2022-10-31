@@ -221,12 +221,13 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         notifyAll();
     }
     
-		private native void create();
-		private native void resume();
-		private native void resize(int w, int h);
-		private native void render(float d);
-		private native void pause();
-		private native void destroy();
+    private native void create();
+    private native void resume();
+    private native void resize(int w, int h);
+    private native void render(float d);
+    private native void pause();
+    private native void destroy();
+    private native boolean limitRenderer();
 
     // main loop
     @Override
@@ -395,8 +396,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 
                 if (lpause) {
                     pause();
-                    boolean limitGles = GLES30.glGetString(GLES30.GL_RENDERER).startsWith("Adreno");
-                    eglDestroyRequest |= (limitGles ? 2 : 1);
+                    eglDestroyRequest |= (limitRenderer() ? 2 : 1);
                 }
                 if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
                     int error = EGL14.eglGetError();
