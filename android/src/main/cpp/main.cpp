@@ -5,14 +5,12 @@
 #include "mainListener.h"
 #include "translated_opengles.h"
 
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
-	tgf = new tgf_gles();
-}
 
 #define JEx(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_technowar_AndroidApplication_##M
 
 
 JEx(void, create) (JNIEnv *e, jobject o) {
+	tgf = new tgf_gles();
 	Main::create();
 }
 

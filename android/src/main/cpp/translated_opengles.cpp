@@ -9,19 +9,16 @@
 #include <GLES3/gl3.h>
 #endif
 
-char *renderer_gles = nullptr;
-
 char *tgf_gles::renderer() const {
-		if(!renderer_gles) renderer_gles = reinterpret_cast<char*>(glGetString(GL_RENDERER));
-		return renderer_gles;
+	return glGetString(GL_RENDERER);
 }
 
 void tgf_gles::clearcolormask(unsigned int m, float r, float g, float b, float a) {
-		glClearColor(r, g, b, a);
-		glClear(m);
+	glClearColor(r, g, b, a);
+	glClear(m);
 }
 
 void tgf_gles::viewport(unsigned int x, unsigned int y, unsigned int w, unsigned int h) {
-		glViewport(x, y, w, h);
+	glViewport(x, y, w, h);
 }
 
