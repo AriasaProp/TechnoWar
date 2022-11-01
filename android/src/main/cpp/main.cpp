@@ -1,7 +1,7 @@
 #include <jni.h>
 #include <thread>
 #include <mutex>
-#include <android/native_window.h>
+#include <android/native_window_jni.h>
 
 #include "mainListener.h"
 #include "translated_opengles.h"
@@ -27,11 +27,11 @@ JEx(void, native_onPause) (JNIEnv *e, jobject o, jboolean finished) {
 
 
 //surface callback
-ANativeWindow n_window = nullptr;
+ANativeWindow *n_window = nullptr;
 unsigned int width = 0, height = 0;
 
 JEx(jboolean, native_surfaceCreated) (JNIEnv *e, jobject o, jobject surface) {
-	n_window = ANativeWindow_fromSurface(surface);
+	n_window = ANativeWindow_fromSurface(e, surface);
 	return (n_window != nullptr);
 }
 
@@ -42,8 +42,9 @@ JEx(jboolean, native_surfaceChanged) (JNIEnv *e, jobject o, jobject surface, jin
 }
 
 JEx(jboolean, native_surfaceDestroyed) (JNIEnv *e, jobject o, jobject surface) {
-	
-	return (n_window != nullptr);
+	ANativeWindow_release(n_window);
+	n_window = nullptr;
+	return true;
 }
 
 
