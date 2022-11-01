@@ -276,9 +276,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                         eglDestroyRequest = 0;
                     }
                     // end destroy request
-                    if (lpause)
-                        lrunning = false;
-                    
                     if (pause) {
                     		lpause = true;
                         pause = false;
@@ -401,6 +398,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     pause();
                     eglDestroyRequest |= (limitRenderer() ? 2 : 1);
                     lpause = false;
+                    lrunning = false;
                 }
                 if (!EGL14.eglSwapBuffers(mEglDisplay, mEglSurface)) {
                     int error = EGL14.eglGetError();
