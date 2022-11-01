@@ -1,6 +1,9 @@
 name: Build & Publish Android Artifacts
 
-on: [workflow_dispatch]
+on:
+  push:
+    paths:
+      - 'android/**'
 
 jobs:
   build:
