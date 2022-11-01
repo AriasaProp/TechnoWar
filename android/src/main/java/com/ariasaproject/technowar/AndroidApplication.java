@@ -83,24 +83,18 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         mainTGFThread = new Thread(this, "GLThread");
         mainTGFThread.start();
         view.getHolder().addCallback(this);
-        native_onCreate();
     }
-    private native void native_onCreate();
 
     @Override
     protected void onStart() {
-    		super.onStart();
-    		native_onStart();
+    	super.onStart();
     }
-    private native void native_onStart();
     @Override
     protected synchronized void onResume() {
         super.onResume();
         resume = true;
         notifyAll();
-        native_onResume();
     }
-    private native void native_onResume();
 
     public synchronized void restart() {
         runOnUiThread(new Runnable() {
@@ -111,7 +105,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 while(!mExited)
                   wait();
             } catch(Throwable ignore) {}
-            startActivity(getIntent());
+                startActivity(getIntent());
           }
         });
     }
@@ -149,10 +143,8 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 }
             }
         }
-        native_onPause(isFinishing());
         super.onPause();
     }
-    private native void native_onPause(boolean finish);
 
     @Override
     public void onConfigurationChanged(Configuration config) {
@@ -188,10 +180,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
     public synchronized void surfaceCreated(SurfaceHolder holder) {
         this.holder = holder;
         notifyAll();
-        boolean t = native_surfaceCreated(holder.getSurface());
-        if (t) pause();
     }
-    private native boolean native_surfaceCreated(Surface surface);
 
     @Override
     public synchronized void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
@@ -200,17 +189,13 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         width = w;
         height = h;
         notifyAll();
-        native_surfaceChanged(holder.getSurface(), w, h);
     }
-    private native boolean native_surfaceChanged(Surface surface, int w, int h);
 
     @Override
     public synchronized void surfaceDestroyed(SurfaceHolder holder) {
         this.holder = null;
         notifyAll();
-        native_surfaceDestroyed(holder.getSurface());
     }
-    private native boolean native_surfaceDestroyed(Surface surface);
     
     private native void create();
     private native void resume();
@@ -274,8 +259,8 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     if (resume) {
                         resume = false;
                         if(!lrunning) {
-		                    		lresume = true;
-		                        lrunning = true;
+                            lresume = true;
+		            lrunning = true;
                         }
                     }
                     notifyAll();
@@ -284,7 +269,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                         wait();
                         continue;
                     }
-            				mHolder = holder;
+                    mHolder = holder;
                 }
 
                 if (mEglDisplay == null) {
