@@ -281,9 +281,11 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                         pause = false;
                     }
                     if (resume) {
-                    		lresume = true;
                         resume = false;
-                        lrunning = true;
+                        if(!lrunning) {
+		                    		lresume = true;
+		                        lrunning = true;
+                        }
                     }
                     notifyAll();
                     // Ready to draw?
