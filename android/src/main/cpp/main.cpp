@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <thread>
 #include <mutex>
+#include <native_window.h>
 
 #include "mainListener.h"
 #include "translated_opengles.h"
