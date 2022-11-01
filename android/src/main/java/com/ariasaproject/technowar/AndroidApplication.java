@@ -19,6 +19,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -50,7 +51,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
     
     final int uiHide = 5382;//hide all system ui as possible
     int mayorV, minorV;
-    volatile boolean resume = false, pause = false, destroy = false, resize = false, rendered = false, hasFocus = true,
+    volatile boolean resume = false, pause = false, destroy = false, resize = false, rendered = false,
             mExited = false;
     long frameStart = System.currentTimeMillis(), lastFrameTime = System.currentTimeMillis();
     int frames, fps, width = 0, height = 0;
@@ -82,18 +83,24 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         mainTGFThread = new Thread(this, "GLThread");
         mainTGFThread.start();
         view.getHolder().addCallback(this);
+        native_onCreate();
     }
+    private native void native_onCreate();
 
     @Override
     protected void onStart() {
     		super.onStart();
+    		native_onStart();
     }
+    private native void native_onStart();
     @Override
     protected synchronized void onResume() {
         super.onResume();
         resume = true;
         notifyAll();
+        native_onResume();
     }
+    private native void native_onResume();
 
     public synchronized void restart() {
         runOnUiThread(new Runnable() {
@@ -116,11 +123,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
             finish();
           }
         });
-    }
-
-    @Override
-    public synchronized void onWindowFocusChanged(final boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
     }
 
     @Override
@@ -147,20 +149,10 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 }
             }
         }
+        native_onPause(isFinishing());
         super.onPause();
     }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-    
-    @Override
-    protected synchronized void onDestroy() {
-        //net.destroy();
-        super.onDestroy();
-    }
-
+    private native void native_onPause(boolean finish);
 
     @Override
     public void onConfigurationChanged(Configuration config) {
@@ -194,10 +186,12 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 
     @Override
     public synchronized void surfaceCreated(SurfaceHolder holder) {
-        // fall thru surfaceChanged
         this.holder = holder;
         notifyAll();
+        boolean t = native_surfaceCreated(holder.getSurface());
+        if (t) pause();
     }
+    private native boolean native_surfaceCreated(Surface surface);
 
     @Override
     public synchronized void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
@@ -206,20 +200,17 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         width = w;
         height = h;
         notifyAll();
-        while (!mExited && resize) {
-		      	try {
-		      			wait();
-		      	} catch (InterruptedException ex) {
-		        		Thread.currentThread().interrupt();
-		        }
-        }
+        native_surfaceChanged(holder.getSurface(), w, h);
     }
+    private native boolean native_surfaceChanged(Surface surface, int w, int h);
 
     @Override
     public synchronized void surfaceDestroyed(SurfaceHolder holder) {
         this.holder = null;
         notifyAll();
+        native_surfaceDestroyed(holder.getSurface());
     }
+    private native boolean native_surfaceDestroyed(Surface surface);
     
     private native void create();
     private native void resume();

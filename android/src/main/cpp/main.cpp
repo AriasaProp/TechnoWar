@@ -8,6 +8,43 @@
 
 #define JEx(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_technowar_AndroidApplication_##M
 
+JEx(void, native_onCreate) (JNIEnv *e, jobject o) {
+	
+}
+
+JEx(void, native_onStart) (JNIEnv *e, jobject o) {
+	
+}
+
+JEx(void, native_onResume) (JNIEnv *e, jobject o) {
+	
+}
+
+JEx(void, native_onPause) (JNIEnv *e, jobject o, jboolean finished) {
+	
+}
+
+
+//surface callback
+ANativeWindow n_window = nullptr;
+unsigned int width = 0, height = 0;
+
+JEx(jboolean, native_surfaceCreated) (JNIEnv *e, jobject o, jobject surface) {
+	n_window = ANativeWindow_fromSurface(surface);
+	return (n_window != nullptr);
+}
+
+JEx(jboolean, native_surfaceChanged) (JNIEnv *e, jobject o, jobject surface, jint w, jint h) {
+	width = w;
+	height = h;
+	return (n_window != nullptr);
+}
+
+JEx(jboolean, native_surfaceDestroyed) (JNIEnv *e, jobject o, jobject surface) {
+	
+	return (n_window != nullptr);
+}
+
 
 JEx(void, create) (JNIEnv *e, jobject o) {
 	tgf = new tgf_gles();
