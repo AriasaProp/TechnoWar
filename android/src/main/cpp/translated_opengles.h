@@ -25,7 +25,7 @@ public:
 
 	void vertex_attrib_pointer(unsigned int, unsigned int, int type, bool, unsigned int, void *) override;
 	void enable_vertex_attrib_array(unsigned int) override;
-	void draw_elements(int, unsigned int, int, unsigned int, const void *) override;
+	void draw_elements(int, unsigned int, int, const void *) override;
 };
 
 #endif // Included_TGLES
