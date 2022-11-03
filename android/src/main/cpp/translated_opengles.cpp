@@ -51,7 +51,7 @@ void tgf_gles::gen_shader(unsigned int *program, const char *v, const char *f) {
 		glGetProgramiv(*program, GL_LINK_STATUS, &temp);
 		if (temp == 0){
 			GLchar msg[MAX_GL_MSG];
-			glGetProgramInfoLog(program, MAX_GL_MSG, 0, msg);
+			glGetProgramInfoLog(*program, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
 	} catch (...) {
