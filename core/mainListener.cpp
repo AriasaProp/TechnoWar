@@ -36,9 +36,9 @@ void Main::resume() {
 	tgf->bind_buffer(TGF::ARRAY_BUFFER, &VBO);
 	float vertices[]{
 		0.5f, 0.5f, /* */0.0f, 1.0f, 0.0f, 1.0f,
-		0.5f, -0.5f, /* */0.0f, 1.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, /* */0.0f, 1.0f, 0.0f, 1.0f,
-		-0.5f, 0.5f, /* */0.0f, 1.0f, 0.0f, 1.0f
+		0.5f, -0.5f, /* */1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, /* */0.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, /* */0.5f, 0.5f, 0.5f, 1.0f
 	};
 	tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), vertices, TGF::STATIC_DRAW);
 	tgf->gen_buffer(&IBO);
