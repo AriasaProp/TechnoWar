@@ -591,9 +591,9 @@ public:
 	virtual void bind_vertex_array(unsigned int*) = 0;
 	virtual void delete_vertex_array(unsigned int*) = 0;
 
-	virtual void vertex_attrib_pointer(unsigned int,unsigned int, int, bool, void *) = 0;
+	virtual void vertex_attrib_pointer(unsigned int,unsigned int, int, bool, unsigned int stride, void *) = 0;
 	virtual void enable_vertex_attrib_array(unsigned int) = 0;
-	virtual void draw_elements(int, unsigned int, int, unsigned int) = 0;
+	virtual void draw_elements(int, unsigned int, int, const void *) = 0;
 };
 
 #endif //Included_TGF

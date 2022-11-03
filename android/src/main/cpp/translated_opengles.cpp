@@ -87,13 +87,13 @@ void tgf_gles::bind_vertex_array(unsigned int *v) {
 void delete_vertex_array(unsigned int *v) {
 	glDeleteVertexArrays(1, v);
 }
-void tgf_gles::vertex_attrib_pointer(unsigned int loc, unsigned int size, int type, bool normalize, void *offset) {
-	glVertexAttribPointer(loc, size, type, normalize, offset);
+void tgf_gles::vertex_attrib_pointer(unsigned int loc, unsigned int size, int type, bool normalize, unsigned int stride, void *offset) {
+	glVertexAttribPointer(loc, size, type, normalize, stride, offset);
 }
 void tgf_gles::enable_vertex_attrib_array(unsigned int loc) {
 	glEnableVertexAttribArray(loc);
 }
-void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, unsigned int offset) {
+void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
 	glDrawElements(drawType, indSize, inType, offset);
 }
 
