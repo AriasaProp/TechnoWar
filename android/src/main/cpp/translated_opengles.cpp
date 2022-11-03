@@ -25,20 +25,16 @@ tgf_gles::~tgf_gles() {
 		delete[] stemp;
 		delete[] s_msg;
 }
-
 const char *tgf_gles::renderer() {
 		return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 }
-
 void tgf_gles::clearcolormask(unsigned int m, float r, float g, float b, float a) {
 		glClearColor(r, g, b, a);
 		glClear(m);
 }
-
 void tgf_gles::viewport(unsigned int x, unsigned int y, unsigned int w, unsigned int h) {
 		glViewport(x, y, w, h);
 }
-
 unsigned int tgf_gles::gen_shader(const char *v, const char *f) {
 		GLuint program = glCreateProgram();
 		GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
