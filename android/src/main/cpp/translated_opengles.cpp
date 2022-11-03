@@ -73,7 +73,7 @@ unsigned int tgf_gles::gen_shader(const char *v, const char *f) {
 		glDeleteShader(fragment);
 		return program;
 }
-void delete_shader(const unsigned int program) {
+void tgf_gles::delete_shader(const unsigned int program) {
 		glDeleteProgram(program);
 }
 
