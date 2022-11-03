@@ -81,8 +81,8 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         this.minorV = (short) (configurationInfo.reqGlEsVersion & 0x0000ffff);
         // for graphics loop
         mainTGFThread = new Thread(this, "GLThread");
-        mainTGFThread.start();
         view.getHolder().addCallback(this);
+        mainTGFThread.start();
     }
 
     @Override
@@ -263,12 +263,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     }
                     mHolder = holder;
                 }
-                if (mEglDisplay == null || mEglSurface == null) {
-								    final int[] configsEGL = new int[]{
-								  			EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_ALPHA_SIZE, 0, EGL14.EGL_NONE, //EGLConfig offset 0
-								  			EGL14.EGL_CONTEXT_CLIENT_VERSION, mayorV, EGL14.EGL_NONE, //EGLContext offset 3
-								  			EGL14.EGL_NONE, //NULL EGL Value offset 6
-								    };
+                if (mEglDisplay == null || mEglSurface == null || mEglDisplay == null) {
 		                if (mEglDisplay == null) {
 		                    final int[] temp = new int[2]; // for chaching value output
 		                    mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
@@ -283,17 +278,16 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		
 		                    if (mEglConfig == null) {
 		                        // choose best config
-		                        EGL14.eglChooseConfig(mEglDisplay, configsEGL, 0, null, 0, 0, temp, 0);
+		                        final int[] eglConfigAttr = new int[]{EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_ALPHA_SIZE, 0, EGL14.EGL_NONE};
+		                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, null, 0, 0, temp, 0);
 		                        if (temp[0] <= 0)
 		                            throw new IllegalArgumentException("No configs match with configSpec");
 		                        EGLConfig[] configs = new EGLConfig[temp[0]];
-		                        EGL14.eglChooseConfig(mEglDisplay, configsEGL, 0, configs, 0, configs.length, temp, 0);
+		                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, configs, 0, configs.length, temp, 0);
 		                        int lastSc = -1, curSc;
 		                        mEglConfig = configs[0];
 		                        for (EGLConfig config : configs) {
 		                            temp[0] = -1;
-		                            // alpha should 0
-		                            // choose higher depth, stencil, color buffer(rgba)
 		                            curSc = -1;
 		                            for (int attr : new int[]{EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_BUFFER_SIZE, EGL14.EGL_DEPTH_SIZE, EGL14.EGL_STENCIL_SIZE}) {
 		                                if (EGL14.eglGetConfigAttrib(mEglDisplay, config, attr, temp, 0)) {
@@ -314,13 +308,15 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                if (mEglContext == null || mEglSurface == null) {
 		                		boolean newContext = mEglContext == null;
 		                    if (newContext) {
-		                        mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, EGL14.EGL_NO_CONTEXT, configsEGL, 3);
+		                    		final int[] eglCtxAttr = new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, mayorV, EGL14.EGL_NONE};
+		                        mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, EGL14.EGL_NO_CONTEXT, eglCtxAttr, 0);
 		                        if (mEglContext == null || mEglContext == EGL14.EGL_NO_CONTEXT) {
 		                            mEglContext = null;
 		                            throw new RuntimeException("createContext failed: " + Integer.toHexString(EGL14.eglGetError()));
 		                        }
 		                    }
-		                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, mHolder, configsEGL, 6);
+		                    final int[] eglSurfaceAttr = new int[]{EGL14.EGL_NONE};
+		                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, mHolder, eglSurfaceAttr, 0);
 		                    if (mEglSurface == null || mEglSurface == EGL14.EGL_NO_SURFACE) {
 		                        mEglSurface = null;
 		                        throw new RuntimeException("Create EGL Surface failed: " + Integer.toHexString(EGL14.eglGetError()));
