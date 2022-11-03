@@ -11,6 +11,7 @@ public:
 	void clearcolormask(unsigned int, float, float, float, float) override;
 	void viewport(unsigned int, unsigned int, unsigned int, unsigned int) override;
 	unsigned int gen_shader(const char*, const char*) override;
+	void delete_shader(const unsigned int) override;
 	
 	unsigned int gen_buffer() override;
 	void bind_buffer(int, const unsigned int) override;

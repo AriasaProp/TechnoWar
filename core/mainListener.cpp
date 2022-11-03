@@ -1,6 +1,7 @@
 #include "mainListener.h"
 
 float r = 0, g = 0, b = 0;
+unsigned int sp;
 
 void Main::create() {
 	if (!tgf) return;
@@ -9,6 +10,24 @@ void Main::create() {
 void Main::resume() {
 	if (!tgf) return;
 	r = 1, g = b = 0;
+	const char *vShaderSrc =
+         "#version 300 es                         \n"
+         "layout(location = 0) in vec4 a_position;\n"
+         "layout(location = 1) in vec4 a_color;   \n"
+         "out vec4 v_color;                       \n"
+         "void main() {                           \n"
+         "    v_color = a_color;                  \n"
+         "    gl_Position = a_position;           \n"
+         "}", 
+      *fShaderSrc =
+         "#version 300 es           \n"
+         "precision mediump float;  \n"
+         "in vec4 v_color;          \n"
+         "out vec4 o_fragColor;     \n"
+         "void main() {             \n"
+         "    o_fragColor = v_color;\n"
+         "}";
+		sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
@@ -20,8 +39,9 @@ void Main::render(float delta) {
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
 }
 void Main::pause() {
-	r = 1, g = 1, b = 0;
 	if (!tgf) return;
+	r = 1, g = 1, b = 0;
+	tgf->delete_shader(sp);
 }
 void Main::destroy() {
 	if (!tgf) return;
