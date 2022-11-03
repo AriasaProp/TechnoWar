@@ -55,7 +55,7 @@ void tgf_gles::gen_shader(unsigned int *p, const char *v, const char *f) {
 		}
 	} catch (...) {
 		glDeleteProgram(*p);
-		*program = 0;
+		*p = 0;
 	}
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
