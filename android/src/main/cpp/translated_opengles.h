@@ -5,7 +5,7 @@
 
 class tgf_gles : public TranslatedGraphicsFunction {
 public:
-	~tgf_gles() override;
+	~tgf_gles() {}
 	const char *renderer() override;
 	void clearcolormask(unsigned int, float, float, float, float) override;
 	void viewport(unsigned int, unsigned int, unsigned int, unsigned int) override;

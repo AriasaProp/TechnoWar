@@ -12,7 +12,6 @@
 //maximum output log message in char
 #define MAX_GL_MSG 512
 
-tgf_gles::~tgf_gles() {}
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 }
