@@ -10,24 +10,22 @@ void Main::create() {
 void Main::resume() {
 	if (!tgf) return;
 	r = 1, g = b = 0;
-	const char *vShaderSrc =
-         "#version 300 es                         \n"
-         "layout(location = 0) in vec4 a_position;\n"
-         "layout(location = 1) in vec4 a_color;   \n"
-         "out vec4 v_color;                       \n"
-         "void main() {                           \n"
-         "    v_color = a_color;                  \n"
-         "    gl_Position = a_position;           \n"
-         "}", 
-      *fShaderSrc =
-         "#version 300 es           \n"
-         "precision mediump float;  \n"
-         "in vec4 v_color;          \n"
-         "out vec4 o_fragColor;     \n"
-         "void main() {             \n"
-         "    o_fragColor = v_color;\n"
-         "}";
-		sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
+	const char *vShaderSrc = "#version 300 es"
+		"\nlayout(location = 0) in vec4 a_position;"
+		"\nlayout(location = 1) in vec4 a_color;"
+		"\nout vec4 v_color;"
+		"\nvoid main() {"
+		"\n    v_color = a_color;"
+		"\n    gl_Position = a_position;"
+		"\n}", 
+	*fShaderSrc = "#version 300 es"
+		"\nprecision mediump float;"
+		"\nin vec4 v_color;"
+		"\nout vec4 o_fragColor;"
+		"\nvoid main() {"
+		"\n    o_fragColor = v_color;"
+		"\n}";
+	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
@@ -46,5 +44,5 @@ void Main::pause() {
 void Main::destroy() {
 	if (!tgf) return;
 	delete tgf;
-	tgf = nullptr;
+	tgf = 0;
 }

@@ -12,7 +12,7 @@ public:
 	void viewport(unsigned int, unsigned int, unsigned int, unsigned int) override;
 	unsigned int gen_shader(const char*, const char*) override;
 	void delete_shader(const unsigned int) override;
-	
+
 	unsigned int gen_buffer() override;
 	void bind_buffer(int, const unsigned int) override;
 	void buffer_data(int, const unsigned int, const unsigned char *, int) override;

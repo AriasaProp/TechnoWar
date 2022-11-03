@@ -2,15 +2,15 @@
 #define Included_MainListener
 #include "translatedGraphicsFunction.h"
 
-TranslatedGraphicsFunction *tgf = nullptr;
+TranslatedGraphicsFunction *tgf = 0;
 
 namespace Main {
-		void create();
-		void resume();
-		void resize(unsigned int, unsigned int);
-		void render(float);
-		void pause();
-		void destroy();
+	void create();
+	void resume();
+	void resize(unsigned int, unsigned int);
+	void render(float);
+	void pause();
+	void destroy();
 };
 
 #endif // Included_MainListener
