@@ -25,7 +25,7 @@ void Main::resume() {
 		"\nvoid main() {"
 		"\n    o_fragColor = v_color;"
 		"\n}";
-	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
+	tgf->gen_shader(&sp, vShaderSrc, fShaderSrc);
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
