@@ -577,14 +577,23 @@ public:
 	virtual const char *renderer() = 0;
 	virtual void clearcolormask(unsigned int, float, float, float, float) = 0;
 	virtual void viewport(unsigned int, unsigned int, unsigned int, unsigned int) = 0;
-	virtual void gen_shader(unsigned int *, const char *, const char *) = 0;
-	virtual void delete_shader(const unsigned int) = 0;
 
-	virtual void gen_buffer(unsigned int *) = 0;
-	virtual void bind_buffer(int, const unsigned int) = 0;
-	virtual void buffer_data(int, const unsigned int, const unsigned char *, int) = 0;
-	virtual void gen_vertex_array(unsigned int *) = 0;
-	virtual void bind_vertex_array(const unsigned int) = 0;
+	virtual void gen_shader(unsigned int*, const char *, const char *) = 0;
+	virtual void bind_shader(unsigned int*) = 0;
+	virtual void delete_shader(unsigned int*) = 0;
+
+	virtual void gen_buffer(unsigned int*) = 0;
+	virtual void bind_buffer(int, unsigned int*) = 0;
+	virtual void buffer_data(int, unsigned int, const unsigned char *, int) = 0;
+	virtual void delete_buffer(unsigned int*) = 0;
+
+	virtual void gen_vertex_array(unsigned int*) = 0;
+	virtual void bind_vertex_array(unsigned int*) = 0;
+	virtual void delete_vertex_array(unsigned int*) = 0;
+
+	virtual void vertex_attrib_pointer(unsigned int,unsigned int, int, bool, void *) = 0;
+	virtual void enable_vertex_attrib_array(unsigned int) = 0;
+	virtual void draw_elements(int, unsigned int, int, unsigned int) = 0;
 };
 
 #endif //Included_TGF
