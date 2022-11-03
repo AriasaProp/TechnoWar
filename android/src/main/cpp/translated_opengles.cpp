@@ -9,17 +9,17 @@
 #include <GLES3/gl3.h>
 #endif
 
-GLuint *utemp = 0;
-GLint *stemp = 0;
+static GLuint *utemp = 0;
+static GLint *stemp = 0;
 #define MAX_GL_MSG 512
-GLchar *s_msg = 0;
+static GLchar *s_msg = 0;
 
 tgf_gles::tgf_gles() {
 		utemp = new GLuint[3];
 		stemp = new GLint[3];
 		s_msg = new GLchar[MAX_GL_MSG];
 }
-~tgf_gles::tgf_gles() {
+tgf_gles::~tgf_gles() {
 		delete[] utemp;
 		delete[] stemp;
 		delete[] s_msg;
