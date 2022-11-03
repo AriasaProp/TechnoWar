@@ -9,9 +9,10 @@
 #include <GLES3/gl3.h>
 #endif
 
+#define MAX_GL_MSG 512
+
 static GLuint *utemp = 0;
 static GLint *stemp = 0;
-#define MAX_GL_MSG 512
 static GLchar *s_msg = 0;
 
 tgf_gles::tgf_gles() {
