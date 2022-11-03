@@ -584,14 +584,14 @@ public:
 
 	virtual void gen_buffer(unsigned int*) = 0;
 	virtual void bind_buffer(int, unsigned int*) = 0;
-	virtual void buffer_data(int, unsigned int, const unsigned char *, int) = 0;
+	virtual void buffer_data(int, unsigned int, const void*, int) = 0;
 	virtual void delete_buffer(unsigned int*) = 0;
 
 	virtual void gen_vertex_array(unsigned int*) = 0;
 	virtual void bind_vertex_array(unsigned int*) = 0;
 	virtual void delete_vertex_array(unsigned int*) = 0;
 
-	virtual void vertex_attrib_pointer(unsigned int,unsigned int, int, bool, unsigned int stride, void *) = 0;
+	virtual void vertex_attrib_pointer(unsigned int,unsigned int, int, bool, unsigned int, void *) = 0;
 	virtual void enable_vertex_attrib_array(unsigned int) = 0;
 	virtual void draw_elements(int, unsigned int, int, const void *) = 0;
 };

@@ -16,7 +16,7 @@ public:
 
 	void gen_buffer(unsigned int*) override;
 	void bind_buffer(int, unsigned int*) override;
-	void buffer_data(int, unsigned int, const unsigned char *, int) override;
+	void buffer_data(int, unsigned int, const void*, int) override;
 	void delete_buffer(unsigned int*) override;
 
 	void gen_vertex_array(unsigned int*) override;

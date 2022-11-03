@@ -72,7 +72,7 @@ void tgf_gles::gen_buffer(unsigned int *b) {
 void tgf_gles::bind_buffer(int type, unsigned int *b) {
 	glBindBuffer(type, *b);
 }
-void tgf_gles::buffer_data(int type, unsigned int data_len, const unsigned char *data, int datatype) {
+void tgf_gles::buffer_data(int type, unsigned int data_len, const void *data, int datatype) {
 	glBufferData(type, data_len, data, datatype);
 }
 void delete_buffer(unsigned int *b) {
