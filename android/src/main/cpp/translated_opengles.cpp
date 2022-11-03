@@ -74,12 +74,12 @@ unsigned int tgf_gles::gen_shader(const char *v, const char *f) {
 		return program;
 }
 void delete_shader(const unsigned int program) {
-		glDeleteProgram(program)
+		glDeleteProgram(program);
 }
 
 unsigned int tgf_gles::gen_buffer() {
 		glGenBuffers(1, utemp);
-		return temp[0];
+		return utemp[0];
 }
 void tgf_gles::bind_buffer(int type, const unsigned int id) {
 		glBindBuffer(type, id);
@@ -89,7 +89,7 @@ void tgf_gles::buffer_data(int type, const unsigned int data_len, const unsigned
 }
 unsigned int tgf_gles::gen_vertex_array() {
 		glGenVertexArrays(1, utemp);
-		return temp[0];
+		return utemp[0];
 }
 void tgf_gles::bind_vertex_array(const unsigned int id) {
 		glBindVertexArray(id);
