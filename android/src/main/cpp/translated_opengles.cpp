@@ -19,7 +19,7 @@ tgf_gles::tgf_gles() {
 		stemp = new GLint[3];
 		s_msg = new GLchar[MAX_GL_MSG];
 }
-tgf_gles::~tgf_gles() {
+~tgf_gles::tgf_gles() {
 		delete[] utemp;
 		delete[] stemp;
 		delete[] s_msg;
@@ -76,7 +76,6 @@ unsigned int tgf_gles::gen_shader(const char *v, const char *f) {
 void tgf_gles::delete_shader(const unsigned int program) {
 		glDeleteProgram(program);
 }
-
 unsigned int tgf_gles::gen_buffer() {
 		glGenBuffers(1, utemp);
 		return utemp[0];
