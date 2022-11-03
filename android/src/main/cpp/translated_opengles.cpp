@@ -75,7 +75,7 @@ void tgf_gles::bind_buffer(int type, unsigned int *b) {
 void tgf_gles::buffer_data(int type, unsigned int data_len, const void *data, int datatype) {
 	glBufferData(type, data_len, data, datatype);
 }
-void delete_buffer(unsigned int *b) {
+void tgf_gles::delete_buffer(unsigned int *b) {
 	glDeleteBuffers(1, b);
 }
 void tgf_gles::gen_vertex_array(unsigned int *v) {
@@ -84,7 +84,7 @@ void tgf_gles::gen_vertex_array(unsigned int *v) {
 void tgf_gles::bind_vertex_array(unsigned int *v) {
 	glBindVertexArray(*v);
 }
-void delete_vertex_array(unsigned int *v) {
+void tgf_gles::delete_vertex_array(unsigned int *v) {
 	glDeleteVertexArrays(1, v);
 }
 void tgf_gles::vertex_attrib_pointer(unsigned int loc, unsigned int size, int type, bool normalize, unsigned int stride, void *offset) {
