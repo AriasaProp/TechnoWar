@@ -263,6 +263,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     }
                     mHolder = holder;
                 }
+            		boolean newContext = mEglContext == null;
                 if (mEglDisplay == null || mEglContext == null || mEglSurface == null) {
 		                if (mEglDisplay == null) {
 		                    final int[] temp = new int[2]; // for chaching value output
@@ -302,7 +303,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                        }
 		                    }
 		                }
-		            		boolean newContext = mEglContext == null;
 		                if (newContext) {
 				            		final int[] eglCtxAttr = new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, mayorV, EGL14.EGL_NONE};
 				                mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, EGL14.EGL_NO_CONTEXT, eglCtxAttr, 0);
