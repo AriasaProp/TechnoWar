@@ -8,6 +8,7 @@ unsigned int VAO, VBO, IBO;
 void Main::create() {
 	if (!tgf) return;
 	r = g = b = 1;
+	resume();
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -51,6 +52,7 @@ void Main::resume() {
 	tgf->enable_vertex_attrib_array(1);
 
 	tgf->bind_vertex_array(0);
+	
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
@@ -60,10 +62,12 @@ void Main::resize(unsigned int width, unsigned int height) {
 void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
+	
 	tgf->bind_shader(&sp);
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
+	
 }
 void Main::pause() {
 	if (!tgf) return;
