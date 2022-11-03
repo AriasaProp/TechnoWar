@@ -263,69 +263,62 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     }
                     mHolder = holder;
                 }
-                boolean eglEnvLost = false;
-                if (mEglDisplay == null) {
-                		eglEnvLost = true;
-                    final int[] temp = new int[2]; // for chaching value output
-                    mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
-                    if (mEglDisplay == EGL14.EGL_NO_DISPLAY || mEglDisplay == null) {
-                        mEglDisplay = null;
-                        throw new RuntimeException("eglGetDisplay failed " + Integer.toHexString(EGL14.eglGetError()));
-                    }
-                    if (EGL14.eglInitialize(mEglDisplay, temp, 0, temp, 1))
-                        log(TAG, "version EGL " + temp[0] + "." + temp[1]);
-                    else
-                        throw new RuntimeException("eglInitialize failed " + Integer.toHexString(EGL14.eglGetError()));
-
-                    if (mEglConfig == null) {
-                        // choose best config
-                        final int[] eglConfigAttr = new int[]{EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_ALPHA_SIZE, 0, EGL14.EGL_NONE};
-                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, null, 0, 0, temp, 0);
-                        if (temp[0] <= 0)
-                            throw new IllegalArgumentException("No configs match with configSpec");
-                        EGLConfig[] configs = new EGLConfig[temp[0]];
-                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, configs, 0, configs.length, temp, 0);
-                        int lastSc = -1, curSc;
-                        mEglConfig = configs[0];
-                        for (EGLConfig config : configs) {
-                            temp[0] = -1;
-                            curSc = -1;
-                            for (int attr : new int[]{EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_BUFFER_SIZE, EGL14.EGL_DEPTH_SIZE, EGL14.EGL_STENCIL_SIZE}) {
-                                if (EGL14.eglGetConfigAttrib(mEglDisplay, config, attr, temp, 0)) {
-                                    curSc += temp[0];
-                                } else {
-                                    int error;
-                                    while ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS)
-                                        error(TAG, String.format("EglConfigAttribute : EGL error: 0x%x", error));
-                                }
-                            }
-                            if (curSc > lastSc) {
-                                lastSc = curSc;
-                                mEglConfig = config;
-                            }
-                        }
-                    }
-                }
-            		boolean newContext = eglEnvLost || mEglContext == null;
-                if (newContext) {
-                		eglEnvLost = true;
-		            		final int[] eglCtxAttr = new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, mayorV, EGL14.EGL_NONE};
-		                mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, EGL14.EGL_NO_CONTEXT, eglCtxAttr, 0);
-		                if (mEglContext == null || mEglContext == EGL14.EGL_NO_CONTEXT) {
-		                    mEglContext = null;
-		                    throw new RuntimeException("createContext failed: " + Integer.toHexString(EGL14.eglGetError()));
+                if (mEglDisplay == null || mEglContext == null || mEglSurface == null) {
+		                if (mEglDisplay == null) {
+		                    final int[] temp = new int[2]; // for chaching value output
+		                    mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
+		                    if (mEglDisplay == EGL14.EGL_NO_DISPLAY || mEglDisplay == null) {
+		                        mEglDisplay = null;
+		                        throw new RuntimeException("eglGetDisplay failed " + Integer.toHexString(EGL14.eglGetError()));
+		                    }
+		                    if (!EGL14.eglInitialize(mEglDisplay, temp, 0, temp, 1))
+		                        throw new RuntimeException("eglInitialize failed " + Integer.toHexString(EGL14.eglGetError()));
+		
+		                    if (mEglConfig == null) {
+		                        final int[] eglConfigAttr = new int[]{EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_ALPHA_SIZE, 0, EGL14.EGL_NONE};
+		                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, null, 0, 0, temp, 0);
+		                        if (temp[0] <= 0)
+		                            throw new IllegalArgumentException("No configs match with configSpec");
+		                        EGLConfig[] configs = new EGLConfig[temp[0]];
+		                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, configs, 0, configs.length, temp, 0);
+		                        int lastSc = -1, curSc;
+		                        mEglConfig = configs[0];
+		                        for (EGLConfig config : configs) {
+		                            temp[0] = -1;
+		                            curSc = -1;
+		                            for (int attr : new int[]{EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_BUFFER_SIZE, EGL14.EGL_DEPTH_SIZE, EGL14.EGL_STENCIL_SIZE}) {
+		                                if (EGL14.eglGetConfigAttrib(mEglDisplay, config, attr, temp, 0)) {
+		                                    curSc += temp[0];
+		                                } else {
+		                                    int error;
+		                                    while ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS)
+		                                        error(TAG, String.format("EglConfigAttribute : EGL error: 0x%x", error));
+		                                }
+		                            }
+		                            if (curSc > lastSc) {
+		                                lastSc = curSc;
+		                                mEglConfig = config;
+		                            }
+		                        }
+		                    }
 		                }
-                }
-                if (eglEnvLost || mEglSurface == null) {
-                		eglEnvLost = true;
-                    final int[] eglSurfaceAttr = new int[]{EGL14.EGL_NONE};
-                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, mHolder, eglSurfaceAttr, 0);
-                    if (mEglSurface == null || mEglSurface == EGL14.EGL_NO_SURFACE) {
-                        mEglSurface = null;
-                        throw new RuntimeException("Create EGL Surface failed: " + Integer.toHexString(EGL14.eglGetError()));
-                    }
-                }
-                if (eglEnvLost) {
+		            		boolean newContext = mEglContext == null;
+		                if (newContext) {
+				            		final int[] eglCtxAttr = new int[]{EGL14.EGL_CONTEXT_CLIENT_VERSION, mayorV, EGL14.EGL_NONE};
+				                mEglContext = EGL14.eglCreateContext(mEglDisplay, mEglConfig, EGL14.EGL_NO_CONTEXT, eglCtxAttr, 0);
+				                if (mEglContext == null || mEglContext == EGL14.EGL_NO_CONTEXT) {
+				                    mEglContext = null;
+				                    throw new RuntimeException("createContext failed: " + Integer.toHexString(EGL14.eglGetError()));
+				                }
+		                }
+		                if (mEglSurface == null) {
+		                    final int[] eglSurfaceAttr = new int[]{EGL14.EGL_NONE};
+		                    mEglSurface = EGL14.eglCreateWindowSurface(mEglDisplay, mEglConfig, mHolder, eglSurfaceAttr, 0);
+		                    if (mEglSurface == null || mEglSurface == EGL14.EGL_NO_SURFACE) {
+		                        mEglSurface = null;
+		                        throw new RuntimeException("Create EGL Surface failed: " + Integer.toHexString(EGL14.eglGetError()));
+		                    }
+		                }
 			              if (!EGL14.eglMakeCurrent(mEglDisplay, mEglSurface, mEglSurface, mEglContext))
 			                  throw new RuntimeException("Make EGL failed: " + Integer.toHexString(EGL14.eglGetError()));
                 }
