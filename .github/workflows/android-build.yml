@@ -1,6 +1,10 @@
 name: Build & Publish Android Artifacts
 
-on: [push]
+on:
+  push:
+    paths:
+      - 'android/**'
+      - 'core/**'
 
 jobs:
   build:
