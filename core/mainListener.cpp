@@ -29,16 +29,18 @@ void Main::resume() {
 		"\n    o_fragColor = v_color;"
 		"\n}";
 	tgf->gen_shader(&sp, vShaderSrc, fShaderSrc);
-	
+	if(!sp)
+			r = 0, g = 1, b = 1;
+	/*
 	tgf->gen_vertex_array(&VAO);
 	tgf->bind_vertex_array(&VAO);
 	tgf->gen_buffer(&VBO);
 	tgf->bind_buffer(TGF::ARRAY_BUFFER, &VBO);
 	float vertices[]{
-		0.5f, 0.5f, /* */0.0f, 1.0f, 0.0f, 1.0f,
-		0.5f, -0.5f, /* */1.0f, 1.0f, 0.0f, 1.0f,
-		-0.5f, -0.5f, /* */0.0f, 1.0f, 1.0f, 1.0f,
-		-0.5f, 0.5f, /* */0.5f, 0.5f, 0.5f, 1.0f
+		0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
+		0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f,
+		-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+		-0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f
 	};
 	tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), vertices, TGF::STATIC_DRAW);
 	tgf->gen_buffer(&IBO);
@@ -52,29 +54,30 @@ void Main::resume() {
 	tgf->enable_vertex_attrib_array(1);
 
 	tgf->bind_vertex_array(0);
-	
+	*/
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
-	//r = g = 0, b = 1;
-	
 }
 void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
-	
 	tgf->bind_shader(&sp);
+	/*
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
-	
+	*/
+	tgf->bind_shader(0);
 }
 void Main::pause() {
 	if (!tgf) return;
 	tgf->delete_shader(&sp);
+	/*
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
 	tgf->delete_buffer(&IBO);
+	*/
 	sp = VAO = VBO = IBO = 0;
 }
 void Main::destroy() {
