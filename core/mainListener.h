@@ -1,5 +1,7 @@
 #ifndef Included_MainListener
 #define Included_MainListener
+
+
 #include "translatedGraphicsFunction.h"
 
 TranslatedGraphicsFunction *tgf = 0;
