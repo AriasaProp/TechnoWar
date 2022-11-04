@@ -62,13 +62,13 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	if (!binded) bind(tgf);
-	tgf->bind_shader(&sp);
 	/*
+	tgf->bind_shader(&sp);
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
-	*/
 	tgf->bind_shader(0);
+	*/
 }
 void Main::pause() {
 	if (!tgf) return;
