@@ -1,18 +1,17 @@
 #include "mainListener.h"
 
 float r = 0, g = 0, b = 0;
-unsigned int sp;
-
-unsigned int VAO, VBO, IBO;
+//unsigned int sp, VAO, VBO, IBO;
 
 void Main::create() {
 	if (!tgf) return;
 	r = g = b = 1;
-	resume();
+	//resume();
 }
 void Main::resume() {
 	if (!tgf) return;
 	r = 1, g = b = 0;
+	/*
 	const char *vShaderSrc = "#version 300 es"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
@@ -31,6 +30,7 @@ void Main::resume() {
 	tgf->gen_shader(&sp, vShaderSrc, fShaderSrc);
 	if(!sp)
 			r = 0, g = 1, b = 1;
+			*/
 	/*
 	tgf->gen_vertex_array(&VAO);
 	tgf->bind_vertex_array(&VAO);
@@ -62,23 +62,23 @@ void Main::resize(unsigned int width, unsigned int height) {
 void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
-	tgf->bind_shader(&sp);
 	/*
+	tgf->bind_shader(&sp);
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
-	*/
 	tgf->bind_shader(0);
+	*/
 }
 void Main::pause() {
 	if (!tgf) return;
-	tgf->delete_shader(&sp);
 	/*
+	tgf->delete_shader(&sp);
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
 	tgf->delete_buffer(&IBO);
-	*/
 	sp = VAO = VBO = IBO = 0;
+	*/
 }
 void Main::destroy() {
 	if (!tgf) return;
