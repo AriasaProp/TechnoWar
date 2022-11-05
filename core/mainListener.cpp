@@ -20,10 +20,7 @@ void bind(TranslatedGraphicsFunction *tgf) {
 		"\n    o_fragColor = v_color;"
 		"\n}";
 	tgf->gen_shader(&sp, vShaderSrc, fShaderSrc);
-	if(!sp)
-			r = 0, g = 1, b = 1;
-	binded = true;
-	/*
+	
 	tgf->gen_vertex_array(&VAO);
 	tgf->bind_vertex_array(&VAO);
 	tgf->gen_buffer(&VBO);
@@ -44,7 +41,10 @@ void bind(TranslatedGraphicsFunction *tgf) {
 	tgf->vertex_attrib_pointer(1, 4, TGF::FLOAT, false, 6 * sizeof(float), (void*)2);
 	tgf->enable_vertex_attrib_array(1);
 	tgf->bind_vertex_array(0);
-	*/
+	
+	if((VAO|VBO|IBO) == 0)
+			r = 0, g = 1, b = 1;
+	binded = true;
 }
 void Main::create() {
 	if (!tgf) return;
@@ -73,12 +73,9 @@ void Main::render(float delta) {
 void Main::pause() {
 	if (!tgf) return;
 	tgf->delete_shader(&sp);
-	/*
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
 	tgf->delete_buffer(&IBO);
-	VAO = VBO = IBO = 0;
-	*/
 	binded = false;
 }
 void Main::destroy() {
