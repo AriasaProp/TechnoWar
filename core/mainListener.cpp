@@ -23,8 +23,9 @@ void bind() {
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	unsigned int VAO, VBO, IBO;
 	tgf->gen_vertex_array(&VAO);
-	tgf->bind_vertex_array(&VAO);
 	tgf->gen_buffer(&VBO);
+	tgf->gen_buffer(&IBO);
+	tgf->bind_vertex_array(&VAO);
 	tgf->bind_buffer(TGF::ARRAY_BUFFER, &VBO);
 	{
 			float vertices[]{
@@ -33,20 +34,18 @@ void bind() {
 				-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
 				-0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f
 			};
-			tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), vertices, TGF::STATIC_DRAW);
+			tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF::STATIC_DRAW);
 	}
-	tgf->gen_buffer(&IBO);
 	tgf->bind_buffer(TGF::ELEMENT_ARRAY_BUFFER, &IBO);
 	{
 			unsigned int indices[]{ 0, 1, 3, 1, 2, 3};
-			tgf->buffer_data(TGF::ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, TGF::STATIC_DRAW);
+			tgf->buffer_data(TGF::ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF::STATIC_DRAW);
 	}
 	tgf->vertex_attrib_pointer(0, 2, TGF::FLOAT, false, 2 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(1, 4, TGF::FLOAT, false, 6 * sizeof(float), (void*)2);
 	tgf->enable_vertex_attrib_array(1);
 	tgf->bind_vertex_array(0);
-	
 	if((VAO|VBO|IBO) == 0)
 			r = 0, g = 1, b = 1;
 	else 
