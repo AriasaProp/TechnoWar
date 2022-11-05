@@ -76,11 +76,11 @@ void tgf_gles::delete_shader(unsigned int &p) {
 void tgf_gles::gen_buffer(unsigned int *b) {
 	glGenBuffers(1, b);
 }
-void tgf_gles::bind_buffer(int type, unsigned int *b) {
-	glBindBuffer((GLenum)type, *b);
+void tgf_gles::bind_buffer(unsigned int type, unsigned int *b) {
+	glBindBuffer(type, *b);
 }
-void tgf_gles::buffer_data(int type, unsigned int bytes_len, const void *data, int datatype) {
-	glBufferData((GLenum)type, (GLsizeiptr)bytes_len, (const GLvoid*)data, (GLenum)datatype);
+void tgf_gles::buffer_data(unsigned int type, long bytes_len, const void *data, unsigned int datatype) {
+	glBufferData(type, bytes_len, (const GLvoid*)data, datatype);
 }
 void tgf_gles::delete_buffer(unsigned int *b) {
 	glDeleteBuffers(1, b);

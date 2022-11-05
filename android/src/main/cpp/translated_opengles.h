@@ -16,8 +16,8 @@ public:
 	void delete_shader(unsigned int&) override;
 
 	void gen_buffer(unsigned int*) override;
-	void bind_buffer(int, unsigned int*) override;
-	void buffer_data(int, unsigned int, const void*, int) override;
+	void bind_buffer(unsigned int, unsigned int*) override;
+	void buffer_data(unsigned int, long, const void*, unsigned int) override;
 	void delete_buffer(unsigned int*) override;
 
 	void gen_vertex_array(unsigned int*) override;
