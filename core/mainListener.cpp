@@ -1,7 +1,7 @@
 #include "mainListener.h"
 #include <cstring>
 float r = 0, g = 0, b = 0;
-unsigned int sp;//, VAO, VBO, IBO;
+unsigned int sp, VAO, VBO, IBO;
 bool binded = false;
 void bind(TranslatedGraphicsFunction *tgf) {
 	const char *vShaderSrc = "#version 300 es"
