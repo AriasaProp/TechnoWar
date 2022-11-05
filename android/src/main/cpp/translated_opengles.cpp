@@ -63,7 +63,7 @@ void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 void tgf_gles::bind_shader(const unsigned int &p) {
 	glUseProgram(p);
 }
-void tgf_gles::delete_shader(const unsigned int &p) {
+void tgf_gles::delete_shader(unsigned int &p) {
 	glDeleteProgram(p);
 	p = 0;
 }
