@@ -21,7 +21,7 @@ void bind() {
 		"\n    o_fragColor = v_color;"
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
-	/*
+	unsigned int VAO, VBO, IBO;
 	tgf->gen_vertex_array(&VAO);
 	tgf->bind_vertex_array(&VAO);
 	tgf->gen_buffer(&VBO);
@@ -49,11 +49,13 @@ void bind() {
 	
 	if((VAO|VBO|IBO) == 0)
 			r = 0, g = 1, b = 1;
-			*/
-	if(sp == 0)
-			r = 0, g = 1, b = 1;
 	else 
 			r = 1, g = 0.5f, b = 0;
+	
+	tgf->delete_vertex_array(&VAO);
+	tgf->delete_buffer(&VBO);
+	tgf->delete_buffer(&IBO);
+	
 	binded = true;
 }
 void Main::create() {
