@@ -1,7 +1,7 @@
 #include "mainListener.h"
 #include <cstring>
 float r = 0, g = 0, b = 0;
-unsigned int sp, VAO, VBO, IBO;
+unsigned int sp/*, VAO, VBO, IBO*/;
 bool binded = false;
 void bind() {
 	if (binded) return;
@@ -20,8 +20,8 @@ void bind() {
 		"\nvoid main() {"
 		"\n    o_fragColor = v_color;"
 		"\n}\0";
-	tgf->gen_shader(&sp, vShaderSrc, fShaderSrc);
-	
+	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
+	/*
 	tgf->gen_vertex_array(&VAO);
 	tgf->bind_vertex_array(&VAO);
 	tgf->gen_buffer(&VBO);
@@ -49,6 +49,11 @@ void bind() {
 	
 	if((VAO|VBO|IBO) == 0)
 			r = 0, g = 1, b = 1;
+			*/
+	if(sp == 0)
+			r = 0, g = 1, b = 1;
+	else 
+			r = 1, g = 0.5f, b = 0;
 	binded = true;
 }
 void Main::create() {
@@ -68,7 +73,7 @@ void Main::render(float delta) {
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	/*
-	tgf->bind_shader(&sp);
+	tgf->bind_shader(sp);
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
@@ -77,10 +82,12 @@ void Main::render(float delta) {
 }
 void Main::pause() {
 	if (!tgf) return;
-	tgf->delete_shader(&sp);
+	tgf->delete_shader(sp);
+	/*
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
 	tgf->delete_buffer(&IBO);
+	*/
 	binded = false;
 }
 void Main::destroy() {

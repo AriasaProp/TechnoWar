@@ -10,9 +10,9 @@ public:
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) override;
 
-	void gen_shader(unsigned int*, const char*, const char*) override;
-	void bind_shader(unsigned int*) override;
-	void delete_shader(unsigned int*) override;
+	void gen_shader(unsigned int&, const char*, const char*) override;
+	void bind_shader(const unsigned int&) override;
+	void delete_shader(unsigned int&) override;
 
 	void gen_buffer(unsigned int*) override;
 	void bind_buffer(int, unsigned int*) override;

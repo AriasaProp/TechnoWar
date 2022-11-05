@@ -578,9 +578,9 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) = 0;
 
-	virtual void gen_shader(unsigned int*, const char *, const char *) = 0;
-	virtual void bind_shader(unsigned int*) = 0;
-	virtual void delete_shader(unsigned int*) = 0;
+	virtual void gen_shader(unsigned int&, const char *, const char *) = 0;
+	virtual void bind_shader(const unsigned int&) = 0;
+	virtual void delete_shader(unsigned int&) = 0;
 
 	virtual void gen_buffer(unsigned int*) = 0;
 	virtual void bind_buffer(int, unsigned int*) = 0;

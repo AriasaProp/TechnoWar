@@ -22,8 +22,8 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 void tgf_gles::viewport(const unsigned int &x, const unsigned int &y, const unsigned int &w, const unsigned int &h) {
 	glViewport(x, y, w, h);
 }
-void tgf_gles::gen_shader(unsigned int *p, const char *v, const char *f) {
-	*p = glCreateProgram();
+void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
+	p = glCreateProgram();
 	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
@@ -44,28 +44,28 @@ void tgf_gles::gen_shader(unsigned int *p, const char *v, const char *f) {
 			glGetShaderInfoLog(fragment, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		glAttachShader(*p, vertex);
-		glAttachShader(*p, fragment);
-		glLinkProgram(*p);
-		glGetProgramiv(*p, GL_LINK_STATUS, &temp);
+		glAttachShader(p, vertex);
+		glAttachShader(p, fragment);
+		glLinkProgram(p);
+		glGetProgramiv(p, GL_LINK_STATUS, &temp);
 		if (temp == 0){
 			GLchar msg[MAX_GL_MSG];
-			glGetProgramInfoLog(*p, MAX_GL_MSG, 0, msg);
+			glGetProgramInfoLog(p, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
 	} catch (...) {
-		glDeleteProgram(*p);
-		*p = 0;
+		glDeleteProgram(p);
+		p = 0;
 	}
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 }
-void tgf_gles::bind_shader(unsigned int *p) {
-	glUseProgram(*p);
+void tgf_gles::bind_shader(const unsigned int &p) {
+	glUseProgram(p);
 }
-void tgf_gles::delete_shader(unsigned int *p) {
-	glDeleteProgram(*p);
-	*p = 0;
+void tgf_gles::delete_shader(const unsigned int &p) {
+	glDeleteProgram(p);
+	p = 0;
 }
 void tgf_gles::gen_buffer(unsigned int *b) {
 	glGenBuffers(1, b);
