@@ -7,18 +7,14 @@ void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
 		"\nlayout(location = 0) in vec4 a_position;"
-		"\nlayout(location = 1) in vec4 a_color;"
-		"\nout vec4 v_color;"
 		"\nvoid main() {"
-		"\n    v_color = a_color;"
 		"\n    gl_Position = a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
-		"\nin vec4 v_color;"
 		"\nout vec4 o_fragColor;"
 		"\nvoid main() {"
-		"\n    o_fragColor = v_color;"
+		"\n    o_fragColor = vec4(1.0, 0, 0, 1.0);"
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	unsigned int VAO, VBO, IBO;
@@ -29,10 +25,10 @@ void bind() {
 	tgf->bind_buffer(TGF::ARRAY_BUFFER, &VBO);
 	{
 			float vertices[]{
-				0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f,
-				0.5f, -0.5f, 1.0f, 1.0f, 0.0f, 1.0f,
-				-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
-				-0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 1.0f
+				0.5f, 0.5f, 0.0f, 1.0f, 
+				0.5f, -0.5f, 0.0f, 1.0f, 
+				-0.5f, -0.5f, 0.0f, 1.0f,
+				-0.5f, 0.5f, 0.0f, 1.0f,
 			};
 			tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF::STATIC_DRAW);
 	}
@@ -41,10 +37,8 @@ void bind() {
 			unsigned int indices[]{ 0, 1, 3, 1, 2, 3};
 			tgf->buffer_data(TGF::ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF::STATIC_DRAW);
 	}
-	tgf->vertex_attrib_pointer(0, 2, TGF::FLOAT, false, 2 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(0);
-	tgf->vertex_attrib_pointer(1, 4, TGF::FLOAT, false, 6 * sizeof(float), (void*)2);
-	tgf->enable_vertex_attrib_array(1);
+	tgf->vertex_attrib_pointer(0, 4, TGF::FLOAT, false, 4 * sizeof(float), (void*)0);
 	tgf->bind_vertex_array(0);
 	if((VAO|VBO|IBO) == 0)
 			r = 0, g = 1, b = 1;

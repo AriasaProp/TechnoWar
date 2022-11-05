@@ -96,7 +96,7 @@ void tgf_gles::delete_vertex_array(unsigned int *v) {
 	glDeleteVertexArrays(1, v);
 	*v = 0;
 }
-void tgf_gles::vertex_attrib_pointer(unsigned int loc, unsigned int size, int type, bool normalize, unsigned int stride, void *offset) {
+void tgf_gles::vertex_attrib_pointer(unsigned int loc, int size, unsigned int type, bool normalize, int stride, const void *offset) {
 	glVertexAttribPointer(loc, size, type, normalize, stride, offset);
 }
 void tgf_gles::enable_vertex_attrib_array(unsigned int loc) {
