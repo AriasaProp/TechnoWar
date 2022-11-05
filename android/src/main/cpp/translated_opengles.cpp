@@ -15,11 +15,11 @@
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 }
-void tgf_gles::clearcolormask(unsigned int m, float r, float g, float b, float a) {
+void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float &g, const float &b, const float &a) {
 	glClearColor(r, g, b, a);
 	glClear(m);
 }
-void tgf_gles::viewport(unsigned int x, unsigned int y, unsigned int w, unsigned int h) {
+void tgf_gles::viewport(const unsigned int &x, const unsigned int &y, const unsigned int &w, const unsigned int &h) {
 	glViewport(x, y, w, h);
 }
 void tgf_gles::gen_shader(unsigned int *p, const char *v, const char *f) {

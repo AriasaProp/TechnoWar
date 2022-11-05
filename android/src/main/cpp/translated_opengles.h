@@ -7,8 +7,8 @@ class tgf_gles : public TranslatedGraphicsFunction {
 public:
 	~tgf_gles() {}
 	const char *renderer() override;
-	void clearcolormask(unsigned int, float, float, float, float) override;
-	void viewport(unsigned int, unsigned int, unsigned int, unsigned int) override;
+	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
+	void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) override;
 
 	void gen_shader(unsigned int*, const char*, const char*) override;
 	void bind_shader(unsigned int*) override;
