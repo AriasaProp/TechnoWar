@@ -10,13 +10,21 @@
 #endif
 
 //maximum output log message in char
-#define MAX_GL_MSG 512
+#define MAX_GL_MSG 1024
+
+GLint *temp = 0;
+GLuint *utemp = 0;
+GLchar *msg = 0;
 
 tgf_gles::tgf_gles() {
-	
+	temp = new GLint[2];
+	utemp = new GLuint[2];
+	msg = new GLchar[MAX_GL_MSG];
 }
 tgf_gles::~tgf_gles() {
-	
+	delete[] temp;
+	delete[] utemp;
+	delete[] msg;
 }
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
@@ -30,32 +38,28 @@ void tgf_gles::viewport(const unsigned int &x, const unsigned int &y, const unsi
 }
 void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 	p = glCreateProgram();
-	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
+	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
-		GLint temp;
-		glShaderSource(vertex, 1, &v, 0);
-		glCompileShader(vertex);
-		glGetShaderiv(vertex, GL_COMPILE_STATUS, &temp);
-		if (temp == 0) {
-			GLchar msg[MAX_GL_MSG];
-			glGetShaderInfoLog(vertex, MAX_GL_MSG, 0, msg);
+		glShaderSource(utemp[0], 1, &v, 0);
+		glCompileShader(utemp[0]);
+		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
+		if (temp[0] == 0) {
+			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		glShaderSource(fragment, 1, &f, 0);
-		glCompileShader(fragment);
-		glGetShaderiv(fragment, GL_COMPILE_STATUS, &temp);
-		if (temp == 0){
-			GLchar msg[MAX_GL_MSG];
-			glGetShaderInfoLog(fragment, MAX_GL_MSG, 0, msg);
+		glShaderSource(utemp[1], 1, &f, 0);
+		glCompileShader(utemp[1]);
+		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
+		if (temp[0] == 0){
+			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		glAttachShader(p, vertex);
-		glAttachShader(p, fragment);
+		glAttachShader(p, utemp[0]);
+		glAttachShader(p, utemp[1]);
 		glLinkProgram(p);
-		glGetProgramiv(p, GL_LINK_STATUS, &temp);
-		if (temp == 0){
-			GLchar msg[MAX_GL_MSG];
+		glGetProgramiv(p, GL_LINK_STATUS, temp);
+		if (temp[0] == 0){
 			glGetProgramInfoLog(p, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
@@ -63,8 +67,8 @@ void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 		glDeleteProgram(p);
 		p = 0;
 	}
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
+	glDeleteShader(utemp[0]);
+	glDeleteShader(utemp[1]);
 }
 void tgf_gles::bind_shader(const unsigned int &p) {
 	glUseProgram(p);
