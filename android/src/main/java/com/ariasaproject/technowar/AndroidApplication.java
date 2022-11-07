@@ -188,7 +188,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         resize = true;
         width = w;
         height = h;
-        notifyAll();
     }
 
     @Override
@@ -208,6 +207,10 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
     // main loop
     @Override
     public void run() {
+    		if(mayorV < 3) {
+    			exit();
+    			return;
+    		}
         EGLDisplay mEglDisplay = null;
         EGLSurface mEglSurface = null;
         EGLConfig mEglConfig = null;
@@ -255,7 +258,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                             lrunning = true;
                         }
                     }
-                    notifyAll();
                     // Ready to draw?
                     if (!lrunning || (holder == null)) {
                         wait();
@@ -264,7 +266,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                     mHolder = holder;
                 }
             		boolean newContext = mEglContext == null;
-                if (mEglDisplay == null || mEglContext == null || mEglSurface == null) {
+                if (mEglDisplay == null || newContext || mEglSurface == null) {
 		                if (mEglDisplay == null) {
 		                    final int[] temp = new int[2]; // for chaching value output
 		                    mEglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
@@ -331,7 +333,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 				                if (resize) {
                     				resize(width, height);
                     				resize = false;
-                    				notifyAll();
 				                }
 		                }
                     lastFrameTime = System.currentTimeMillis();

@@ -25,26 +25,26 @@ void bind() {
 	unsigned int VBO, IBO;
 	tgf->gen_buffer(&VBO);
 	tgf->gen_buffer(&IBO);
-	tgf->bind_buffer(TGF::ARRAY_BUFFER, &VBO);
+	tgf->bind_buffer(TGF_ARRAY_BUFFER, &VBO);
 	{
-			float vertices[]{
+			const float vertices[]{
 				0.5f, 0.5f, 0.0f, 1.0f, 
 				0.5f, -0.5f, 0.0f, 1.0f, 
 				-0.5f, -0.5f, 0.0f, 1.0f,
-				-0.5f, 0.5f, 0.0f, 1.0f,
+				-0.5f, 0.5f, 0.0f, 1.0f
 			};
-			tgf->buffer_data(TGF::ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF::STATIC_DRAW);
+			tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (const void*)vertices, TGF_STATIC_DRAW);
 	}
-	tgf->bind_buffer(TGF::ARRAY_BUFFER, 0);
-	tgf->bind_buffer(TGF::ELEMENT_ARRAY_BUFFER, &IBO);
+	tgf->bind_buffer(TGF_ARRAY_BUFFER, 0);
+	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, &IBO);
 	{
-			unsigned int indices[]{ 0, 1, 3, 1, 2, 3};
-			tgf->buffer_data(TGF::ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF::STATIC_DRAW);
+			const unsigned int indices[]{ 0, 1, 3, 1, 2, 3};
+			tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (const void*)indices, TGF_STATIC_DRAW);
 	}
-	tgf->bind_buffer(TGF::ELEMENT_ARRAY_BUFFER, 0);
+	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	/*
 	tgf->enable_vertex_attrib_array(0);
-	tgf->vertex_attrib_pointer(0, 4, TGF::FLOAT, false, 4 * sizeof(float), (void*)0);
+	tgf->vertex_attrib_pointer(0, 4, TGF_FLOAT, false, 4 * sizeof(float), (void*)0);
 	tgf->bind_vertex_array(0);
 	*/
 	if((VBO|IBO) == 0)
@@ -69,12 +69,12 @@ void Main::resize(unsigned int width, unsigned int height) {
 }
 void Main::render(float delta) {
 	if (!tgf) return;
-	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
+	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
 	/*
 	tgf->bind_vertex_array(&VAO);
-	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
+	tgf->draw_elements(TGF_TRIANGLES, 6, TGF_UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
 	*/
 	tgf->bind_shader(0);
