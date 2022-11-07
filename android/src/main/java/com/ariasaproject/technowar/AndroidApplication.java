@@ -277,7 +277,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                        final int[] eglConfigAttr = new int[]{
 		                        		EGL14.EGL_RENDERABLE_TYPE, 4, // 4 = EGL14.EGL_OPENGL_ES2_BIT
 		                        		EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, // make frame don't store transparent
-		                        		EGL14.EGL_NATIVE_RENDERABLE, EGL14.EGL_TRUE, //allow native render
+		                        		//EGL14.EGL_NATIVE_RENDERABLE, EGL14.EGL_TRUE, //allow native render
 		                        		EGL14.EGL_ALPHA_SIZE, 0, //alpha is zero
 		                        		EGL14.EGL_NONE // end config
 		                        };
