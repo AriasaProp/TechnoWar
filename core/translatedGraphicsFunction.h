@@ -575,7 +575,7 @@ public:
 	virtual ~TranslatedGraphicsFunction() {}
 	virtual const char *renderer() = 0;
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
-	virtual void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) = 0;
+	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
 	virtual void gen_shader(unsigned int&, const char *, const char *) = 0;
 	virtual void bind_shader(const unsigned int) = 0;

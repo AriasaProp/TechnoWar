@@ -9,7 +9,7 @@ public:
 	~tgf_gles() override;
 	const char *renderer() override;
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
-	void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) override;
+	void viewport(const int&, const int&, const int&, const int&) override;
 
 	void gen_shader(unsigned int&, const char*, const char*) override;
 	void bind_shader(const unsigned int) override;
