@@ -33,12 +33,10 @@ void bind() {
 		-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
 		-0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f
 	};
-	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (const void*)vertices, TGF_STATIC_DRAW);
-	tgf->bind_buffer(TGF_ARRAY_BUFFER, 0);
+	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
 	const unsigned short indices[]{ 0, 1, 3, 1, 2, 3};
-	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (const void*)indices, TGF_STATIC_DRAW);
-	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
+	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 2 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
@@ -46,7 +44,6 @@ void bind() {
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
-	tgf->viewport(0, 0, 1, 1);
 	binded = true;
 }
 void Main::create() {
@@ -60,6 +57,7 @@ void Main::resume() {
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
+	tgf->viewport(0, 0, width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;

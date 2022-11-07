@@ -274,7 +274,13 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                        throw new RuntimeException("eglInitialize failed " + Integer.toHexString(EGL14.eglGetError()));
 		
 		                    if (mEglConfig == null) {
-		                        final int[] eglConfigAttr = new int[]{EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, EGL14.EGL_ALPHA_SIZE, 0, EGL14.EGL_NONE};
+		                        final int[] eglConfigAttr = new int[]{
+		                        		EGL14.EGL_RENDERABLE_TYPE, 64, //64 = EGL15.EGL_OPENGL_ES3_BIT, 4 = EGL14.EGL_OPENGL_ES2_BIT
+		                        		EGL14.EGL_COLOR_BUFFER_TYPE, EGL14.EGL_RGB_BUFFER, // make frame don't store transparent
+		                        		EGL14.EGL_NATIVE_RENDERABLE, EGL14.EGL_TRUE, //allow native render
+		                        		EGL14.EGL_ALPHA_SIZE, 0, //alpha is zero
+		                        		EGL14.EGL_NONE // end config
+		                        };
 		                        EGL14.eglChooseConfig(mEglDisplay, eglConfigAttr, 0, null, 0, 0, temp, 0);
 		                        if (temp[0] <= 0)
 		                            throw new IllegalArgumentException("No configs match with configSpec");
@@ -283,17 +289,12 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
 		                        int lastSc = -1, curSc;
 		                        mEglConfig = configs[0];
 		                        for (EGLConfig config : configs) {
-		                            temp[0] = -1;
-		                            curSc = -1;
-		                            for (int attr : new int[]{EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_BUFFER_SIZE, EGL14.EGL_DEPTH_SIZE, EGL14.EGL_STENCIL_SIZE}) {
-		                                if (EGL14.eglGetConfigAttrib(mEglDisplay, config, attr, temp, 0)) {
-		                                    curSc += temp[0];
-		                                } else {
-		                                    int error;
-		                                    while ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS)
-		                                        error(TAG, String.format("EglConfigAttribute : EGL error: 0x%x", error));
-		                                }
-		                            }
+                                EGL14.eglGetConfigAttrib(mEglDisplay, config, EGL14.EGL_BUFFER_SIZE, temp, 0);
+                                curSc = temp[0];
+                                EGL14.eglGetConfigAttrib(mEglDisplay, config, EGL14.EGL_DEPTH_SIZE, temp, 0);
+                                curSc += temp[0];
+                                EGL14.eglGetConfigAttrib(mEglDisplay, config, EGL14.EGL_STENCIL_SIZE, temp, 0);
+                                curSc += temp[0];
 		                            if (curSc > lastSc) {
 		                                lastSc = curSc;
 		                                mEglConfig = config;
