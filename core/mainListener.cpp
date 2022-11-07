@@ -6,12 +6,12 @@ bool binded = false;
 void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
-		"\nlayout(location = 0) in vec4 a_position;"
+		"\nlayout(location = 0) in vec2 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = a_position;"
+		"\n    gl_Position = vec4(a_position,0.0f, 1.0f);"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
