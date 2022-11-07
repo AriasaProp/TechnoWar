@@ -42,14 +42,15 @@ void bind() {
 	tgf->vertex_attrib_pointer(0, 4, TGF::FLOAT, false, 4 * sizeof(float), (void*)0);
 	tgf->bind_vertex_array(0);
 	
+	if((VAO|VBO|IBO) == 0)
+			r = 0, g = 1, b = 1;
+	else 
+			r = 1, g = 0.5f, b = 0;
+	
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
 	tgf->delete_buffer(&IBO);
 	*/
-	if((sp) == 0)
-			r = 0, g = 1, b = 1;
-	else 
-			r = 1, g = 0.5f, b = 0;
 	binded = true;
 }
 void Main::create() {
@@ -68,13 +69,13 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF::COLOR_BUFFER_BIT|TGF::DEPTH_BUFFER_BIT|TGF::STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
-	/*
 	tgf->bind_shader(sp);
+	/*
 	tgf->bind_vertex_array(&VAO);
 	tgf->draw_elements(TGF::TRIANGLES, 6, TGF::UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
-	tgf->bind_shader(0);
 	*/
+	tgf->bind_shader(0);
 }
 void Main::pause() {
 	if (!tgf) return;
