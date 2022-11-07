@@ -19,11 +19,11 @@ void bind() {
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	unsigned int VAO;
 	tgf->gen_vertex_array(&VAO);
-	tgf->bind_vertex_array(&VAO);
 	unsigned int VBO, IBO;
 	tgf->gen_buffer(&VBO);
 	tgf->gen_buffer(&IBO);
 	/*
+	tgf->bind_vertex_array(&VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, &VBO);
 	{
 			const float vertices[]{
@@ -44,9 +44,9 @@ void bind() {
 	
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 4, TGF_FLOAT, false, 4 * sizeof(float), (void*)0);
-	*/
 	tgf->bind_vertex_array(0);
-	if(!VAO||!VBO||!IBO)
+	*/
+	if(!VAO)
 			r = 0, g = 1, b = 1;
 	tgf->delete_vertex_array(&VAO);
 	tgf->delete_buffer(&VBO);
