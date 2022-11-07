@@ -33,7 +33,7 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 	glClearColor(r, g, b, a);
 	glClear(m);
 }
-void tgf_gles::viewport(const unsigned int &x, const unsigned int &y, const unsigned int &w, const unsigned int &h) {
+void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
 void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {

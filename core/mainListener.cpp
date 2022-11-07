@@ -46,6 +46,7 @@ void bind() {
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
+	tgf->viewport(0, 0, 1, 1);
 	binded = true;
 }
 void Main::create() {
@@ -59,7 +60,6 @@ void Main::resume() {
 }
 void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
-	tgf->viewport(0, 0, width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
