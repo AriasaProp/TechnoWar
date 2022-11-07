@@ -28,10 +28,10 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	const float vertices[]{
-		0.5f, 0.5f, 0xff0000ff, 
-		0.5f, -0.5f, 0x00ff00ff, 
-		-0.5f, -0.5f, 0x0000ffff,
-		-0.5f, 0.5f, 0x888888ff
+		0.5f, 0.5f, static_cast<float>(0xff0000ff), 
+		0.5f, -0.5f, static_cast<float>(0x00ff00ff), 
+		-0.5f, -0.5f, static_cast<float>(0x0000ffff),
+		-0.5f, 0.5f, static_cast<float>(0x888888ff)
 	};
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
@@ -40,7 +40,7 @@ void bind() {
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 3 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, false, 3 * sizeof(float), (void*)(2 * sizeof(float)));
+	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 3 * sizeof(float), (void*)(2 * sizeof(float)));
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
