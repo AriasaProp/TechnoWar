@@ -36,7 +36,7 @@ void bind() {
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (const void*)vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, 0);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
-	const unsigned int indices[]{ 0, 1, 3, 1, 2, 3};
+	const unsigned short indices[]{ 0, 1, 3, 1, 2, 3};
 	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (const void*)indices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	tgf->enable_vertex_attrib_array(0);
@@ -67,7 +67,7 @@ void Main::render(float delta) {
 	bind();
 	tgf->bind_shader(sp);
 	tgf->bind_vertex_array(VAO);
-	tgf->draw_elements(TGF_TRIANGLES, 6, TGF_UNSIGNED_INT, 0);
+	tgf->draw_elements(TGF_TRIANGLES, 6, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 }
