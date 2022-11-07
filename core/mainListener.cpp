@@ -25,6 +25,7 @@ void bind() {
 	unsigned int VBO, IBO;
 	tgf->gen_buffer(&VBO);
 	tgf->gen_buffer(&IBO);
+	/*
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, &VBO);
 	{
 			const float vertices[]{
@@ -42,6 +43,7 @@ void bind() {
 			tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (const void*)indices, TGF_STATIC_DRAW);
 	}
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
+	*/
 	/*
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 4, TGF_FLOAT, false, 4 * sizeof(float), (void*)0);

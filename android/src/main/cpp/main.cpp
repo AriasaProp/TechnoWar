@@ -36,7 +36,8 @@ JEx(void, destroy) (JNIEnv *e, jobject o) {
 }
 
 JEx(jboolean, limitRenderer) (JNIEnv *e, jobject o) {
-	return ((bool)strstr(tgf->renderer(), "adreno")) || ((bool)strstr(tgf->renderer(), "Adreno"));
+	const char *r = tgf->renderer();
+	return ((bool)strstr(r, "adreno")) || ((bool)strstr(r, "Adreno"));
 }
 
 
