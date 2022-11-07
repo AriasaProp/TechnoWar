@@ -12,14 +12,14 @@
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
-GLint *temp = 0;
-GLuint *utemp = 0;
-GLchar *msg = 0;
+int *temp = 0;
+unsigned int *utemp = 0;
+char *msg = 0;
 
 tgf_gles::tgf_gles() {
-	temp = new GLint[2];
-	utemp = new GLuint[2];
-	msg = new GLchar[MAX_GL_MSG];
+	temp = new int[2];
+	utemp = new unsigned int[2];
+	msg = new char[MAX_GL_MSG];
 }
 tgf_gles::~tgf_gles() {
 	delete[] temp;

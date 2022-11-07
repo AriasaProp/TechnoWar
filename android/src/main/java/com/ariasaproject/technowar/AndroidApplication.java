@@ -207,10 +207,6 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
     // main loop
     @Override
     public void run() {
-    		if(mayorV < 3) {
-    			exit();
-    			return;
-    		}
         EGLDisplay mEglDisplay = null;
         EGLSurface mEglSurface = null;
         EGLConfig mEglConfig = null;
