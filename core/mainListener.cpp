@@ -6,12 +6,12 @@ bool binded = false;
 void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
-		"\nlayout(location = 0) in vec2 a_position;"
+		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = vec4(a_position,0.0f, 1.0f);"
+		"\n    gl_Position = a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -28,19 +28,19 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	const float vertices[]{
-		0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 
-		0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 
-		-0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
-		-0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 1.0f
+		0.5f, 0.5f, 0xff0000ff, 
+		0.5f, -0.5f, 0x00ff00ff, 
+		-0.5f, -0.5f, 0x0000ffff,
+		-0.5f, 0.5f, 0x888888ff
 	};
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
 	const unsigned short indices[]{ 0, 1, 3, 1, 2, 3};
 	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	tgf->enable_vertex_attrib_array(0);
-	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
+	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 3 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_FLOAT, false, 6 * sizeof(float), (void*)(2 * sizeof(float)));
+	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, false, 3 * sizeof(float), (void*)(2 * sizeof(float)));
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
