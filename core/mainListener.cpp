@@ -38,9 +38,9 @@ void bind() {
 	const unsigned short indices[]{ 0, 1, 3, 1, 2, 3};
 	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	tgf->enable_vertex_attrib_array(0);
-	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 8 * sizeof(float), (void*)0);
+	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_FLOAT, false, 8 * sizeof(float), (void*)(2 * sizeof(float)));
+	tgf->vertex_attrib_pointer(1, 4, TGF_FLOAT, false, 6 * sizeof(float), (void*)(2 * sizeof(float)));
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
