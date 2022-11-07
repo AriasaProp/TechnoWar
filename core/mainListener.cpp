@@ -61,7 +61,7 @@ void Main::render(float delta) {
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
-	tgf->bind_vertex_array(&VAO);
+	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 6, TGF_UNSIGNED_INT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
