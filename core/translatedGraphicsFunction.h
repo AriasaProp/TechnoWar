@@ -578,16 +578,16 @@ public:
 	virtual void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) = 0;
 
 	virtual void gen_shader(unsigned int&, const char *, const char *) = 0;
-	virtual void bind_shader(const unsigned int&) = 0;
+	virtual void bind_shader(const unsigned int) = 0;
 	virtual void delete_shader(unsigned int&) = 0;
 
 	virtual void gen_buffer(unsigned int&) = 0;
-	virtual void bind_buffer(unsigned int, unsigned int&) = 0;
+	virtual void bind_buffer(unsigned int, const unsigned int) = 0;
 	virtual void buffer_data(unsigned int, long, const void*, unsigned int) = 0;
 	virtual void delete_buffer(unsigned int&) = 0;
 
 	virtual void gen_vertex_array(unsigned int&) = 0;
-	virtual void bind_vertex_array(unsigned int&) = 0;
+	virtual void bind_vertex_array(const unsigned int) = 0;
 	virtual void delete_vertex_array(unsigned int&) = 0;
 
 	virtual void vertex_attrib_pointer(unsigned int, int, unsigned int, bool, int, const void *) = 0;

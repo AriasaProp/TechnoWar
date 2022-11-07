@@ -12,16 +12,16 @@ public:
 	void viewport(const unsigned int&, const unsigned int&, const unsigned int&, const unsigned int&) override;
 
 	void gen_shader(unsigned int&, const char*, const char*) override;
-	void bind_shader(const unsigned int&) override;
+	void bind_shader(const unsigned int) override;
 	void delete_shader(unsigned int&) override;
 
 	void gen_buffer(unsigned int&) override;
-	void bind_buffer(unsigned int, unsigned int&) override;
+	void bind_buffer(unsigned int, const unsigned int) override;
 	void buffer_data(unsigned int, long, const void*, unsigned int) override;
 	void delete_buffer(unsigned int&) override;
 
 	void gen_vertex_array(unsigned int&) override;
-	void bind_vertex_array(unsigned int&) override;
+	void bind_vertex_array(const unsigned int) override;
 	void delete_vertex_array(unsigned int&) override;
 
 	void vertex_attrib_pointer(unsigned int, int, unsigned int type, bool, int, const void *) override;
