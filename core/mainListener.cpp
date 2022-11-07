@@ -40,7 +40,7 @@ void bind() {
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 2 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_FLOAT, false, 6 * sizeof(float), (void*)2);
+	tgf->vertex_attrib_pointer(1, 4, TGF_FLOAT, false, 6 * sizeof(float), (void*)(2 * sizeof(float)));
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
