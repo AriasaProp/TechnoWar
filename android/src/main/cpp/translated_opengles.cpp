@@ -77,33 +77,33 @@ void tgf_gles::delete_shader(unsigned int &p) {
 	glDeleteProgram(p);
 	p = 0;
 }
-void tgf_gles::gen_buffer(unsigned int *b) {
-	glGenBuffers(1, b);
+void tgf_gles::gen_buffer(unsigned int &b) {
+	glGenBuffers(1, *b);
 }
-void tgf_gles::bind_buffer(unsigned int type, unsigned int *b) {
-	glBindBuffer(type, *b);
+void tgf_gles::bind_buffer(unsigned int type, unsigned int &b) {
+	glBindBuffer(type, b);
 }
 void tgf_gles::buffer_data(unsigned int type, long bytes_len, const void *data, unsigned int datatype) {
 	glBufferData(type, bytes_len, data, datatype);
 }
-void tgf_gles::delete_buffer(unsigned int *b) {
-	glDeleteBuffers(1, b);
-	*b = 0;
+void tgf_gles::delete_buffer(unsigned int &b) {
+	glDeleteBuffers(1, *b);
+	b = 0;
 }
-void tgf_gles::gen_vertex_array(unsigned int *v) {
-	glGenVertexArrays(1, v);
+void tgf_gles::gen_vertex_array(unsigned int &v) {
+	glGenVertexArrays(1, *v);
 }
-void tgf_gles::bind_vertex_array(unsigned int *v) {
-	glBindVertexArray(*v);
+void tgf_gles::bind_vertex_array(unsigned int &v) {
+	glBindVertexArray(v);
 }
-void tgf_gles::delete_vertex_array(unsigned int *v) {
-	glDeleteVertexArrays(1, v);
-	*v = 0;
+void tgf_gles::delete_vertex_array(unsigned int &v) {
+	glDeleteVertexArrays(1, *v);
+	v = 0;
 }
 void tgf_gles::vertex_attrib_pointer(unsigned int loc, int size, unsigned int type, bool normalize, int stride, const void *offset) {
 	glVertexAttribPointer(loc, size, type, normalize, stride, offset);
 }
-void tgf_gles::enable_vertex_attrib_array(unsigned int loc) {
+void tgf_gles::enable_vertex_attrib_array(const unsigned int loc) {
 	glEnableVertexAttribArray(loc);
 }
 void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
