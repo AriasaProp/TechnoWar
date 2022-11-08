@@ -7,7 +7,7 @@
 TranslatedGraphicsFunction *tgf = 0;
 
 namespace Main {
-	void create();
+	void create(unsigned int, unsigned int);
 	void resume();
 	void resize(unsigned int, unsigned int);
 	void render(float);

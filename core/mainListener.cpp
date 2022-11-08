@@ -1,5 +1,6 @@
 #include "mainListener.h"
 #include <cstring>
+unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int sp, VAO, VBO, IBO;
 int sp_matrix;
@@ -72,28 +73,34 @@ void bind() {
 	
 	binded = true;
 }
-void Main::create() {
+void Main::create(unsigned int w, unsigned int h) {
+	width = w, height = h;
 	if (!tgf) return;
 	r = g = b = 1;
 	//resume();
+	tgf->viewport(0, 0, width, height);
 }
 void Main::resume() {
 	if (!tgf) return;
 	r = 1, g = b = 0;
 }
-void Main::resize(unsigned int width, unsigned int height) {
+void Main::resize(unsigned int w, unsigned int h) {
+	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	tgf->bind_shader(sp);
-	float mtrx[] = {1.0f/(float)width,0,0,0, 0,1.0f/(float)height,0,0, 0,0,-0.001f,0, 0,0,0,1.0f};
-	tgf->uniform_matrix4fv(sp_matrix, 1, false, mtrx);
-	tgf->bind_shader(0);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
+	float mtrx[]{
+		2.0f/(float)width,0,0,0,
+		0,2.0f/(float)height,0,0,
+		0,0,-0.2f,0,
+		0,0,0,1.0f
+	};
+	tgf->uniform_matrix4fv(sp_matrix, 1, true, mtrx);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);

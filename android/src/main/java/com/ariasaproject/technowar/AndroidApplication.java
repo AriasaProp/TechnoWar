@@ -81,7 +81,10 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         this.minorV = (short) (configurationInfo.reqGlEsVersion & 0x0000ffff);
         // for graphics loop
         mainTGFThread = new Thread(this, "GLThread");
-        view.getHolder().addCallback(this);
+        final SurfaceHolder sh = view.getHolder();
+        sh.addCallback(this);
+        width = sh.getSurfaceFrame().width();
+        height = sh.getSurfaceFrame().height();
         mainTGFThread.start();
     }
 
@@ -196,7 +199,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
         notifyAll();
     }
     
-    private native void create();
+    private native void create(int w, int h);
     private native void resume();
     private native void resize(int w, int h);
     private native void render(float d);
@@ -323,7 +326,7 @@ public class AndroidApplication extends Activity implements Runnable, Callback {
                 }
                 if (newContext) {
                     if (!created) {
-                        create();
+                        create(width, height);
                         created = true;
                 		}
 		                synchronized (this) {

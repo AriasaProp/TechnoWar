@@ -8,9 +8,9 @@
 
 #define JEx(R, M) extern "C" JNIEXPORT R JNICALL Java_com_ariasaproject_technowar_AndroidApplication_##M
 
-JEx(void, create) (JNIEnv *e, jobject o) {
+JEx(void, create) (JNIEnv *e, jobject o, jint w, jint h) {
 	tgf = new tgf_gles();
-	Main::create();
+	Main::create(w,h);
 }
 
 JEx(void, resume) (JNIEnv *e, jobject o) {
