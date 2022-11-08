@@ -14,7 +14,7 @@ void bind() {
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = u_proj * a_position;"
+		"\n    gl_Position = a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -43,6 +43,17 @@ void bind() {
 			0x00, 0xff, 0x00, 0xff
 		};
 		const float position[24] = {
+			+0.5f, +0.5f, 0.f, 
+			+0.5f, -0.5f, 0.f, 
+			-0.5f, -0.5f, 0.f, 
+			-0.5f, +0.5f, 0.f, 
+			+0.5f, +0.5f, 1.0f, 
+			+0.5f, -0.5f, 1.0f, 
+			-0.5f, -0.5f, 1.0f, 
+			-0.5f, +0.5f, 1.0f
+		};
+		/*
+		const float position[24] = {
 			+350.0f, +350.0f, -350.0f, 
 			+350.0f, -350.0f, -350.0f, 
 			-350.0f, -350.0f, -350.0f, 
@@ -52,6 +63,7 @@ void bind() {
 			-350.0f, -350.0f, +350.0f, 
 			-350.0f, +350.0f, +350.0f
 		};
+		*/
 	} vertices;
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)&vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
