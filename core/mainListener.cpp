@@ -28,13 +28,13 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	struct {
-		float position[]{
+		const float position[] = {
 			+0.5f, +0.5f, 
 			+0.5f, -0.5f, 
 			-0.5f, -0.5f, 
 			-0.5f, +0.5f
 		};
-		unsigned char color[]{
+		const unsigned char color[] = {
 			0xff, 0x00, 0x00, 0xff, 
 			0xff, 0xff, 0x00, 0xff, 
 			0x00, 0x00, 0xff, 0xff, 
