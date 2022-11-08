@@ -181,7 +181,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
 	tgf->bind_shader(0);
 }
-const float allRot = M_PI / 360.0f;
+const float allRot = 0;// M_PI / 360.0f;
 float rotatE[16]{
 	cos(allRot)*cos(allRot),cos(allRot)*sin(allRot)*sin(allRot) - sin(allRot)*cos(allRot),cos(allRot)*sin(allRot)*cos(allRot) + sin(allRot)*sin(allRot),0,
 	sin(allRot)*cos(allRot),sin(allRot)*sin(allRot)*sin(allRot) + cos(allRot)*cos(allRot),sin(allRot)*sin(allRot)*cos(allRot) - cos(allRot)*sin(allRot),0,
