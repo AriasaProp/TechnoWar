@@ -1,10 +1,65 @@
 #include "mainListener.h"
 #include <cstring>
+#include <cmath>
+
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int sp, VAO, VBO, IBO;
 int sp_matrix;
 bool binded = false;
+
+static void inline mulMatrix(float *mata, float *matb) {
+#define M00 0
+#define M01 4
+#define M02 8
+#define M03 12
+#define M10 1
+#define M11 5
+#define M12 9
+#define M13 13
+#define M20 2
+#define M21 6
+#define M22 10
+#define M23 14
+#define M30 3
+#define M31 7
+#define M32 11
+#define M33 15
+	float tmp[16];
+  tmp[M00] = mata[M00] * matb[M00] + mata[M01] * matb[M10] + mata[M02] * matb[M20] + mata[M03] * matb[M30];
+  tmp[M01] = mata[M00] * matb[M01] + mata[M01] * matb[M11] + mata[M02] * matb[M21] + mata[M03] * matb[M31];
+  tmp[M02] = mata[M00] * matb[M02] + mata[M01] * matb[M12] + mata[M02] * matb[M22] + mata[M03] * matb[M32];
+  tmp[M03] = mata[M00] * matb[M03] + mata[M01] * matb[M13] + mata[M02] * matb[M23] + mata[M03] * matb[M33];
+  tmp[M10] = mata[M10] * matb[M00] + mata[M11] * matb[M10] + mata[M12] * matb[M20] + mata[M13] * matb[M30];
+  tmp[M11] = mata[M10] * matb[M01] + mata[M11] * matb[M11] + mata[M12] * matb[M21] + mata[M13] * matb[M31];
+  tmp[M12] = mata[M10] * matb[M02] + mata[M11] * matb[M12] + mata[M12] * matb[M22] + mata[M13] * matb[M32];
+  tmp[M13] = mata[M10] * matb[M03] + mata[M11] * matb[M13] + mata[M12] * matb[M23] + mata[M13] * matb[M33];
+  tmp[M20] = mata[M20] * matb[M00] + mata[M21] * matb[M10] + mata[M22] * matb[M20] + mata[M23] * matb[M30];
+  tmp[M21] = mata[M20] * matb[M01] + mata[M21] * matb[M11] + mata[M22] * matb[M21] + mata[M23] * matb[M31];
+  tmp[M22] = mata[M20] * matb[M02] + mata[M21] * matb[M12] + mata[M22] * matb[M22] + mata[M23] * matb[M32];
+  tmp[M23] = mata[M20] * matb[M03] + mata[M21] * matb[M13] + mata[M22] * matb[M23] + mata[M23] * matb[M33];
+  tmp[M30] = mata[M30] * matb[M00] + mata[M31] * matb[M10] + mata[M32] * matb[M20] + mata[M33] * matb[M30];
+  tmp[M31] = mata[M30] * matb[M01] + mata[M31] * matb[M11] + mata[M32] * matb[M21] + mata[M33] * matb[M31];
+  tmp[M32] = mata[M30] * matb[M02] + mata[M31] * matb[M12] + mata[M32] * matb[M22] + mata[M33] * matb[M32];
+  tmp[M33] = mata[M30] * matb[M03] + mata[M31] * matb[M13] + mata[M32] * matb[M23] + mata[M33] * matb[M33];
+  memcpy(mata, tmp, sizeof(float) * 16);
+#undef M00
+#undef M01
+#undef M02
+#undef M03
+#undef M10
+#undef M11
+#undef M12
+#undef M13
+#undef M20
+#undef M21
+#undef M22
+#undef M23
+#undef M30
+#undef M31
+#undef M32
+#undef M33
+}
 void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
@@ -14,7 +69,7 @@ void bind() {
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = a_position;"
+		"\n    gl_Position = u_proj * a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -101,17 +156,28 @@ void Main::resize(unsigned int w, unsigned int h) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 }
+float mtrx[16] = {
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
+		0,0,1.0f,1.0f
+	};
+const float yaw = M_PI/120.0f; //alpha rotate
+const float pitch = M_PI/120.0f; //beta rotate
+const float roll = M_PI/120.0f; //gamma rotate
+float rotatE[16]{
+		cos(yaw)*cos(pitch),cos(yaw)*sin(pitch)*sin(roll) - sin(yaw)*cos(roll),cos(yaw)*sin(pitch)*cos(roll) + sin(yaw)*sin(roll),0,
+		sin(yaw)*cos(pitch),sin(yaw)*sin(pitch)*sin(roll) + cos(yaw)*cos(roll),sin(yaw)*sin(pitch)*cos(roll) - cos(yaw)*sin(roll),0,
+		-sin(pitch),cos(pitch)*sin(roll),cos(pitch)*cos(roll),0,
+		0,0,0,1.0f
+	};
 void Main::render(float delta) {
+	
+	mulMatrix(mtrx, rotatE);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
-	float mtrx[]{
-		2.0f/(float)width,0,0,0,
-		0,2.0f/(float)height,0,0,
-		0,0,-0.2f,0,
-		0,0,0,1.0f
-	};
 	tgf->uniform_matrix4fv(sp_matrix, 1, true, mtrx);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
