@@ -164,7 +164,8 @@ void Main::create(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[11] = 1.0f/10000000.0f; //depth
+	world_proj[10] = 1.0f/10000000.0f; //depth
+	world_proj[14] = 100.0f; //back
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -176,12 +177,12 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	//world_proj[11] = 1.0f/100000; //depth
+	world_proj[10] = 1.0f/100000; //depth
 	tgf->bind_shader(sp);
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
 	tgf->bind_shader(0);
 }
-const float allRot = 0;// M_PI / 360.0f;
+const float allRot = M_PI / 360.0f;
 float rotatE[16]{
 	cos(allRot)*cos(allRot),cos(allRot)*sin(allRot)*sin(allRot) - sin(allRot)*cos(allRot),cos(allRot)*sin(allRot)*cos(allRot) + sin(allRot)*sin(allRot),0,
 	sin(allRot)*cos(allRot),sin(allRot)*sin(allRot)*sin(allRot) + cos(allRot)*cos(allRot),sin(allRot)*sin(allRot)*cos(allRot) - cos(allRot)*sin(allRot),0,
