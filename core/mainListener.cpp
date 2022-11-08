@@ -58,7 +58,7 @@ static void inline mulMatrix(float *mata, float *matb) {
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int sp, VAO, VBO, IBO;
-int sp_world_matrix, sp_view_matrix;
+int sp_world_matrix, sp_view_matrix, sp_trans_matrix;
 bool binded = false;
 float world_proj[16] = {
 		1.0f,0,0,0,
@@ -69,7 +69,13 @@ float world_proj[16] = {
 float view_proj[16] = {
 	1.0f,0,0,0,
 	0,1.0f,0,0,
-	0,0,-1.0f,0,
+	0,0,1.0f,0,
+	0,0,-500,1.0f
+};
+float trans_proj[16] = {
+	1.0f,0,0,0,
+	0,1.0f,0,0,
+	0,0,1.0f,0,
 	0,0,0,1.0f
 };
 
@@ -78,12 +84,13 @@ void bind() {
 	const char *vShaderSrc = "#version 300 es"
 		"\nuniform mat4 world_proj;"
 		"\nuniform mat4 view_proj;"
+		"\nuniform mat4 trans_proj;"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = world_proj * view_proj * a_position;"
+		"\n    gl_Position = world_proj * view_proj * trans_proj * a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -96,7 +103,9 @@ void bind() {
 	tgf->bind_shader(sp);
 	tgf->get_shader_uniform_location(sp, "world_proj", sp_world_matrix);
 	tgf->get_shader_uniform_location(sp, "view_proj", sp_view_matrix);
+	tgf->get_shader_uniform_location(sp, "trans_proj", sp_trans_matrix);
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
+	tgf->uniform_matrix4fv(sp_view_matrix, 1, false, view_proj);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);
@@ -164,8 +173,8 @@ void Main::create(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[10] = 1.0f/10000000.0f; //depth
-	world_proj[14] = -100.0f; //back
+	world_proj[10] = 1.0f/1000.0f; //depth
+	//world_proj[14] = 100.0f; //back
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -177,7 +186,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[10] = 1.0f/10000; //depth
+	world_proj[10] = 1.0f/1000.0f; //depth
 	tgf->bind_shader(sp);
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
 	tgf->bind_shader(0);
@@ -190,12 +199,12 @@ float rotatE[16]{
 	0,0,0,1.0f
 };
 void Main::render(float delta) {
-	mulMatrix(view_proj, rotatE);
+	mulMatrix(trans_proj, rotatE);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_view_matrix, 1, false, view_proj);
+	tgf->uniform_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
