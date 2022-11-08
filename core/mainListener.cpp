@@ -27,20 +27,28 @@ void bind() {
 	tgf->gen_buffer(IBO);
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
-	const float vertices[]{
-		0.5f, 0.5f, static_cast<float>(0xff0000ff), 
-		0.5f, -0.5f, static_cast<float>(0x00ff00ff), 
-		-0.5f, -0.5f, static_cast<float>(0x0000ffff),
-		-0.5f, 0.5f, static_cast<float>(0x888888ff)
-	};
-	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)vertices, TGF_STATIC_DRAW);
+	struct {
+		float position[]{
+			+0.5f, +0.5f, 
+			+0.5f, -0.5f, 
+			-0.5f, -0.5f, 
+			-0.5f, +0.5f
+		};
+		unsigned char color[]{
+			0xff, 0x00, 0x00, 0xff, 
+			0xff, 0xff, 0x00, 0xff, 
+			0x00, 0x00, 0xff, 0xff, 
+			0x00, 0xff, 0x00, 0xff
+		};
+	} vertices;
+	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)&vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
 	const unsigned short indices[]{ 0, 1, 3, 1, 2, 3};
 	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	tgf->enable_vertex_attrib_array(0);
-	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 3 * sizeof(float), (void*)0);
+	tgf->vertex_attrib_pointer(0, 2, TGF_FLOAT, false, 2 * sizeof(float), (void*)0);
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 3 * sizeof(float), (void*)(2 * sizeof(float)));
+	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 4 * sizeof(unsigned char), (void*)(sizeof(vertices.position)));
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	
