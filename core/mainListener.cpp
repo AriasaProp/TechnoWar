@@ -164,7 +164,7 @@ void Main::create(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[11] = 2.0f/height; //depth
+	world_proj[11] = 1.0f/10000000.0f; //depth
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -176,7 +176,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[11] = 2.0f/height; //depth
+	//world_proj[11] = 1.0f/100000; //depth
 	tgf->bind_shader(sp);
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
 	tgf->bind_shader(0);
