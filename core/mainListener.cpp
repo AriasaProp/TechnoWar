@@ -24,7 +24,7 @@ void bind() {
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	tgf->bind_shader(sp);
-	tgf->get_uniform_location(sp, "u_proj", sp_matrix);
+	tgf->get_shader_uniform_location(sp, "u_proj", sp_matrix);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);
