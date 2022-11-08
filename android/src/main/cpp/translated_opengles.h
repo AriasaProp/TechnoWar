@@ -14,6 +14,9 @@ public:
 	void gen_shader(unsigned int&, const char*, const char*) override;
 	void bind_shader(const unsigned int) override;
 	void delete_shader(unsigned int&) override;
+	
+	void get_shader_uniform_location(const unsigned int&, const char *, int&) override;
+	void uniform_matrix4fv(const int&,const int&, const bool&, const float *) override;
 
 	void gen_buffer(unsigned int&) override;
 	void bind_buffer(unsigned int, const unsigned int) override;
