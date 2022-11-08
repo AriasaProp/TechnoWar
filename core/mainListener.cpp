@@ -31,7 +31,7 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	struct {
-		const unsigned char color[16] = {
+		const unsigned char color[32] = {
 			0xff, 0x00, 0x00, 0xff, 
 			0xff, 0xff, 0x00, 0xff, 
 			0x00, 0x00, 0xff, 0xff, 
@@ -41,7 +41,7 @@ void bind() {
 			0x00, 0x00, 0xff, 0xff, 
 			0x00, 0xff, 0x00, 0xff
 		};
-		const float position[8] = {
+		const float position[24] = {
 			+350.0f, +350.0f, -350.0f, 
 			+350.0f, -350.0f, -350.0f, 
 			-350.0f, -350.0f, -350.0f, 
@@ -85,7 +85,8 @@ void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_matrix, 1, false, {1.0f/(float)width,0,0,0, 0,1.0f/(float)height,0,0, 0,0,0.0001f,0, 0,0,0,1.0f});
+	float mtrx[] = {1.0f/(float)width,0,0,0, 0,1.0f/(float)height,0,0, 0,0,0.0001f,0, 0,0,0,1.0f};
+	tgf->uniform_matrix4fv(sp_matrix, 1, false, mtrx);
 	tgf->bind_shader(0);
 }
 void Main::render(float delta) {
