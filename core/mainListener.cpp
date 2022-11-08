@@ -2,12 +2,6 @@
 #include <cstring>
 #include <cmath>
 
-unsigned int width, height;
-float r = 0, g = 0, b = 0;
-unsigned int sp, VAO, VBO, IBO;
-int sp_matrix;
-bool binded = false;
-
 static void inline mulMatrix(float *mata, float *matb) {
 #define M00 0
 #define M01 4
@@ -60,16 +54,36 @@ static void inline mulMatrix(float *mata, float *matb) {
 #undef M32
 #undef M33
 }
+
+unsigned int width, height;
+float r = 0, g = 0, b = 0;
+unsigned int sp, VAO, VBO, IBO;
+int sp_world_matrix, sp_view_matrix;
+bool binded = false;
+float world_proj[16] = {
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
+		0,0,0,1.0f
+	};
+float view_proj[16] = {
+		1.0f,0,0,0,
+		0,1.0f,0,0,
+		0,0,1.0f,0,
+		0,0,1.0f,1.0f
+	};
+
 void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
-		"\nuniform mat4 u_proj;"
+		"\nuniform mat4 world_proj;"
+		"\nuniform mat4 view_proj;"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = u_proj * a_position;"
+		"\n    gl_Position = world_proj * view_proj * a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -80,7 +94,9 @@ void bind() {
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	tgf->bind_shader(sp);
-	tgf->get_shader_uniform_location(sp, "u_proj", sp_matrix);
+	tgf->get_shader_uniform_location(sp, "world_proj", sp_world_matrix);
+	tgf->get_shader_uniform_location(sp, "view_proj", sp_view_matrix);
+	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);
@@ -97,6 +113,7 @@ void bind() {
 			0x00, 0x00, 0xff, 0xff, 
 			0x00, 0xff, 0x00, 0xff
 		};
+		/*
 		const float position[24] = {
 			+0.5f, +0.5f, 0.f, 
 			+0.5f, -0.5f, 0.f, 
@@ -107,18 +124,17 @@ void bind() {
 			-0.5f, -0.5f, 1.0f, 
 			-0.5f, +0.5f, 1.0f
 		};
-		/*
-		const float position[24] = {
-			+350.0f, +350.0f, -350.0f, 
-			+350.0f, -350.0f, -350.0f, 
-			-350.0f, -350.0f, -350.0f, 
-			-350.0f, +350.0f, -350.0f, 
-			+350.0f, +350.0f, +350.0f, 
-			+350.0f, -350.0f, +350.0f, 
-			-350.0f, -350.0f, +350.0f, 
-			-350.0f, +350.0f, +350.0f
-		};
 		*/
+		const float position[24] = {
+			+350.0f, +350.0f, 0.0f, 
+			+350.0f, -350.0f, 0.0f, 
+			-350.0f, -350.0f, 0.0f, 
+			-350.0f, +350.0f, 0.0f, 
+			+350.0f, +350.0f, 700.0f, 
+			+350.0f, -350.0f, 700.0f, 
+			-350.0f, -350.0f, 700.0f, 
+			-350.0f, +350.0f, 700.0f
+		};
 	} vertices;
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)&vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
@@ -146,6 +162,9 @@ void Main::create(unsigned int w, unsigned int h) {
 	r = g = b = 1;
 	//resume();
 	tgf->viewport(0, 0, width, height);
+	world_proj[0] = 2.0f/width;
+	world_proj[5] = 2.0f/height;
+	world_proj[11] = 2.0f/height; //depth
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -155,30 +174,27 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
+	world_proj[0] = 2.0f/width;
+	world_proj[5] = 2.0f/height;
+	world_proj[11] = 2.0f/height; //depth
+	tgf->bind_shader(sp);
+	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
+	tgf->bind_shader(0);
 }
-float mtrx[16] = {
-		1.0f,0,0,0,
-		0,1.0f,0,0,
-		0,0,1.0f,0,
-		0,0,1.0f,1.0f
-	};
-const float yaw = M_PI/120.0f; //alpha rotate
-const float pitch = M_PI/120.0f; //beta rotate
-const float roll = M_PI/120.0f; //gamma rotate
-float rotatE[16]{
-		cos(yaw)*cos(pitch),cos(yaw)*sin(pitch)*sin(roll) - sin(yaw)*cos(roll),cos(yaw)*sin(pitch)*cos(roll) + sin(yaw)*sin(roll),0,
-		sin(yaw)*cos(pitch),sin(yaw)*sin(pitch)*sin(roll) + cos(yaw)*cos(roll),sin(yaw)*sin(pitch)*cos(roll) - cos(yaw)*sin(roll),0,
-		-sin(pitch),cos(pitch)*sin(roll),cos(pitch)*cos(roll),0,
-		0,0,0,1.0f
-	};
+const float allRot = M_PI / 360.0f;
+const float rotatE[16]{
+	cos(allRot)*cos(allRot),cos(allRot)*sin(allRot)*sin(allRot) - sin(allRot)*cos(allRot),cos(allRot)*sin(allRot)*cos(allRot) + sin(allRot)*sin(allRot),0,
+	sin(allRot)*cos(allRot),sin(allRot)*sin(allRot)*sin(allRot) + cos(allRot)*cos(allRot),sin(allRot)*sin(allRot)*cos(allRot) - cos(allRot)*sin(allRot),0,
+	-sin(allRot),cos(allRot)*sin(allRot),cos(allRot)*cos(allRot),0,
+	0,0,0,1.0f
+};
 void Main::render(float delta) {
-	
-	mulMatrix(mtrx, rotatE);
+	mulMatrix(view_proj, rotatE);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_matrix, 1, true, mtrx);
+	tgf->uniform_matrix4fv(sp_view_matrix, 1, false, view_proj);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
