@@ -85,7 +85,7 @@ void Main::resize(unsigned int width, unsigned int height) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	tgf->bind_shader(sp);
-	float mtrx[] = {1.0f/(float)width,0,0,0, 0,1.0f/(float)height,0,0, 0,0,0.0001f,0, 0,0,0,1.0f};
+	float mtrx[] = {1.0f/(float)width,0,0,0, 0,1.0f/(float)height,0,0, 0,0,-0.001f,0, 0,0,0,1.0f};
 	tgf->uniform_matrix4fv(sp_matrix, 1, false, mtrx);
 	tgf->bind_shader(0);
 }
