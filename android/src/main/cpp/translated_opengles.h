@@ -30,6 +30,8 @@ public:
 	void vertex_attrib_pointer(unsigned int, int, unsigned int type, bool, int, const void *) override;
 	void enable_vertex_attrib_array(const unsigned int) override;
 	void draw_elements(int, unsigned int, int, const void *) override;
+	
+	void depth_rangef(float near,float far) override;
 };
 
 #endif // Included_TGLES

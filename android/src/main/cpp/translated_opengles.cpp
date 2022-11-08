@@ -120,4 +120,7 @@ void tgf_gles::enable_vertex_attrib_array(const unsigned int loc) {
 void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
 	glDrawElements(drawType, indSize, inType, offset);
 }
+void tgf_gles::depth_rangef(float near,float far) {
+	glDepthRangef(near, far);
+}
 

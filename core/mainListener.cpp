@@ -153,7 +153,7 @@ void bind() {
 	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 4 * sizeof(unsigned char), (void*)0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
-	
+	tgf->depth_rangef(0, 1000);
 	binded = true;
 }
 void Main::create(unsigned int w, unsigned int h) {

@@ -596,6 +596,7 @@ public:
 	virtual void vertex_attrib_pointer(unsigned int, int, unsigned int, bool, int, const void *) = 0;
 	virtual void enable_vertex_attrib_array(const unsigned int) = 0;
 	virtual void draw_elements(int, unsigned int, int, const void *) = 0;
+	virtual void depth_rangef(float near,float far) = 0;
 };
 
 #endif //Included_TGF
