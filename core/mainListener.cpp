@@ -58,19 +58,13 @@ static void inline mulMatrix(float *mata, float *matb) {
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int sp, VAO, VBO, IBO;
-int sp_world_matrix, sp_view_matrix, sp_trans_matrix;
+int sp_worldview_matrix, sp_trans_matrix;
 bool binded = false;
 float world_proj[16] = {
-		1.0f,0,0,0,
-		0,1.0f,0,0,
-		0,0,1.0f,0,
-		0,0,0,1.0f
-	};
-float view_proj[16] = {
 	1.0f,0,0,0,
 	0,1.0f,0,0,
 	0,0,1.0f,0,
-	0,0,-500,1.0f
+	0,0,-1000.0f,1.0f
 };
 float trans_proj[16] = {
 	1.0f,0,0,0,
@@ -82,15 +76,14 @@ float trans_proj[16] = {
 void bind() {
 	if (binded) return;
 	const char *vShaderSrc = "#version 300 es"
-		"\nuniform mat4 world_proj;"
-		"\nuniform mat4 view_proj;"
+		"\nuniform mat4 worldview_proj;"
 		"\nuniform mat4 trans_proj;"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
 		"\nout vec4 v_color;"
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
-		"\n    gl_Position = world_proj * view_proj * trans_proj * a_position;"
+		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
 		"\n}\0", 
 	*fShaderSrc = "#version 300 es"
 		"\nprecision mediump float;"
@@ -101,11 +94,9 @@ void bind() {
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	tgf->bind_shader(sp);
-	tgf->get_shader_uniform_location(sp, "world_proj", sp_world_matrix);
-	tgf->get_shader_uniform_location(sp, "view_proj", sp_view_matrix);
+	tgf->get_shader_uniform_location(sp, "worldview_proj", sp_world_matrix);
 	tgf->get_shader_uniform_location(sp, "trans_proj", sp_trans_matrix);
 	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
-	tgf->uniform_matrix4fv(sp_view_matrix, 1, false, view_proj);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);
@@ -138,7 +129,7 @@ void bind() {
 			0xff, 0x00, 0xff, 0xff, 
 			0xff, 0x00, 0xff, 0xff, 
 			0xff, 0x00, 0xff, 0xff, 
-			//gb
+			//light blue
 			0x00, 0xff, 0xff, 0xff, 
 			0x00, 0xff, 0xff, 0xff, 
 			0x00, 0xff, 0xff, 0xff, 
@@ -171,7 +162,7 @@ void bind() {
 			-350.0f, +350.0f, 0.0f, 
 			-350.0f, +350.0f, 700.0f,
 			//back
-			-350.0f, +350.0f, 700.0f
+			-350.0f, +350.0f, 700.0f, 
 			-350.0f, -350.0f, 700.0f, 
 			+350.0f, -350.0f, 700.0f, 
 			+350.0f, +350.0f, 700.0f
@@ -209,8 +200,7 @@ void Main::create(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[10] = 1.0f/1000.0f; //depth
-	//world_proj[14] = 100.0f; //back
+	world_proj[10] = 1.0f/10000.0f; //depth
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -222,9 +212,8 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->viewport(0, 0, width, height);
 	world_proj[0] = 2.0f/width;
 	world_proj[5] = 2.0f/height;
-	world_proj[10] = 1.0f/1000.0f; //depth
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
+	tgf->uniform_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
 }
 const float allRot = M_PI / 360.0f;
