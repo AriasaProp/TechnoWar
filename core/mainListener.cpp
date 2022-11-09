@@ -166,9 +166,9 @@ void Main::create(unsigned int w, unsigned int h) {
 	r = g = b = 1;
 	//resume();
 	tgf->viewport(0, 0, width, height);
-	world_proj[0] = 2.0f/width;
-	world_proj[5] = 2.0f/height;
-	world_proj[10] = 1.0f/10000.0f; //depth
+	worldview_proj[0] = 2.0f/width;
+	worldview_proj[5] = 2.0f/height;
+	worldview_proj[10] = 1.0f/10000.0f; //depth
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -178,10 +178,10 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	world_proj[0] = 2.0f/width;
-	world_proj[5] = 2.0f/height;
+	worldview_proj[0] = 2.0f/width;
+	worldview_proj[5] = 2.0f/height;
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
+	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
 }
 const float allRot = M_PI / 360.0f;
@@ -197,7 +197,7 @@ void Main::render(float delta) {
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
-	tgf->uniform_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
+	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
