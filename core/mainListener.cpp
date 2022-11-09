@@ -163,6 +163,10 @@ void bind() {
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	tgf->depth_rangef(0, 1000);
+	tgf->enable_capability(TGF_CULL_FACE);
+	tgf->enable_capability(TGF_DEPTH_TEST);
+	tgf->cull_face(TGF_FRONT);
+	tgf->depth_func(TGF_LESS);
 	binded = true;
 }
 void Main::create(unsigned int w, unsigned int h) {

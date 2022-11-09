@@ -120,6 +120,19 @@ void tgf_gles::enable_vertex_attrib_array(const unsigned int loc) {
 void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
 	glDrawElements(drawType, indSize, inType, offset);
 }
+//env
+void enable_capability(const unsigned int &cap) {
+	glEnable(cap);
+}
+void disable_capability(const unsigned int &cap) {
+	glDisable(cap);
+}
+void cull_face(const unsigned int &face) {
+	glCullFace(face);
+}
+void depth_func(const unsigned int &func) {
+	glDepthFunc(func);
+}
 void tgf_gles::depth_rangef(float near,float far) {
 	glDepthRangef(near, far);
 }

@@ -31,6 +31,11 @@ public:
 	void enable_vertex_attrib_array(const unsigned int) override;
 	void draw_elements(int, unsigned int, int, const void *) override;
 	
+	//env
+	void enable_capability(const unsigned int&) override;
+	void disable_capability(const unsigned int&) override;
+	void cull_face(const unsigned int&) override;
+	void depth_func(const unsigned int&) override;
 	void depth_rangef(float near,float far) override;
 };
 
