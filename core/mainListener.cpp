@@ -3,56 +3,24 @@
 #include <cmath>
 
 static void inline mulMatrix(float *mata, float *matb) {
-#define M00 0
-#define M01 4
-#define M02 8
-#define M03 12
-#define M10 1
-#define M11 5
-#define M12 9
-#define M13 13
-#define M20 2
-#define M21 6
-#define M22 10
-#define M23 14
-#define M30 3
-#define M31 7
-#define M32 11
-#define M33 15
 	float tmp[16];
-  tmp[M00] = mata[M00] * matb[M00] + mata[M01] * matb[M10] + mata[M02] * matb[M20] + mata[M03] * matb[M30];
-  tmp[M01] = mata[M00] * matb[M01] + mata[M01] * matb[M11] + mata[M02] * matb[M21] + mata[M03] * matb[M31];
-  tmp[M02] = mata[M00] * matb[M02] + mata[M01] * matb[M12] + mata[M02] * matb[M22] + mata[M03] * matb[M32];
-  tmp[M03] = mata[M00] * matb[M03] + mata[M01] * matb[M13] + mata[M02] * matb[M23] + mata[M03] * matb[M33];
-  tmp[M10] = mata[M10] * matb[M00] + mata[M11] * matb[M10] + mata[M12] * matb[M20] + mata[M13] * matb[M30];
-  tmp[M11] = mata[M10] * matb[M01] + mata[M11] * matb[M11] + mata[M12] * matb[M21] + mata[M13] * matb[M31];
-  tmp[M12] = mata[M10] * matb[M02] + mata[M11] * matb[M12] + mata[M12] * matb[M22] + mata[M13] * matb[M32];
-  tmp[M13] = mata[M10] * matb[M03] + mata[M11] * matb[M13] + mata[M12] * matb[M23] + mata[M13] * matb[M33];
-  tmp[M20] = mata[M20] * matb[M00] + mata[M21] * matb[M10] + mata[M22] * matb[M20] + mata[M23] * matb[M30];
-  tmp[M21] = mata[M20] * matb[M01] + mata[M21] * matb[M11] + mata[M22] * matb[M21] + mata[M23] * matb[M31];
-  tmp[M22] = mata[M20] * matb[M02] + mata[M21] * matb[M12] + mata[M22] * matb[M22] + mata[M23] * matb[M32];
-  tmp[M23] = mata[M20] * matb[M03] + mata[M21] * matb[M13] + mata[M22] * matb[M23] + mata[M23] * matb[M33];
-  tmp[M30] = mata[M30] * matb[M00] + mata[M31] * matb[M10] + mata[M32] * matb[M20] + mata[M33] * matb[M30];
-  tmp[M31] = mata[M30] * matb[M01] + mata[M31] * matb[M11] + mata[M32] * matb[M21] + mata[M33] * matb[M31];
-  tmp[M32] = mata[M30] * matb[M02] + mata[M31] * matb[M12] + mata[M32] * matb[M22] + mata[M33] * matb[M32];
-  tmp[M33] = mata[M30] * matb[M03] + mata[M31] * matb[M13] + mata[M32] * matb[M23] + mata[M33] * matb[M33];
+  tmp[0] = mata[0] * matb[0] + mata[4] * matb[1] + mata[8] * matb[2] + mata[12] * matb[3];
+  tmp[4] = mata[0] * matb[4] + mata[4] * matb[5] + mata[8] * matb[6] + mata[12] * matb[7];
+  tmp[8] = mata[0] * matb[8] + mata[4] * matb[9] + mata[8] * matb[10] + mata[12] * matb[11];
+  tmp[12] = mata[0] * matb[12] + mata[4] * matb[13] + mata[8] * matb[14] + mata[12] * matb[15];
+  tmp[1] = mata[1] * matb[0] + mata[5] * matb[1] + mata[9] * matb[2] + mata[13] * matb[3];
+  tmp[5] = mata[1] * matb[4] + mata[5] * matb[5] + mata[9] * matb[6] + mata[13] * matb[7];
+  tmp[9] = mata[1] * matb[8] + mata[5] * matb[9] + mata[9] * matb[10] + mata[13] * matb[11];
+  tmp[13] = mata[1] * matb[12] + mata[5] * matb[13] + mata[9] * matb[14] + mata[13] * matb[15];
+  tmp[2] = mata[2] * matb[0] + mata[6] * matb[1] + mata[10] * matb[2] + mata[14] * matb[3];
+  tmp[6] = mata[2] * matb[4] + mata[6] * matb[5] + mata[10] * matb[6] + mata[14] * matb[7];
+  tmp[10] = mata[2] * matb[8] + mata[6] * matb[9] + mata[10] * matb[10] + mata[14] * matb[11];
+  tmp[14] = mata[2] * matb[12] + mata[6] * matb[13] + mata[10] * matb[14] + mata[14] * matb[15];
+  tmp[3] = mata[3] * matb[0] + mata[7] * matb[1] + mata[11] * matb[2] + mata[15] * matb[3];
+  tmp[7] = mata[3] * matb[4] + mata[7] * matb[5] + mata[11] * matb[6] + mata[15] * matb[7];
+  tmp[11] = mata[3] * matb[8] + mata[7] * matb[9] + mata[11] * matb[10] + mata[15] * matb[11];
+  tmp[15] = mata[3] * matb[12] + mata[7] * matb[13] + mata[11] * matb[14] + mata[15] * matb[15];
   memcpy(mata, tmp, sizeof(float) * 16);
-#undef M00
-#undef M01
-#undef M02
-#undef M03
-#undef M10
-#undef M11
-#undef M12
-#undef M13
-#undef M20
-#undef M21
-#undef M22
-#undef M23
-#undef M30
-#undef M31
-#undef M32
-#undef M33
 }
 
 unsigned int width, height;
@@ -60,7 +28,7 @@ float r = 0, g = 0, b = 0;
 unsigned int sp, VAO, VBO, IBO;
 int sp_worldview_matrix, sp_trans_matrix;
 bool binded = false;
-float world_proj[16] = {
+float worldview_proj[16] = {
 	1.0f,0,0,0,
 	0,1.0f,0,0,
 	0,0,1.0f,0,
@@ -94,9 +62,9 @@ void bind() {
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	tgf->bind_shader(sp);
-	tgf->get_shader_uniform_location(sp, "worldview_proj", sp_world_matrix);
-	tgf->get_shader_uniform_location(sp, "trans_proj", sp_trans_matrix);
-	tgf->uniform_matrix4fv(sp_world_matrix, 1, false, world_proj);
+	tgf->get_shader_uloc(sp, "worldview_proj", sp_worldview_matrix);
+	tgf->get_shader_uloc(sp, "trans_proj", sp_trans_matrix);
+	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);

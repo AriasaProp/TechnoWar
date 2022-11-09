@@ -77,11 +77,10 @@ void tgf_gles::delete_shader(unsigned int &p) {
 	glDeleteProgram(p);
 	p = 0;
 }
-
-void tgf_gles::get_shader_uniform_location(const unsigned int &p, const char *name, int &loc) {
+void tgf_gles::get_shader_uloc(const unsigned int &p, const char *name, int &loc) {
 	loc = glGetUniformLocation(p, name);
 }
-void tgf_gles::uniform_matrix4fv(const int &loc,const int &count, const bool &trnspose, const float *mtrix) {
+void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose, const float *mtrix) {
 	glUniformMatrix4fv(loc, count, trnspose, mtrix);
 }
 void tgf_gles::gen_buffer(unsigned int &b) {

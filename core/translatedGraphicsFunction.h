@@ -581,8 +581,8 @@ public:
 	virtual void bind_shader(const unsigned int) = 0;
 	virtual void delete_shader(unsigned int&) = 0;
 	
-	virtual void get_shader_uniform_location(const unsigned int&, const char *, int&) = 0;
-	virtual void uniform_matrix4fv(const int&,const int&, const bool&, const float *) = 0;
+	virtual void get_shader_uloc(const unsigned int&, const char *, int&) = 0;
+	virtual void u_matrix4fv(const int&,const int&, const bool&, const float *) = 0;
 
 	virtual void gen_buffer(unsigned int&) = 0;
 	virtual void bind_buffer(unsigned int, const unsigned int) = 0;
