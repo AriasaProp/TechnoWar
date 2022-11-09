@@ -121,16 +121,16 @@ void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, con
 	glDrawElements(drawType, indSize, inType, offset);
 }
 //env
-void enable_capability(const unsigned int &cap) {
+void tgf_gles::enable_capability(const unsigned int &cap) {
 	glEnable(cap);
 }
-void disable_capability(const unsigned int &cap) {
+void tgf_gles::disable_capability(const unsigned int &cap) {
 	glDisable(cap);
 }
-void cull_face(const unsigned int &face) {
+void tgf_gles::cull_face(const unsigned int &face) {
 	glCullFace(face);
 }
-void depth_func(const unsigned int &func) {
+void tgf_gles::depth_func(const unsigned int &func) {
 	glDepthFunc(func);
 }
 void tgf_gles::depth_rangef(float near,float far) {
