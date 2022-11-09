@@ -112,48 +112,80 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	struct {
-		const unsigned char color[32] = {
-			0xff, 0x00, 0x00, 0xff, 
+		const unsigned char color[96] = {
+			//red
+			0xff, 0x00, 0x00, 0xff,
+			0xff, 0x00, 0x00, 0xff,
+			0xff, 0x00, 0x00, 0xff,
+			0xff, 0x00, 0x00, 0xff,
+			//yellow
 			0xff, 0xff, 0x00, 0xff, 
+			0xff, 0xff, 0x00, 0xff, 
+			0xff, 0xff, 0x00, 0xff, 
+			0xff, 0xff, 0x00, 0xff, 
+			//blue
 			0x00, 0x00, 0xff, 0xff, 
+			0x00, 0x00, 0xff, 0xff, 
+			0x00, 0x00, 0xff, 0xff, 
+			0x00, 0x00, 0xff, 0xff, 
+			//green
 			0x00, 0xff, 0x00, 0xff, 
-			0xff, 0x00, 0x00, 0xff, 
-			0xff, 0xff, 0x00, 0xff, 
-			0x00, 0x00, 0xff, 0xff, 
-			0x00, 0xff, 0x00, 0xff
+			0x00, 0xff, 0x00, 0xff, 
+			0x00, 0xff, 0x00, 0xff, 
+			0x00, 0xff, 0x00, 0xff, 
+			//purple
+			0xff, 0x00, 0xff, 0xff, 
+			0xff, 0x00, 0xff, 0xff, 
+			0xff, 0x00, 0xff, 0xff, 
+			0xff, 0x00, 0xff, 0xff, 
+			//gb
+			0x00, 0xff, 0xff, 0xff, 
+			0x00, 0xff, 0xff, 0xff, 
+			0x00, 0xff, 0xff, 0xff, 
+			0x00, 0xff, 0xff, 0xff
 		};
-		/*
-		const float position[24] = {
-			+0.5f, +0.5f, 0.f, 
-			+0.5f, -0.5f, 0.f, 
-			-0.5f, -0.5f, 0.f, 
-			-0.5f, +0.5f, 0.f, 
-			+0.5f, +0.5f, 1.0f, 
-			+0.5f, -0.5f, 1.0f, 
-			-0.5f, -0.5f, 1.0f, 
-			-0.5f, +0.5f, 1.0f
-		};
-		*/
-		const float position[24] = {
+		const float position[72] = {
+			//front
 			+350.0f, +350.0f, 0.0f, 
 			+350.0f, -350.0f, 0.0f, 
 			-350.0f, -350.0f, 0.0f, 
+			-350.0f, +350.0f, 0.0f,
+			//left
 			-350.0f, +350.0f, 0.0f, 
-			+350.0f, +350.0f, 700.0f, 
-			+350.0f, -350.0f, 700.0f, 
+			-350.0f, -350.0f, 0.0f, 
 			-350.0f, -350.0f, 700.0f, 
+			-350.0f, +350.0f, 700.0f,
+			//right
+			+350.0f, +350.0f, 700.0f,
+			+350.0f, -350.0f, 700.0f, 
+			+350.0f, -350.0f, 0.0f, 
+			+350.0f, +350.0f, 0.0f, 
+			//bot
+			+350.0f, -350.0f, 0.0f, 
+			+350.0f, -350.0f, 700.0f, 
+			-350.0f, -350.0f, 700.0f,
+			-350.0f, -350.0f, 0.0f, 
+			//top
+			+350.0f, +350.0f, 700.0f, 
+			+350.0f, +350.0f, 0.0f, 
+			-350.0f, +350.0f, 0.0f, 
+			-350.0f, +350.0f, 700.0f,
+			//back
 			-350.0f, +350.0f, 700.0f
+			-350.0f, -350.0f, 700.0f, 
+			+350.0f, -350.0f, 700.0f, 
+			+350.0f, +350.0f, 700.0f
 		};
 	} vertices;
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)&vertices, TGF_STATIC_DRAW);
 	tgf->bind_buffer(TGF_ELEMENT_ARRAY_BUFFER, IBO);
 	const unsigned short indices[]{
 		0,1,3,1,2,3,//front
-		4,5,0,5,1,0,//right
-		3,2,7,2,6,7,//left
-		1,6,2,6,5,2,//bot
-		4,0,7,0,3,7,//top
-		7,6,4,6,5,4 //back
+		4,5,7,5,6,7,//left
+		8,9,11,9,10,11,//right
+		12,13,15,13,14,15,//bot
+		16,17,19,17,18,19,//top
+		20,21,23,21,22,23//back
 	};
 	tgf->buffer_data(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	tgf->enable_vertex_attrib_array(0);
