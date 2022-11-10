@@ -1,4 +1,6 @@
 #include "translated_opengles.h"
+#include <memory> // alloca, malloc, calloc, alloc, etc
+#include <cstring> //str.. function
 
 // make opengles lastest possible version
 #if __ANDROID_API__ >= 24
@@ -36,19 +38,33 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
+const char *header_glsl =  "#version 300 es\n"
+    				+ "#define LOW lowp\n"
+    				+ "#define MED mediump\n"
+            + "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+            + "    #define HIGH highp\n"
+            + "#else\n"
+            + "    #define HIGH mediump\n"
+            + "#endif\n";
 void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 	p = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
-		glShaderSource(utemp[0], 1, &v, 0);
+		char *vSrc = (char*)alloca(strlen(header_glsl)+strlen(v));
+		strcpy(vSrc, header_glsl);
+		strcat(vSrc, v);
+		glShaderSource(utemp[0], 1, &vSrc, 0);
 		glCompileShader(utemp[0]);
 		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0) {
 			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		glShaderSource(utemp[1], 1, &f, 0);
+		char *fSrc = alloca(strlen(header_glsl)+strlen(f));
+		strcpy(fSrc, header_glsl);
+		strcat(fSrc, f);
+		glShaderSource(utemp[1], 1, &fSrc, 0);
 		glCompileShader(utemp[1]);
 		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0){

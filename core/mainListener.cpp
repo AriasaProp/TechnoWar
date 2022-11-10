@@ -2,6 +2,8 @@
 #include "math/matrix4.h"
 #include <cstring>
 #include <cmath>
+#include <cstdlib>     /* srand, rand */
+#include <time.h>       /* time */
 
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
@@ -23,8 +25,7 @@ float trans_proj[16] = {
 
 void bind() {
 	if (binded) return;
-	const char *vShaderSrc = "#version 300 es"
-		"\nuniform mat4 worldview_proj;"
+	const char *vShaderSrc = "uniform mat4 worldview_proj;"
 		"\nuniform mat4 trans_proj;"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
@@ -33,8 +34,7 @@ void bind() {
 		"\n    v_color = a_color;"
 		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
 		"\n}\0", 
-	*fShaderSrc = "#version 300 es"
-		"\nprecision mediump float;"
+	*fShaderSrc = "precision MED float;"
 		"\nin vec4 v_color;"
 		"\nout vec4 o_fragColor;"
 		"\nvoid main() {"
@@ -164,9 +164,10 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
 }
-const float allRot = M_PI / 360.0f;
 void Main::render(float delta) {
-	matrix4::rotate(trans_proj, allRot, allRot, 0);
+	srand(time(NULL));
+	const float allRot = M_PI / std::max( float(rand() % 1000), 240.0f);
+	matrix4::rotate(trans_proj, allRot, allRot, allRot);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
