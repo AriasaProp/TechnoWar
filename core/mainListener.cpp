@@ -1,27 +1,7 @@
 #include "mainListener.h"
+#include "math/matrix4.h"
 #include <cstring>
 #include <cmath>
-
-static void inline mulMatrix(float *mata, float *matb) {
-	float tmp[16];
-  tmp[0] = mata[0] * matb[0] + mata[4] * matb[1] + mata[8] * matb[2] + mata[12] * matb[3];
-  tmp[4] = mata[0] * matb[4] + mata[4] * matb[5] + mata[8] * matb[6] + mata[12] * matb[7];
-  tmp[8] = mata[0] * matb[8] + mata[4] * matb[9] + mata[8] * matb[10] + mata[12] * matb[11];
-  tmp[12] = mata[0] * matb[12] + mata[4] * matb[13] + mata[8] * matb[14] + mata[12] * matb[15];
-  tmp[1] = mata[1] * matb[0] + mata[5] * matb[1] + mata[9] * matb[2] + mata[13] * matb[3];
-  tmp[5] = mata[1] * matb[4] + mata[5] * matb[5] + mata[9] * matb[6] + mata[13] * matb[7];
-  tmp[9] = mata[1] * matb[8] + mata[5] * matb[9] + mata[9] * matb[10] + mata[13] * matb[11];
-  tmp[13] = mata[1] * matb[12] + mata[5] * matb[13] + mata[9] * matb[14] + mata[13] * matb[15];
-  tmp[2] = mata[2] * matb[0] + mata[6] * matb[1] + mata[10] * matb[2] + mata[14] * matb[3];
-  tmp[6] = mata[2] * matb[4] + mata[6] * matb[5] + mata[10] * matb[6] + mata[14] * matb[7];
-  tmp[10] = mata[2] * matb[8] + mata[6] * matb[9] + mata[10] * matb[10] + mata[14] * matb[11];
-  tmp[14] = mata[2] * matb[12] + mata[6] * matb[13] + mata[10] * matb[14] + mata[14] * matb[15];
-  tmp[3] = mata[3] * matb[0] + mata[7] * matb[1] + mata[11] * matb[2] + mata[15] * matb[3];
-  tmp[7] = mata[3] * matb[4] + mata[7] * matb[5] + mata[11] * matb[6] + mata[15] * matb[7];
-  tmp[11] = mata[3] * matb[8] + mata[7] * matb[9] + mata[11] * matb[10] + mata[15] * matb[11];
-  tmp[15] = mata[3] * matb[12] + mata[7] * matb[13] + mata[11] * matb[14] + mata[15] * matb[15];
-  memcpy(mata, tmp, sizeof(float) * 16);
-}
 
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
@@ -32,7 +12,7 @@ float worldview_proj[16] = {
 	1.0f,0,0,0,
 	0,1.0f,0,0,
 	0,0,1.0f,0,
-	0,0,-0.25f,1.0f
+	0,0,-0.5f,1.0f
 };
 float trans_proj[16] = {
 	1.0f,0,0,0,
@@ -105,35 +85,35 @@ void bind() {
 		};
 		const float position[72] = {
 			//front
-			+350.0f, +350.0f, 0.0f, 
-			+350.0f, -350.0f, 0.0f, 
-			-350.0f, -350.0f, 0.0f, 
-			-350.0f, +350.0f, 0.0f,
+			+350.0f, +350.0f, -350.0f, 
+			+350.0f, -350.0f, -350.0f, 
+			-350.0f, -350.0f, -350.0f, 
+			-350.0f, +350.0f, -350.0f,
 			//left
-			-350.0f, +350.0f, 0.0f, 
-			-350.0f, -350.0f, 0.0f, 
-			-350.0f, -350.0f, 700.0f, 
-			-350.0f, +350.0f, 700.0f,
+			-350.0f, +350.0f, -350.0f, 
+			-350.0f, -350.0f, -350.0f, 
+			-350.0f, -350.0f, +350.0f, 
+			-350.0f, +350.0f, +350.0f,
 			//right
-			+350.0f, +350.0f, 700.0f,
-			+350.0f, -350.0f, 700.0f, 
-			+350.0f, -350.0f, 0.0f, 
-			+350.0f, +350.0f, 0.0f, 
+			+350.0f, +350.0f, +350.0f,
+			+350.0f, -350.0f, +350.0f, 
+			+350.0f, -350.0f, -350.0f, 
+			+350.0f, +350.0f, -350.0f, 
 			//bot
-			+350.0f, -350.0f, 0.0f, 
-			+350.0f, -350.0f, 700.0f, 
-			-350.0f, -350.0f, 700.0f,
-			-350.0f, -350.0f, 0.0f, 
+			+350.0f, -350.0f, -350.0f, 
+			+350.0f, -350.0f, +350.0f, 
+			-350.0f, -350.0f, +350.0f,
+			-350.0f, -350.0f, -350.0f, 
 			//top
-			+350.0f, +350.0f, 700.0f, 
-			+350.0f, +350.0f, 0.0f, 
-			-350.0f, +350.0f, 0.0f, 
-			-350.0f, +350.0f, 700.0f,
+			+350.0f, +350.0f, +350.0f, 
+			+350.0f, +350.0f, -350.0f, 
+			-350.0f, +350.0f, -350.0f, 
+			-350.0f, +350.0f, +350.0f,
 			//back
-			-350.0f, +350.0f, 700.0f, 
-			-350.0f, -350.0f, 700.0f, 
-			+350.0f, -350.0f, 700.0f, 
-			+350.0f, +350.0f, 700.0f
+			-350.0f, +350.0f, +350.0f, 
+			-350.0f, -350.0f, +350.0f, 
+			+350.0f, -350.0f, +350.0f, 
+			+350.0f, +350.0f, +350.0f
 		};
 	} vertices;
 	tgf->buffer_data(TGF_ARRAY_BUFFER, sizeof(vertices), (void*)&vertices, TGF_STATIC_DRAW);
@@ -185,14 +165,8 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->bind_shader(0);
 }
 const float allRot = M_PI / 360.0f;
-float rotatE[16]{
-	cos(allRot)*cos(allRot),cos(allRot)*sin(allRot)*sin(allRot) - sin(allRot)*cos(allRot),cos(allRot)*sin(allRot)*cos(allRot) + sin(allRot)*sin(allRot),0,
-	sin(allRot)*cos(allRot),sin(allRot)*sin(allRot)*sin(allRot) + cos(allRot)*cos(allRot),sin(allRot)*sin(allRot)*cos(allRot) - cos(allRot)*sin(allRot),0,
-	-sin(allRot),cos(allRot)*sin(allRot),cos(allRot)*cos(allRot),0,
-	0,0,0,1.0f
-};
 void Main::render(float delta) {
-	mulMatrix(trans_proj, rotatE);
+	matrix4::mul(trans_proj, allRot, allRot, 0);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
