@@ -166,7 +166,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 }
 const float allRot = M_PI / 360.0f;
 void Main::render(float delta) {
-	matrix4::mul(trans_proj, allRot, allRot, 0);
+	matrix4::rotate(trans_proj, allRot, allRot, 0);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
