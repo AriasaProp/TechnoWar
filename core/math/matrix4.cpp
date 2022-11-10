@@ -4,7 +4,7 @@
 
 namespace matrix4 {
 	void idt(float *a) {
-		memcpy(a, float[]{1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}, 16*sizeof(float));
+		memcpy(a, (float[]){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}, 16*sizeof(float));
 	}
 	void mul(float *a, float *b) {
 		float t[16] = {
