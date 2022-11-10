@@ -39,13 +39,13 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 	glViewport(x, y, w, h);
 }
 const char *header_glsl =  "#version 300 es\n"
-    				+ "#define LOW lowp\n"
-    				+ "#define MED mediump\n"
-            + "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-            + "    #define HIGH highp\n"
-            + "#else\n"
-            + "    #define HIGH mediump\n"
-            + "#endif\n";
+    				"#define LOW lowp\n"
+    				"#define MED mediump\n"
+            "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+            "    #define HIGH highp\n"
+            "#else\n"
+            "    #define HIGH mediump\n"
+            "#endif\n";
 void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 	p = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
@@ -61,7 +61,7 @@ void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		char *fSrc = alloca(strlen(header_glsl)+strlen(f));
+		char *fSrc = (char *)alloca(strlen(header_glsl)+strlen(f));
 		strcpy(fSrc, header_glsl);
 		strcat(fSrc, f);
 		glShaderSource(utemp[1], 1, &fSrc, 0);
