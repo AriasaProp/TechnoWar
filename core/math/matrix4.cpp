@@ -29,7 +29,7 @@ namespace matrix4 {
 	}
 	void rotate(float *a, float yaw, float pitch, float roll) {
 		const float ycos = cos(yaw), ysin = sin(yaw), pcos = cos(pitch), psin = sin(pitch), rcos = cos(roll), rsin = sin(roll);
-		/*
+		
 		float t[16] = {
 			pcos*rcos, ysin*psin*rcos-ycos*rsin,ycos*psin*rcos+ysin*rsin,0,
 			pcos*rsin, ysin*psin*rsin+ycos*rcos,ycos*psin*rsin-ysin*rcos,0,
@@ -37,7 +37,8 @@ namespace matrix4 {
 			0,0,0,1.0f
 		};
 		mul(a, t);
-		*/
+		
+		/*
 		float t[12]{
 		  a[0] * pcos*rcos + a[4] * ysin*psin*rcos-ycos*rsin + a[8] * ycos*psin*rcos+ysin*rsin, 
 		  a[1] * pcos*rcos + a[5] * ysin*psin*rcos-ycos*rsin + a[9] * ycos*psin*rcos+ysin*rsin, 
@@ -53,5 +54,6 @@ namespace matrix4 {
 		  a[3] * -psin + a[7] * ysin*pcos + a[11] * ycos*psin*rsin-ysin*rcos
 		};
 		memcpy(a, t, 12 * sizeof(float));
+		*/
 	}
 }

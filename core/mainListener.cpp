@@ -166,8 +166,11 @@ void Main::resize(unsigned int w, unsigned int h) {
 }
 void Main::render(float delta) {
 	srand(time(NULL));
-	const float allRot = M_PI / std::fmax( float(rand() % 1000), 240.0f);
-	matrix4::rotate(trans_proj, allRot, allRot, allRot);
+	matrix4::rotate(trans_proj,
+		M_PI / std::fmax(float(rand()%1000), 240.0f),
+		M_PI / std::fmax(float(rand()%1000), 240.0f),
+		M_PI / std::fmax(float(rand()%1000), 240.0f)
+	);
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
