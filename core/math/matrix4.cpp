@@ -4,7 +4,7 @@
 
 namespace matrix4 {
 	void idt(float *a) {
-		memcpy(a, (float[]){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}, 16*sizeof(float));
+		memcpy(a, (float[]){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}, 16 * sizeof(float));
 	}
 	void mul(float *a, float *b) {
 		float t[16] = {
@@ -29,6 +29,7 @@ namespace matrix4 {
 	}
 	void rotate(float *a, float yaw, float pitch, float roll) {
 		const float ycos = cos(yaw), ysin = sin(yaw), pcos = cos(pitch), psin = sin(pitch), rcos = cos(roll), rsin = sin(roll);
+		/*
 		float t[16] = {
 			pcos*rcos, ysin*psin*rcos-ycos*rsin,ycos*psin*rcos+ysin*rsin,0,
 			pcos*rsin, ysin*psin*rsin+ycos*rcos,ycos*psin*rsin-ysin*rcos,0,
@@ -36,5 +37,21 @@ namespace matrix4 {
 			0,0,0,1.0f
 		};
 		mul(a, t);
+		*/
+		float t[12]{
+		  a[0] * pcos*rcos + a[4] * ysin*psin*rcos-ycos*rsin + a[8] * ycos*psin*rcos+ysin*rsin, 
+		  a[1] * pcos*rcos + a[5] * ysin*psin*rcos-ycos*rsin + a[9] * ycos*psin*rcos+ysin*rsin, 
+		  a[2] * pcos*rcos + a[6] * ysin*psin*rcos-ycos*rsin + a[10] * ycos*psin*rcos+ysin*rsin, 
+		  a[3] * pcos*rcos + a[7] * ysin*psin*rcos-ycos*rsin + a[11] * ycos*psin*rcos+ysin*rsin, 
+		  a[0] * pcos*rsin + a[4] * ysin*psin*rsin+ycos*rcos + a[8] * ycos*psin*rsin-ysin*rcos, 
+		  a[1] * pcos*rsin + a[5] * ysin*psin*rsin+ycos*rcos + a[9] * ycos*psin*rsin-ysin*rcos, 
+		  a[2] * pcos*rsin + a[6] * ysin*psin*rsin+ycos*rcos + a[10] * ycos*psin*rsin-ysin*rcos, 
+		  a[3] * pcos*rsin + a[7] * ysin*psin*rsin+ycos*rcos + a[11] * ycos*psin*rsin-ysin*rcos, 
+		  a[0] * -psin + a[4] * ysin*pcos + a[8] * ycos*psin*rsin-ysin*rcos, 
+		  a[1] * -psin + a[5] * ysin*pcos + a[9] * ycos*psin*rsin-ysin*rcos, 
+		  a[2] * -psin + a[6] * ysin*pcos + a[10] * ycos*psin*rsin-ysin*rcos, 
+		  a[3] * -psin + a[7] * ysin*pcos + a[11] * ycos*psin*rsin-ysin*rcos
+		};
+		memcpy(a, t, 12 * sizeof(float));
 	}
 }

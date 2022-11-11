@@ -36,9 +36,9 @@ void bind() {
 		"\n}\0", 
 	*fShaderSrc = "precision MED float;"
 		"\nin vec4 v_color;"
-		"\nout vec4 o_fragColor;"
+		"\nout vec4 glFragColor;"
 		"\nvoid main() {"
-		"\n    o_fragColor = v_color;"
+		"\n    glFragColor = v_color;"
 		"\n}\0";
 	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
 	tgf->bind_shader(sp);
