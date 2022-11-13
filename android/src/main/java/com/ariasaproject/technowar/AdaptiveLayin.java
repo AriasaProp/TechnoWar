@@ -1,5 +1,41 @@
 package com.ariasaproject.technowar;
 
+import android.content.Context;
+import android.content.res.CompatibilityInfo.Translator;
+import android.graphics.BLASTBufferQueue;
+import android.graphics.BlendMode;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.Region;
+import android.graphics.RenderNode;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.SystemClock;
+import android.util.ArraySet;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.AccessibilityNodeInfo;
+import android.view.RemoteAccessibilityController;
+import android.view.Surface;
+import android.view.SurfaceControl;
+import android.view.SurfaceHolder;
+import android.view.SurfaceSession;
+import android.view.View;
+import android.view.ViewRootImpl;
+import android.view.ViewTreeObserver;
+
+
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+
 public class AdaptiveLayin extends View implements ViewRootImpl.SurfaceChangedCallback {
     final ArrayList<SurfaceHolder.Callback> mCallbacks = new ArrayList<>();
     final int[] mLocation = new int[2];
@@ -79,7 +115,7 @@ public class AdaptiveLayin extends View implements ViewRootImpl.SurfaceChangedCa
     public AdaptiveLayin(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         this(context, attrs, defStyleAttr, defStyleRes, false);
     }
-    public AdaptiveLayin(Context context, qAttributeSet attrs, int defStyleAttr,
+    public AdaptiveLayin(Context context, AttributeSet attrs, int defStyleAttr,
             int defStyleRes, boolean disableBackgroundLayer) {
         super(context, attrs, defStyleAttr, defStyleRes);
         setWillNotDraw(true);
