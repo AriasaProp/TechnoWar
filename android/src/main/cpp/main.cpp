@@ -39,6 +39,20 @@ JEx(jboolean, limitRenderer) (JNIEnv *e, jobject o) {
 	const char *r = tgf->renderer();
 	return ((bool)strstr(r, "adreno")) || ((bool)strstr(r, "Adreno"));
 }
+/*
+#include <EGL/egl.h>
+#include <android_native_window_jni.h>
 
-
+static EGLConfig _eglConfig;
+static EGLDisplay _eglDisplay;
+static EGLContext _eglContext;
+static EGLSurface _eglSurface;
+static ANativeWindow *_window;
+JEx(void, eglInitialRequest) (JNIEnv *e, jobject o, jobject surface) {
+	
+}
+JEx(void, eglDestroyRequest) (JNIEnv *e, jobject o, jint req) {
+	
+}
+*/
 
