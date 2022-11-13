@@ -1,7 +1,6 @@
 #include <jni.h>
 #include <thread>
 #include <mutex>
-#include <android/native_window_jni.h>
 
 #include "mainListener.h"
 #include "translated_opengles.h"
@@ -10,7 +9,7 @@
 
 JEx(void, create) (JNIEnv *e, jobject o, jint w, jint h) {
 	tgf = new tgf_gles();
-	Main::create(w,h);
+	Main::create(w, h);
 }
 
 JEx(void, resume) (JNIEnv *e, jobject o) {
@@ -39,20 +38,8 @@ JEx(jboolean, limitRenderer) (JNIEnv *e, jobject o) {
 	const char *r = tgf->renderer();
 	return ((bool)strstr(r, "adreno")) || ((bool)strstr(r, "Adreno"));
 }
+#include <android/native_window.h>
 /*
 #include <EGL/egl.h>
-#include <android_native_window_jni.h>
-
-static EGLConfig _eglConfig;
-static EGLDisplay _eglDisplay;
-static EGLContext _eglContext;
-static EGLSurface _eglSurface;
-static ANativeWindow *_window;
-JEx(void, eglInitialRequest) (JNIEnv *e, jobject o, jobject surface) {
-	
-}
-JEx(void, eglDestroyRequest) (JNIEnv *e, jobject o, jint req) {
-	
-}
+#include <android/native_window_jni.h>
 */
-
