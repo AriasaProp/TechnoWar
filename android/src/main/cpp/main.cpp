@@ -21,6 +21,15 @@
 #include <sched.h>
 #include <sys/resource.h>
 
+// make opengles lastest possible version
+#if __ANDROID_API__ >= 24
+#include <GLES3/gl32.h>
+#elif __ANDROID_API__ >= 21
+#include <GLES3/gl31.h>
+#else
+#include <GLES3/gl3.h>
+#endif
+
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 
@@ -93,7 +102,6 @@ struct engine {
     const ASensor* accelerometerSensor;
     ASensorEventQueue* sensorEventQueue;
 
-
     int animating;
     EGLDisplay display;
     EGLSurface surface;
@@ -128,14 +136,12 @@ static int engine_init_display(struct engine* engine) {
         auto& cfg = supportedConfigs[i];
         EGLint r, g, b, d;
         if (eglGetConfigAttrib(display, cfg, EGL_RED_SIZE, &r)   &&
-            eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) &&
-            eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE, &b)  &&
-            eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &d) &&
-            r == 8 && g == 8 && b == 8 && d == 0 ) {
-
-
-            config = supportedConfigs[i];
-            break;
+          eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) &&
+          eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE, &b)  &&
+          eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &d) &&
+          r == 8 && g == 8 && b == 8 && d == 0 ) {
+          config = supportedConfigs[i];
+          break;
         }
     }
     if (i == numConfigs) {
@@ -154,8 +160,6 @@ static int engine_init_display(struct engine* engine) {
         LOGW("Unable to eglMakeCurrent");
         return -1;
     }
-
-
     eglQuerySurface(display, surface, EGL_WIDTH, &w);
     eglQuerySurface(display, surface, EGL_HEIGHT, &h);
     engine->display = display;
@@ -590,7 +594,7 @@ JEx(void, onSurfaceSetNative) (JNIEnv *e, jobject o, jlong appPtr, jobject surfa
 	android_app *app = (android_app*)appPtr;
   pthread_mutex_lock(&app->mutex);
   if (android_app->pendingWindow != NULL) {
-      android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
+    android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
   }
   if (surface) {
   	app->pendingWindow = ANativeWindow_fromSurface(e, surface);
@@ -599,10 +603,10 @@ JEx(void, onSurfaceSetNative) (JNIEnv *e, jobject o, jlong appPtr, jobject surfa
   	app->pendingWindow = NULL;
   }
   if (app->pendingWindow != NULL) {
-      android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
+    android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
   }
   while (app->window != app->pendingWindow) {
-      pthread_cond_wait(&app->cond, &app->mutex);
+    pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
 }
@@ -615,11 +619,11 @@ JEx(void, onInputQueueSetNative) (JNIEnv *e, jobject o, jlong appPtr, jlong queu
   android_app->pendingInputQueue = queuePtr!=nullptr?(AInputQueue*)queuePtr:NULL;
   android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
   while (app->inputQueue != app->pendingInputQueue) {
-      pthread_cond_wait(&app->cond, &app->mutex);
+    pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
 }
-JEx(void, onContentRectChangedNative) (JNIEnv *e, jobject o, jlong app, jint x, jint y, jint w, jint h) 
+JEx(void, onContentRectChangedNative) (JNIEnv *e, jobject o, jlong app, jint x, jint y, jint w, jint h) {
   android_app_write_cmd((android_app*)app, APP_CMD_CONTENT_RECT_CHANGED);
 }
 
