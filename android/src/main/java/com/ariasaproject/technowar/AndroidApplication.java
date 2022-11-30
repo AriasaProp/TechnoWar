@@ -10,6 +10,6 @@ public class AndroidApplication extends NativeActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    Toast.makeText(getApplicationContext(), "onCreate", Toast.LENGHT_SHORT).show();
+    Toast.makeText(getApplicationContext(), "onCreate", Toast.LENGTH_SHORT).show();
   }
 }
