@@ -173,7 +173,7 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback, 
     @Override
     public void onInputQueueDestroyed(InputQueue queue) {
         if (!mDestroyed) {
-            onInputQueueSetNative(nativeHandleId, null);
+            onInputQueueSetNative(nativeHandleId, 0);
             mCurInputQueue = null;
         }
     }
