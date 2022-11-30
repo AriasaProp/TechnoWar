@@ -214,12 +214,12 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
       break;
     case APP_CMD_GAINED_FOCUS:
       if (eng->accelerometerSensor != nullptr) {
-        ASensorEventQueue_enableSensor(engine->sensorEventQueue,eng->accelerometerSensor);
-        ASensorEventQueue_setEventRate(engine->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
+        ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+        ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
       }
       break;
     case APP_CMD_LOST_FOCUS:
-      if (engine->accelerometerSensor != nullptr) {
+      if (eng->accelerometerSensor != nullptr) {
           ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
       }
       eng->animating = 0;
