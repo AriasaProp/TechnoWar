@@ -32,7 +32,7 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback, 
             System.exit(0);
         }
     }
-    private static final String KEY_NATIVE_DATA_STATE = "android:native_state"
+    private static final String KEY_NATIVE_DATA_STATE = "android:native_state";
     
     private InputMethodManager mIMM;
     private View mRootView;
