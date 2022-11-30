@@ -616,7 +616,7 @@ JEx(void, onSurfaceChangedNative) (JNIEnv *e, jobject o, jlong app, jint format,
 JEx(void, onInputQueueSetNative) (JNIEnv *e, jobject o, jlong appPtr, jlong queuePtr) {
   android_app *app = (android_app*)appPtr;
   pthread_mutex_lock(&app->mutex);
-  app->pendingInputQueue = queuePtr!=nullptr?(AInputQueue*)queuePtr:NULL;
+  app->pendingInputQueue = (queuePtr!=nullptr) ? ((AInputQueue*)queuePtr) : 0;
   android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
   while (app->inputQueue != app->pendingInputQueue) {
     pthread_cond_wait(&app->cond, &app->mutex);
