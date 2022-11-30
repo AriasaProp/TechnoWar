@@ -191,8 +191,7 @@ static int32_t engine_handle_input(android_app* app, engine *eng, AInputEvent* e
     return 0;
 }
 
-static void engine_handle_cmd(android_app* app, int32_t cmd) {
- engine* eng = (engine*)app->userData;
+static void engine_handle_cmd(android_app* app, engine *eng, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
       app->savedState = new saved_state;
