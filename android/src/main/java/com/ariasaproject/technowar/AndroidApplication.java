@@ -9,7 +9,7 @@ import android.widget.Toast;
 public class AndroidApplication extends NativeActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
     Toast.makeText(getApplicationContext(), "onCreate", Toast.LENGTH_SHORT).show();
+    super.onCreate(savedInstanceState);
   }
 }

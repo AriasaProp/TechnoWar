@@ -35,38 +35,36 @@
 
 extern "C" {
 	struct android_app;
-	struct android_poll_source {
-	    int32_t id;
-	    void (*process)(android_app*);
-	};
+	struct engine;
+	typedef void (*source_process)(android_app*, engine*);
 	struct android_app {
-			ANativeActivity *activity;
-	    void* userData;
-	    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
-	    AConfiguration* config;
-	    void* savedState;
-	    size_t savedStateSize;
-	    ALooper* looper;
-	    AInputQueue* inputQueue;
-	    ANativeWindow* window;
-	    ARect contentRect;
-	    int activityState;
-	    int destroyRequested;
-	    
-	    pthread_mutex_t mutex;
-	    pthread_cond_t cond;
-	    int msgread;
-	    int msgwrite;
-	    pthread_t thread;
-	    android_poll_source cmdPollSource;
-	    android_poll_source inputPollSource;
-	    int running;
-	    int stateSaved;
-	    int destroyed;
-	    AInputQueue* pendingInputQueue;
-	    ANativeWindow* pendingWindow;
-	    ARect pendingContentRect;
-    	ASensorManager* sensorManager;
+		ANativeActivity *activity;
+    void* userData;
+    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
+    AConfiguration* config;
+    void* savedState;
+    size_t savedStateSize;
+    ALooper* looper;
+    AInputQueue* inputQueue;
+    ANativeWindow* window;
+    ARect contentRect;
+    int activityState;
+    int destroyRequested;
+    
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int msgread;
+    int msgwrite;
+    pthread_t thread;
+    source_process cmdPollSource;
+    source_process inputPollSource;
+    int running;
+    int stateSaved;
+    int destroyed;
+    AInputQueue* pendingInputQueue;
+    ANativeWindow* pendingWindow;
+    ARect pendingContentRect;
+  	ASensorManager* sensorManager;
 	};
 	enum { 
 	    LOOPER_ID_MAIN = 1,
@@ -108,7 +106,7 @@ struct engine {
     int32_t height;
     saved_state state;
 };
-static int engine_init_display(struct engine* engine) {
+static int engine_init_display(engine* eng) {
   EGLConfig config = nullptr;
   EGLSurface surface;
   EGLContext context;
@@ -146,18 +144,18 @@ static int engine_init_display(struct engine* engine) {
   }
   //eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
   const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  surface = eglCreateWindowSurface(display, config, engine->app->window, ctxAttr);
+  surface = eglCreateWindowSurface(display, config, eng->app->window, ctxAttr);
   context = eglCreateContext(display, config, nullptr, nullptr);
   if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
       LOGW("Unable to eglMakeCurrent");
       return -1;
   }
-  eglQuerySurface(display, surface, EGL_WIDTH, &engine->width);
-  eglQuerySurface(display, surface, EGL_HEIGHT, &engine->height);
-  engine->display = display;
-  engine->context = context;
-  engine->surface = surface;
-  engine->state.angle = 0;
+  eglQuerySurface(display, surface, EGL_WIDTH, &eng->width);
+  eglQuerySurface(display, surface, EGL_HEIGHT, &eng->height);
+  eng->display = display;
+  eng->context = context;
+  eng->surface = surface;
+  eng->state.angle = 0;
 
   return 0;
 }
@@ -200,9 +198,9 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
  engine* eng = (engine*)app->userData;
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
-      app->savedState = malloc(sizeof(struct saved_state));
-      *((struct saved_state*)app->savedState) = eng->state;
-      app->savedStateSize = sizeof(struct saved_state);
+      app->savedState = new saved_state;
+      *((saved_state*)app->savedState) = eng->state;
+      app->savedStateSize = sizeof(saved_state);
       break;
     case APP_CMD_INIT_WINDOW:
       if (app->window != nullptr) {
@@ -230,29 +228,27 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
   }
 }
 
-
-extern void android_main(android_app* app) {
-    struct engine engine;
-    app->userData = &engine;
+static void android_main(android_app* app) {
+    engine eng;
     app->onInputEvent = engine_handle_input;
-    engine.app = app;
-    engine.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    engine.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
+    eng.app = app;
+    eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+    eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
     if (app->savedState != nullptr) {
-      engine.state = *(saved_state*)app->savedState;
+      eng.state = *(saved_state*)app->savedState;
     }
     while (true) {
         int ident;
         int events;
-        android_poll_source* source;
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+        source_process* source;
+        while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
             if (source != nullptr) {
-              source->process(app);
+              (*source)(app, &eng);
             }
             if (ident == LOOPER_ID_USER) {
-              if (engine.accelerometerSensor != nullptr) {
+              if (eng.accelerometerSensor != nullptr) {
                 ASensorEvent event;
-                while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
+                while (ASensorEventQueue_getEvents(eng.sensorEventQueue, &event, 1) > 0) {
                   LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
                 }
               }
@@ -261,44 +257,44 @@ extern void android_main(android_app* app) {
 
             // Check if we are exiting.
             if (app->destroyRequested != 0) {
-                engine_term_display(&engine);
+                engine_term_display(&eng);
                 return;
             }
         }
 
 
-        if (engine.animating) {
-            engine.state.angle += .01f;
-            if (engine.state.angle > 1) {
-                engine.state.angle = 0;
+        if (eng.animating) {
+            eng.state.angle += .01f;
+            if (eng.state.angle > 1) {
+                eng.state.angle = 0;
             }
-            engine_draw_frame(&engine);
+            engine_draw_frame(&eng);
         }
     }
 }
 
-static void free_saved_state(struct android_app* android_app) {
-    pthread_mutex_lock(&android_app->mutex);
-    if (android_app->savedState != NULL) {
-        free(android_app->savedState);
-        android_app->savedState = NULL;
-        android_app->savedStateSize = 0;
-    }
-    pthread_mutex_unlock(&android_app->mutex);
+static void free_saved_state(android_app* app) {
+  pthread_mutex_lock(&app->mutex);
+  if (app->savedState != NULL) {
+    free(app->savedState);
+    app->savedState = NULL;
+    app->savedStateSize = 0;
+  }
+  pthread_mutex_unlock(&app->mutex);
 }
-int8_t android_app_read_cmd(android_app* app) {
-    int8_t cmd;
-    if (read(app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
-        switch (cmd) {
-            case APP_CMD_SAVE_STATE:
-                free_saved_state(app);
-                break;
-        }
-        return cmd;
+static int8_t android_app_read_cmd(android_app* app) {
+  int8_t cmd;
+  if (read(app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
+    switch (cmd) {
+      case APP_CMD_SAVE_STATE:
+        free_saved_state(app);
+        break;
     }
-    return -1;
+    return cmd;
+  }
+  return -1;
 }
-void android_app_pre_exec_cmd(android_app* app, int8_t cmd) {
+static void android_app_pre_exec_cmd(android_app* app, int8_t cmd) {
 	switch (cmd) {
     case APP_CMD_INPUT_CHANGED:
       pthread_mutex_lock(&app->mutex);
@@ -346,7 +342,7 @@ void android_app_pre_exec_cmd(android_app* app, int8_t cmd) {
       break;
 }
 }
-void android_app_post_exec_cmd(android_app* app, int8_t cmd) {
+static void android_app_post_exec_cmd(android_app* app, int8_t cmd) {
     switch (cmd) {
         case APP_CMD_TERM_WINDOW:
           pthread_mutex_lock(&app->mutex);
@@ -401,10 +397,8 @@ static void* android_app_entry(void* param) {
     android_app* app = (android_app*)param;
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-    app->cmdPollSource.id = LOOPER_ID_MAIN;
-    app->cmdPollSource.process = process_cmd;
-    app->inputPollSource.id = LOOPER_ID_INPUT;
-    app->inputPollSource.process = process_input;
+    app->cmdPollSource = process_cmd;
+    app->inputPollSource = process_input;
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
     app->looper = looper;
@@ -419,18 +413,18 @@ static void* android_app_entry(void* param) {
     
     return NULL;
 }
-static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
-  if (write(android_app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
+static void android_app_write_cmd(android_app* app, int8_t cmd) {
+  if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
       LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
   }
 }
-static void android_app_set_activity_state(struct android_app* android_app, int8_t cmd) {
-  pthread_mutex_lock(&android_app->mutex);
-  android_app_write_cmd(android_app, cmd);
-  while (android_app->activityState != cmd) {
-    pthread_cond_wait(&android_app->cond, &android_app->mutex);
+static void android_app_set_activity_state(android_app* app, int8_t cmd) {
+  pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, cmd);
+  while (app->activityState != cmd) {
+    pthread_cond_wait(&app->cond, &app->mutex);
   }
-  pthread_mutex_unlock(&android_app->mutex);
+  pthread_mutex_unlock(&app->mutex);
 }
 static void android_app_set_input(android_app* app, AInputQueue* inputQueue) {
     pthread_mutex_lock(&app->mutex);
@@ -585,7 +579,6 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue)
 }
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-  activity->instance = android_app_create(activity, savedState, savedStateSize);
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
@@ -599,4 +592,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onPause = onPause;
   activity->callbacks->onStop = onStop;
   activity->callbacks->onDestroy = onDestroy;
+  //on Create
+  activity->instance = android_app_create(activity, savedState, savedStateSize);
 }
