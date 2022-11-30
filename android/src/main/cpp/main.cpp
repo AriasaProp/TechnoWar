@@ -97,7 +97,7 @@ struct saved_state {
     int32_t y;
 };
 struct engine {
-    struct android_app* app;
+    android_app* app;
     const ASensor* accelerometerSensor;
     ASensorEventQueue* sensorEventQueue;
     int animating;
@@ -106,7 +106,7 @@ struct engine {
     EGLContext context;
     int32_t width;
     int32_t height;
-    struct saved_state state;
+    saved_state state;
 };
 static int engine_init_display(struct engine* engine) {
   EGLConfig config = nullptr;
@@ -146,7 +146,7 @@ static int engine_init_display(struct engine* engine) {
   }
   //eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
   const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  surface = eglCreateWindowSurface(display, config, app->window, ctxAttrq);
+  surface = eglCreateWindowSurface(display, config, eng->app->window, ctxAttr);
   context = eglCreateContext(display, config, nullptr, nullptr);
   if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
       LOGW("Unable to eglMakeCurrent");
@@ -161,7 +161,7 @@ static int engine_init_display(struct engine* engine) {
 
   return 0;
 }
-static void engine_draw_frame(engine* eng) {
+static void engine_draw_frame(engine* eng) {a
     if (eng->display == nullptr) {
       return;
     }
@@ -175,7 +175,7 @@ static void engine_term_display(engine* eng) {
     if (eng->context != EGL_NO_CONTEXT) {
     	eglDestroyContext(eng->display, eng->context);
     }
-    if (engine->surface != EGL_NO_SURFACE) {
+    if (eng->surface != EGL_NO_SURFACE) {
       eglDestroySurface(eng->display, eng->surface);
     }
     eglTerminate(eng->display);
@@ -186,11 +186,11 @@ static void engine_term_display(engine* eng) {
   eng->surface = EGL_NO_SURFACE;
 }
 static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
-    engine* engine = (engine*)app->userData;
+    engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        engine->animating = 1;
-        engine->state.x = AMotionEvent_getX(event, 0);
-        engine->state.y = AMotionEvent_getY(event, 0);
+        eng->animating = 1;
+        eng->state.x = AMotionEvent_getX(event, 0);
+        eng->state.y = AMotionEvent_getY(event, 0);
         return 1;
     }
     return 0;
@@ -369,7 +369,7 @@ void android_app_post_exec_cmd(android_app* app, int8_t cmd) {
 static void android_app_destroy(android_app* app) {
     free_saved_state(app);
     pthread_mutex_lock(&app->mutex);
-    if (appa->inputQueue != NULL) {
+    if (app->inputQueue != NULL) {
         AInputQueue_detachLooper(app->inputQueue);
     }
     AConfiguration_delete(app->config);
