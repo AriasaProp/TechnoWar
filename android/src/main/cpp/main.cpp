@@ -146,7 +146,7 @@ static int engine_init_display(struct engine* engine) {
   }
   //eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
   const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  surface = eglCreateWindowSurface(display, config, eng->app->window, ctxAttr);
+  surface = eglCreateWindowSurface(display, config, engine->app->window, ctxAttr);
   context = eglCreateContext(display, config, nullptr, nullptr);
   if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
       LOGW("Unable to eglMakeCurrent");
@@ -161,7 +161,7 @@ static int engine_init_display(struct engine* engine) {
 
   return 0;
 }
-static void engine_draw_frame(engine* eng) {a
+static void engine_draw_frame(engine* eng) {
     if (eng->display == nullptr) {
       return;
     }
@@ -197,33 +197,33 @@ static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
 }
 
 static void engine_handle_cmd(android_app* app, int32_t cmd) {
-  engine* engine = (engine*)app->userData;
+ engine* eng = (engine*)app->userData;
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
       app->savedState = malloc(sizeof(struct saved_state));
-      *((struct saved_state*)app->savedState) = engine->state;
+      *((struct saved_state*)app->savedState) = eng->state;
       app->savedStateSize = sizeof(struct saved_state);
       break;
     case APP_CMD_INIT_WINDOW:
       if (app->window != nullptr) {
-          engine_init_display(engine);
+          engine_init_display(eng);
       }
       break;
     case APP_CMD_TERM_WINDOW:
-      engine_term_display(engine);
+      engine_term_display(eng);
       break;
     case APP_CMD_GAINED_FOCUS:
-      if (engine->accelerometerSensor != nullptr) {
-        ASensorEventQueue_enableSensor(engine->sensorEventQueue,engine->accelerometerSensor);
-        ASensorEventQueue_setEventRate(engine->sensorEventQueue,engine->accelerometerSensor,(1000L/60)*1000);
+      if (eng->accelerometerSensor != nullptr) {
+        ASensorEventQueue_enableSensor(engine->sensorEventQueue,eng->accelerometerSensor);
+        ASensorEventQueue_setEventRate(engine->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
       }
       break;
     case APP_CMD_LOST_FOCUS:
       if (engine->accelerometerSensor != nullptr) {
-          ASensorEventQueue_disableSensor(engine->sensorEventQueue,engine->accelerometerSensor);
+          ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
       }
-      engine->animating = 0;
-      engine_draw_frame(engine);
+      eng->animating = 0;
+      engine_draw_frame(eng);
       break;
     default:
       break;
