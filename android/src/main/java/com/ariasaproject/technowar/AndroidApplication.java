@@ -22,7 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 
 import java.io.File;
 
-public class NativeActivity extends Activity implements SurfaceHolder.Callback, InputQueue.Callback, OnGlobalLayoutListener {
+public class AndroidApplication extends Activity implements SurfaceHolder.Callback, InputQueue.Callback, OnGlobalLayoutListener {
 
     static {
         try {
@@ -177,7 +177,7 @@ public class NativeActivity extends Activity implements SurfaceHolder.Callback, 
             mCurInputQueue = null;
         }
     }
-    
+    @Override
     public void onGlobalLayout() {
         mRootView.getLocationInWindow(mLocation);
         int w = mRootView.getWidth();
