@@ -260,15 +260,15 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 }
 
 
-extern void android_main(android_app* state) {
+extern void android_main(android_app* app) {
     struct engine engine;
     state->userData = &engine;
     state->onInputEvent = engine_handle_input;
-    engine.app = state;
+    engine.app = app;
     engine.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    engine.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, state->looper, LOOPER_ID_USER, nullptr, nullptr);
-    if (state->savedState != nullptr) {
-      engine.state = *(saved_state*)state->savedState;
+    engine.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
+    if (app->savedState != nullptr) {
+      engine.state = *(saved_state*)app->savedState;
     }
     while (true) {
         int ident;
@@ -276,7 +276,7 @@ extern void android_main(android_app* state) {
         android_poll_source* source;
         while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
             if (source != nullptr) {
-              source->process(state, source);
+              source->process(app, source);
             }
             if (ident == LOOPER_ID_USER) {
               if (engine.accelerometerSensor != nullptr) {
@@ -289,7 +289,7 @@ extern void android_main(android_app* state) {
 
 
             // Check if we are exiting.
-            if (state->destroyRequested != 0) {
+            if (app->destroyRequested != 0) {
                 engine_term_display(&engine);
                 return;
             }
@@ -437,10 +437,10 @@ static void* android_app_entry(void* param) {
     app->config = AConfiguration_new();
     //AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->cmdPollSource.id = LOOPER_ID_MAIN;
-    app->cmdPollSource.app = android_app;
+    app->cmdPollSource.app = app;
     app->cmdPollSource.process = process_cmd;
     app->inputPollSource.id = LOOPER_ID_INPUT;
-    app->inputPollSource.app = android_app;
+    app->inputPollSource.app = app;
     app->inputPollSource.process = process_input;
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
@@ -507,7 +507,7 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
 
 JEx(jlong, onCreateNative) (JNIEnv *e, jobject o, jbyteArray ss, jint savedStateSize) {
 	android_app* app = new android_app;
-	char *savedState = (char *) env->GetPrimitiveArrayCritical(ss, 0);
+	char *savedState = (char *) e->GetPrimitiveArrayCritical(ss, 0);
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
   if (savedState != NULL) {
@@ -533,7 +533,7 @@ JEx(jlong, onCreateNative) (JNIEnv *e, jobject o, jbyteArray ss, jint savedState
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
-  env->ReleasePrimitiveArrayCritical(ss, savedState, 0);
+  e->ReleasePrimitiveArrayCritical(ss, savedState, 0);
   return app;
 }
 JEx(void, onStartNative) (JNIEnv *e, jobject o, jlong app) {
@@ -552,8 +552,8 @@ JEx(jbyteArray, onSaveInstanceStateNative) (JNIEnv *e, jobject o, jlong appPtr) 
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   if (app->savedState != NULL) {
-	  arr = env->NewByteArray(app->savedStateSize);
-	  env->SetByteArrayRegion(arr, 0, app->savedStateSize, reinterpret_cast<jbyte*>(app->savedState));
+	  arr = e->NewByteArray(app->savedStateSize);
+	  e->SetByteArrayRegion(arr, 0, app->savedStateSize, reinterpret_cast<jbyte*>(app->savedState));
     app->savedState = NULL;
     app->savedStateSize = 0;
   }
