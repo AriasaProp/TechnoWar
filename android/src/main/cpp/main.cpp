@@ -262,8 +262,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 
 extern void android_main(android_app* app) {
     struct engine engine;
-    state->userData = &engine;
-    state->onInputEvent = engine_handle_input;
+    app->userData = &engine;
+    app->onInputEvent = engine_handle_input;
     engine.app = app;
     engine.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
     engine.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
@@ -534,12 +534,12 @@ JEx(jlong, onCreateNative) (JNIEnv *e, jobject o, jbyteArray ss, jint savedState
   }
   pthread_mutex_unlock(&app->mutex);
   e->ReleasePrimitiveArrayCritical(ss, savedState, 0);
-  return app;
+  return (jlong)app;
 }
 JEx(void, onStartNative) (JNIEnv *e, jobject o, jlong app) {
   android_app_set_activity_state((android_app*)app, APP_CMD_START);
 }
-JEx(void, onResumeNative) (JNIEnv *e, jobject o) {
+JEx(void, onResumeNative) (JNIEnv *e, jobject o, jlong app) {
   android_app_set_activity_state((android_app*)app, APP_CMD_RESUME);
 }
 JEx(jbyteArray, onSaveInstanceStateNative) (JNIEnv *e, jobject o, jlong appPtr) {
@@ -578,10 +578,10 @@ JEx(void, onPauseNative) (JNIEnv *e, jobject o, jlong appPtr, jboolean finish) {
   	android_app_set_activity_state(app, APP_CMD_PAUSE);
   }
 }
-JEx(void, onStopNative) (JNIEnv *e, jobject o) {
+JEx(void, onStopNative) (JNIEnv *e, jobject o, jlong app) {
 	android_app_set_activity_state((android_app*)app, APP_CMD_STOP);
 }
-JEx(void, onConfigurationChangedNative) (JNIEnv *e, jobject o) {
+JEx(void, onConfigurationChangedNative) (JNIEnv *e, jobject o, jlong app) {
   android_app_write_cmd((android_app*)app, APP_CMD_CONFIG_CHANGED);
 }
 JEx(void, onLowMemoryNative) (JNIEnv *e, jobject o, jlong app) {
@@ -593,7 +593,7 @@ JEx(void, onWindowFocusChangedNative) (JNIEnv *e, jobject o, jlong app, jboolean
 JEx(void, onSurfaceSetNative) (JNIEnv *e, jobject o, jlong appPtr, jobject surface) {
 	android_app *app = (android_app*)appPtr;
   pthread_mutex_lock(&app->mutex);
-  if (android_app->pendingWindow != NULL) {
+  if (app->pendingWindow != NULL) {
     android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
   }
   if (surface) {
@@ -616,7 +616,7 @@ JEx(void, onSurfaceChangedNative) (JNIEnv *e, jobject o, jlong app, jint format,
 JEx(void, onInputQueueSetNative) (JNIEnv *e, jobject o, jlong appPtr, jlong queuePtr) {
   android_app *app = (android_app*)appPtr;
   pthread_mutex_lock(&app->mutex);
-  android_app->pendingInputQueue = queuePtr!=nullptr?(AInputQueue*)queuePtr:NULL;
+  app->pendingInputQueue = queuePtr!=nullptr?(AInputQueue*)queuePtr:NULL;
   android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
   while (app->inputQueue != app->pendingInputQueue) {
     pthread_cond_wait(&app->cond, &app->mutex);
