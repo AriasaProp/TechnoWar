@@ -5,6 +5,7 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CORE_SRC "../../../../core")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
