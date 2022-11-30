@@ -39,8 +39,6 @@ extern "C" {
 	typedef void (*source_process)(android_app*, engine*);
 	struct android_app {
 		ANativeActivity *activity;
-    void* userData;
-    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
     AConfiguration* config;
     void* savedState;
     size_t savedStateSize;
@@ -183,8 +181,7 @@ static void engine_term_display(engine* eng) {
   eng->context = EGL_NO_CONTEXT;
   eng->surface = EGL_NO_SURFACE;
 }
-static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
-    engine* eng = (engine*)app->userData;
+static int32_t engine_handle_input(android_app* app, engine *eng, AInputEvent* event) {
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
         eng->animating = 1;
         eng->state.x = AMotionEvent_getX(event, 0);
@@ -230,7 +227,6 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
 
 static void android_main(android_app* app) {
     engine eng;
-    app->onInputEvent = engine_handle_input;
     eng.app = app;
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
     eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
@@ -373,7 +369,7 @@ static void android_app_destroy(android_app* app) {
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
 }
-static void process_input(android_app* app) {
+static void process_input(android_app* app, engine *eng) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         LOGI("New input event: type=%d\n", AInputEvent_getType(event));
@@ -381,16 +377,16 @@ static void process_input(android_app* app) {
             return;
         }
         int32_t handled = 0;
-        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
+        handled = engine_handle_input(app, eng, event);
         AInputQueue_finishEvent(app->inputQueue, event, handled);
     } else {
         LOGI("Failure reading next input event: %s\n", strerror(errno));
     }
 }
-static void process_cmd(android_app* app) {
+static void process_cmd(android_app* app, engine *eng) {
     int8_t cmd = android_app_read_cmd(app);
     android_app_pre_exec_cmd(app, cmd);
-    engine_handle_cmd(app, cmd);
+    engine_handle_cmd(app, eng, cmd);
     android_app_post_exec_cmd(app, cmd);
 }
 static void* android_app_entry(void* param) {
