@@ -431,6 +431,29 @@ static void android_app_set_activity_state(struct android_app* android_app, int8
   }
   pthread_mutex_unlock(&android_app->mutex);
 }
+static void android_app_set_input(android_app* app, AInputQueue* inputQueue) {
+    pthread_mutex_lock(&app->mutex);
+    app->pendingInputQueue = inputQueue;
+    android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
+    while (app->inputQueue != app->pendingInputQueue) {
+        pthread_cond_wait(&app->cond, &app->mutex);
+    }
+    pthread_mutex_unlock(&app->mutex);
+}
+static void android_app_set_window(android_app* app, ANativeWindow* window) {
+    pthread_mutex_lock(&app->mutex);
+    if (app->pendingWindow != NULL) {
+        android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
+    }
+    app->pendingWindow = window;
+    if (window != NULL) {
+        android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
+    }
+    while (app->window != app->pendingWindow) {
+        pthread_cond_wait(&app->cond, &app->mutex);
+    }
+    pthread_mutex_unlock(&app->mutex);
+}
 
 /*
 #include "translated_opengles.h"
