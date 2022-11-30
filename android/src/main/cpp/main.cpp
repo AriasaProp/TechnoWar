@@ -40,6 +40,7 @@ extern "C" {
 	    void (*process)(android_app*);
 	};
 	struct android_app {
+			ANativeActivity *activity;
 	    void* userData;
 	    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
 	    AConfiguration* config;
@@ -57,8 +58,8 @@ extern "C" {
 	    int msgread;
 	    int msgwrite;
 	    pthread_t thread;
-	    struct android_poll_source cmdPollSource;
-	    struct android_poll_source inputPollSource;
+	    android_poll_source cmdPollSource;
+	    android_poll_source inputPollSource;
 	    int running;
 	    int stateSaved;
 	    int destroyed;
@@ -504,7 +505,7 @@ static void *android_app_create (ANativeActivity *activity, void *savedState, si
   app->msgread = msgpipe[0];
   app->msgwrite = msgpipe[1];
   //sensor Manager
-  app->sensorManager = AcquireASensorManagerInstance(e, activity->clazz);
+  app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
   //end
   pthread_attr_t attr; 
   pthread_attr_init(&attr);
@@ -532,7 +533,7 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   while (!app->stateSaved) {
     pthread_cond_wait(&app->cond, &app->mutex);
   }
-  if (android_app->savedState != NULL) {
+  if (app->savedState != NULL) {
     savedState = app->savedState;
     *outLen = app->savedStateSize;
     app->savedState = NULL;
