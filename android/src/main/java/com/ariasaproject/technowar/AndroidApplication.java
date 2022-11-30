@@ -1,6 +1,6 @@
 package com.ariasaproject.technowar;
 
-import android.compat.annotation.UnsupportedAppUsage;
+import android.activity.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
