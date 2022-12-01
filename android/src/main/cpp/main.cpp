@@ -34,7 +34,7 @@
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 struct android_app;
 struct engine;
-typedef void (*source_process)(android_app*, engine*);
+typedef void (source_process)(android_app*, engine*);
 struct android_app {
 	ANativeActivity *activity;
   AConfiguration* config;
@@ -70,8 +70,7 @@ enum {
     APP_CMD_TERM_WINDOW,
     APP_CMD_WINDOW_RESIZED,
     APP_CMD_CONTENT_RECT_CHANGED,
-    APP_CMD_GAINED_FOCUS,
-    APP_CMD_LOST_FOCUS,
+    APP_CMD_FOCUS_CHANGE,
     APP_CMD_CONFIG_CHANGED,
     APP_CMD_LOW_MEMORY,
     APP_CMD_START,
@@ -86,93 +85,24 @@ struct saved_state {
   int32_t x;
   int32_t y;
 };
+enum {
+	TERM_EGL_SURFACE = 1,
+	TERM_EGL_CONTEXT = 2,
+	TERM_EGL_DISPLAY = 4
+}
 struct engine {
   android_app* app;
   const ASensor* accelerometerSensor;
   ASensorEventQueue* sensorEventQueue;
-  int animating;
   EGLDisplay display;
+  EGLConfig eConfig;
   EGLSurface surface;
   EGLContext context;
   int32_t width;
   int32_t height;
   saved_state state;
+  int eglTermReq;
 };
-static int engine_init_display(engine* eng) {
-  EGLConfig config = nullptr;
-  EGLSurface surface;
-  EGLContext context;
-  
-  EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-  eglInitialize(display, nullptr, nullptr);
-  EGLint temp;
-  const EGLint configAttr[] = {
-    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-    EGL_ALPHA_SIZE, 0,
-    EGL_NONE
-  };
-  eglChooseConfig(display, configAttr, nullptr,0, &temp);
-  assert(temp);
-  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-  assert(configs);
-  eglChooseConfig(display, configAttr, configs, temp, &temp);
-  assert(temp);
-  config = configs[0];
-  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
-    EGLConfig& cfg = configs[i];
-    eglGetConfigAttrib(display, cfg, EGL_BUFFER_SIZE, &temp);
-    l = temp;
-    eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &temp);
-    l += temp;
-    eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &temp);
-    l += temp;
-    if (l > k) {
-      k = l;
-      config = cfg;
-    }
-  }
-  const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  surface = eglCreateWindowSurface(display, config, eng->app->window, ctxAttr);
-  context = eglCreateContext(display, config, nullptr, nullptr);
-  if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
-      LOGW("Unable to eglMakeCurrent");
-      return -1;
-  }
-  eglQuerySurface(display, surface, EGL_WIDTH, &eng->width);
-  eglQuerySurface(display, surface, EGL_HEIGHT, &eng->height);
-  eng->display = display;
-  eng->context = context;
-  eng->surface = surface;
-  eng->state.angle = 0;
-
-  return 0;
-}
-static void engine_draw_frame(engine* eng) {
-    if (eng->display == nullptr)
-      return;
-    glClearColor(((float)eng->state.x)/eng->width, eng->state.angle,((float)eng->state.y)/eng->height, 1);
-    glClear(GL_COLOR_BUFFER_BIT);
-    eglSwapBuffers(eng->display, eng->surface);
-}
-static void engine_term_display(engine* eng) {
-  if (eng->display != EGL_NO_DISPLAY) {
-    eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (eng->context != EGL_NO_CONTEXT) {
-    	eglDestroyContext(eng->display, eng->context);
-    }
-    if (eng->surface != EGL_NO_SURFACE) {
-      eglDestroySurface(eng->display, eng->surface);
-    }
-    eglTerminate(eng->display);
-  }
-  eng->animating = 0;
-  eng->display = EGL_NO_DISPLAY;
-  eng->context = EGL_NO_CONTEXT;
-  eng->surface = EGL_NO_SURFACE;
-}
 static void process_input(android_app* app, engine *eng) {
   AInputEvent* event = NULL;
   if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
@@ -181,7 +111,6 @@ static void process_input(android_app* app, engine *eng) {
       return;
     int32_t handled = 0;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-	    eng->animating = 1;
 	    eng->state.x = AMotionEvent_getX(event, 0);
 	    eng->state.y = AMotionEvent_getY(event, 0);
 	    handled = 1;
@@ -218,14 +147,23 @@ static void process_cmd(android_app* app, engine *eng) {
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       
-      assert(app->window != nullptr);
-      engine_init_display(eng);
+      assert(app->window);
       break;
-    case APP_CMD_GAINED_FOCUS:
-      if (eng->accelerometerSensor != nullptr) {
-        ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-        ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
+    case APP_CMD_FOCUS_CHANGE:
+      if (app->pendingFocus) {
+		    if (eng->accelerometerSensor != nullptr) {
+		      ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+		      ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
+		    }
+      } else {
+		    if (eng->accelerometerSensor != nullptr) {
+		      ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+		    }
       }
+      pthread_mutex_lock(&app->mutex);
+      app->hasFocus = app->pendingFocus;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_CONFIG_CHANGED:
       AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
@@ -261,20 +199,13 @@ static void process_cmd(android_app* app, engine *eng) {
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
-    case APP_CMD_LOST_FOCUS:
-      if (eng->accelerometerSensor != nullptr) {
-        ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-      }
-      eng->animating = 0;
-      engine_draw_frame(eng);
-      break;
     case APP_CMD_TERM_WINDOW:
       pthread_mutex_lock(&app->mutex);
       app->window = NULL;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       
-      engine_term_display(eng);
+      eng->eglTermReq |= TERM_EGL_SURFACE;
       
       pthread_mutex_lock(&app->mutex);
       app->window = NULL;
@@ -324,8 +255,8 @@ static void* android_app_entry(void* param) {
 		for (;;) {
 	    int ident;
 	    int events;
-	    source_process* source;
-	    if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+	    source_process *source;
+	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
 	      if (source != nullptr) {
 	        (*source)(app, &eng);
 	      }
@@ -338,19 +269,120 @@ static void* android_app_entry(void* param) {
 	        }
 	      }
 	      if (app->destroyRequested != 0) {
-	        engine_term_display(&eng);
 	        break;
 	      }
 	      continue;
 	    }
-	    if (eng.animating) {
-	      eng.state.angle += .01f;
-	      if (eng.state.angle > 1) {
-	        eng.state.angle = 0;
-	      }
-	      engine_draw_frame(&eng);
+	    //destroy egl req
+	    if (eng.eglTermReq) {
+	    	if (eng.display) {;
+	    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	    		if (eng.context && (eng.eglTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+			    	eglDestroyContext(eng.display, eng.context);
+			    	eng.context = EGL_NO_CONTEXT;
+			    }
+			    if (eng.surface && (eng.eglTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+			      eglDestroySurface(eng.display, eng->surface);
+			    	eng.surface = EGL_NO_SURFACE;
+			    }
+			    if (eng.eglTermReq & TERM_EGL_DISPLAY) {
+		    		eglTerminate(eng.display);
+			    	eng.display = EGL_NO_DISPLAY;
+			    }
+	    	}
+	    	eng.eglTermReq = 0;
+	    }
+	    if (!app->window || !app->hasFocus) continue;
+	    //init egl
+	    if (!eng.display || !eng.context || !eng.surface) {
+	    	if (!eng.display) {
+		    	eng.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+		    	eglInitialize(eng.display, nullptr, nullptr);
+		    	eng.eConfig = nullptr;
+	    	}
+	    	if (!eng.eConfig) {
+				  EGLint temp;
+				  const EGLint configAttr[] = {
+				    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+				    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+				    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+				    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+				    EGL_ALPHA_SIZE, 0,
+				    EGL_NONE
+				  };
+				  eglChooseConfig(display, configAttr, nullptr,0, &temp);
+				  assert(temp);
+				  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
+				  assert(configs);
+				  eglChooseConfig(display, configAttr, configs, temp, &temp);
+				  assert(temp);
+				  eng.eConfig = configs[0];
+				  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
+				    EGLConfig& cfg = configs[i];
+				    eglGetConfigAttrib(eng.display, cfg, EGL_BUFFER_SIZE, &temp);
+				    l = temp;
+				    eglGetConfigAttrib(eng.display, cfg, EGL_DEPTH_SIZE, &temp);
+				    l += temp;
+				    eglGetConfigAttrib(eng.display, cfg, EGL_STENCIL_SIZE, &temp);
+				    l += temp;
+				    if (l > k) {
+				      k = l;
+				      eng.eConfig = cfg;
+				    }
+				  }
+	    	}
+	    	if (!eng.context) {
+				  const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+				  eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
+	    	}
+	    	if (!eng.surface) {
+  				eng.surface = eglCreateWindowSurface(display, config, eng.app->window, nullptr);
+	    	}
+				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
+			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
+			  eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
+	    }
+	    //start rendering
+      eng.state.angle += .01f;
+      if (eng.state.angle > 1) {
+        eng.state.angle = 0;
+      }
+	    glClearColor(((float)eng.state.x)/eng.width, eng.state.angle,((float)eng.state.y)/eng.height, 1);
+	    glClear(GL_COLOR_BUFFER_BIT);
+	    if(!eglSwapBuffers(eng.display, eng.surface)) {
+	    	switch (eglGetError()) {
+	    		case EGL_BAD_SURFACE:
+	    		case EGL_BAD_NATIVE_WINDOW:
+	    		case EGL_BAD_CURRENT_SURFACE:
+	    			eng.eglTermReq |= TERM_EGL_SURFACE;
+	    			break;
+	    		case EGL_BAD_CONTEXT:
+	    		case EGL_CONTEXT_LOST:
+	    			eng.eglTermReq |= TERM_EGL_CONTEXT;
+	    			break;
+	    		case EGL_NOT_INITIALIZED:
+	    		case EGL_BAD_DISPLAY:
+	    			eng.eglTermReq |= TERM_EGL_DISPLAY;
+	    			break;
+	    		default:
+	    			break;
+	    	}
 	    }
 		}
+	}
+	//egl destroy
+	if (eng.display) {
+		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if (eng.context) {
+    	eglDestroyContext(eng.display, eng.context);
+    	eng.context = EGL_NO_CONTEXT;
+    }
+    if (eng.surface) {
+      eglDestroySurface(eng.display, eng.surface);
+    	eng.surface = EGL_NO_SURFACE;
+    }
+		eglTerminate(eng.display);
+  	eng.display = EGL_NO_DISPLAY;
 	}
   //destroy
   pthread_mutex_lock(&app->mutex);
@@ -484,7 +516,14 @@ static void onLowMemory(ANativeActivity* activity) {
   android_app_write_cmd((android_app*)activity->instance, APP_CMD_LOW_MEMORY);
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
-  android_app_write_cmd((android_app*)activity->instance, focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_FOCUS_CHANGE);
+  app->pendingFocus = focused;
+  while (app->hasFocus != app->pendingFocus) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+	pthread_mutex_unlock(&app->mutex);
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   android_app_set_window((android_app*)activity->instance, window);
