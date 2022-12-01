@@ -62,6 +62,9 @@ struct android_app {
   ANativeWindow* pendingWindow;
   ARect pendingContentRect;
 	ASensorManager* sensorManager;
+	data_process cmd;
+	data_process inpt;
+	data_process snsr;
 };
 enum { 
   LOOPER_ID_MAIN = 1,
@@ -181,9 +184,7 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-      	data_process inpt_dp;
-      	inpt_dp.source_process = process_input;
-        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_dp);
+        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inpt);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
@@ -250,10 +251,12 @@ static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-  data_process cmd_dp;
-  cmd_dp.source_process = process_cmd;
+  //looper function process
+  app->cmd.source_process = process_cmd;
+  app->inpt.source_process = process_input;
+  app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, 0, &cmd_dp);
+  ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, 0, &app->cmd);
   pthread_mutex_lock(&app->mutex);
   app->running = true;
   pthread_cond_broadcast(&app->cond);
@@ -262,11 +265,7 @@ static void* android_app_entry(void* param) {
   {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-	  {
-	  	data_process snr_dp;
-	  	snr_dp.source_process = process_sensorEvent;
-	  	eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, 0, &snr_dp);
-	  }
+	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, 0, &app->snsr);
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
