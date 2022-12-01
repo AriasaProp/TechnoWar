@@ -574,6 +574,7 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue)
 }
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
+	/*
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
@@ -589,4 +590,5 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onDestroy = onDestroy;
   //on Create
   activity->instance = android_app_create(activity, savedState, savedStateSize);
+  */
 }
