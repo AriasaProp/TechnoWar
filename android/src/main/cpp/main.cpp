@@ -32,60 +32,58 @@
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
-/*
-extern "C" {
-	struct android_app;
-	struct engine;
-	typedef void (*source_process)(android_app*, engine*);
-	struct android_app {
-		ANativeActivity *activity;
-    AConfiguration* config;
-    void* savedState;
-    size_t savedStateSize;
-    ALooper* looper;
-    AInputQueue* inputQueue;
-    ANativeWindow* window;
-    ARect contentRect;
-    int activityState;
-    int destroyRequested;
-    
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int msgread;
-    int msgwrite;
-    pthread_t thread;
-    source_process cmdPollSource;
-    source_process inputPollSource;
-    int running;
-    int stateSaved;
-    int destroyed;
-    AInputQueue* pendingInputQueue;
-    ANativeWindow* pendingWindow;
-    ARect pendingContentRect;
-  	ASensorManager* sensorManager;
-	};
-	enum { 
-	    LOOPER_ID_MAIN = 1,
-	    LOOPER_ID_INPUT = 2,
-	    LOOPER_ID_USER = 3,
-	};
-	enum {
-	    APP_CMD_INPUT_CHANGED,
-	    APP_CMD_INIT_WINDOW,
-	    APP_CMD_TERM_WINDOW,
-	    APP_CMD_WINDOW_RESIZED,
-	    APP_CMD_CONTENT_RECT_CHANGED,
-	    APP_CMD_GAINED_FOCUS,
-	    APP_CMD_LOST_FOCUS,
-	    APP_CMD_CONFIG_CHANGED,
-	    APP_CMD_LOW_MEMORY,
-	    APP_CMD_START,
-	    APP_CMD_RESUME,
-	    APP_CMD_SAVE_STATE,
-	    APP_CMD_PAUSE,
-	    APP_CMD_STOP,
-	    APP_CMD_DESTROY
-	};
+struct android_app;
+struct engine;
+typedef void (*source_process)(android_app*, engine*);
+struct android_app {
+	ANativeActivity *activity;
+  AConfiguration* config;
+  void* savedState;
+  size_t savedStateSize;
+  ALooper* looper;
+  AInputQueue* inputQueue;
+  ANativeWindow* window;
+  ARect contentRect;
+  int activityState;
+  int destroyRequested;
+  
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  int msgread;
+  int msgwrite;
+  pthread_t thread;
+  source_process cmdPollSource;
+  source_process inputPollSource;
+  int running;
+  int stateSaved;
+  int destroyed;
+  AInputQueue* pendingInputQueue;
+  ANativeWindow* pendingWindow;
+  ARect pendingContentRect;
+	ASensorManager* sensorManager;
+};
+enum { 
+    LOOPER_ID_MAIN = 1,
+    LOOPER_ID_INPUT = 2,
+    LOOPER_ID_USER = 3,
+};
+enum {
+    APP_CMD_INPUT_CHANGED,
+    APP_CMD_INIT_WINDOW,
+    APP_CMD_TERM_WINDOW,
+    APP_CMD_WINDOW_RESIZED,
+    APP_CMD_CONTENT_RECT_CHANGED,
+    APP_CMD_GAINED_FOCUS,
+    APP_CMD_LOST_FOCUS,
+    APP_CMD_CONFIG_CHANGED,
+    APP_CMD_LOW_MEMORY,
+    APP_CMD_START,
+    APP_CMD_RESUME,
+    APP_CMD_SAVE_STATE,
+    APP_CMD_PAUSE,
+    APP_CMD_STOP,
+    APP_CMD_DESTROY
+};
 }
 struct saved_state {
     float angle;
@@ -528,9 +526,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
   android_app_set_input((android_app*)activity->instance, NULL);
 }
-*/
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-	/*
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
@@ -575,5 +571,4 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   pthread_mutex_unlock(&app->mutex);
   
   activity->instance = app;
-  */
 }

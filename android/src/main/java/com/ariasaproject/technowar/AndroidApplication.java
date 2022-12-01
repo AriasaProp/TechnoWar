@@ -39,4 +39,8 @@ public class AndroidApplication extends NativeActivity {
   	super.onDestroy();
     Toast.makeText(getApplicationContext(), "onDestroy", Toast.LENGTH_SHORT).show();
   }
+  
+  private void sendMessage(String msg) {
+    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+  }
 }
