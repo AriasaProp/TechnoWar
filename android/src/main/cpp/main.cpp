@@ -54,6 +54,8 @@ struct android_app {
   int running;
   int stateSaved;
   int destroyed;
+  int pendingFocus;
+  int hasFocus;
   AInputQueue* pendingInputQueue;
   ANativeWindow* pendingWindow;
   ARect pendingContentRect;
@@ -91,7 +93,6 @@ enum {
 	TERM_EGL_DISPLAY = 4
 }
 struct engine {
-  android_app* app;
   const ASensor* accelerometerSensor;
   ASensorEventQueue* sensorEventQueue;
   EGLDisplay display;
@@ -246,7 +247,6 @@ static void* android_app_entry(void* param) {
   //main loop
   {
 	  engine eng;
-	  eng.app = app;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
 	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
 	  if (app->savedState != nullptr) {
@@ -310,11 +310,11 @@ static void* android_app_entry(void* param) {
 				    EGL_ALPHA_SIZE, 0,
 				    EGL_NONE
 				  };
-				  eglChooseConfig(display, configAttr, nullptr,0, &temp);
+				  eglChooseConfig(eng.display, configAttr, nullptr,0, &temp);
 				  assert(temp);
 				  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
 				  assert(configs);
-				  eglChooseConfig(display, configAttr, configs, temp, &temp);
+				  eglChooseConfig(eng.display, configAttr, configs, temp, &temp);
 				  assert(temp);
 				  eng.eConfig = configs[0];
 				  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
@@ -336,7 +336,7 @@ static void* android_app_entry(void* param) {
 				  eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
 	    	}
 	    	if (!eng.surface) {
-  				eng.surface = eglCreateWindowSurface(display, config, eng.app->window, nullptr);
+  				eng.surface = eglCreateWindowSurface(display, config, app->window, nullptr);
 	    	}
 				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
 			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
