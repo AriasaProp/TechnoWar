@@ -84,7 +84,6 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY
 };
-}
 struct saved_state {
     float angle;
     int32_t x;
