@@ -262,7 +262,7 @@ static void* android_app_entry(void* param) {
 		for (;;) {
 	    int ident;
 	    int events;
-	    data_process source;
+	    data_process *source;
 	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
 	      if (source) {
 	        source->source_process(app, &eng);
