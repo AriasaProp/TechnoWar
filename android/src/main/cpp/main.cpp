@@ -34,7 +34,7 @@
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 struct android_app;
 struct engine;
-typedef void (source_process)(android_app*, engine*);
+typedef void (*source_process)(android_app*, engine*);
 struct android_app {
 	ANativeActivity *activity;
   AConfiguration* config;
@@ -255,7 +255,7 @@ static void* android_app_entry(void* param) {
 		for (;;) {
 	    int ident;
 	    int events;
-	    source_process *source;
+	    source_process source;
 	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
 	      if (source != nullptr) {
 	        (*source)(app, &eng);
@@ -369,20 +369,20 @@ static void* android_app_entry(void* param) {
 	    	}
 	    }
 		}
-	}
-	//egl destroy
-	if (eng.display) {
-		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if (eng.context) {
-    	eglDestroyContext(eng.display, eng.context);
-    	eng.context = EGL_NO_CONTEXT;
-    }
-    if (eng.surface) {
-      eglDestroySurface(eng.display, eng.surface);
-    	eng.surface = EGL_NO_SURFACE;
-    }
-		eglTerminate(eng.display);
-  	eng.display = EGL_NO_DISPLAY;
+		//egl destroy
+		if (eng.display) {
+			eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			if (eng.context) {
+	    	eglDestroyContext(eng.display, eng.context);
+	    	eng.context = EGL_NO_CONTEXT;
+	    }
+	    if (eng.surface) {
+	      eglDestroySurface(eng.display, eng.surface);
+	    	eng.surface = EGL_NO_SURFACE;
+	    }
+			eglTerminate(eng.display);
+	  	eng.display = EGL_NO_DISPLAY;
+		}
 	}
   //destroy
   pthread_mutex_lock(&app->mutex);
