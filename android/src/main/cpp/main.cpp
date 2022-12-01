@@ -477,10 +477,11 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   dlclose(androidHandle);
   return getInstanceFunc();
 }
-
+/*
 static void *android_app_create (ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-	
+	return 
 }
+*/
 static void onStart(ANativeActivity *activity) {
   android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
@@ -503,6 +504,7 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     app->savedStateSize = 0;
   }
   pthread_mutex_unlock(&app->mutex);
+  return savedState;
 }  
 static void onPause(ANativeActivity *activity) {
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_PAUSE);
