@@ -91,7 +91,7 @@ enum {
 	TERM_EGL_SURFACE = 1,
 	TERM_EGL_CONTEXT = 2,
 	TERM_EGL_DISPLAY = 4
-}
+};
 struct engine {
   const ASensor* accelerometerSensor;
   ASensorEventQueue* sensorEventQueue;
