@@ -268,7 +268,7 @@ static void* android_app_entry(void* param) {
 	          }
 	        }
 	      }
-	      if (app->destroyRequested != 0) {
+	      if (app->destroyRequested) {
 	        break;
 	      }
 	      continue;
