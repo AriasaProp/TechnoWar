@@ -282,7 +282,7 @@ static void* android_app_entry(void* param) {
 			    	eng.context = EGL_NO_CONTEXT;
 			    }
 			    if (eng.surface && (eng.eglTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-			      eglDestroySurface(eng.display, eng->surface);
+			      eglDestroySurface(eng.display, eng.surface);
 			    	eng.surface = EGL_NO_SURFACE;
 			    }
 			    if (eng.eglTermReq & TERM_EGL_DISPLAY) {
@@ -336,7 +336,7 @@ static void* android_app_entry(void* param) {
 				  eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
 	    	}
 	    	if (!eng.surface) {
-  				eng.surface = eglCreateWindowSurface(display, config, app->window, nullptr);
+  				eng.surface = eglCreateWindowSurface(eng.display, eng.eConfig, app->window, nullptr);
 	    	}
 				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
 			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
