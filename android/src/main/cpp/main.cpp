@@ -479,33 +479,7 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
 }
 
 static void *android_app_create (ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-	android_app* app = new android_app;
-  pthread_mutex_init(&app->mutex, NULL);
-  pthread_cond_init(&app->cond, NULL);
-  if (savedState != NULL) {
-    app->savedState = malloc(savedStateSize);
-    app->savedStateSize = savedStateSize;
-    memcpy(app->savedState, savedState, savedStateSize);
-  }
-  int msgpipe[2];
-  if (pipe(msgpipe)) {
-      LOGI("could not create pipe: %s", strerror(errno));
-  }
-  app->msgread = msgpipe[0];
-  app->msgwrite = msgpipe[1];
-  //sensor Manager
-  app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
-  //end
-  pthread_attr_t attr; 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&app->thread, &attr, android_app_entry, app);
-  pthread_mutex_lock(&app->mutex);
-  while (!app->running) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock(&app->mutex);
-  return app;
+	
 }
 static void onStart(ANativeActivity *activity) {
   android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
@@ -589,6 +563,39 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onStop = onStop;
   activity->callbacks->onDestroy = onDestroy;
   //on Create
-  activity->instance = android_app_create(activity, savedState, savedStateSize);
   */
+  android_app* app = new android_app;
+  pthread_mutex_init(&app->mutex, NULL);
+  pthread_cond_init(&app->cond, NULL);
+  if (savedState != NULL) {
+    app->savedState = malloc(savedStateSize);
+    app->savedStateSize = savedStateSize;
+    memcpy(app->savedState, savedState, savedStateSize);
+  }
+  /*
+  int msgpipe[2];
+  if (pipe(msgpipe)) {
+      LOGI("could not create pipe: %s", strerror(errno));
+  }
+  app->msgread = msgpipe[0];
+  app->msgwrite = msgpipe[1];
+  */
+  //sensor Manager
+  app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
+  //end
+  
+  pthread_mutex_destroy(&app->mutex);
+  pthread_cond_destroy(&app->cond);
+  /*
+  pthread_attr_t attr; 
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  pthread_create(&app->thread, &attr, android_app_entry, app);
+  pthread_mutex_lock(&app->mutex);
+  while (!app->running) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+  pthread_mutex_unlock(&app->mutex);
+  */
+  activity->instance = app;
 }
