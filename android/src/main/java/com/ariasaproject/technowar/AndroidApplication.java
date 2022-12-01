@@ -4,6 +4,8 @@ import android.app.NativeActivity;
 import android.os.Bundle;
 import android.content.Context;
 import android.widget.Toast;
+import android.view.View;
+import android.view.Window;
 
 
 public class AndroidApplication extends NativeActivity {
@@ -11,6 +13,6 @@ public class AndroidApplication extends NativeActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     Toast.makeText(getApplicationContext(), "onCreate", Toast.LENGTH_SHORT).show();
-    View.setBackgroundColor(0xff00ff00);
+    getWindow().getDecorView().setBackgroundColor(0xff00ff00);
   }
 }
