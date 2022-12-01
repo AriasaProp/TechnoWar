@@ -34,7 +34,9 @@
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 struct android_app;
 struct engine;
-typedef void (*source_process)(android_app*, engine*);
+struct data_process {
+	void (*source_process)(android_app*, engine*);
+}
 struct android_app {
 	ANativeActivity *activity;
   AConfiguration* config;
@@ -179,8 +181,9 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-      	source_process inpt_p = &process_input;
-        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_p);
+      	data_process inpt_dp;
+      	inpt_dp.source_process = process_input;
+        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_dp);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
@@ -239,9 +242,10 @@ static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-  source_process cmd_p = &process_cmd;
+  data_process cmd_dp;
+  cmd_dp.source_process = process_cmd;
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_p);
+  ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_dp);
   app->looper = looper;
   pthread_mutex_lock(&app->mutex);
   app->running = 1;
@@ -258,10 +262,10 @@ static void* android_app_entry(void* param) {
 		for (;;) {
 	    int ident;
 	    int events;
-	    source_process source;
+	    data_process source;
 	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
 	      if (source) {
-	        (*source)(app, &eng);
+	        source->source_process(app, &eng);
 	      }
 	      if (ident == LOOPER_ID_USER) {
 	        if (eng.accelerometerSensor != nullptr) {
