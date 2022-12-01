@@ -550,7 +550,7 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue)
 }
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-	/*
+	
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
@@ -565,7 +565,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onStop = onStop;
   activity->callbacks->onDestroy = onDestroy;
   //on Create
-  */
+  
   android_app* app = new android_app;
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
@@ -574,21 +574,21 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     app->savedStateSize = savedStateSize;
     memcpy(app->savedState, savedState, savedStateSize);
   }
-  /*
+  
   int msgpipe[2];
   if (pipe(msgpipe)) {
       LOGI("could not create pipe: %s", strerror(errno));
   }
   app->msgread = msgpipe[0];
   app->msgwrite = msgpipe[1];
-  */
+  
   //sensor Manager
   app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
   //end
-  
+  /*
   pthread_mutex_destroy(&app->mutex);
   pthread_cond_destroy(&app->cond);
-  /*
+  */
   pthread_attr_t attr; 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -598,6 +598,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
-  */
+  
   activity->instance = app;
 }
