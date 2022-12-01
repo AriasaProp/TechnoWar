@@ -32,7 +32,7 @@
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
-
+/*
 extern "C" {
 	struct android_app;
 	struct engine;
@@ -190,7 +190,6 @@ static int32_t engine_handle_input(android_app* app, engine *eng, AInputEvent* e
     }
     return 0;
 }
-
 static void engine_handle_cmd(android_app* app, engine *eng, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
@@ -223,7 +222,6 @@ static void engine_handle_cmd(android_app* app, engine *eng, int32_t cmd) {
       break;
   }
 }
-
 static void android_main(android_app* app) {
     engine eng;
     eng.app = app;
@@ -267,7 +265,6 @@ static void android_main(android_app* app) {
         }
     }
 }
-
 static void free_saved_state(android_app* app) {
   pthread_mutex_lock(&app->mutex);
   if (app->savedState != NULL) {
@@ -356,7 +353,6 @@ static void android_app_post_exec_cmd(android_app* app, int8_t cmd) {
           break;
     }
 }
-
 static void android_app_destroy(android_app* app) {
     free_saved_state(app);
     pthread_mutex_lock(&app->mutex);
@@ -444,17 +440,6 @@ static void android_app_set_window(android_app* app, ANativeWindow* window) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-
-/*
-#include "translated_opengles.h"
-#include "mainListener.h"
-
-bool limitRenderer () {
-	const char *r = tgf->renderer();
-	return ((bool)strstr(r, "adreno")) || ((bool)strstr(r, "Adreno"));
-}
-*/
-
 ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
   void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
@@ -477,11 +462,6 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   dlclose(androidHandle);
   return getInstanceFunc();
 }
-/*
-static void *android_app_create (ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-	return 
-}
-*/
 static void onStart(ANativeActivity *activity) {
   android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
@@ -548,9 +528,9 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
   android_app_set_input((android_app*)activity->instance, NULL);
 }
-
+*/
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-	
+	/*
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
@@ -565,7 +545,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onStop = onStop;
   activity->callbacks->onDestroy = onDestroy;
   //on Create
-  
   android_app* app = new android_app;
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
@@ -585,10 +564,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   //sensor Manager
   app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
   //end
-  /*
-  pthread_mutex_destroy(&app->mutex);
-  pthread_cond_destroy(&app->cond);
-  */
   pthread_attr_t attr; 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -600,4 +575,5 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   pthread_mutex_unlock(&app->mutex);
   
   activity->instance = app;
+  */
 }
