@@ -312,11 +312,11 @@ static void* android_app_entry(void* param) {
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
-		while (true) {
+		for (;;) {
 	    int ident;
 	    int events;
 	    source_process* source;
-	    while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+	    if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
 	      if (source != nullptr) {
 	        (*source)(app, &eng);
 	      }
@@ -330,8 +330,9 @@ static void* android_app_entry(void* param) {
 	      }
 	      if (app->destroyRequested != 0) {
 	        engine_term_display(&eng);
-	        return;
+	        break;
 	      }
+	      continue;
 	    }
 	    if (eng.animating) {
 	      eng.state.angle += .01f;
@@ -417,11 +418,13 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
+  android_app* app = (android_app*)activity->instance;
   pthread_mutex_lock(&app->mutex);
   android_app_write_cmd(app, APP_CMD_START);
   pthread_mutex_unlock(&app->mutex);
 }
 static void onResume(ANativeActivity *activity) {
+  android_app* app = (android_app*)activity->instance;
   pthread_mutex_lock(&app->mutex);
   android_app_write_cmd(app, APP_CMD_RESUME);
   pthread_mutex_unlock(&app->mutex);
