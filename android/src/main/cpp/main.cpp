@@ -35,41 +35,39 @@
 struct android_app;
 struct engine;
 struct data_process {
+	int id;
 	void (*source_process)(android_app*, engine*);
 };
 struct android_app {
-	ANativeActivity *activity;
-  AConfiguration* config;
-  void* savedState;
-  size_t savedStateSize;
-  ALooper* looper;
-  AInputQueue* inputQueue;
-  ANativeWindow* window;
-  ARect contentRect;
+  bool running;
+  bool stateSaved;
+  bool destroyed;
   int cmd_state;
-  int destroyRequested;
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
   int msgread;
   int msgwrite;
-  pthread_t thread;
-  bool running;
-  int stateSaved;
-  int destroyed;
   int pendingFocus;
   int hasFocus;
-  AInputQueue* pendingInputQueue;
-  ANativeWindow* pendingWindow;
-  ARect pendingContentRect;
-	ASensorManager* sensorManager;
+  size_t savedStateSize;
+	ANativeActivity *activity;
+  AConfiguration *config;
+  void *savedState;
+  ALooper *looper;
+  AInputQueue *inputQueue;
+  ANativeWindow *window;
+  AInputQueue *pendingInputQueue;
+  ANativeWindow *pendingWindow;
+	ASensorManager *sensorManager;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  pthread_t thread;
 	data_process cmd;
 	data_process inpt;
 	data_process snsr;
 };
-enum { 
+enum {
   LOOPER_ID_MAIN = 1,
   LOOPER_ID_INPUT = 2,
-  LOOPER_ID_USER = 3,
+  LOOPER_ID_USER = 3
 };
 enum {
     APP_CMD_START,
@@ -184,7 +182,7 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inpt);
+        AInputQueue_attachLooper(app->inputQueue, app->looper, app->inpt.id, NULL, 0);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
@@ -203,7 +201,7 @@ static void process_cmd(android_app* app, engine *eng) {
       app->savedStateSize = sizeof(saved_state);
       
       pthread_mutex_lock(&app->mutex);
-      app->stateSaved = 1;
+      app->stateSaved = true;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
@@ -214,11 +212,6 @@ static void process_cmd(android_app* app, engine *eng) {
       pthread_mutex_unlock(&app->mutex);
       
       eng->eglTermReq |= TERM_EGL_SURFACE;
-      
-      pthread_mutex_lock(&app->mutex);
-      app->window = NULL;
-      pthread_cond_broadcast(&app->cond);
-      pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_PAUSE:
       pthread_mutex_lock(&app->mutex);
@@ -233,7 +226,9 @@ static void process_cmd(android_app* app, engine *eng) {
       pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_DESTROY:
-      app->destroyRequested = 1;
+      pthread_mutex_lock(&app->mutex);
+      app->running = false;
+      pthread_mutex_unlock(&app->mutex);
       break;
     default:
       break;
@@ -252,11 +247,14 @@ static void* android_app_entry(void* param) {
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
   //looper function process
+  app->cmd.id = LOOPER_ID_MAIN;
   app->cmd.source_process = process_cmd;
+  app->inpt.id = LOOPER_ID_INPUT;
   app->inpt.source_process = process_input;
+  app->snsr.id = LOOPER_ID_USER;
   app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, 0, &app->cmd);
+  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, 0, 0);
   pthread_mutex_lock(&app->mutex);
   app->running = true;
   pthread_cond_broadcast(&app->cond);
@@ -265,20 +263,27 @@ static void* android_app_entry(void* param) {
   {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, 0, &app->snsr);
+	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, app->snsr.id , 0, 0);
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
     int ident;
     int events;
-    data_process *source;
 		for (;;) {
-	    ident = ALooper_pollAll(0, nullptr, &events, (void**)&source);
+	    ident = ALooper_pollAll(0, nullptr, &events, nullptr);
 	    if (ident >= 0) {
-	      if (source) {
-	        source->source_process(app, &eng);
-	      }
-	      if (app->destroyRequested) {
+	    	switch (ident) {
+				  case LOOPER_ID_MAIN:
+				  	app->cmd.source_process(app, &eng);
+				  	break;
+				  case LOOPER_ID_INPUT:
+				  	app->inpt.source_process(app, &eng);
+				  	break;
+				  case LOOPER_ID_USER:
+				  	app->snsr.source_process(app, &eng);
+				  	break;
+	    	}
+	      if (!app->running) {
 	        break;
 	      }
 	      continue;
@@ -416,7 +421,7 @@ static void* android_app_entry(void* param) {
     AInputQueue_detachLooper(app->inputQueue);
   }
   AConfiguration_delete(app->config);
-  app->destroyed = 1;
+  app->destroyed = true;
   pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
   return 0;
@@ -489,7 +494,7 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   android_app* app = (android_app*)activity->instance;
   void* savedState = NULL;
   pthread_mutex_lock(&app->mutex);
-  app->stateSaved = 0;
+  app->stateSaved = false;
   android_app_write_cmd(app, APP_CMD_SAVE_STATE);
   while (!app->stateSaved) {
     pthread_cond_wait(&app->cond, &app->mutex);
