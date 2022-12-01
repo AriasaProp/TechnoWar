@@ -204,10 +204,13 @@ static void process_cmd(android_app* app, engine *eng) {
     case APP_CMD_RESUME:
       pthread_mutex_lock(&app->mutex);
       app->cmd_state = cmd;
+		  if (app->savedState != NULL) {
+		    free(app->savedState);
+		    app->savedState = NULL;
+		    app->savedStateSize = 0;
+		  }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
-      
-      free_saved_state(app);
       break;
     case APP_CMD_INIT_WINDOW:
       pthread_mutex_lock(&app->mutex);
@@ -234,14 +237,20 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-      	const source_process inpt_p = process_input;
+      	source_process inpt_p = process_input;
         AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_p);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_SAVE_STATE:
-      free_saved_state(app);
+      pthread_mutex_lock(&app->mutex);
+		  if (app->savedState != NULL) {
+		    free(app->savedState);
+		    app->savedState = NULL;
+		    app->savedStateSize = 0;
+		  }
+      pthread_mutex_unlock(&app->mutex);
       
       app->savedState = new saved_state;
       *((saved_state*)app->savedState) = eng->state;
@@ -295,7 +304,7 @@ static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-  const source_process cmd_p = process_cmd;
+  source_process cmd_p = process_cmd;
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_p);
   app->looper = looper;
