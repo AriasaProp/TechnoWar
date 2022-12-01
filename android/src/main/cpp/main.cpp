@@ -36,7 +36,7 @@ struct android_app;
 struct engine;
 struct data_process {
 	void (*source_process)(android_app*, engine*);
-}
+};
 struct android_app {
 	ANativeActivity *activity;
   AConfiguration* config;
