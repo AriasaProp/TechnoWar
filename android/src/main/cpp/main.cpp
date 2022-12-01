@@ -53,7 +53,7 @@ struct android_app {
   int msgread;
   int msgwrite;
   pthread_t thread;
-  int running;
+  bool running;
   int stateSaved;
   int destroyed;
   int pendingFocus;
@@ -238,42 +238,46 @@ static void process_cmd(android_app* app, engine *eng) {
       break;
 	}
 }
+static void process_sensorEvent(android_app *app, engine *eng) {
+	if (eng->accelerometerSensor != nullptr) {
+		ASensorEvent event;
+		while (ASensorEventQueue_getEvents(eng->sensorEventQueue, &event, 1) > 0) {
+			LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+		}
+	}
+}
 static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
   data_process cmd_dp;
   cmd_dp.source_process = process_cmd;
-  ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_dp);
-  app->looper = looper;
+  app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, 0, &cmd_dp);
   pthread_mutex_lock(&app->mutex);
-  app->running = 1;
+  app->running = true;
   pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
   //main loop
   {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
+	  {
+	  	data_process snr_dp;
+	  	snr_dp.source_process = process_sensorEvent;
+	  	eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, 0, &snr_dp);
+	  }
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
+    int ident;
+    int events;
+    data_process *source;
 		for (;;) {
-	    int ident;
-	    int events;
-	    data_process *source;
-	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
+	    ident = ALooper_pollAll(0, nullptr, &events, (void**)&source);
+	    if (ident >= 0) {
 	      if (source) {
-	        source->source_process(app, &eng);
-	      }
-	      if (ident == LOOPER_ID_USER) {
-	        if (eng.accelerometerSensor != nullptr) {
-	          ASensorEvent event;
-	          while (ASensorEventQueue_getEvents(eng.sensorEventQueue, &event, 1) > 0) {
-	            LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
-	          }
-	        }
+	        source->(*source_process)(app, &eng);
 	      }
 	      if (app->destroyRequested) {
 	        break;
