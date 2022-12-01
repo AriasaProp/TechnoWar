@@ -44,16 +44,13 @@ struct android_app {
   AInputQueue* inputQueue;
   ANativeWindow* window;
   ARect contentRect;
-  int activityState;
+  int cmd_state;
   int destroyRequested;
-  
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   int msgread;
   int msgwrite;
   pthread_t thread;
-  source_process cmdPollSource;
-  source_process inputPollSource;
   int running;
   int stateSaved;
   int destroyed;
@@ -63,9 +60,9 @@ struct android_app {
 	ASensorManager* sensorManager;
 };
 enum { 
-    LOOPER_ID_MAIN = 1,
-    LOOPER_ID_INPUT = 2,
-    LOOPER_ID_USER = 3,
+  LOOPER_ID_MAIN = 1,
+  LOOPER_ID_INPUT = 2,
+  LOOPER_ID_USER = 3,
 };
 enum {
     APP_CMD_INPUT_CHANGED,
@@ -85,21 +82,21 @@ enum {
     APP_CMD_DESTROY
 };
 struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
+  float angle;
+  int32_t x;
+  int32_t y;
 };
 struct engine {
-    android_app* app;
-    const ASensor* accelerometerSensor;
-    ASensorEventQueue* sensorEventQueue;
-    int animating;
-    EGLDisplay display;
-    EGLSurface surface;
-    EGLContext context;
-    int32_t width;
-    int32_t height;
-    saved_state state;
+  android_app* app;
+  const ASensor* accelerometerSensor;
+  ASensorEventQueue* sensorEventQueue;
+  int animating;
+  EGLDisplay display;
+  EGLSurface surface;
+  EGLContext context;
+  int32_t width;
+  int32_t height;
+  saved_state state;
 };
 static int engine_init_display(engine* eng) {
   EGLConfig config = nullptr;
@@ -137,7 +134,6 @@ static int engine_init_display(engine* eng) {
       config = cfg;
     }
   }
-  //eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
   const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   surface = eglCreateWindowSurface(display, config, eng->app->window, ctxAttr);
   context = eglCreateContext(display, config, nullptr, nullptr);
@@ -155,9 +151,8 @@ static int engine_init_display(engine* eng) {
   return 0;
 }
 static void engine_draw_frame(engine* eng) {
-    if (eng->display == nullptr) {
+    if (eng->display == nullptr)
       return;
-    }
     glClearColor(((float)eng->state.x)/eng->width, eng->state.angle,((float)eng->state.y)/eng->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     eglSwapBuffers(eng->display, eng->surface);
@@ -178,29 +173,50 @@ static void engine_term_display(engine* eng) {
   eng->context = EGL_NO_CONTEXT;
   eng->surface = EGL_NO_SURFACE;
 }
-static int32_t engine_handle_input(android_app* app, engine *eng, AInputEvent* event) {
+static void process_input(android_app* app, engine *eng) {
+  AInputEvent* event = NULL;
+  if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
+    LOGI("New input event: type=%d\n", AInputEvent_getType(event));
+    if (AInputQueue_preDispatchEvent(app->inputQueue, event))
+      return;
+    int32_t handled = 0;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        eng->animating = 1;
-        eng->state.x = AMotionEvent_getX(event, 0);
-        eng->state.y = AMotionEvent_getY(event, 0);
-        return 1;
-    }
-    return 0;
+	    eng->animating = 1;
+	    eng->state.x = AMotionEvent_getX(event, 0);
+	    eng->state.y = AMotionEvent_getY(event, 0);
+	    handled = 1;
+  	}
+    AInputQueue_finishEvent(app->inputQueue, event, handled);
+  } else {
+    LOGI("Failure reading next input event: %s\n", strerror(errno));
+  }
 }
-static void engine_handle_cmd(android_app* app, engine *eng, int32_t cmd) {
-  switch (cmd) {
-    case APP_CMD_SAVE_STATE:
-      app->savedState = new saved_state;
-      *((saved_state*)app->savedState) = eng->state;
-      app->savedStateSize = sizeof(saved_state);
+static void process_cmd(android_app* app, engine *eng) {
+	int8_t cmd;
+  if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) return;
+	switch (cmd) {
+    case APP_CMD_START:
+      pthread_mutex_lock(&app->mutex);
+      app->cmd_state = cmd;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_RESUME:
+      pthread_mutex_lock(&app->mutex);
+      app->cmd_state = cmd;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      
+      free_saved_state(app);
       break;
     case APP_CMD_INIT_WINDOW:
-      if (app->window != nullptr) {
-          engine_init_display(eng);
-      }
-      break;
-    case APP_CMD_TERM_WINDOW:
-      engine_term_display(eng);
+      pthread_mutex_lock(&app->mutex);
+      app->window = app->pendingWindow;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      
+      assert(app->window != nullptr);
+      engine_init_display(eng);
       break;
     case APP_CMD_GAINED_FOCUS:
       if (eng->accelerometerSensor != nullptr) {
@@ -208,83 +224,9 @@ static void engine_handle_cmd(android_app* app, engine *eng, int32_t cmd) {
         ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
       }
       break;
-    case APP_CMD_LOST_FOCUS:
-      if (eng->accelerometerSensor != nullptr) {
-          ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-      }
-      eng->animating = 0;
-      engine_draw_frame(eng);
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
       break;
-    default:
-      break;
-  }
-}
-static void android_main(android_app* app) {
-    engine eng;
-    eng.app = app;
-    eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
-    if (app->savedState != nullptr) {
-      eng.state = *(saved_state*)app->savedState;
-    }
-    while (true) {
-        int ident;
-        int events;
-        source_process* source;
-        while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
-            if (source != nullptr) {
-              (*source)(app, &eng);
-            }
-            if (ident == LOOPER_ID_USER) {
-              if (eng.accelerometerSensor != nullptr) {
-                ASensorEvent event;
-                while (ASensorEventQueue_getEvents(eng.sensorEventQueue, &event, 1) > 0) {
-                  LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
-                }
-              }
-            }
-
-
-            // Check if we are exiting.
-            if (app->destroyRequested != 0) {
-                engine_term_display(&eng);
-                return;
-            }
-        }
-
-
-        if (eng.animating) {
-            eng.state.angle += .01f;
-            if (eng.state.angle > 1) {
-                eng.state.angle = 0;
-            }
-            engine_draw_frame(&eng);
-        }
-    }
-}
-static void free_saved_state(android_app* app) {
-  pthread_mutex_lock(&app->mutex);
-  if (app->savedState != NULL) {
-    free(app->savedState);
-    app->savedState = NULL;
-    app->savedStateSize = 0;
-  }
-  pthread_mutex_unlock(&app->mutex);
-}
-static int8_t android_app_read_cmd(android_app* app) {
-  int8_t cmd;
-  if (read(app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
-    switch (cmd) {
-      case APP_CMD_SAVE_STATE:
-        free_saved_state(app);
-        break;
-    }
-    return cmd;
-  }
-  return -1;
-}
-static void android_app_pre_exec_cmd(android_app* app, int8_t cmd) {
-	switch (cmd) {
     case APP_CMD_INPUT_CHANGED:
       pthread_mutex_lock(&app->mutex);
       if (app->inputQueue != NULL) {
@@ -292,150 +234,165 @@ static void android_app_pre_exec_cmd(android_app* app, int8_t cmd) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
+      	const source_process inpt_p = process_input;
+        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_p);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
-    case APP_CMD_INIT_WINDOW:
-      LOGI("APP_CMD_INIT_WINDOW\n");
+    case APP_CMD_SAVE_STATE:
+      free_saved_state(app);
+      
+      app->savedState = new saved_state;
+      *((saved_state*)app->savedState) = eng->state;
+      app->savedStateSize = sizeof(saved_state);
+      
       pthread_mutex_lock(&app->mutex);
-      app->window = app->pendingWindow;
+      app->stateSaved = 1;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
+    case APP_CMD_LOST_FOCUS:
+      if (eng->accelerometerSensor != nullptr) {
+        ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+      }
+      eng->animating = 0;
+      engine_draw_frame(eng);
+      break;
     case APP_CMD_TERM_WINDOW:
-      LOGI("APP_CMD_TERM_WINDOW\n");
+      pthread_mutex_lock(&app->mutex);
+      app->window = NULL;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      
+      engine_term_display(eng);
+      
       pthread_mutex_lock(&app->mutex);
       app->window = NULL;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
-    case APP_CMD_RESUME:
-    case APP_CMD_START:
     case APP_CMD_PAUSE:
-    case APP_CMD_STOP:
-      LOGI("activityState=%d\n", cmd);
       pthread_mutex_lock(&app->mutex);
-      app->activityState = cmd;
+      app->cmd_state = cmd;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
-    case APP_CMD_CONFIG_CHANGED:
-      LOGI("APP_CMD_CONFIG_CHANGED\n");
-      AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+    case APP_CMD_STOP:
+      pthread_mutex_lock(&app->mutex);
+      app->cmd_state = cmd;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_DESTROY:
-      LOGI("APP_CMD_DESTROY\n");
       app->destroyRequested = 1;
       break;
-}
-}
-static void android_app_post_exec_cmd(android_app* app, int8_t cmd) {
-    switch (cmd) {
-        case APP_CMD_TERM_WINDOW:
-          pthread_mutex_lock(&app->mutex);
-          app->window = NULL;
-          pthread_cond_broadcast(&app->cond);
-          pthread_mutex_unlock(&app->mutex);
-          break;
-        case APP_CMD_SAVE_STATE:
-          pthread_mutex_lock(&app->mutex);
-          app->stateSaved = 1;
-          pthread_cond_broadcast(&app->cond);
-          pthread_mutex_unlock(&app->mutex);
-          break;
-        case APP_CMD_RESUME:
-          free_saved_state(app);
-          break;
-    }
-}
-static void android_app_destroy(android_app* app) {
-    free_saved_state(app);
-    pthread_mutex_lock(&app->mutex);
-    if (app->inputQueue != NULL) {
-        AInputQueue_detachLooper(app->inputQueue);
-    }
-    AConfiguration_delete(app->config);
-    app->destroyed = 1;
-    pthread_cond_broadcast(&app->cond);
-    pthread_mutex_unlock(&app->mutex);
-}
-static void process_input(android_app* app, engine *eng) {
-    AInputEvent* event = NULL;
-    if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
-        LOGI("New input event: type=%d\n", AInputEvent_getType(event));
-        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
-            return;
-        }
-        int32_t handled = 0;
-        handled = engine_handle_input(app, eng, event);
-        AInputQueue_finishEvent(app->inputQueue, event, handled);
-    } else {
-        LOGI("Failure reading next input event: %s\n", strerror(errno));
-    }
-}
-static void process_cmd(android_app* app, engine *eng) {
-    int8_t cmd = android_app_read_cmd(app);
-    android_app_pre_exec_cmd(app, cmd);
-    engine_handle_cmd(app, eng, cmd);
-    android_app_post_exec_cmd(app, cmd);
+    default:
+      break;
+	}
 }
 static void* android_app_entry(void* param) {
-    android_app* app = (android_app*)param;
-    app->config = AConfiguration_new();
-    AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-    app->cmdPollSource = process_cmd;
-    app->inputPollSource = process_input;
-    ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
-    app->looper = looper;
-    pthread_mutex_lock(&app->mutex);
-    app->running = 1;
-    pthread_cond_broadcast(&app->cond);
-    pthread_mutex_unlock(&app->mutex);
-    
-    android_main(app);
-    
-    android_app_destroy(app);
-    
-    return NULL;
+  android_app* app = (android_app*)param;
+  app->config = AConfiguration_new();
+  AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+  const source_process cmd_p = process_cmd;
+  ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_p);
+  app->looper = looper;
+  pthread_mutex_lock(&app->mutex);
+  app->running = 1;
+  pthread_cond_broadcast(&app->cond);
+  pthread_mutex_unlock(&app->mutex);
+  //main loop
+  {
+	  engine eng;
+	  eng.app = app;
+	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER, nullptr, nullptr);
+	  if (app->savedState != nullptr) {
+	    eng.state = *(saved_state*)app->savedState;
+	  }
+		while (true) {
+	    int ident;
+	    int events;
+	    source_process* source;
+	    while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+	      if (source != nullptr) {
+	        (*source)(app, &eng);
+	      }
+	      if (ident == LOOPER_ID_USER) {
+	        if (eng.accelerometerSensor != nullptr) {
+	          ASensorEvent event;
+	          while (ASensorEventQueue_getEvents(eng.sensorEventQueue, &event, 1) > 0) {
+	            LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
+	          }
+	        }
+	      }
+	      if (app->destroyRequested != 0) {
+	        engine_term_display(&eng);
+	        return;
+	      }
+	    }
+	    if (eng.animating) {
+	      eng.state.angle += .01f;
+	      if (eng.state.angle > 1) {
+	        eng.state.angle = 0;
+	      }
+	      engine_draw_frame(&eng);
+	    }
+		}
+	}
+  //destroy
+  pthread_mutex_lock(&app->mutex);
+  if (app->savedState != NULL) {
+    free(app->savedState);
+    app->savedState = NULL;
+    app->savedStateSize = 0;
+  }
+  if (app->inputQueue != NULL) {
+    AInputQueue_detachLooper(app->inputQueue);
+  }
+  AConfiguration_delete(app->config);
+  app->destroyed = 1;
+  pthread_cond_broadcast(&app->cond);
+  pthread_mutex_unlock(&app->mutex);
+  return 0;
 }
 static void android_app_write_cmd(android_app* app, int8_t cmd) {
   if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-      LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
+    LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
   }
 }
 static void android_app_set_activity_state(android_app* app, int8_t cmd) {
   pthread_mutex_lock(&app->mutex);
   android_app_write_cmd(app, cmd);
-  while (app->activityState != cmd) {
+  while (app->cmd_state != cmd) {
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
 }
 static void android_app_set_input(android_app* app, AInputQueue* inputQueue) {
-    pthread_mutex_lock(&app->mutex);
-    app->pendingInputQueue = inputQueue;
-    android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
-    while (app->inputQueue != app->pendingInputQueue) {
-        pthread_cond_wait(&app->cond, &app->mutex);
-    }
-    pthread_mutex_unlock(&app->mutex);
+  pthread_mutex_lock(&app->mutex);
+  app->pendingInputQueue = inputQueue;
+  android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
+  while (app->inputQueue != app->pendingInputQueue) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+  pthread_mutex_unlock(&app->mutex);
 }
 static void android_app_set_window(android_app* app, ANativeWindow* window) {
-    pthread_mutex_lock(&app->mutex);
-    if (app->pendingWindow != NULL) {
-        android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
-    }
-    app->pendingWindow = window;
-    if (window != NULL) {
-        android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
-    }
-    while (app->window != app->pendingWindow) {
-        pthread_cond_wait(&app->cond, &app->mutex);
-    }
-    pthread_mutex_unlock(&app->mutex);
+  pthread_mutex_lock(&app->mutex);
+  if (app->pendingWindow != NULL) {
+    android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
+  }
+  app->pendingWindow = window;
+  if (window != NULL) {
+    android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
+  }
+  while (app->window != app->pendingWindow) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+  pthread_mutex_unlock(&app->mutex);
 }
 ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
@@ -460,10 +417,14 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
-  android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
+  pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_START);
+  pthread_mutex_unlock(&app->mutex);
 }
 static void onResume(ANativeActivity *activity) {
-  android_app_set_activity_state((android_app*)activity->instance, APP_CMD_RESUME);
+  pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_RESUME);
+  pthread_mutex_unlock(&app->mutex);
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   android_app* app = (android_app*)activity->instance;
@@ -541,6 +502,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onDestroy = onDestroy;
   //on Create
   android_app* app = new android_app;
+  activity->instance = app;
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
   if (savedState != NULL) {
@@ -548,14 +510,12 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     app->savedStateSize = savedStateSize;
     memcpy(app->savedState, savedState, savedStateSize);
   }
-  
   int msgpipe[2];
   if (pipe(msgpipe)) {
       LOGI("could not create pipe: %s", strerror(errno));
   }
   app->msgread = msgpipe[0];
   app->msgwrite = msgpipe[1];
-  
   //sensor Manager
   app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
   //end
@@ -563,11 +523,10 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, app);
+  pthread_attr_destroy(&attr);
   pthread_mutex_lock(&app->mutex);
   while (!app->running) {
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
-  
-  activity->instance = app;
 }
