@@ -277,7 +277,7 @@ static void* android_app_entry(void* param) {
 	    ident = ALooper_pollAll(0, nullptr, &events, (void**)&source);
 	    if (ident >= 0) {
 	      if (source) {
-	        source->(*source_process)(app, &eng);
+	        *(source->source_process)(app, &eng);
 	      }
 	      if (app->destroyRequested) {
 	        break;
