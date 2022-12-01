@@ -67,17 +67,16 @@ enum {
   LOOPER_ID_USER = 3,
 };
 enum {
-    APP_CMD_INPUT_CHANGED,
+    APP_CMD_START,
+    APP_CMD_RESUME,
     APP_CMD_INIT_WINDOW,
-    APP_CMD_TERM_WINDOW,
-    APP_CMD_WINDOW_RESIZED,
-    APP_CMD_CONTENT_RECT_CHANGED,
+    APP_CMD_RESIZED,
+    APP_CMD_INPUT_CHANGED,
     APP_CMD_FOCUS_CHANGE,
     APP_CMD_CONFIG_CHANGED,
     APP_CMD_LOW_MEMORY,
-    APP_CMD_START,
-    APP_CMD_RESUME,
     APP_CMD_SAVE_STATE,
+    APP_CMD_TERM_WINDOW,
     APP_CMD_PAUSE,
     APP_CMD_STOP,
     APP_CMD_DESTROY
@@ -103,6 +102,7 @@ struct engine {
   int32_t height;
   saved_state state;
   int eglTermReq;
+  bool resize;
 };
 static void process_input(android_app* app, engine *eng) {
   AInputEvent* event = NULL;
@@ -150,6 +150,9 @@ static void process_cmd(android_app* app, engine *eng) {
       
       assert(app->window);
       break;
+    case APP_CMD_RESIZED:
+    	eng->resize = true;
+    	break;
     case APP_CMD_FOCUS_CHANGE:
       if (app->pendingFocus) {
 		    if (eng->accelerometerSensor != nullptr) {
@@ -176,7 +179,7 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-      	source_process inpt_p = process_input;
+      	source_process inpt_p = &process_input;
         AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &inpt_p);
       }
       pthread_cond_broadcast(&app->cond);
@@ -236,7 +239,7 @@ static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-  source_process cmd_p = process_cmd;
+  source_process cmd_p = &process_cmd;
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmd_p);
   app->looper = looper;
@@ -257,7 +260,7 @@ static void* android_app_entry(void* param) {
 	    int events;
 	    source_process source;
 	    if ((ident=ALooper_pollAll(0, nullptr, &events, (void**)&source)) >= 0) {
-	      if (source != nullptr) {
+	      if (source) {
 	        (*source)(app, &eng);
 	      }
 	      if (ident == LOOPER_ID_USER) {
@@ -275,7 +278,7 @@ static void* android_app_entry(void* param) {
 	    }
 	    //destroy egl req
 	    if (eng.eglTermReq) {
-	    	if (eng.display) {;
+	    	if (eng.display) {
 	    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	    		if (eng.context && (eng.eglTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
 			    	eglDestroyContext(eng.display, eng.context);
@@ -341,7 +344,18 @@ static void* android_app_entry(void* param) {
 				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
 			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
 			  eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
+			  
+			  eng.resize = false;
 	    }
+	    
+	    if (eng.resize) {
+    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
+			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
+			  eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
+			  eng.resize = false;
+	    }
+	    
 	    //start rendering
       eng.state.angle += .01f;
       if (eng.state.angle > 1) {
@@ -459,16 +473,10 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
-  android_app* app = (android_app*)activity->instance;
-  pthread_mutex_lock(&app->mutex);
-  android_app_write_cmd(app, APP_CMD_START);
-  pthread_mutex_unlock(&app->mutex);
+	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
 static void onResume(ANativeActivity *activity) {
-  android_app* app = (android_app*)activity->instance;
-  pthread_mutex_lock(&app->mutex);
-  android_app_write_cmd(app, APP_CMD_RESUME);
-  pthread_mutex_unlock(&app->mutex);
+	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_RESUME);
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   android_app* app = (android_app*)activity->instance;
@@ -528,6 +536,18 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   android_app_set_window((android_app*)activity->instance, window);
 }
+static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_RESIZED);
+  pthread_mutex_unlock(&app->mutex);
+}
+static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_RESIZED);
+  pthread_mutex_unlock(&app->mutex);
+}
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
   android_app_set_window((android_app*)activity->instance, NULL);
 }
@@ -544,6 +564,8 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onConfigurationChanged = onConfigurationChanged;
   activity->callbacks->onLowMemory = onLowMemory;
+  activity->callbacks->onNativeWindowResized = onNativeWindowResized;
+  activity->callbacks->onContentRectChanged = onContentRectChanged;
   activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onSaveInstanceState = onSaveInstanceState;
