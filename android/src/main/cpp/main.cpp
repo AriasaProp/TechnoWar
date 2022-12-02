@@ -165,12 +165,12 @@ static void process_cmd(android_app* app, engine *eng) {
     	break;
     case APP_CMD_FOCUS_CHANGE:
       if (app->pendingFocus) {
-		    if (eng->accelerometerSensor != nullptr) {
+		    if (eng->accelerometerSensor) {
 		      ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-		      ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
+		      ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,50000L/3);//60 Hz (1000/60)*1000
 		    }
       } else {
-		    if (eng->accelerometerSensor != nullptr) {
+		    if (eng->accelerometerSensor) {
 		      ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
 		    }
       }
@@ -263,8 +263,7 @@ static void* android_app_entry(void* param) {
   app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, nullptr, &app->cmd);
-	ALooper_pollAll(-1, &msg_fd, &events, (void**)&prc);
-  pthread_mutex_lock(&app->mutex);
+	pthread_mutex_lock(&app->mutex);
   app->running = true;
   pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
