@@ -262,7 +262,8 @@ static void* android_app_entry(void* param) {
   app->snsr.id = LOOPER_ID_USER;
   app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, 0, &app->cmd);
+  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, nullptr, &app->cmd);
+	ALooper_pollAll(-1, &msg_fd, &events, (void**)&prc);
   pthread_mutex_lock(&app->mutex);
   app->running = true;
   pthread_cond_broadcast(&app->cond);
@@ -279,7 +280,7 @@ static void* android_app_entry(void* param) {
 		int msg_fd;
 		data_process *prc;
 		for (;;) {
-	    while (ALooper_pollOnce(-1, &msg_fd, &events, (void**)&prc) >= 0) {
+	    while (ALooper_pollAll(-1, &msg_fd, &events, (void**)&prc) >= 0) {
 	  		prc->source_process(app, &eng);
 	    }
 	    //destroy egl req
