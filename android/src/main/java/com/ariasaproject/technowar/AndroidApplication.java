@@ -11,11 +11,13 @@ import android.view.Window;
 public class AndroidApplication extends NativeActivity {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    sendMessage("onCreate begin");
     super.onCreate(savedInstanceState);
     sendMessage("onCreate");
   }
   @Override
   protected void onStart() {
+    sendMessage("onStart begin");
   	super.onStart();
     sendMessage("onStart");
   }

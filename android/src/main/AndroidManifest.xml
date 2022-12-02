@@ -28,11 +28,10 @@
 		      	<meta-data
 		      			android:name="android.app.lib_name"
 		      			android:value="ext" />
-            <intent-filter tools:ignore="AppLinkUrlError">
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <data android:name="android.content.intent.FLAG_ACTIVITY_NO_ANIMATION" />
             </intent-filter>
         </activity>
     </application>

@@ -32,6 +32,9 @@
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
+
+
+
 struct android_app;
 struct engine;
 struct data_process {
@@ -105,7 +108,11 @@ struct engine {
   int32_t height;
   saved_state state;
   unsigned int eglTermReq;
+  bool created;
+  bool resume;
   bool resize;
+  bool pause;
+  bool destroyed;
 };
 static void process_input(android_app* app, engine *eng) {
   AInputEvent* event = NULL;
@@ -243,7 +250,6 @@ static void process_sensorEvent(android_app *app, engine *eng) {
 		}
 	}
 }
-//static bool tryStart = false;
 static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
@@ -269,28 +275,13 @@ static void* android_app_entry(void* param) {
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
-    int ident;
     int events;
 		int msg_fd;
+		data_process *prc;
 		for (;;) {
-			data_process *prc;
-	    ident = ALooper_pollAll( (app->hasFocus) ? 0 : -1, &msg_fd, &events, (void**)&prc);
-	    if (ident >= 0) {
+	    while (ALooper_pollOnce(-1, &msg_fd, &events, (void**)&prc) >= 0) {
 	  		prc->source_process(app, &eng);
-	      continue;
 	    }
-	    /*
-	    if (tryStart) {
-  	    JNIEnv* env = nullptr;
-		    app->activity->vm->AttachCurrentThread(&env, nullptr);
-		    jclass android_content_Context = env->GetObjectClass(app->activity->clazz);
-		    jmethodID mid = env->GetMethodID(android_content_Context, "sendMessage", "(Ljava/lang/String;)V");
-		    jstring texting = env->NewStringUTF((ident>=0) ?"ident Sucess":"Fail ident!");
-		    env->CallVoidMethod(app->activity->clazz, mid, texting);
-		    app->activity->vm->DetachCurrentThread();
-		    ANativeActivity_finish(app->activity);
-		    tryStart = false;
-	    }*/
 	    //destroy egl req
 	    if (eng.eglTermReq) {
 	    	if (eng.display) {
@@ -399,20 +390,6 @@ static void* android_app_entry(void* param) {
 	    	}
 	    }
 		}
-		//egl destroy
-		if (eng.display) {
-			eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			if (eng.context) {
-	    	eglDestroyContext(eng.display, eng.context);
-	    	eng.context = EGL_NO_CONTEXT;
-	    }
-	    if (eng.surface) {
-	      eglDestroySurface(eng.display, eng.surface);
-	    	eng.surface = EGL_NO_SURFACE;
-	    }
-			eglTerminate(eng.display);
-	  	eng.display = EGL_NO_DISPLAY;
-		}
 	}
   //destroy
   pthread_mutex_lock(&app->mutex);
@@ -489,13 +466,46 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
-	//tryStart = true;
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
 static void onResume(ANativeActivity *activity) {
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_RESUME);
 }
-static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
+static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
+	android_app_set_input((android_app*)activity->instance, queue);
+}
+static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
+  android_app_set_window((android_app*)activity->instance, window);
+}
+static void onConfigurationChanged(ANativeActivity* activity) {
+  android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONFIG_CHANGED);
+}
+static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_FOCUS_CHANGE);
+  app->pendingFocus = (focused > 0);
+  while (app->hasFocus != app->pendingFocus) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+	pthread_mutex_unlock(&app->mutex);
+}
+static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_RESIZED);
+  pthread_mutex_unlock(&app->mutex);
+}
+static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
+	android_app *app = (android_app*)activity->instance;
+	pthread_mutex_lock(&app->mutex);
+  android_app_write_cmd(app, APP_CMD_RESIZED);
+  pthread_mutex_unlock(&app->mutex);
+}
+static void onLowMemory(ANativeActivity* activity) {
+  android_app_write_cmd((android_app*)activity->instance, APP_CMD_LOW_MEMORY);
+}
+static void *onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   android_app* app = (android_app*)activity->instance;
   void* savedState = NULL;
   pthread_mutex_lock(&app->mutex);
@@ -513,8 +523,17 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   pthread_mutex_unlock(&app->mutex);
   return savedState;
 }  
+static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
+  android_app_set_window((android_app*)activity->instance, NULL);
+}
+static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
+  android_app_set_input((android_app*)activity->instance, NULL);
+}
 static void onPause(ANativeActivity *activity) {
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_PAUSE);
+}
+static void onStop(ANativeActivity* activity) {
+  android_app_set_activity_state((android_app*)activity->instance, APP_CMD_STOP);
 }
 static void onDestroy(ANativeActivity *activity) {
 	android_app *app = (android_app*)activity->instance;
@@ -531,49 +550,7 @@ static void onDestroy(ANativeActivity *activity) {
   delete app;
   activity->instance = nullptr;
 }
-static void onStop(ANativeActivity* activity) {
-  android_app_set_activity_state((android_app*)activity->instance, APP_CMD_STOP);
-}
-static void onConfigurationChanged(ANativeActivity* activity) {
-  android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONFIG_CHANGED);
-}
-static void onLowMemory(ANativeActivity* activity) {
-  android_app_write_cmd((android_app*)activity->instance, APP_CMD_LOW_MEMORY);
-}
-static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
-	android_app *app = (android_app*)activity->instance;
-	pthread_mutex_lock(&app->mutex);
-  android_app_write_cmd(app, APP_CMD_FOCUS_CHANGE);
-  app->pendingFocus = (focused > 0);
-  while (app->hasFocus != app->pendingFocus) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
-	pthread_mutex_unlock(&app->mutex);
-}
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-  android_app_set_window((android_app*)activity->instance, window);
-}
-static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-	android_app *app = (android_app*)activity->instance;
-	pthread_mutex_lock(&app->mutex);
-  android_app_write_cmd(app, APP_CMD_RESIZED);
-  pthread_mutex_unlock(&app->mutex);
-}
-static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
-	android_app *app = (android_app*)activity->instance;
-	pthread_mutex_lock(&app->mutex);
-  android_app_write_cmd(app, APP_CMD_RESIZED);
-  pthread_mutex_unlock(&app->mutex);
-}
-static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-  android_app_set_window((android_app*)activity->instance, NULL);
-}
-static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-	android_app_set_input((android_app*)activity->instance, queue);
-}
-static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-  android_app_set_input((android_app*)activity->instance, NULL);
-}
+
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
