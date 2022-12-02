@@ -182,7 +182,7 @@ static void process_cmd(android_app* app, engine *eng) {
       }
       app->inputQueue = app->pendingInputQueue;
       if (app->inputQueue != NULL) {
-        AInputQueue_attachLooper(app->inputQueue, app->looper, app->inpt.id, NULL, 0);
+        AInputQueue_attachLooper(app->inputQueue, app->looper, app->inpt.id, NULL, &app->inpt);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
@@ -227,6 +227,7 @@ static void process_cmd(android_app* app, engine *eng) {
       break;
     case APP_CMD_DESTROY:
       pthread_mutex_lock(&app->mutex);
+      eng->eglTermReq |= TERM_EGL_DISPLAY;
       app->running = false;
       pthread_mutex_unlock(&app->mutex);
       break;
@@ -242,7 +243,7 @@ static void process_sensorEvent(android_app *app, engine *eng) {
 		}
 	}
 }
-static bool tryStart = false;
+//static bool tryStart = false;
 static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
@@ -255,7 +256,7 @@ static void* android_app_entry(void* param) {
   app->snsr.id = LOOPER_ID_USER;
   app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, 0, 0);
+  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, 0, &app->cmd);
   pthread_mutex_lock(&app->mutex);
   app->running = true;
   pthread_cond_broadcast(&app->cond);
@@ -264,14 +265,21 @@ static void* android_app_entry(void* param) {
   {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, app->snsr.id , 0, 0);
+	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, app->snsr.id , 0, &app->snsr);
 	  if (app->savedState != nullptr) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
     int ident;
     int events;
+		int msg_fd;
 		for (;;) {
-	    ident = ALooper_pollAll(0, nullptr, &events, nullptr);
+			data_process *prc;
+	    ident = ALooper_pollAll( (app->hasFocus) ? 0 : -1, &msg_fd, &events, (void**)&prc);
+	    if (ident >= 0) {
+	  		prc->source_process(app, &eng);
+	      continue;
+	    }
+	    /*
 	    if (tryStart) {
   	    JNIEnv* env = nullptr;
 		    app->activity->vm->AttachCurrentThread(&env, nullptr);
@@ -282,24 +290,7 @@ static void* android_app_entry(void* param) {
 		    app->activity->vm->DetachCurrentThread();
 		    ANativeActivity_finish(app->activity);
 		    tryStart = false;
-	    }
-	    if (ident >= 0) {
-	    	switch (ident) {
-				  case LOOPER_ID_MAIN:
-				  	app->cmd.source_process(app, &eng);
-				  	break;
-				  case LOOPER_ID_INPUT:
-				  	app->inpt.source_process(app, &eng);
-				  	break;
-				  case LOOPER_ID_USER:
-				  	app->snsr.source_process(app, &eng);
-				  	break;
-	    	}
-	      if (!app->running) {
-	        break;
-	      }
-	      continue;
-	    }
+	    }*/
 	    //destroy egl req
 	    if (eng.eglTermReq) {
 	    	if (eng.display) {
@@ -319,6 +310,7 @@ static void* android_app_entry(void* param) {
 	    	}
 	    	eng.eglTermReq = 0;
 	    }
+      if (!app->running) break;
 	    if (!app->window || !app->hasFocus) continue;
 	    //init egl
 	    if (!eng.display || !eng.context || !eng.surface) {
@@ -497,7 +489,7 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
-	tryStart = true;
+	//tryStart = true;
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
 static void onResume(ANativeActivity *activity) {
