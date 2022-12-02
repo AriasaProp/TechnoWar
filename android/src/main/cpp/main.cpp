@@ -277,8 +277,8 @@ static void* android_app_entry(void* param) {
 		    app->activity->vm->AttachCurrentThread(&env, nullptr);
 		    jclass android_content_Context = env->GetObjectClass(app->activity->clazz);
 		    jmethodID mid = env->GetMethodID(android_content_Context, "sendMessage", "(Ljava/lang/String;)V");
-		    jstring texting = env->NewStringUTF((ident>=0) ?"ident Succes":"Fail ident!");
-		    env->CallVoidMethod(app->activity->clazz, midGetPackageName, texting);
+		    jstring texting = env->NewStringUTF((ident>=0) ?"ident Sucess":"Fail ident!");
+		    env->CallVoidMethod(app->activity->clazz, mid, texting);
 		    app->activity->vm->DetachCurrentThread();
 		    ANativeActivity_finish(app->activity);
 		    tryStart = false;
