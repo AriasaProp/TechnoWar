@@ -42,11 +42,11 @@ struct android_app {
   bool running;
   bool stateSaved;
   bool destroyed;
+  bool pendingFocus;
+  bool hasFocus;
   int cmd_state;
   int msgread;
   int msgwrite;
-  int pendingFocus;
-  int hasFocus;
   size_t savedStateSize;
 	ANativeActivity *activity;
   AConfiguration *config;
@@ -104,7 +104,7 @@ struct engine {
   int32_t width;
   int32_t height;
   saved_state state;
-  int eglTermReq;
+  unsigned int eglTermReq;
   bool resize;
 };
 static void process_input(android_app* app, engine *eng) {
@@ -242,6 +242,7 @@ static void process_sensorEvent(android_app *app, engine *eng) {
 		}
 	}
 }
+static bool tryStart = false;
 static void* android_app_entry(void* param) {
   android_app* app = (android_app*)param;
   app->config = AConfiguration_new();
@@ -271,6 +272,17 @@ static void* android_app_entry(void* param) {
     int events;
 		for (;;) {
 	    ident = ALooper_pollAll(0, nullptr, &events, nullptr);
+	    if (tryStart) {
+  	    JNIEnv* env = nullptr;
+		    app->activity->vm->AttachCurrentThread(&env, nullptr);
+		    jclass android_content_Context = env->GetObjectClass(app->activity->clazz);
+		    jmethodID mid = env->GetMethodID(android_content_Context, "sendMessage", "(Ljava/lang/String;)V");
+		    jstring texting = env->NewStringUTF((ident>=0) ?"ident Succes":"Fail ident!");
+		    env->CallVoidMethod(app->activity->clazz, midGetPackageName, texting);
+		    app->activity->vm->DetachCurrentThread();
+		    ANativeActivity_finish(app->activity);
+		    tryStart = false;
+	    }
 	    if (ident >= 0) {
 	    	switch (ident) {
 				  case LOOPER_ID_MAIN:
@@ -485,6 +497,7 @@ ASensorManager* AcquireASensorManagerInstance(JNIEnv *env, jobject o) {
   return getInstanceFunc();
 }
 static void onStart(ANativeActivity *activity) {
+	tryStart = true;
 	android_app_set_activity_state((android_app*)activity->instance, APP_CMD_START);
 }
 static void onResume(ANativeActivity *activity) {
@@ -539,7 +552,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 	android_app *app = (android_app*)activity->instance;
 	pthread_mutex_lock(&app->mutex);
   android_app_write_cmd(app, APP_CMD_FOCUS_CHANGE);
-  app->pendingFocus = focused;
+  app->pendingFocus = (focused > 0);
   while (app->hasFocus != app->pendingFocus) {
     pthread_cond_wait(&app->cond, &app->mutex);
   }
