@@ -272,14 +272,14 @@ static void* android_app_entry(void* param) {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
 	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, app->snsr.id , 0, &app->snsr);
-	  if (app->savedState != nullptr) {
+	  if (app->savedState) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
     int events;
 		int msg_fd;
 		data_process *prc;
 		for (;;) {
-	    while (ALooper_pollAll(-1, &msg_fd, &events, (void**)&prc) >= 0) {
+	    while (ALooper_pollOnce(0, &msg_fd, &events, (void**)&prc) >= 0) {
 	  		prc->source_process(app, &eng);
 	    }
 	    //destroy egl req
