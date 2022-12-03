@@ -1,6 +1,6 @@
 #include <android/sensor.h>
 #include <android/log.h>
-#include <android_native_app_glue>
+#include <android_native_app_glue.h>
 
 // make opengles lastest possible version
 #if __ANDROID_API__ >= 24
