@@ -2,6 +2,7 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 
+#include <EGL/egl.h>
 // make opengles lastest possible version
 #if __ANDROID_API__ >= 24
 #include <GLES3/gl32.h>
@@ -25,35 +26,36 @@ enum {
 	TERM_EGL_DISPLAY = 4
 };
 struct engine {
-	ASensorManager *sensorManager;
-  const ASensor* accelerometerSensor;
-  ASensorEventQueue* sensorEventQueue;
-  EGLDisplay display;
-  EGLConfig eConfig;
-  EGLSurface surface;
-  EGLContext context;
-  int32_t width;
-  int32_t height;
-  saved_state state;
-  unsigned int eglTermReq;
   bool animating;
   //bool created;
   //bool resume;
   bool resize;
   //bool pause;
   bool destroyed;
+  unsigned int eglTermReq;
+  int32_t width;
+  int32_t height;
+  ASensorManager *sensorManager;
+  const ASensor* accelerometerSensor;
+  ASensorEventQueue* sensorEventQueue;
+  EGLDisplay display;
+  EGLConfig eConfig;
+  EGLSurface surface;
+  EGLContext context;
+  saved_state state;
 };
-static void handle_input(android_app* app, AInputEvent *event) {
+static int handle_input(android_app* app, AInputEvent *event) {
+  engine *eng = (engine*)app->userData;
   if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
     eng->state.x = AMotionEvent_getX(event, 0);
     eng->state.y = AMotionEvent_getY(event, 0);
     return 1;
-	}
-	return 0;
+  }
+  return 0;
 }
-static void handle_cmd(android_app* app, int8_t cmd) {
-	engine *eng = (engine*)app->userData;
-	switch (cmd) {
+static void handle_cmd(android_app* app, int32_t cmd) {
+  engine *eng = (engine*)app->userData;
+  switch (cmd) {
     case APP_CMD_START:
       
       break;
@@ -63,7 +65,7 @@ static void handle_cmd(android_app* app, int8_t cmd) {
     case APP_CMD_INIT_WINDOW:
       
       break;
-    case APP_CMD_RESIZED:
+    case APP_CMD_
     	eng->resize = true;
     	break;
     case APP_CMD_GAINED_FOCUS:
@@ -100,9 +102,9 @@ static void handle_cmd(android_app* app, int8_t cmd) {
       break;
     default:
       break;
-	}
+  }
 }
-static void handle_sensorEvent(android_app *app, android_poll *src) {
+static void handle_sensorEvent(android_app *app, android_poll_source *src) {
 	engine *eng = (engine*)app->userData;
 	if (eng->accelerometerSensor != nullptr) {
 		ASensorEvent event;
@@ -111,37 +113,28 @@ static void handle_sensorEvent(android_app *app, android_poll *src) {
 		}
 	}
 }
-void android_main(struct android_app* app) {
+void android_main(android_app* app) {
   engine eng;
   app->userData = &eng;
-	app->onAppCmd = handle_cmd;
-	app->onInputEvent = handle_input;
-	engine.app = state;
+  app->onAppCmd = handle_cmd;
+  app->onInputEvent = handle_input;
+  engine.app = state;
   eng.sensorManager = ASensorManager_getInstance();
   eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager, app->looper, LOOPER_ID_USER , 0, &handle_sensorEvent);
+  android_poll_source snsr = handle_sensorEvent;
+  eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager, app->looper, LOOPER_ID_USER , 0, &snsr);
   if (app->savedState) {
     eng.state = *(saved_state*)app->savedState;
   }
-	int ident;
-	int events;
-	android_poll_source* source; 
-	for (;;) {
-		if ((ident=ALooper_pollOnce(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
-			if (source) {
-				source->process(app, source);
-			} 
-			/*
-			if (ident == LOOPER_ID_USER) { 
-				if (eng.accelerometerSensor) { 
-					ASensorEvent event; 
-					while (ASensorEventQueue_getEvents(eng.sensorEventQueue, &event, 1) > 0) { 
-						LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
-					} 
-				} 
-			}
-			*/
+  int ident;
+  int events;
+  android_poll_source* source; 
+  for (;;) {
+	if ((ident=ALooper_pollOnce(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+		if (source) {
+			source->process(app, source);
 		}
+	}
     //destroy egl req
     if (eng.eglTermReq) {
     	if (eng.display) {
