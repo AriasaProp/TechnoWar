@@ -121,7 +121,6 @@ void android_main(android_app* app) {
   app->userData = &eng;
   app->onAppCmd = handle_cmd;
   app->onInputEvent = handle_input;
-  eng.app = state;
   eng.sensorManager = ASensorManager_getInstance();
   eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
   android_poll_source snsr;
