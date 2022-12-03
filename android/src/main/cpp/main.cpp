@@ -65,12 +65,16 @@ static void handle_cmd(android_app* app, int32_t cmd) {
     case APP_CMD_INIT_WINDOW:
       
       break;
-    case APP_CMD_
-    	eng->resize = true;
-    	break;
     case APP_CMD_GAINED_FOCUS:
       eng->animating = true;
       break;
+    case APP_CMD_WINDOW_RESIZED:
+    	eng->resize = true;
+    	break;
+    case APP_CMD_WINDOW_INSETS_CHANGED:
+    	break;
+    case APP_CMD_CONTENT_RECT_CHANGED:
+    	break;
     case APP_CMD_CONFIG_CHANGED:
       
       break;
