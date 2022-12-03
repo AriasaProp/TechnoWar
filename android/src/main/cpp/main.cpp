@@ -90,8 +90,6 @@ static void handle_cmd(android_app* app, int32_t cmd) {
 			app->savedStateSize = sizeof(saved_state);
       break;
     case APP_CMD_TERM_WINDOW:
-      
-      
       eng->eglTermReq |= TERM_EGL_SURFACE;
       break;
     case APP_CMD_PAUSE:
@@ -139,7 +137,6 @@ void android_main(android_app* app) {
 			if (source) {
 				source->process(app, source);
 			}
-			
 	    //destroy egl req
 	    if (eng.eglTermReq) {
 	    	if (eng.display) {
