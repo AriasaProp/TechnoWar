@@ -1,3 +1,4 @@
+#include <cassert>
 #include <android/sensor.h>
 #include <android/log.h>
 #include <android_native_app_glue.h>
@@ -71,8 +72,6 @@ static void handle_cmd(android_app* app, int32_t cmd) {
     case APP_CMD_WINDOW_RESIZED:
     	eng->resize = true;
     	break;
-    case APP_CMD_WINDOW_INSETS_CHANGED:
-    	break;
     case APP_CMD_CONTENT_RECT_CHANGED:
     	break;
     case APP_CMD_CONFIG_CHANGED:
@@ -122,10 +121,13 @@ void android_main(android_app* app) {
   app->userData = &eng;
   app->onAppCmd = handle_cmd;
   app->onInputEvent = handle_input;
-  engine.app = state;
+  eng.app = state;
   eng.sensorManager = ASensorManager_getInstance();
   eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  android_poll_source snsr = handle_sensorEvent;
+  android_poll_source snsr;
+  snsr.id = LOOPER_ID_USER;
+  snsr.app = app;
+  snsr.process = handle_sensorEvent;
   eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager, app->looper, LOOPER_ID_USER , 0, &snsr);
   if (app->savedState) {
     eng.state = *(saved_state*)app->savedState;
@@ -134,7 +136,7 @@ void android_main(android_app* app) {
   int events;
   android_poll_source* source; 
   for (;;) {
-	if ((ident=ALooper_pollOnce(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+	if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
 		if (source) {
 			source->process(app, source);
 		}
@@ -159,7 +161,7 @@ void android_main(android_app* app) {
     	eng.eglTermReq = 0;
     }
     if (!app->destroyRequested) break;
-    if (!app->window || !app->hasFocus) continue;
+    if (!app->window || !eng.animating) continue;
     //init egl
     if (!eng.display || !eng.context || !eng.surface) {
     	if (!eng.display) {
