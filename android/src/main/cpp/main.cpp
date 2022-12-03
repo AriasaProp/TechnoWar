@@ -135,32 +135,33 @@ void android_main(android_app* app) {
   int events;
   android_poll_source* source; 
   for (;;) {
-	if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
-		if (source) {
-			source->process(app, source);
+		while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events, (void**)&source)) >= 0) {
+			if (source) {
+				source->process(app, source);
+			}
+			
+	    //destroy egl req
+	    if (eng.eglTermReq) {
+	    	if (eng.display) {
+	    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	    		if (eng.context && (eng.eglTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+			    	eglDestroyContext(eng.display, eng.context);
+			    	eng.context = EGL_NO_CONTEXT;
+			    }
+			    if (eng.surface && (eng.eglTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+			      eglDestroySurface(eng.display, eng.surface);
+			    	eng.surface = EGL_NO_SURFACE;
+			    }
+			    if (eng.eglTermReq & TERM_EGL_DISPLAY) {
+		    		eglTerminate(eng.display);
+			    	eng.display = EGL_NO_DISPLAY;
+			    }
+	    	}
+	    	eng.eglTermReq = 0;
+	    }
+	    if (!app->destroyRequested) return;
 		}
-	}
-    //destroy egl req
-    if (eng.eglTermReq) {
-    	if (eng.display) {
-    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    		if (eng.context && (eng.eglTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-		    	eglDestroyContext(eng.display, eng.context);
-		    	eng.context = EGL_NO_CONTEXT;
-		    }
-		    if (eng.surface && (eng.eglTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-		      eglDestroySurface(eng.display, eng.surface);
-		    	eng.surface = EGL_NO_SURFACE;
-		    }
-		    if (eng.eglTermReq & TERM_EGL_DISPLAY) {
-	    		eglTerminate(eng.display);
-		    	eng.display = EGL_NO_DISPLAY;
-		    }
-    	}
-    	eng.eglTermReq = 0;
-    }
-    if (!app->destroyRequested) break;
-    if (!app->window || !eng.animating) continue;
+  	if (!app->window) continue;
     //init egl
     if (!eng.display || !eng.context || !eng.surface) {
     	if (!eng.display) {
@@ -212,7 +213,6 @@ void android_main(android_app* app) {
     	
     	eng.resize = false;
     }
-    
     if (eng.resize) {
     	eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     	eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
