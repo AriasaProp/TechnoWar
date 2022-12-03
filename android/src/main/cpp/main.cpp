@@ -31,6 +31,7 @@ enum {
 };
 struct engine {
     bool animating;
+    bool resize;
     unsigned int eglTermReq;
     int32_t width;
     int32_t height;
@@ -41,6 +42,7 @@ struct engine {
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
+    EGLConfig eConfig;
     saved_state state;
 };
 
