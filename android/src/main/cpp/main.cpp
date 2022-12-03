@@ -249,7 +249,6 @@ static void *android_app_entry(void* param) {
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, nullptr, nullptr);
-	app->running = true;
   //main loop
   {
 	  engine eng;
@@ -259,8 +258,14 @@ static void *android_app_entry(void* param) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
 		int ident;
+		int out[2];
+		//unlock onCreate waiting
+	  pthread_mutex_lock(&app->mutex);
+		app->running = true;
+	  pthread_cond_broadcast(&app->cond);
+	  pthread_mutex_unlock(&app->mutex);
 		for (;;) {
-	    while ((ident=ALooper_pollAll(0, nullptr, nullptr, nullptr)) >= 0) {
+	    while ((ident=ALooper_pollAll(0, out, out+1, nullptr)) >= 0) {
 	    	switch (ident) {
 	    		case LOOPER_ID_MAIN:
 	    			process_cmd(app, &eng);
@@ -581,4 +586,10 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, app);
   pthread_attr_destroy(&attr);
+  
+	pthread_mutex_lock(&app->mutex);
+  while (!app->running) {
+    pthread_cond_wait(&app->cond, &app->mutex);
+  }
+	pthread_mutex_unlock(&app->mutex);
 }
