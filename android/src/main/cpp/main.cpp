@@ -108,10 +108,10 @@ struct engine {
   int32_t height;
   saved_state state;
   unsigned int eglTermReq;
-  bool created;
-  bool resume;
+  //bool created;
+  //bool resume;
   bool resize;
-  bool pause;
+  //bool pause;
   bool destroyed;
 };
 static void process_input(android_app* app, engine *eng) {
@@ -132,12 +132,12 @@ static void process_input(android_app* app, engine *eng) {
   }
 }
 static void process_cmd(android_app* app, engine *eng) {
-	int8_t cmd;
+	int cmd;
   if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) return;
 	switch (cmd) {
     case APP_CMD_START:
       pthread_mutex_lock(&app->mutex);
-      app->cmd_state = cmd;
+      app->cmd_state = APP_CMD_START;
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
@@ -250,23 +250,13 @@ static void process_sensorEvent(android_app *app, engine *eng) {
 		}
 	}
 }
-static void* android_app_entry(void* param) {
-  android_app* app = (android_app*)param;
+static void *android_app_entry(void* param) {
+  android_app *app = (android_app*)param;
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-  //looper function process
-  app->cmd.id = LOOPER_ID_MAIN;
-  app->cmd.source_process = process_cmd;
-  app->inpt.id = LOOPER_ID_INPUT;
-  app->inpt.source_process = process_input;
-  app->snsr.id = LOOPER_ID_USER;
-  app->snsr.source_process = process_sensorEvent;
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, nullptr, &app->cmd);
-	pthread_mutex_lock(&app->mutex);
-  app->running = true;
-  pthread_cond_broadcast(&app->cond);
-  pthread_mutex_unlock(&app->mutex);
+	app->running = true;
   //main loop
   {
 	  engine eng;
@@ -275,12 +265,12 @@ static void* android_app_entry(void* param) {
 	  if (app->savedState) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
-    int events;
-		int msg_fd;
-		data_process *prc;
+		struct data_process *prc;
 		for (;;) {
-	    while (ALooper_pollOnce(0, &msg_fd, &events, (void**)&prc) >= 0) {
-	  		prc->source_process(app, &eng);
+	    while (ALooper_pollAll(0, nullptr, nullptr, (void**)&prc) >= 0) {
+	    	if (prc) {
+	  			prc->source_process(app, &eng);
+	    	}
 	    }
 	    //destroy egl req
 	    if (eng.eglTermReq) {
@@ -301,7 +291,7 @@ static void* android_app_entry(void* param) {
 	    	}
 	    	eng.eglTermReq = 0;
 	    }
-      if (!app->running) break;
+	    if (!app->running) break;
 	    if (!app->window || !app->hasFocus) continue;
 	    //init egl
 	    if (!eng.display || !eng.context || !eng.surface) {
@@ -342,32 +332,31 @@ static void* android_app_entry(void* param) {
 				  }
 	    	}
 	    	if (!eng.context) {
-				  const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-				  eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
+	    		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+	    		eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
 	    	}
 	    	if (!eng.surface) {
   				eng.surface = eglCreateWindowSurface(eng.display, eng.eConfig, app->window, nullptr);
 	    	}
-				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
-			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
-			  eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
-			  
-			  eng.resize = false;
+	    	eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
+	    	eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
+	    	eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
+	    	
+	    	eng.resize = false;
 	    }
 	    
 	    if (eng.resize) {
-    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-				eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
-			  eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
-			  eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
-			  eng.resize = false;
+	    	eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+	    	eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
+	    	eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
+	    	eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
+	    	eng.resize = false;
 	    }
-	    
 	    //start rendering
-      eng.state.angle += .01f;
-      if (eng.state.angle > 1) {
-        eng.state.angle = 0;
-      }
+	    eng.state.angle += .01f;
+	    if (eng.state.angle > 1) {
+	    	eng.state.angle = 0;
+	    }
 	    glClearColor(((float)eng.state.x)/eng.width, eng.state.angle,((float)eng.state.y)/eng.height, 1);
 	    glClear(GL_COLOR_BUFFER_BIT);
 	    if(!eglSwapBuffers(eng.display, eng.surface)) {
@@ -389,7 +378,7 @@ static void* android_app_entry(void* param) {
 	    			break;
 	    	}
 	    }
-		}
+	  }
 	}
   //destroy
   pthread_mutex_lock(&app->mutex);
@@ -412,7 +401,7 @@ static void android_app_write_cmd(android_app* app, int8_t cmd) {
     LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
   }
 }
-static void android_app_set_activity_state(android_app* app, int8_t cmd) {
+static void android_app_set_activity_state(android_app* app, int cmd) {
   pthread_mutex_lock(&app->mutex);
   android_app_write_cmd(app, cmd);
   while (app->cmd_state != cmd) {
@@ -572,28 +561,28 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   activity->instance = app;
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
-  if (savedState != NULL) {
-    app->savedState = malloc(savedStateSize);
-    app->savedStateSize = savedStateSize;
-    memcpy(app->savedState, savedState, savedStateSize);
+  if (savedState) {
+  	app->savedState = malloc(savedStateSize);
+  	app->savedStateSize = savedStateSize;
+  	memcpy(app->savedState, savedState, savedStateSize);
   }
   int msgpipe[2];
-  if (pipe(msgpipe)) {
-      LOGI("could not create pipe: %s", strerror(errno));
-  }
+  assert(!pipe(msgpipe));
   app->msgread = msgpipe[0];
   app->msgwrite = msgpipe[1];
   //sensor Manager
   app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
+  //function process
+  app->cmd.id = LOOPER_ID_MAIN;
+  app->cmd.source_process = process_cmd;
+  app->inpt.id = LOOPER_ID_INPUT;
+  app->inpt.source_process = process_input;
+  app->snsr.id = LOOPER_ID_USER;
+  app->snsr.source_process = process_sensorEvent;
   //end
   pthread_attr_t attr; 
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, app);
   pthread_attr_destroy(&attr);
-  pthread_mutex_lock(&app->mutex);
-  while (!app->running) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock(&app->mutex);
 }
