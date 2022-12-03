@@ -61,13 +61,12 @@ static void handle_cmd(android_app* app, int32_t cmd) {
       
       break;
     case APP_CMD_RESUME:
-      
+      eng->animating = true;
       break;
     case APP_CMD_INIT_WINDOW:
       
       break;
     case APP_CMD_GAINED_FOCUS:
-      eng->animating = true;
       break;
     case APP_CMD_WINDOW_RESIZED:
     	eng->resize = true;
@@ -81,7 +80,6 @@ static void handle_cmd(android_app* app, int32_t cmd) {
       
       break;
     case APP_CMD_LOST_FOCUS:
-      eng->animating = false;
       
       break;
     case APP_CMD_SAVE_STATE:
@@ -93,7 +91,7 @@ static void handle_cmd(android_app* app, int32_t cmd) {
       eng->eglTermReq |= TERM_EGL_SURFACE;
       break;
     case APP_CMD_PAUSE:
-      
+      eng->animating = false;
       break;
     case APP_CMD_STOP:
       
