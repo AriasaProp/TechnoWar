@@ -19,26 +19,26 @@ public class AndroidApplication extends NativeActivity {
   }
   @Override
   protected void onResume() {
-    sendMessage("onResume begin");
+    //sendMessage("onResume begin");
   	super.onResume();
-    sendMessage("onResume");
+    //sendMessage("onResume");
   }
   @Override
   protected void onPause() {
-    sendMessage("onPause begin");
+    //sendMessage("onPause begin");
   	super.onPause();
-    sendMessage("onPause");
+    //sendMessage("onPause");
   }
   @Override
   protected void onStop() {
-    sendMessage("onStop begin");
+    //sendMessage("onStop begin");
   	super.onStop();
-    sendMessage("onStop");
+    //sendMessage("onStop");
   }
   @Override
   protected void onDestroy() {
   	super.onDestroy();
-    sendMessage("onDestroy");
+    //sendMessage("onDestroy");
   }
   
   private void sendMessage(String msg) {
