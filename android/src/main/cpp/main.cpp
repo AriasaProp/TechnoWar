@@ -37,10 +37,6 @@
 
 struct android_app;
 struct engine;
-struct data_process {
-	int id;
-	void (*source_process)(android_app*, engine*);
-};
 struct android_app {
   bool running;
   bool stateSaved;
@@ -63,9 +59,6 @@ struct android_app {
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-	data_process cmd;
-	data_process inpt;
-	data_process snsr;
 };
 enum {
   LOOPER_ID_MAIN = 1,
@@ -184,19 +177,19 @@ static void process_cmd(android_app* app, engine *eng) {
       break;
     case APP_CMD_INPUT_CHANGED:
       pthread_mutex_lock(&app->mutex);
-      if (app->inputQueue != NULL) {
+      if (app->inputQueue) {
         AInputQueue_detachLooper(app->inputQueue);
       }
       app->inputQueue = app->pendingInputQueue;
-      if (app->inputQueue != NULL) {
-        AInputQueue_attachLooper(app->inputQueue, app->looper, app->inpt.id, NULL, &app->inpt);
+      if (app->inputQueue) {
+        AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, nullptr);
       }
       pthread_cond_broadcast(&app->cond);
       pthread_mutex_unlock(&app->mutex);
       break;
     case APP_CMD_SAVE_STATE:
       pthread_mutex_lock(&app->mutex);
-		  if (app->savedState != NULL) {
+		  if (app->savedState) {
 		    free(app->savedState);
 		    app->savedState = NULL;
 		    app->savedStateSize = 0;
@@ -255,21 +248,31 @@ static void *android_app_entry(void* param) {
   app->config = AConfiguration_new();
   AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
   app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(app->looper, app->msgread, app->cmd.id, ALOOPER_EVENT_INPUT, nullptr, &app->cmd);
+  ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, nullptr, nullptr);
 	app->running = true;
   //main loop
   {
 	  engine eng;
 	  eng.accelerometerSensor = ASensorManager_getDefaultSensor(app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, app->snsr.id , 0, &app->snsr);
+	  eng.sensorEventQueue = ASensorManager_createEventQueue(app->sensorManager, app->looper, LOOPER_ID_USER , 0, nullptr);
 	  if (app->savedState) {
 	    eng.state = *(saved_state*)app->savedState;
 	  }
-		struct data_process *prc;
+		int ident;
 		for (;;) {
-	    while (ALooper_pollAll(0, nullptr, nullptr, (void**)&prc) >= 0) {
-	    	if (prc) {
-	  			prc->source_process(app, &eng);
+	    while ((ident=ALooper_pollAll(0, nullptr, nullptr, nullptr) >= 0) {
+	    	switch (ident) {
+	    		case LOOPER_ID_MAIN:
+	    			process_cmd(app, &eng);
+	    			break;
+	    		case LOOPER_ID_INPUT:
+	    			process_input(app, &eng);
+	    			break;
+	    		case LOOPER_ID_USER:
+	    			process_sensorEvent(app, &eng);
+	    			break;
+	    		default:
+	    			break;
 	    	}
 	    }
 	    //destroy egl req
@@ -572,13 +575,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   app->msgwrite = msgpipe[1];
   //sensor Manager
   app->sensorManager = AcquireASensorManagerInstance(activity->env, activity->clazz);
-  //function process
-  app->cmd.id = LOOPER_ID_MAIN;
-  app->cmd.source_process = process_cmd;
-  app->inpt.id = LOOPER_ID_INPUT;
-  app->inpt.source_process = process_input;
-  app->snsr.id = LOOPER_ID_USER;
-  app->snsr.source_process = process_sensorEvent;
   //end
   pthread_attr_t attr; 
   pthread_attr_init(&attr);
