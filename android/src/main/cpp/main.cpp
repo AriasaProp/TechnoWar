@@ -260,7 +260,7 @@ static void *android_app_entry(void* param) {
 	  }
 		int ident;
 		for (;;) {
-	    while ((ident=ALooper_pollAll(0, nullptr, nullptr, nullptr) >= 0) {
+	    while ((ident=ALooper_pollAll(0, nullptr, nullptr, nullptr)) >= 0) {
 	    	switch (ident) {
 	    		case LOOPER_ID_MAIN:
 	    			process_cmd(app, &eng);
