@@ -36,7 +36,7 @@ struct engine {
     EGLContext context;
     int32_t width;
     int32_t height;
-    struct saved_state state;
+    saved_state state;
 };
 
 static int engine_init_display(struct engine* engine) {
@@ -100,7 +100,7 @@ static void engine_draw_frame(struct engine* engine) {
     if (!engine->display) {
         return;
     }
-    glClearColor(((float)engine->state.x)/engine->width, engine->state.angle ((float)engine->state.y)/engine->height, 1);
+    glClearColor(((float)engine->state.x)/engine->width, engine->state.angle, ((float)engine->state.y)/engine->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 static void engine_term_display(struct engine* engine) {
@@ -121,7 +121,7 @@ static void engine_term_display(struct engine* engine) {
 }
 
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
-    engine* engine = (engine*)app->userData;
+    struct engine* engine = (struct engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
         engine->animating = true;
         engine->state.x = AMotionEvent_getX(event, 0);
