@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.6.0)
 
 set(${CMAKE_C_FLAGS}, "${CMAKE_C_FLAGS}") 
 add_library(native_app_glue STATIC ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
+set_target_properties(native_app_glue PROPERTIES LINKER_LANGUAGE C)
 
 project(ext LANGUAGES CXX)
 
@@ -23,5 +24,5 @@ include_directories(
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(${PROJECT_NAME} PRIVATE native_app_glue core GLESv3 android EGL log)
+target_link_libraries(${PROJECT_NAME} native_app_glue core GLESv3 android EGL log)
 
