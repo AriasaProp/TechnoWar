@@ -96,7 +96,7 @@ static int engine_init_display(struct engine* engine) {
     return 0;
 }
 
-static void engine_draw_frame(engine* engine) {
+static void engine_draw_frame(struct engine* engine) {
     if (!engine->display) {
         return;
     }
@@ -132,7 +132,7 @@ static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) 
 }
 
 static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
-    engine* engine = (engine*)app->userData;
+    struct engine* engine = (struct engine*)app->userData;
     switch (cmd) {
         case APP_CMD_SAVE_STATE:
             app->savedState = malloc(sizeof(saved_state));
@@ -241,6 +241,6 @@ void android_main(struct android_app* state) {
             engine.state.angle = 0;
         }
         engine_draw_frame(&engine);
-    		eglSwapBuffers(engine->display, engine->surface);
+    		eglSwapBuffers(engine.display, engine.surface);
     }
 }
