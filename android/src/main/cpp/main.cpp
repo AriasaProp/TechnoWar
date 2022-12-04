@@ -60,19 +60,19 @@ static int32_t poll_input(android_app* app, AInputEvent* event) {
 
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
   if (!term) return;
-	if (eng.display) {
-		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if (eng.context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-    	eglDestroyContext(eng.display, eng.context);
+	if (eng->display) {
+		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if (eng->context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+    	eglDestroyContext(eng->display, eng->context);
     	eng.context = EGL_NO_CONTEXT;
     }
-    if (eng.surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-      eglDestroySurface(eng.display, eng.surface);
+    if (eng->surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+      eglDestroySurface(eng->display, eng->surface);
     	eng.surface = EGL_NO_SURFACE;
     }
     if (term & TERM_EGL_DISPLAY) {
-  		eglTerminate(eng.display);
-    	eng.display = EGL_NO_DISPLAY;
+  		eglTerminate(eng->display);
+    	eng->display = EGL_NO_DISPLAY;
     }
 	}
 }
@@ -121,9 +121,9 @@ static void sensor_process(android_app* app, android_poll_source* src) {
 		if (eng->accelerometerSensor) {
 	      ASensorEvent event;
 	      while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&event, 1) > 0) {
-	      		eng->accel[0] = event.acceleration.x/2 + 0.5f;
-	      		eng->accel[1] = event.acceleration.y/2 + 0.5f;
-	      		eng->accel[2] = event.acceleration.z/2 + 0.5f;
+	      		eng->accel[0] = event.acceleration.x/2.f+ 0.5f;
+	      		eng->accel[1] = event.acceleration.y/2.f + 0.5f;
+	      		eng->accel[2] = event.acceleration.z/2.f + 0.5f;
 	      }
 	  }
 }
