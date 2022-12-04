@@ -122,7 +122,7 @@ void android_main(android_app* app) {
     android_poll_source snsr;
     snsr.id = LOOPER_ID_USER;
     snsr.app = app;
-    snsr.process = app;
+    snsr.process = sensor_process;
     eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, snsr.id ,nullptr, &snsr);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
