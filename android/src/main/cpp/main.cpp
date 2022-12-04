@@ -74,8 +74,8 @@ static void poll_cmd(android_app* app, int32_t cmd) {
                 ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
                 ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
             }
+            eng->animating = true;
             break;
-            
 		    case APP_CMD_WINDOW_RESIZED:
 			    	eng->resize = true;
 			    	break;
@@ -101,7 +101,7 @@ static void poll_cmd(android_app* app, int32_t cmd) {
     }
 }
 void android_main(android_app* app) {
-    engine eng{};
+    engine eng;
     memset(&eng, 0, sizeof(eng));
     app->userData = &eng;
     app->onAppCmd = poll_cmd;
