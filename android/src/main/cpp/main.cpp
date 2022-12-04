@@ -64,11 +64,11 @@ static void engine_egl_terminate(engine *eng, const unsigned int term) {
 		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (eng->context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
     	eglDestroyContext(eng->display, eng->context);
-    	eng.context = EGL_NO_CONTEXT;
+    	eng->context = EGL_NO_CONTEXT;
     }
     if (eng->surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
       eglDestroySurface(eng->display, eng->surface);
-    	eng.surface = EGL_NO_SURFACE;
+    	eng->surface = EGL_NO_SURFACE;
     }
     if (term & TERM_EGL_DISPLAY) {
   		eglTerminate(eng->display);
