@@ -100,6 +100,15 @@ static void poll_cmd(android_app* app, int32_t cmd) {
             break;
     }
 }
+static void sensor_process(android_app* app, android_poll_source* src) {
+    engine* eng = (engine*)app->userData;
+		if (eng->accelerometerSensor) {
+	      ASensorEvent event;
+	      while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&event, 1) > 0) {
+	          LOGI("accelerometer: x=%f y=%f z=%f",event.acceleration.x, event.acceleration.y,event.acceleration.z);
+	      }
+	  }
+}
 void android_main(android_app* app) {
     engine eng;
     memset(&eng, 0, sizeof(eng));
@@ -109,7 +118,12 @@ void android_main(android_app* app) {
     eng.app = app;
     eng.sensorManager = ASensorManager_getInstance();
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER,nullptr, nullptr);
+    //input sensor event on loop
+    android_poll_source snsr;
+    snsr.id = LOOPER_ID_USER;
+    snsr.app = app;
+    snsr.process = app;
+    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, snsr.id ,nullptr, &snsr);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
@@ -120,14 +134,6 @@ void android_main(android_app* app) {
         while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
             if (source) {
                 source->process(app, source);
-            }
-            if (ident == LOOPER_ID_USER) {
-                if (eng.accelerometerSensor) {
-                    ASensorEvent event;
-                    while (ASensorEventQueue_getEvents(eng.sensorEventQueue,&event, 1) > 0) {
-                        LOGI("accelerometer: x=%f y=%f z=%f",event.acceleration.x, event.acceleration.y,event.acceleration.z);
-                    }
-                }
             }
 				    //destroy egl req
 				    if (eng.eglTermReq) {
