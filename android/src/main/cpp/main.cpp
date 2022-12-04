@@ -14,7 +14,6 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 
-
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 
@@ -31,7 +30,6 @@ enum {
 struct engine {
     bool animating;
     bool resize;
-    unsigned int eglTermReq;
     int32_t width;
     int32_t height;
     android_app* app;
@@ -43,19 +41,16 @@ struct engine {
     EGLContext context;
     EGLConfig eConfig;
     saved_state state;
+    float accel[3];
 };
 
 static void engine_draw_frame(engine* eng) {
-    if (!eng->display) {
-        return;
-    }
-    glClearColor(((float)eng->state.x)/eng->width, eng->state.angle, ((float)eng->state.y)/eng->height, 1);
+    glClearColor(eng->accel[0], eng->accel[1], eng->accel[2], 1);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 static int32_t poll_input(android_app* app, AInputEvent* event) {
     engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        eng->animating = true;
         eng->state.x = AMotionEvent_getX(event, 0);
         eng->state.y = AMotionEvent_getY(event, 0);
         return 1;
@@ -63,11 +58,32 @@ static int32_t poll_input(android_app* app, AInputEvent* event) {
     return 0;
 }
 
+static void engine_egl_terminate(engine *eng, const unsigned int term) {
+  if (!term) return;
+	if (eng.display) {
+		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		if (eng.context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+    	eglDestroyContext(eng.display, eng.context);
+    	eng.context = EGL_NO_CONTEXT;
+    }
+    if (eng.surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+      eglDestroySurface(eng.display, eng.surface);
+    	eng.surface = EGL_NO_SURFACE;
+    }
+    if (term & TERM_EGL_DISPLAY) {
+  		eglTerminate(eng.display);
+    	eng.display = EGL_NO_DISPLAY;
+    }
+	}
+}
+
 static void poll_cmd(android_app* app, int32_t cmd) {
     engine* eng = (engine*)app->userData;
     switch (cmd) {
+        case APP_CMD_RESUME:
+            break;
         case APP_CMD_INIT_WINDOW:
-            assert(app->window);
+            //assert(app->window);
             break;
         case APP_CMD_GAINED_FOCUS:
             if (eng->accelerometerSensor) {
@@ -91,10 +107,10 @@ static void poll_cmd(android_app* app, int32_t cmd) {
             eng->animating = false;
             break;
         case APP_CMD_TERM_WINDOW:
-        		eng->eglTermReq |= TERM_EGL_SURFACE;
+        		engine_egl_terminate(eng, TERM_EGL_SURFACE);
             break;
         case APP_CMD_DESTROY:
-        		eng->eglTermReq |= TERM_EGL_DISPLAY;
+        		engine_egl_terminate(eng, TERM_EGL_DISPLAY);
             break;
         default:
             break;
@@ -105,7 +121,9 @@ static void sensor_process(android_app* app, android_poll_source* src) {
 		if (eng->accelerometerSensor) {
 	      ASensorEvent event;
 	      while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&event, 1) > 0) {
-	          LOGI("accelerometer: x=%f y=%f z=%f",event.acceleration.x, event.acceleration.y,event.acceleration.z);
+	      		eng->accel[0] = event.acceleration.x/2 + 0.5f;
+	      		eng->accel[1] = event.acceleration.y/2 + 0.5f;
+	      		eng->accel[2] = event.acceleration.z/2 + 0.5f;
 	      }
 	  }
 }
@@ -135,28 +153,8 @@ void android_main(android_app* app) {
             if (source) {
                 source->process(app, source);
             }
-				    //destroy egl req
-				    if (eng.eglTermReq) {
-				    	if (eng.display) {
-				    		eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-				    		if (eng.context && (eng.eglTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-						    	eglDestroyContext(eng.display, eng.context);
-						    	eng.context = EGL_NO_CONTEXT;
-						    }
-						    if (eng.surface && (eng.eglTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-						      eglDestroySurface(eng.display, eng.surface);
-						    	eng.surface = EGL_NO_SURFACE;
-						    }
-						    if (eng.eglTermReq & TERM_EGL_DISPLAY) {
-					    		eglTerminate(eng.display);
-						    	eng.display = EGL_NO_DISPLAY;
-						    }
-				    	}
-				    	eng.eglTermReq = 0;
-				    }
-            if (app->destroyRequested) {
+            if (app->destroyRequested)
                 return;
-            }
         }
         //init egl
         if (!app->window) continue;
@@ -224,23 +222,23 @@ void android_main(android_app* app) {
         }
         engine_draw_frame(&eng);
     		if (!eglSwapBuffers(eng.display, eng.surface)) {
-	    			switch (eglGetError()) {
-				    		case EGL_BAD_SURFACE:
-				    		case EGL_BAD_NATIVE_WINDOW:
-				    		case EGL_BAD_CURRENT_SURFACE:
-					    			eng.eglTermReq |= TERM_EGL_SURFACE;
-					    			break;
-				    		case EGL_BAD_CONTEXT:
-				    		case EGL_CONTEXT_LOST:
-					    			eng.eglTermReq |= TERM_EGL_CONTEXT;
-					    			break;
-				    		case EGL_NOT_INITIALIZED:
-				    		case EGL_BAD_DISPLAY:
-					    			eng.eglTermReq |= TERM_EGL_DISPLAY;
-					    			break;
-				    		default:
-				    				break;
-	    			}
+    			switch (eglGetError()) {
+		    		case EGL_BAD_SURFACE:
+		    		case EGL_BAD_NATIVE_WINDOW:
+		    		case EGL_BAD_CURRENT_SURFACE:
+		    			engine_egl_terminate(&eng, TERM_EGL_SURFACE);
+		    			break;
+		    		case EGL_BAD_CONTEXT:
+		    		case EGL_CONTEXT_LOST:
+		    			engine_egl_terminate(&eng, TERM_EGL_CONTEXT);
+		    			break;
+		    		case EGL_NOT_INITIALIZED:
+		    		case EGL_BAD_DISPLAY:
+		    			engine_egl_terminate(&eng, TERM_EGL_DISPLAY);
+		    			break;
+		    		default:
+	    				break;
+    			}
     		}
     }
 }
