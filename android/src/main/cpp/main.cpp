@@ -33,7 +33,7 @@ struct engine {
     bool created;
     bool resize;
     bool resume;
-    bool animating;
+    bool running;
     bool pause;
     bool destroyed;
     int32_t width;
@@ -49,12 +49,6 @@ struct engine {
     saved_state state;
     float accel[3];
 };
-/*
-static void engine_draw_frame(engine* eng) {
-    glClearColor(eng->accel[0], eng->accel[1], eng->accel[2], 1);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-*/
 static int32_t poll_input(android_app* app, AInputEvent* event) {
     engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
@@ -83,7 +77,7 @@ static void engine_egl_terminate(engine *eng, const unsigned int term) {
     }
 	}
 }
-static void engine_update_draw(android_app *app, engine *eng) {
+static void engine_draw(android_app *app, engine *eng) {
   if (!app->window) return;
   if (!eng->display || !eng->context || !eng->surface) {
   	if (!eng->display) {
@@ -144,10 +138,6 @@ static void engine_update_draw(android_app *app, engine *eng) {
   		Main::resize(eng->width, eng->height);
   	}
   }
-  if (eng->resume) {
-  	Main::resume();
-		eng->resume = false;
-  }
   if (eng->resize) {
   	eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   	eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
@@ -156,7 +146,11 @@ static void engine_update_draw(android_app *app, engine *eng) {
   	eng->resize = false;
 		Main::resize(eng->width, eng->height);
   }
-  if (!eng->animating) return;
+  if (eng->resume) {
+  	Main::resume();
+		eng->resume = false;
+  }
+  if (!eng->running) return;
   eng->state.angle += .01f;
   if (eng->state.angle > 1) {
       eng->state.angle = 0;
@@ -192,51 +186,50 @@ static void engine_update_draw(android_app *app, engine *eng) {
 	}
 }
 static void poll_cmd(android_app* app, int32_t cmd) {
-    engine* eng = (engine*)app->userData;
-    switch (cmd) {
-        case APP_CMD_RESUME:
-        		if (eng->created)
-        				eng->resume = true;
-            break;
-        case APP_CMD_INIT_WINDOW:
-            //assert(app->window);
-            break;
-        case APP_CMD_GAINED_FOCUS:
-            if (eng->accelerometerSensor) {
-                ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-                ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
-            }
-            eng->animating = true;
-            break;
-		    case APP_CMD_WINDOW_RESIZED:
-			    	eng->resize = true;
-			    	break;
-        case APP_CMD_SAVE_STATE:
-            app->savedState = malloc(sizeof(saved_state));
-            *((saved_state*)app->savedState) = eng->state;
-            app->savedStateSize = sizeof(saved_state);
-            break;
-        case APP_CMD_LOST_FOCUS:
-            if (eng->accelerometerSensor) {
-                ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-            }
-            eng->animating = false;
-            break;
-        case APP_CMD_PAUSE:
-        		eng->pause = true;
-        		engine_update_draw(app, eng);
-            break;
-        case APP_CMD_TERM_WINDOW:
-        		engine_egl_terminate(eng, TERM_EGL_SURFACE);
-            break;
-        case APP_CMD_DESTROY:
-        		eng->destroyed = true;
-        		engine_update_draw(app, eng);
-        		engine_egl_terminate(eng, TERM_EGL_DISPLAY);
-            break;
-        default:
-            break;
-    }
+  engine* eng = (engine*)app->userData;
+	switch (cmd) {
+    case APP_CMD_INIT_WINDOW:
+      break;
+    case APP_CMD_RESUME:
+  		if (eng->created)
+				eng->resume = true;
+      eng->running = true;
+      break;
+    case APP_CMD_GAINED_FOCUS:
+      if (eng->accelerometerSensor) {
+        ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+        ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
+      }
+      break;
+    case APP_CMD_WINDOW_RESIZED:
+    	eng->resize = true;
+    	break;
+    case APP_CMD_SAVE_STATE:
+      app->savedState = malloc(sizeof(saved_state));
+      *((saved_state*)app->savedState) = eng->state;
+      app->savedStateSize = sizeof(saved_state);
+      break;
+    case APP_CMD_LOST_FOCUS:
+      if (eng->accelerometerSensor) {
+        ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
+      }
+      break;
+    case APP_CMD_PAUSE:
+  		eng->pause = true;
+  		engine_draw(app, eng);
+      eng->running = false;
+      break;
+    case APP_CMD_TERM_WINDOW:
+  		engine_egl_terminate(eng, TERM_EGL_SURFACE);
+      break;
+    case APP_CMD_DESTROY:
+  		eng->destroyed = true;
+  		engine_draw(app, eng);
+  		engine_egl_terminate(eng, TERM_EGL_DISPLAY);
+      break;
+    default:
+      break;
+	}
 }
 static void sensor_process(android_app* app, android_poll_source* src) {
     engine* eng = (engine*)app->userData;
@@ -269,15 +262,11 @@ void android_main(android_app* app) {
     }
     int ident;
     int events;
-    for (;;) {
+    while (!app->destroyRequested) {
     	android_poll_source* source;
-      if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
-        if (source)
-          source->process(app, source);
-        if (app->destroyRequested)
-          return;
-      } else {
-      	engine_update_draw(app, &eng);
-      }
+      if ((ident=ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source)) >= 0)
+        if (source) source->process(app, source);
+      else
+      	engine_draw(app, &eng);
     }
 }
