@@ -14,6 +14,8 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 
+#include "mainListener.h"
+
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 
@@ -28,8 +30,12 @@ enum {
 	TERM_EGL_DISPLAY = 4
 };
 struct engine {
-    bool animating;
+    bool created;
     bool resize;
+    bool resume;
+    bool animating;
+    bool pause;
+    bool destroy;
     int32_t width;
     int32_t height;
     android_app* app;
@@ -43,11 +49,12 @@ struct engine {
     saved_state state;
     float accel[3];
 };
-
+/*
 static void engine_draw_frame(engine* eng) {
     glClearColor(eng->accel[0], eng->accel[1], eng->accel[2], 1);
     glClear(GL_COLOR_BUFFER_BIT);
 }
+*/
 static int32_t poll_input(android_app* app, AInputEvent* event) {
     engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
@@ -76,11 +83,120 @@ static void engine_egl_terminate(engine *eng, const unsigned int term) {
     }
 	}
 }
-
+static void engine_update_draw(android_app *app, engine *eng) {
+  if (!app->window) return;
+  if (!eng->display || !eng->context || !eng->surface) {
+  	if (!eng->display) {
+    	eng->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    	eglInitialize(eng->display, nullptr, nullptr);
+    	eng->eConfig = nullptr;
+  	}
+  	if (!eng->eConfig) {
+		  EGLint temp;
+		  const EGLint configAttr[] = {
+		    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+		    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+		    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+		    EGL_ALPHA_SIZE, 0,
+		    EGL_NONE
+		  };
+		  eglChooseConfig(eng->display, configAttr, nullptr,0, &temp);
+		  assert(temp);
+		  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
+		  assert(configs);
+		  eglChooseConfig(eng->display, configAttr, configs, temp, &temp);
+		  assert(temp);
+		  eng->eConfig = configs[0];
+		  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
+		    EGLConfig& cfg = configs[i];
+		    eglGetConfigAttrib(eng->display, cfg, EGL_BUFFER_SIZE, &temp);
+		    l = temp;
+		    eglGetConfigAttrib(eng->display, cfg, EGL_DEPTH_SIZE, &temp);
+		    l += temp;
+		    eglGetConfigAttrib(eng->display, cfg, EGL_STENCIL_SIZE, &temp);
+		    l += temp;
+		    if (l > k) {
+		      k = l;
+		      eng->eConfig = cfg;
+		    }
+		  }
+  	}
+  	if (!eng->context) {
+  		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+  		eng->context = eglCreateContext(eng->display, eng->eConfig, nullptr, ctxAttr);
+  	}
+  	if (!eng->surface) {
+			eng->surface = eglCreateWindowSurface(eng->display, eng->eConfig, app->window, nullptr);
+  	}
+  	eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
+  	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
+  	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
+  	
+  	if (!eng->created) {
+  		eng->created = true;
+  		Main::create(eng->width, eng->height);
+  		eng->resume = false;
+  		eng->resize = false;
+  	}
+  	if (eng->resize) {
+  		eng->resize = false;
+  		Main::resize(eng->width, eng->height);
+  	}
+  }
+  if (eng->resume) {
+  	Main::resume();
+		eng->resume = false;
+  }
+  if (eng->resize) {
+  	eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  	eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
+  	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
+  	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
+  	eng->resize = false;
+		Main::resize(eng->width, eng->height);
+  }
+  if (!eng->animating) return;
+  eng->state.angle += .01f;
+  if (eng->state.angle > 1) {
+      eng->state.angle = 0;
+  }
+  Main::render(1.f/60.f);
+  if (eng->pause) {
+  	Main::pause();
+		eng->pause = false;
+  }
+  if (eng->destroyed) {
+  	Main::destroy();
+		eng->created = false;
+		eng->destroyed = false;
+  }
+	if (!eglSwapBuffers(eng->display, eng->surface)) {
+		switch (eglGetError()) {
+  		case EGL_BAD_SURFACE:
+  		case EGL_BAD_NATIVE_WINDOW:
+  		case EGL_BAD_CURRENT_SURFACE:
+  			engine_egl_terminate(eng, TERM_EGL_SURFACE);
+  			break;
+  		case EGL_BAD_CONTEXT:
+  		case EGL_CONTEXT_LOST:
+  			engine_egl_terminate(eng, TERM_EGL_CONTEXT);
+  			break;
+  		case EGL_NOT_INITIALIZED:
+  		case EGL_BAD_DISPLAY:
+  			engine_egl_terminate(eng, TERM_EGL_DISPLAY);
+  			break;
+  		default:
+				break;
+		}
+	}
+}
 static void poll_cmd(android_app* app, int32_t cmd) {
     engine* eng = (engine*)app->userData;
     switch (cmd) {
         case APP_CMD_RESUME:
+        		if (eng->created)
+        				eng->resume = true;
             break;
         case APP_CMD_INIT_WINDOW:
             //assert(app->window);
@@ -106,10 +222,16 @@ static void poll_cmd(android_app* app, int32_t cmd) {
             }
             eng->animating = false;
             break;
+        case APP_CMD_PAUSE:
+        		eng->pause = true;
+        		engine_update_draw(app, eng);
+            break;
         case APP_CMD_TERM_WINDOW:
         		engine_egl_terminate(eng, TERM_EGL_SURFACE);
             break;
         case APP_CMD_DESTROY:
+        		eng->destroyed = true;
+        		engine_update_draw(app, eng);
         		engine_egl_terminate(eng, TERM_EGL_DISPLAY);
             break;
         default:
@@ -150,95 +272,11 @@ void android_main(android_app* app) {
         int events;
         android_poll_source* source;
         while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
-            if (source) {
-                source->process(app, source);
-            }
-            if (app->destroyRequested)
-                return;
+          if (source)
+            source->process(app, source);
+          if (app->destroyRequested)
+            return;
         }
-        //init egl
-        if (!app->window) continue;
-		    if (!eng.display || !eng.context || !eng.surface) {
-		    	if (!eng.display) {
-			    	eng.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-			    	eglInitialize(eng.display, nullptr, nullptr);
-			    	eng.eConfig = nullptr;
-		    	}
-		    	if (!eng.eConfig) {
-					  EGLint temp;
-					  const EGLint configAttr[] = {
-					    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-					    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-					    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-					    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-					    EGL_ALPHA_SIZE, 0,
-					    EGL_NONE
-					  };
-					  eglChooseConfig(eng.display, configAttr, nullptr,0, &temp);
-					  assert(temp);
-					  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-					  assert(configs);
-					  eglChooseConfig(eng.display, configAttr, configs, temp, &temp);
-					  assert(temp);
-					  eng.eConfig = configs[0];
-					  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
-					    EGLConfig& cfg = configs[i];
-					    eglGetConfigAttrib(eng.display, cfg, EGL_BUFFER_SIZE, &temp);
-					    l = temp;
-					    eglGetConfigAttrib(eng.display, cfg, EGL_DEPTH_SIZE, &temp);
-					    l += temp;
-					    eglGetConfigAttrib(eng.display, cfg, EGL_STENCIL_SIZE, &temp);
-					    l += temp;
-					    if (l > k) {
-					      k = l;
-					      eng.eConfig = cfg;
-					    }
-					  }
-		    	}
-		    	if (!eng.context) {
-		    		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-		    		eng.context = eglCreateContext(eng.display, eng.eConfig, nullptr, ctxAttr);
-		    	}
-		    	if (!eng.surface) {
-						eng.surface = eglCreateWindowSurface(eng.display, eng.eConfig, app->window, nullptr);
-		    	}
-		    	eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
-		    	eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
-		    	eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
-		    	
-		    	eng.resize = false;
-		    }
-		    if (eng.resize) {
-		    	eglMakeCurrent(eng.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		    	eglMakeCurrent(eng.display, eng.surface, eng.surface, eng.context);
-		    	eglQuerySurface(eng.display, eng.surface, EGL_WIDTH, &eng.width);
-		    	eglQuerySurface(eng.display, eng.surface, EGL_HEIGHT, &eng.height);
-		    	eng.resize = false;
-		    }
-        if (!eng.animating) continue;
-        eng.state.angle += .01f;
-        if (eng.state.angle > 1) {
-            eng.state.angle = 0;
-        }
-        engine_draw_frame(&eng);
-    		if (!eglSwapBuffers(eng.display, eng.surface)) {
-    			switch (eglGetError()) {
-		    		case EGL_BAD_SURFACE:
-		    		case EGL_BAD_NATIVE_WINDOW:
-		    		case EGL_BAD_CURRENT_SURFACE:
-		    			engine_egl_terminate(&eng, TERM_EGL_SURFACE);
-		    			break;
-		    		case EGL_BAD_CONTEXT:
-		    		case EGL_CONTEXT_LOST:
-		    			engine_egl_terminate(&eng, TERM_EGL_CONTEXT);
-		    			break;
-		    		case EGL_NOT_INITIALIZED:
-		    		case EGL_BAD_DISPLAY:
-		    			engine_egl_terminate(&eng, TERM_EGL_DISPLAY);
-		    			break;
-		    		default:
-	    				break;
-    			}
-    		}
+        engine_update_draw(app, eng);
     }
 }
