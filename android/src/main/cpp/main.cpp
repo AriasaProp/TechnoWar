@@ -35,7 +35,7 @@ struct engine {
     bool resume;
     bool animating;
     bool pause;
-    bool destroy;
+    bool destroyed;
     int32_t width;
     int32_t height;
     android_app* app;
@@ -277,6 +277,6 @@ void android_main(android_app* app) {
           if (app->destroyRequested)
             return;
         }
-        engine_update_draw(app, eng);
+        engine_update_draw(app, &eng);
     }
 }
