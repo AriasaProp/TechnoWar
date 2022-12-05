@@ -1,24 +1,19 @@
+#include <jni.h>
 #include <initializer_list>
 #include <memory>
 #include <cstdlib>
 #include <cstring>
-#include <jni.h>
 #include <cerrno>
 #include <cassert>
 
-
 #include <EGL/egl.h>
-#include <GLES3/gl3.h>
 
 #include <android/sensor.h>
-#include <android/log.h>
 #include <android_native_app_glue.h>
 
+#include "log.h"
 #include "translated_opengles.h"
 #include "mainListener.h"
-
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
 
 struct saved_state {
     float angle;
@@ -65,6 +60,9 @@ static void engine_egl_terminate(engine *eng, const unsigned int term) {
 	if (eng->display) {
 		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (eng->context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+    	if (tgf) {
+    		((tgf_gles*)tgf)->invalidate();
+    	}
     	eglDestroyContext(eng->display, eng->context);
     	eng->context = EGL_NO_CONTEXT;
     }
@@ -134,6 +132,9 @@ static void engine_draw(android_app *app, engine *eng) {
   		Main::create(eng->width, eng->height);
   		eng->resume = false;
   		eng->resize = false;
+  	}
+  	if (tgf) {
+			((tgf_gles*)tgf)->validate();
   	}
   	if (eng->resize) {
   		eng->resize = false;

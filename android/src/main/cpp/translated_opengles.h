@@ -4,6 +4,11 @@
 #include "translatedGraphicsFunction.h"
 
 class tgf_gles : public TranslatedGraphicsFunction {
+private:
+	bool valid;
+	int *temp = 0;
+	unsigned int *utemp = 0;
+	char *msg = 0;
 public:
 	tgf_gles();
 	~tgf_gles() override;
@@ -11,11 +16,10 @@ public:
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
-	void gen_shader(unsigned int&, const char*, const char*) override;
-	void bind_shader(const unsigned int) override;
-	void delete_shader(unsigned int&) override;
-	
-	void get_shader_uloc(const unsigned int&, const char *, int&) override;
+	shader_core *gen_shader(const char*, const char*) override;
+	void bind_shader(shader_core*) override;
+	void delete_shader(shader_core*) override;
+	int get_shader_uloc(shader_core*, const char *) override;
 	void u_matrix4fv(const int&,const int&, const bool&, const float *) override;
 
 	void gen_buffer(unsigned int&) override;
@@ -37,6 +41,10 @@ public:
 	void cull_face(const unsigned int&) override;
 	void depth_func(const unsigned int&) override;
 	void depth_rangef(float near,float far) override;
+	
+	// Android may lost resources
+	void validate();
+	void invalidate();
 };
 
 #endif // Included_TGLES

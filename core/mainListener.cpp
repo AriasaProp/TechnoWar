@@ -7,7 +7,8 @@
 
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
-unsigned int sp, VAO, VBO, IBO;
+unsigned int VAO, VBO, IBO;
+shader_core *sp;
 int sp_worldview_matrix, sp_trans_matrix;
 bool binded = false;
 float worldview_proj[16] = {
@@ -25,26 +26,6 @@ float trans_proj[16] = {
 
 void bind() {
 	if (binded) return;
-	const char *vShaderSrc = "uniform mat4 worldview_proj;"
-		"\nuniform mat4 trans_proj;"
-		"\nlayout(location = 0) in vec4 a_position;"
-		"\nlayout(location = 1) in vec4 a_color;"
-		"\nout vec4 v_color;"
-		"\nvoid main() {"
-		"\n    v_color = a_color;"
-		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-		"\n}\0", 
-	*fShaderSrc = "precision MED float;"
-		"\nin vec4 v_color;"
-		"\nout vec4 glFragColor;"
-		"\nvoid main() {"
-		"\n    glFragColor = v_color;"
-		"\n}\0";
-	tgf->gen_shader(sp, vShaderSrc, fShaderSrc);
-	tgf->bind_shader(sp);
-	tgf->get_shader_uloc(sp, "worldview_proj", sp_worldview_matrix);
-	tgf->get_shader_uloc(sp, "trans_proj", sp_trans_matrix);
-	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->gen_vertex_array(VAO);
 	tgf->gen_buffer(VBO);
 	tgf->gen_buffer(IBO);
@@ -149,6 +130,29 @@ void Main::create(unsigned int w, unsigned int h) {
 	worldview_proj[0] = 2.0f/width;
 	worldview_proj[5] = 2.0f/height;
 	worldview_proj[10] = 1.0f/10000.0f; //depth
+	
+	// create shader program {
+	const char *vShaderSrc = "uniform mat4 worldview_proj;"
+		"\nuniform mat4 trans_proj;"
+		"\nlayout(location = 0) in vec4 a_position;"
+		"\nlayout(location = 1) in vec4 a_color;"
+		"\nout vec4 v_color;"
+		"\nvoid main() {"
+		"\n    v_color = a_color;"
+		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
+		"\n}\0", 
+	*fShaderSrc = "precision MED float;"
+		"\nin vec4 v_color;"
+		"\nout vec4 glFragColor;"
+		"\nvoid main() {"
+		"\n    glFragColor = v_color;"
+		"\n}\0";
+	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
+	tgf->bind_shader(sp);
+	sp_worldview_matrix = tgf->get_shader_uloc(sp, "worldview_proj");
+	sp_trans_matrix = tgf->get_shader_uloc(sp, "trans_proj");
+	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
+	// }
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -165,13 +169,13 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->bind_shader(0);
 }
 void Main::render(float delta) {
+	if (!tgf) return;
 	srand(time(NULL));
 	matrix4::rotate(trans_proj,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
 	tgf->bind_shader(sp);
@@ -183,7 +187,6 @@ void Main::render(float delta) {
 }
 void Main::pause() {
 	if (!tgf) return;
-	tgf->delete_shader(sp);
 	tgf->delete_vertex_array(VAO);
 	tgf->delete_buffer(VBO);
 	tgf->delete_buffer(IBO);
@@ -191,4 +194,5 @@ void Main::pause() {
 }
 void Main::destroy() {
 	if (!tgf) return;
+	tgf->delete_shader(sp);
 }

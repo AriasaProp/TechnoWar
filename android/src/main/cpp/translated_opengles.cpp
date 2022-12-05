@@ -1,8 +1,12 @@
 #include "translated_opengles.h"
+
 #include <memory> // alloca, malloc, calloc, alloc, etc
 #include <cstring> //str.. function
+#include <vector>
 
+#include "log.h"
 // make opengles lastest possible version
+// minimum API version is 21
 #if __ANDROID_API__ >= 24
 #include <GLES3/gl32.h>
 #elif __ANDROID_API__ >= 21
@@ -14,19 +18,19 @@
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
-int *temp = 0;
-unsigned int *utemp = 0;
-char *msg = 0;
+std::vector<shader_core*> managedShader;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
+	valid = true;
 }
 tgf_gles::~tgf_gles() {
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
+	valid = false;
 }
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
@@ -46,8 +50,11 @@ const char *header_glsl =  "#version 300 es\n"
             "#else\n"
             "    #define HIGH mediump\n"
             "#endif\n";
-void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
-	p = glCreateProgram();
+shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
+	shader_core *o = new shader_core;
+	o->id = glCreateProgram();
+	o->v = v;
+	o->f = f;
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
@@ -71,30 +78,37 @@ void tgf_gles::gen_shader(unsigned int &p, const char *v, const char *f) {
 			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		glAttachShader(p, utemp[0]);
-		glAttachShader(p, utemp[1]);
-		glLinkProgram(p);
-		glGetProgramiv(p, GL_LINK_STATUS, temp);
+		glAttachShader(o->id, utemp[0]);
+		glAttachShader(o->id, utemp[1]);
+		glLinkProgram(o->id);
+		glGetProgramiv(o->id, GL_LINK_STATUS, temp);
 		if (temp[0] == 0){
-			glGetProgramInfoLog(p, MAX_GL_MSG, 0, msg);
+			glGetProgramInfoLog(o->id, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-	} catch (...) {
-		glDeleteProgram(p);
-		p = 0;
+		managedShader.push(o);
+	} catch (char *e) {
+		glDeleteProgram(o->id);
+		o->id = 0;
+		delete o;
+		o = nullptr;
 	}
 	glDeleteShader(utemp[0]);
 	glDeleteShader(utemp[1]);
+	return o;
 }
-void tgf_gles::bind_shader(const unsigned int p) {
-	glUseProgram(p);
+void tgf_gles::bind_shader(shader_core *p) {
+	glUseProgram(p?p->id:0);
 }
-void tgf_gles::delete_shader(unsigned int &p) {
-	glDeleteProgram(p);
-	p = 0;
+void tgf_gles::delete_shader(shader_core *p) {
+	glDeleteProgram(p->id);
+	std::vector<shader_core*> it = std::find(managedShader.begin(), managedShader.end(), p);
+  if(it != v.end())
+    managedShader.erase(it);
+  *p = 0;
 }
-void tgf_gles::get_shader_uloc(const unsigned int &p, const char *name, int &loc) {
-	loc = glGetUniformLocation(p, name);
+int tgf_gles::get_shader_uloc(shader_core *p, const char *name) {
+	return glGetUniformLocation(p->id, name);
 }
 void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose, const float *mtrix) {
 	glUniformMatrix4fv(loc, count, trnspose, mtrix);
@@ -152,3 +166,36 @@ void tgf_gles::depth_rangef(float near,float far) {
 	glDepthRangef(near, far);
 }
 
+void tgf_gles::validate() {
+	if (valid) return;
+	//validating gles resources
+	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
+		(*i)->id = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		char *vSrc = (char*)alloca(strlen(header_glsl)+strlen((*i)->v));
+		strcpy(vSrc, header_glsl);
+		strcat(vSrc, (*i)->v);
+		glShaderSource(utemp[0], 1, &vSrc, 0);
+		glCompileShader(utemp[0]);
+		char *fSrc = (char *)alloca(strlen(header_glsl)+strlen((*i)->f));
+		strcpy(fSrc, header_glsl);
+		strcat(fSrc, (*i)->f);
+		glShaderSource(utemp[1], 1, &fSrc, 0);
+		glCompileShader(utemp[1]);
+		glAttachShader((*i)->id, utemp[0]);
+		glAttachShader((*i)->id, utemp[1]);
+		glLinkProgram((*i)->id);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+	}
+	valid = true;
+}
+void tgf_gles::invalidate() {
+	if (!valid) return;
+	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
+		glDeleteProgram((*i)->id);
+		(*i)->id = 0;
+	}
+	valid = false;
+}

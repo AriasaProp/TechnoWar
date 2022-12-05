@@ -569,7 +569,14 @@
 // Extensions
 #define TGF_COVERAGE_BUFFER_BIT_NV 0x8000
 
-class TranslatedGraphicsFunction {
+struct shader_core {
+public:
+	int id;
+	char *v;
+	char *f;
+}
+
+struct TranslatedGraphicsFunction {
 public:
 	TranslatedGraphicsFunction() {}
 	virtual ~TranslatedGraphicsFunction() {}
@@ -577,11 +584,10 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
-	virtual void gen_shader(unsigned int&, const char *, const char *) = 0;
-	virtual void bind_shader(const unsigned int) = 0;
-	virtual void delete_shader(unsigned int&) = 0;
-	
-	virtual void get_shader_uloc(const unsigned int&, const char *, int&) = 0;
+	virtual shader_core *gen_shader(unsigned int&, const char *, const char *) = 0;
+	virtual void bind_shader(shader_core*) = 0;
+	virtual void delete_shader(shader_core*) = 0;
+	virtual int get_shader_uloc(shader_core*, const char *) = 0;
 	virtual void u_matrix4fv(const int&,const int&, const bool&, const float *) = 0;
 
 	virtual void gen_buffer(unsigned int&) = 0;
