@@ -86,7 +86,7 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 			glGetProgramInfoLog(o->id, MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		managedShader.push(o);
+		managedShader.push_back(o);
 	} catch (char *e) {
 		glDeleteProgram(o->id);
 		o->id = 0;
@@ -102,10 +102,11 @@ void tgf_gles::bind_shader(shader_core *p) {
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
-	std::vector<shader_core*> it = std::find(managedShader.begin(), managedShader.end(), p);
+	std::vector<shader_core*>::iterator it = std::find(managedShader.begin(), managedShader.end(), p);
   if(it != v.end())
     managedShader.erase(it);
-  *p = 0;
+  delete p;
+  *p = NULL;
 }
 int tgf_gles::get_shader_uloc(shader_core *p, const char *name) {
 	return glGetUniformLocation(p->id, name);

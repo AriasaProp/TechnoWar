@@ -572,8 +572,8 @@
 struct shader_core {
 public:
 	int id;
-	char *v;
-	char *f;
+	const char *v;
+	const char *f;
 }
 
 struct TranslatedGraphicsFunction {
