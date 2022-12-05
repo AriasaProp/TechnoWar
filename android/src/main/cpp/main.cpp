@@ -14,6 +14,7 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 
+#include "translated_opengles.h"
 #include "mainListener.h"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
@@ -128,6 +129,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
   	
   	if (!eng->created) {
+  		tgf = new tgf_gles;
   		eng->created = true;
   		Main::create(eng->width, eng->height);
   		eng->resume = false;
