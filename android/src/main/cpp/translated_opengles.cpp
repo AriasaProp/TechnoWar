@@ -103,10 +103,9 @@ void tgf_gles::bind_shader(shader_core *p) {
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
 	std::vector<shader_core*>::iterator it = std::find(managedShader.begin(), managedShader.end(), p);
-  if(it != v.end())
+  if(it != managedShader.end())
     managedShader.erase(it);
   delete p;
-  *p = NULL;
 }
 int tgf_gles::get_shader_uloc(shader_core *p, const char *name) {
 	return glGetUniformLocation(p->id, name);

@@ -574,7 +574,7 @@ public:
 	int id;
 	const char *v;
 	const char *f;
-}
+};
 
 struct TranslatedGraphicsFunction {
 public:
@@ -584,7 +584,7 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
-	virtual shader_core *gen_shader(unsigned int&, const char *, const char *) = 0;
+	virtual shader_core *gen_shader(const char *, const char *) = 0;
 	virtual void bind_shader(shader_core*) = 0;
 	virtual void delete_shader(shader_core*) = 0;
 	virtual int get_shader_uloc(shader_core*, const char *) = 0;
