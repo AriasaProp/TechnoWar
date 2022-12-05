@@ -267,16 +267,17 @@ void android_main(android_app* app) {
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
+    int ident;
+    int events;
     for (;;) {
-        int ident;
-        int events;
-        android_poll_source* source;
-        while ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
-          if (source)
-            source->process(app, source);
-          if (app->destroyRequested)
-            return;
-        }
-        engine_update_draw(app, &eng);
+    	android_poll_source* source;
+      if ((ident=ALooper_pollAll(eng.animating ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
+        if (source)
+          source->process(app, source);
+        if (app->destroyRequested)
+          return;
+      } else {
+      	engine_update_draw(app, &eng);
+      }
     }
 }
