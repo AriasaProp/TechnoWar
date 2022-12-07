@@ -3,7 +3,7 @@
 
 #include "translatedGraphicsFunction.h"
 
-class tgf_gles : public TranslatedGraphicsFunction {
+struct tgf_gles : public TranslatedGraphicsFunction {
 private:
 	bool valid = false;
 	int *temp = 0;
