@@ -1,20 +1,25 @@
 #ifndef Included_TGLES
-#define Included_TGLES
+#define Included_TGLES 1
 
 #include "translatedGraphicsFunction.h"
 
 class tgf_gles : public TranslatedGraphicsFunction {
 private:
-	bool valid;
+	bool valid = false;
 	int *temp = 0;
 	unsigned int *utemp = 0;
 	char *msg = 0;
+	2d_batch_core *btch;
 public:
 	tgf_gles();
 	~tgf_gles() override;
 	const char *renderer() override;
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
+
+	void 2d_batch_core *get2dbatch_core() override;
+	void update_2d_batch_projection(float *) override;
+	void draw_2d_batch_vertices(texture_core* void*, const unsigned int) override;
 
 	shader_core *gen_shader(const char*, const char*) override;
 	void bind_shader(shader_core*) override;
@@ -27,6 +32,11 @@ public:
 	void buffer_data(unsigned int, long, const void*, unsigned int) override;
 	void delete_buffer(unsigned int&) override;
 
+	texture_core *gen_texture(const int&, const int&, const unsigned char*) override;
+	void bind_texture(texture_core *) override;
+	void set_texture_param(const int&, const int&) override;
+	void delete_texture(texture_core *) override;
+	
 	void gen_vertex_array(unsigned int&) override;
 	void bind_vertex_array(const unsigned int) override;
 	void delete_vertex_array(unsigned int&) override;
@@ -36,11 +46,11 @@ public:
 	void draw_elements(int, unsigned int, int, const void *) override;
 	
 	//env
-	void enable_capability(const unsigned int&) override;
-	void disable_capability(const unsigned int&) override;
+	void switch_capability(const unsigned int&, const bool) override;
 	void cull_face(const unsigned int&) override;
 	void depth_func(const unsigned int&) override;
 	void depth_rangef(float near,float far) override;
+	void depth_mask(const bool) override;
 	
 	// Android may lost resources
 	void validate();

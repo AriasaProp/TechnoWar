@@ -115,7 +115,9 @@ static void engine_draw(android_app *app, engine *eng) {
 		    }
 		  }
   	}
+  	bool newCtx = false;
   	if (!eng->context) {
+  		newCtx = true;
   		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   		eng->context = eglCreateContext(eng->display, eng->eConfig, nullptr, ctxAttr);
   	}
@@ -132,8 +134,7 @@ static void engine_draw(android_app *app, engine *eng) {
   		Main::create(eng->width, eng->height);
   		eng->resume = false;
   		eng->resize = false;
-  	}
-  	if (tgf) {
+  	} else if (newCtx) {
 			((tgf_gles*)tgf)->validate();
   	}
   	if (eng->resize) {

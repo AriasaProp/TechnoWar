@@ -1,0 +1,94 @@
+#include "math/matrix4.h"
+#include "2dbatch.h"
+
+#include "translatedGraphicsFunction.h"
+
+#define X1 0
+#define Y1 1
+#define C1 2
+#define U1 3
+#define V1 4
+#define X2 5
+#define Y2 6
+#define C2 7
+#define U2 8
+#define V2 9
+#define X3 10
+#define Y3 11
+#define C3 12
+#define U3 13
+#define V3 14
+#define X4 15
+#define Y4 16
+#define C4 17
+#define U4 18
+#define V4 19
+
+2DBatch::2DBatch(float width, float height) {
+	vertices = new float[2D_MAX_TEXTURE_UI*20];
+	projection = new float[16];
+	//prepare
+	resize(width, height);
+}
+2DBatch::~2DBatch() {
+	delete[] vertices;
+	delete[] projetion;
+}
+void 2DBatch::resize(float width, float height) {
+	matrix4::toOrtho(projection, 0, 0, width, height, 0, 1);
+	tgf->update_2d_batch_projection(projection);
+}
+void 2DBatch::begin() {
+  tgf->depth_mask(false);
+}
+void 2DBatch::end() {
+  if (idx > 0)
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
+  lastTexture = nullptr;
+  tgf->depth_mask(true);
+  tgf->switch_capability(TGF_BLEND, true);
+}
+void 2DBatch::draw(texture_core *t, float x, float y) {
+    draw(t, x, y, t->width, t->height);
+}
+void 2DBatch::draw(texture_core *t, float x, float y, float width, float height) {
+    draw(t, x, y, width, height, 0, 1, 1, 0);
+}
+void 2DBatch::draw(texture_core *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
+    float[] vertex = vertices;
+    if (!lastTexture) {
+    	lastTexture = t;
+    } else if (t != lastTexture) {
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
+    	lastTexture = t;
+    }
+    else if (texUsed == 2D_MAX_TEXTURE_UI)
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
+    const float x2 = x + width;
+    const float y2 = y + height;
+    unsigned int idx = texUsed * 20;
+    vertices[idx + X1] = x;
+    vertices[idx + X2] = x;
+    vertices[idx + X3] = x2;
+    vertices[idx + X4] = x2;
+    vertices[idx + Y1] = y;
+    vertices[idx + Y2] = y2;
+    vertices[idx + Y3] = y2;
+    vertices[idx + Y4] = y;
+    vertices[idx + C1] = colorPacked;
+    vertices[idx + C2] = colorPacked;
+    vertices[idx + C3] = colorPacked;
+    vertices[idx + C4] = colorPacked;
+    vertices[idx + U1] = u;
+    vertices[idx + U2] = u;
+    vertices[idx + U3] = u2;
+    vertices[idx + U4] = u2;
+    vertices[idx + V1] = v;
+    vertices[idx + V2] = v;
+    vertices[idx + V3] = v2;
+    vertices[idx + V4] = v2;
+    texUsed++;
+}
+
+
+

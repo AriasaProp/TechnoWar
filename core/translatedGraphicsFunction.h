@@ -1,6 +1,6 @@
 #ifndef Included_TGF
 #define Included_TGF 1
-
+//{
 #define TGF_DEPTH_BUFFER_BIT 0x00000100
 #define TGF_STENCIL_BUFFER_BIT 0x00000400
 #define TGF_COLOR_BUFFER_BIT 0x00004000
@@ -568,9 +568,32 @@
 #define TGF_TIMEOUT_IGNORED ((unsigned long)-1)
 // Extensions
 #define TGF_COVERAGE_BUFFER_BIT_NV 0x8000
+// }
 
+//maximum 2dbatch render 1000
+#define 2D_MAX_TEXTURE_UI 1000;
+//maximum output log message in char
+#define MAX_GL_MSG 1024
+
+//for 2d User Interface
+struct 2d_batch_core {
+	int shaderId;
+	int vaoId;
+	int indId;
+	int vertId;
+	int u_projId;
+	int u_texId;
+	float *proj = new float[16];
+};
+
+//texture core
+struct texture_core {
+	int id;
+	int width, height;
+	const unsigned char *data;
+};
+//shader core
 struct shader_core {
-public:
 	int id;
 	const char *v;
 	const char *f;
@@ -584,12 +607,21 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
+	virtual 2d_batch_core *get2dbatch_core() = 0;
+	virtual void update_2d_batch_projection(float *) = 0;
+	virtual void draw_2d_batch_vertices(texture_core*, void*, const unsigned int) = 0;
+
 	virtual shader_core *gen_shader(const char *, const char *) = 0;
 	virtual void bind_shader(shader_core*) = 0;
 	virtual void delete_shader(shader_core*) = 0;
 	virtual int get_shader_uloc(shader_core*, const char *) = 0;
-	virtual void u_matrix4fv(const int&,const int&, const bool&, const float *) = 0;
-
+	virtual void u_matrix4fv(const int&,const int&, const bool&, const float*) = 0;
+	
+	virtual texture_core *gen_texture(const int&, const int&, const unsigned char*) = 0;
+	virtual void bind_texture(texture_core*) = 0;
+	virtual void set_texture_param(const int&, const int&) = 0;
+	virtual void delete_texture(texture_core*) = 0;
+	
 	virtual void gen_buffer(unsigned int&) = 0;
 	virtual void bind_buffer(unsigned int, const unsigned int) = 0;
 	virtual void buffer_data(unsigned int, long, const void*, unsigned int) = 0;
@@ -604,11 +636,13 @@ public:
 	virtual void draw_elements(int, unsigned int, int, const void *) = 0;
 	
 	//env
-	virtual void enable_capability(const unsigned int&) = 0;
-	virtual void disable_capability(const unsigned int&) = 0;
+	virtual void switch_capability(const unsigned int&, const bool) = 0;
 	virtual void cull_face(const unsigned int&) = 0;
 	virtual void depth_func(const unsigned int&) = 0;
 	virtual void depth_rangef(float near,float far) = 0;
+	virtual void depth_mask(const bool) = 0;
 };
+
+TranslatedGraphicsFunction *tgf = 0;
 
 #endif //Included_TGF

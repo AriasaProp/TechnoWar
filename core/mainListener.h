@@ -1,10 +1,8 @@
 #ifndef Included_MainListener
-#define Included_MainListener
+#define Included_MainListener 1
 
 
 #include "translatedGraphicsFunction.h"
-
-TranslatedGraphicsFunction *tgf = 0;
 
 namespace Main {
 	void create(unsigned int, unsigned int);

@@ -15,22 +15,26 @@
 #include <GLES3/gl3.h>
 #endif
 
-//maximum output log message in char
-#define MAX_GL_MSG 1024
-
 std::vector<shader_core*> managedShader;
+std::vector<texture_core*> managedTexture;
+std::vector<unsigned int> capabilities;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
-	valid = true;
+	btch = new 2d_batch_core;
+	validate();
 }
 tgf_gles::~tgf_gles() {
+	invalidate();
+	capabilities.clear();
+	managedShader.clear();
+	managedTexture.clear();
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
-	valid = false;
+	delete btch;
 }
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
@@ -41,6 +45,25 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 }
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
+}
+2d_batch_core *tgf_gles::get2dbatch_core() {
+	return btch;
+}
+void tgf_gles::update_2d_batch_projection(float *proj) {
+	glUseProgram(btch->shaderId);
+	glUniformMatrix4fv(btch->u_projId, 1, false, proj);
+	glUseProgram(0);
+}
+void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
+	glUseProgram(btch->shaderId);
+	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
+	glBindTexture(TGF_TEXTURE_2D, t->id);
+	glUniform1i(btch->u_texProj, 0);
+	glBindVertexArray(btch->vaoId);
+	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
+	glBindTexture(TGF_TEXTURE_2D, 0);
+	glUseProgram(0);
 }
 const char *header_glsl =  "#version 300 es\n"
     				"#define LOW lowp\n"
@@ -113,6 +136,28 @@ int tgf_gles::get_shader_uloc(shader_core *p, const char *name) {
 void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose, const float *mtrix) {
 	glUniformMatrix4fv(loc, count, trnspose, mtrix);
 }
+
+texture_core *tgf_gles::gen_texture(const int &width, const int &height, const unsigned char *data) {
+	texture_core *t = new texture_core;
+	glGenTextures(1, &t->id);
+	t->width = width;
+	t->height = height;
+	t->data = data;
+	glBindTexture(TGF_TEXTURE_2D, t->id);
+  glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
+	glBindTexture(TGF_TEXTURE_2D, 0);
+}
+void tgf_gles::bind_texture(texture_core *t) {
+	glBindTexture(TGF_TEXTURE_2D, t?t->id:0);
+}
+void tgf_gles::set_texture_param(const int &param, const int &val) {
+	glTexParameteri(TGF_TEXTURE_2D, param, val);
+}
+void tgf_gles::delete_texture(texture_core *t) {
+	glDeleteTexture(t->id);
+	delete t;
+}
 void tgf_gles::gen_buffer(unsigned int &b) {
 	glGenBuffers(1, utemp);
 	b = utemp[0];
@@ -150,25 +195,96 @@ void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, con
 	glDrawElements(drawType, indSize, inType, offset);
 }
 //env
-void tgf_gles::enable_capability(const unsigned int &cap) {
-	glEnable(cap);
-}
-void tgf_gles::disable_capability(const unsigned int &cap) {
-	glDisable(cap);
+void tgf_gles::switch_capability(const unsigned int &cap, const bool enable) {
+	std::vector<shader_core*>::iterator it = std::find(capabilities.begin(), capabilities.end(), cap);
+	if (enable) {
+		if (it == capabilities.end()) {
+			glEnable(cap);
+			capabilities.push_back(cap);
+		}
+	} else {
+		if (it != capabilities.end()) {
+			glDisable(cap);
+			capabilities.erase(it);
+		}
+	}
 }
 void tgf_gles::cull_face(const unsigned int &face) {
+	switch_capability(TGF_CULL_FACE, true);
 	glCullFace(face);
 }
 void tgf_gles::depth_func(const unsigned int &func) {
+	switch_capability(TGF_DEPTH_TEST, true);
 	glDepthFunc(func);
 }
 void tgf_gles::depth_rangef(float near,float far) {
+	switch_capability(TGF_DEPTH_TEST, true);
 	glDepthRangef(near, far);
+}
+void tgf_gles::depth_mask(const bool m) {
+	switch_capability(TGF_DEPTH_TEST, true);
+	glDepthMask(m)
 }
 
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
+	
+	//2d batch {
+	//shader
+	btch->shaderId = glCreateProgram();
+	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+	const char *v_batch = #include "2dbatch/2dbatch_shader.vert";
+	glShaderSource(utemp[0], 1, &v_batch, 0);
+	glCompileShader(utemp[0]);
+	const char *f_batch = #include "2dbatch/2dbatch_shader.vert";
+	glShaderSource(utemp[1], 1, &f_batch, 0);
+	glCompileShader(utemp[1]);
+	glAttachShader(btch->shaderId, utemp[0]);
+	glAttachShader(btch->shaderId, utemp[1]);
+	glLinkProgram(btch->shaderId);
+	glDeleteShader(utemp[0]);
+	glDeleteShader(utemp[1]);
+	btch->u_projId = glGetUniformLocation(btch->shaderId, "u_projTrans");
+	btch->u_texId = glGetUniformLocation(btch->shaderId, "u_texture");
+	//vao
+	glGenVertexArrays(1, &btch->vaoId);
+	glGenBuffers(2, utemp);
+	btch->vertId = utemp[0];
+	btch->indId = utemp[1];
+	glBindVertexArray(btch->vaoId);
+	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
+	//vertices data size = [number of texture] * 4 * (2 * sizeof(float) + 4 * sizeof(unsigned char))
+	glBufferData(TGF_ARRAY_BUFFER, 2D_MAX_TEXTURE_UI * 8 * (sizeof(float) + 2 * sizeof(unsigned char)), nullptr, TGF_DYNAMIC_DRAW);
+	glBindBuffer(TGF_ARRAY_BUFFER, 0);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
+	unsigned short *indices = (unsigned short *) alloca(2D_MAX_TEXTURE_UI*6*sizeof(unsigned short));
+	for (unsigned short i = 0, j = 0, k = 0; i < 2D_MAX_TEXTURE_UI; i++) {
+		k = i * 6;
+    *(indices+k) = *(indices+k+5) = j++;
+    *(indices+k+1) = j++;
+    *(indices+k+2) = *(indices+k+3) = j++;
+    *(indices+k+4) = j++;
+	}
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribArray(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribArray(1, 4, TGF_UNSIGNED_BYTE, true, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribArray(2, 2, TGF_FLOAT, true, 6 * sizeof(float), (void*)(4*sizeof(float)));
+	glBindVertexArray(0);
+	//}
+	
+	//capabilities
+	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
+		glEnable((*i));
+		(*i)->id = 0;
+	}
+	
+	//shader
 	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
 		(*i)->id = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
@@ -189,13 +305,49 @@ void tgf_gles::validate() {
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
 	}
+	
+	//texture
+	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
+		glGenTextures(1, &t->id);
+		glBindTexture(TGF_TEXTURE_2D, t->id);
+	  glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
+		glBindTexture(TGF_TEXTURE_2D, 0);
+	}
 	valid = true;
 }
 void tgf_gles::invalidate() {
 	if (!valid) return;
+	//invalidating gles resources
+	
+	//2d_batch
+	// {
+	glDeleteProgram(btch->shaderId);
+	btch->shaderId = 0;
+	glDeleteVertexArrays(1, &btch->vaoId);
+	btch->vaoId = 0;
+	utemp[0] = btch->vertId;
+	utemp[1] = btch->indId;
+	glDeleteBuffers(2, utemp);
+	btch->vertId = 0;
+	btch->indId = 0;
+	// }
+	
+	//capabilities
+	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
+		glDisable((*i));
+	}
+	
+	//shader
 	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
 		glDeleteProgram((*i)->id);
 		(*i)->id = 0;
 	}
+	//texture 2d
+	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
+		glDeleteTexture((*i)->id);
+		(*i)->id = 0;
+	}
+	
 	valid = false;
 }
