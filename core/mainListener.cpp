@@ -6,7 +6,9 @@
 #include <time.h>       /* time */
 
 TranslatedGraphicsFunction *tgf;
-
+UI_Batch *batcher;
+texture_core tc_1;
+float *tc_data;
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int VAO, VBO, IBO;
@@ -156,6 +158,9 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	sp_trans_matrix = tgf->get_shader_uloc(sp, "trans_proj");
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
+	batcher = new UI_Batch;
+	tc_data = (float*){0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
+	texture_core *tc = tgf->gen_texture(2, 2, tc_data);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -187,6 +192,9 @@ void Main::render(float delta) {
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
+	batcher.begin();
+	batcher.draw(tc_1, 0, height*4/5, width, height/5);
+	batcher.end();
 }
 void Main::pause() {
 	if (!tgf) return;
@@ -198,4 +206,7 @@ void Main::pause() {
 void Main::destroy() {
 	if (!tgf) return;
 	tgf->delete_shader(sp);
+	tgf->delete_texture(tc_1);
+	delete tc_data;
+	delete batcher;
 }
