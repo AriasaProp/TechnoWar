@@ -19,7 +19,7 @@
 //for 2d User Interface
 struct batch_core {
 	int shaderId;
-	int vaoId;
+	unsigned int vaoId;
 	int indId;
 	int vertId;
 	int u_projId;
@@ -156,6 +156,7 @@ texture_core *tgf_gles::gen_texture(const int &width, const int &height, const u
   glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(TGF_TEXTURE_2D, 0);
+	managedTexture.push_back(t);
 }
 void tgf_gles::bind_texture(texture_core *t) {
 	glBindTexture(TGF_TEXTURE_2D, t?t->id:0);
@@ -165,6 +166,10 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 }
 void tgf_gles::delete_texture(texture_core *t) {
 	glDeleteTexture(t->id);
+	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), cap);
+	if (it != capabilities.end()) {
+		managedTexture.erase(it);
+	}
 	delete t;
 }
 void tgf_gles::gen_buffer(unsigned int &b) {
@@ -232,7 +237,7 @@ void tgf_gles::depth_rangef(float near,float far) {
 }
 void tgf_gles::depth_mask(const bool m) {
 	switch_capability(TGF_DEPTH_TEST, true);
-	glDepthMask(m)
+	glDepthMask(m);
 }
 
 void tgf_gles::validate() {
@@ -279,11 +284,11 @@ void tgf_gles::validate() {
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribArray(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribArray(1, 4, TGF_UNSIGNED_BYTE, true, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, 6 * sizeof(float), (void*)(3*sizeof(float)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribArray(2, 2, TGF_FLOAT, true, 6 * sizeof(float), (void*)(4*sizeof(float)));
+	glVertexAttribPointer(2, 2, TGF_FLOAT, true, 6 * sizeof(float), (void*)(4*sizeof(float)));
 	glBindVertexArray(0);
 	//}
 	
