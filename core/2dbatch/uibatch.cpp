@@ -36,7 +36,7 @@ UI_Batch::~UI_Batch() {
 	delete[] projection;
 }
 void UI_Batch::resize(float width, float height) {
-	matrix4::toOrtho(projection, 0, 0, width, height, 0, 1);
+	matrix4::toOrtho(projection, 0, width, 0, height, 0, 1);
 	tgf->update_2d_batch_projection(projection);
 }
 void UI_Batch::begin() {
