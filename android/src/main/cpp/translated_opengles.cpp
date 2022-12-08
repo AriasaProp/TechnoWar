@@ -17,7 +17,7 @@
 
 
 //for 2d User Interface
-struct 2d_batch_core {
+struct batch_core {
 	int shaderId;
 	int vaoId;
 	int indId;
@@ -35,7 +35,7 @@ tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
-	btch = new 2d_batch_core;
+	btch = new batch_core;
 	validate();
 }
 tgf_gles::~tgf_gles() {
