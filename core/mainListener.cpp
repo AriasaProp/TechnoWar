@@ -160,7 +160,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	batcher = new UI_Batch(width,height);
-	texture_core *tc = tgf->gen_texture(2, 2, (unsigned char*)tc_data);
+	tc_1 = tgf->gen_texture(2, 2, (unsigned char*)tc_data);
 }
 void Main::resume() {
 	if (!tgf) return;
