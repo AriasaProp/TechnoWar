@@ -571,7 +571,7 @@
 // }
 
 //maximum 2dbatch render 1000
-#define 2D_MAX_TEXTURE_UI 1000
+#define MAX_TEXTURE_UI 1000
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
