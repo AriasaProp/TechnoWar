@@ -321,11 +321,11 @@ void main(){
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 2, TGF_FLOAT, false, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, 6 * sizeof(float), (void*)(3*sizeof(float)));
+	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, 5 * sizeof(float), (void*)(2*sizeof(float)));
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, TGF_FLOAT, true, 6 * sizeof(float), (void*)(4*sizeof(float)));
+	glVertexAttribPointer(2, 2, TGF_FLOAT, true, 5 * sizeof(float), (void*)(3*sizeof(float)));
 	glBindVertexArray(0);
 	//}
 	
