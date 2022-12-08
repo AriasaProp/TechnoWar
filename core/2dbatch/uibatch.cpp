@@ -23,6 +23,9 @@
 #define U4 18
 #define V4 19
 
+extern TranslatedGraphicsFunction *tgf;
+
+
 UI_Batch::UI_Batch(float width, float height) {
 	vertices = new float[MAX_TEXTURE_UI*20];
 	projection = new float[16];

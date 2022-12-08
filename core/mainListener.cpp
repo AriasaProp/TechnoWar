@@ -1,9 +1,12 @@
 #include "mainListener.h"
 #include "math/matrix4.h"
+#include "translatedGraphicsFunction.h"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
+
+extern TranslatedGraphicsFunction *tgf;
 
 unsigned int width, height;
 float r = 0, g = 0, b = 0;

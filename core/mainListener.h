@@ -1,8 +1,6 @@
 #ifndef Included_MainListener
 #define Included_MainListener 1
 
-#include "translatedGraphicsFunction.h"
-
 namespace Main {
 	void create(unsigned int, unsigned int);
 	void resume();

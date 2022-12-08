@@ -12,7 +12,6 @@ private:
 	float *projection;
 	float colorPacked = (float)0xffffffff;
 	texture_core *lastTexture = nullptr;
-  
 public:
 	UI_Batch(float,float);
 	~UI_Batch();
