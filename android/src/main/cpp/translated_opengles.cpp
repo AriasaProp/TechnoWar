@@ -68,10 +68,13 @@ void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const uns
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
+	glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
 	glBindTexture(TGF_TEXTURE_2D, 0);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -305,7 +308,7 @@ void main(){
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	//vertices data size = [number of texture] * 4 * (2 * sizeof(float) + 4 * sizeof(unsigned char))
 	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 8 * (sizeof(float) + 2 * sizeof(unsigned char)), nullptr, TGF_DYNAMIC_DRAW);
-	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
+	glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI*6*sizeof(unsigned short));
 	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++) {
@@ -316,7 +319,7 @@ void main(){
     *(indices+k+4) = j++;
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
-	//glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, TGF_FLOAT, false, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
