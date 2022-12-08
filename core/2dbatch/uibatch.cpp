@@ -43,9 +43,10 @@ void UI_Batch::begin() {
   tgf->depth_mask(false);
 }
 void UI_Batch::end() {
-  if (texUsed > 0)
-    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
-  texUsed = 0;
+  if (texUsed) {
+  	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
+		texUsed = 0;
+  }
   lastTexture = nullptr;
   tgf->depth_mask(true);
   tgf->switch_capability(TGF_BLEND, true);

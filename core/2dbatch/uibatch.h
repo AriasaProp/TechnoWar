@@ -7,7 +7,7 @@ struct UI_Batch {
 private:
 	//int blendSrcFunc = TGF_SRC_ALPHA;
 	//int blendDstFunc = TGF_ONE_MINUS_SRC_ALPHA;
-	int texUsed = 0;
+	unsigned int texUsed = 0;
 	float *vertices;
 	float *projection;
 	float colorPacked = (float)0xffffffff;

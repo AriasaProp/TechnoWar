@@ -65,13 +65,13 @@ void tgf_gles::update_2d_batch_projection(float *proj) {
 }
 void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
 	glUseProgram(btch->shaderId);
+	glBindVertexArray(btch->vaoId);
 	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
-	glBindVertexArray(btch->vaoId);
 	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
-	glBindVertexArray(0);
 	glBindTexture(TGF_TEXTURE_2D, 0);
+	glBindVertexArray(0);
 	glUseProgram(0);
 }
 const char *header_glsl =  "#version 300 es\n"
