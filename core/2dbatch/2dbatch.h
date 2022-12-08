@@ -8,7 +8,7 @@ private:
 	int texUsed = 0;
 	float *vertices;
 	float colorPacked = 0xffffffff;
-	texture_core *lastTexture = nullptr;
+	void *lastTexture = nullptr;
   
 public:
 	2DBatch(float,float);
@@ -17,9 +17,9 @@ public:
 	void begin();
 	void end();
 
-  void draw(texture_core*, float, float);
-  void draw(texture_core*, float, float, float, float);
-  void draw(texture_core*, float, float, float, float, float, float, float, float);
+  void draw(void*, float, float);
+  void draw(void*, float, float, float, float);
+  void draw(void*, float, float, float, float, float, float, float, float);
 }
 
 #endif // Included_2DBatch
