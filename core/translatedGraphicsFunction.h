@@ -577,7 +577,7 @@
 
 //texture core
 struct texture_core {
-	int id;
+	unsigned int id;
 	int width, height;
 	const unsigned char *data;
 };
