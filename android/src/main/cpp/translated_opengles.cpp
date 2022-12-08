@@ -250,10 +250,10 @@ void tgf_gles::validate() {
 	btch->shaderId = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *v_batch = #include "2dbatch/2dbatch_shader.vert";
+	const char *v_batch = #include "res_shader/2dbatch_shader.vert";
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
-	const char *f_batch = #include "2dbatch/2dbatch_shader.vert";
+	const char *f_batch = #include "res_shader/2dbatch_shader.frag";
 	glShaderSource(utemp[1], 1, &f_batch, 0);
 	glCompileShader(utemp[1]);
 	glAttachShader(btch->shaderId, utemp[0]);
