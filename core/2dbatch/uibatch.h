@@ -10,7 +10,7 @@ private:
 	int texUsed = 0;
 	float *vertices;
 	float *projection;
-	float colorPacked = 0xffffffff;
+	float colorPacked = (float)0xffffffff;
 	texture_core *lastTexture = nullptr;
   
 public:
