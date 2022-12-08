@@ -15,7 +15,7 @@
 #include "translated_opengles.h"
 #include "mainListener.h"
 
-TranslatedGraphicsFunction *tgf;
+static TranslatedGraphicsFunction *tgf;
 
 struct saved_state {
     float angle;
@@ -133,7 +133,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	if (!eng->created) {
   		tgf = new tgf_gles;
   		eng->created = true;
-  		Main::create(eng->width, eng->height);
+  		Main::create(tgf, eng->width, eng->height);
   		eng->resume = false;
   		eng->resize = false;
   	} else if (newCtx) {

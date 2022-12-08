@@ -1,12 +1,11 @@
 #include "mainListener.h"
 #include "math/matrix4.h"
-#include "translatedGraphicsFunction.h"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-extern TranslatedGraphicsFunction *tgf;
+TranslatedGraphicsFunction *tgf;
 
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
@@ -124,7 +123,8 @@ void bind() {
 	tgf->depth_func(TGF_LESS);
 	binded = true;
 }
-void Main::create(unsigned int w, unsigned int h) {
+void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
+	tgf = _tgf;
 	width = w, height = h;
 	if (!tgf) return;
 	r = g = b = 1;
