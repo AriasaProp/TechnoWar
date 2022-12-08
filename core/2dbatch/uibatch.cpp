@@ -31,7 +31,7 @@ UI_Batch::UI_Batch(float width, float height) {
 }
 UI_Batch::~UI_Batch() {
 	delete[] vertices;
-	delete[] projetion;
+	delete[] projection;
 }
 void UI_Batch::resize(float width, float height) {
 	matrix4::toOrtho(projection, 0, 0, width, height, 0, 1);

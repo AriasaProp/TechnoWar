@@ -5,8 +5,8 @@
 
 struct UI_Batch {
 private:
-	int blendSrcFunc = TGF_SRC_ALPHA;
-	int blendDstFunc = TGF_ONE_MINUS_SRC_ALPHA;
+	//int blendSrcFunc = TGF_SRC_ALPHA;
+	//int blendDstFunc = TGF_ONE_MINUS_SRC_ALPHA;
 	int texUsed = 0;
 	float *vertices;
 	float *projection;
@@ -23,6 +23,6 @@ public:
   void draw(texture_core*, float, float);
   void draw(texture_core*, float, float, float, float);
   void draw(texture_core*, float, float, float, float, float, float, float, float);
-}
+};
 
 #endif // Included_UI_Batch
