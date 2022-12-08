@@ -1,7 +1,7 @@
 #include "2dbatch.h"
 
-#include "../math/matrix4.h"
-#include "../translatedGraphicsFunction.h"
+#include "math/matrix4.h"
+#include "translatedGraphicsFunction.h"
 
 #define X1 0
 #define Y1 1
@@ -55,11 +55,10 @@ void 2DBatch::draw(void *t, float x, float y, float width, float height) {
     draw(t, x, y, width, height, 0, 1, 1, 0);
 }
 void 2DBatch::draw(void *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
-    float[] vertex = vertices;
     if (!lastTexture) {
     	lastTexture = t;
     } else if (t != lastTexture) {
-    	tgf->draw_2d_batch_vertices((texture_core*)lastTexture, vertices, idx);
+    	tgf->draw_2d_batch_vertices((texture_core*)lastTexture, (void*)vertices, idx);
     	lastTexture = t;
     }
     else if (texUsed == 2D_MAX_TEXTURE_UI)

@@ -15,6 +15,18 @@
 #include <GLES3/gl3.h>
 #endif
 
+
+//for 2d User Interface
+struct 2d_batch_core {
+	int shaderId;
+	int vaoId;
+	int indId;
+	int vertId;
+	int u_projId;
+	int u_texId;
+	float *proj = new float[16];
+} btch;
+
 std::vector<shader_core*> managedShader;
 std::vector<texture_core*> managedTexture;
 std::vector<unsigned int> capabilities;
@@ -45,9 +57,6 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 }
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
-}
-2d_batch_core *tgf_gles::get2dbatch_core() {
-	return btch;
 }
 void tgf_gles::update_2d_batch_projection(float *proj) {
 	glUseProgram(btch->shaderId);

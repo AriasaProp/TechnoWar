@@ -571,20 +571,9 @@
 // }
 
 //maximum 2dbatch render 1000
-#define 2D_MAX_TEXTURE_UI 1000;
+#define 2D_MAX_TEXTURE_UI 1000
 //maximum output log message in char
 #define MAX_GL_MSG 1024
-
-//for 2d User Interface
-struct 2d_batch_core {
-	int shaderId;
-	int vaoId;
-	int indId;
-	int vertId;
-	int u_projId;
-	int u_texId;
-	float *proj = new float[16];
-};
 
 //texture core
 struct texture_core {
@@ -607,7 +596,6 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
-	virtual 2d_batch_core *get2dbatch_core() = 0;
 	virtual void update_2d_batch_projection(float *) = 0;
 	virtual void draw_2d_batch_vertices(texture_core*, void*, const unsigned int) = 0;
 

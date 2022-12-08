@@ -9,7 +9,6 @@ private:
 	int *temp = 0;
 	unsigned int *utemp = 0;
 	char *msg = 0;
-	2d_batch_core *btch;
 public:
 	tgf_gles();
 	~tgf_gles() override;
@@ -17,7 +16,6 @@ public:
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
-	void 2d_batch_core *get2dbatch_core() override;
 	void update_2d_batch_projection(float *) override;
 	void draw_2d_batch_vertices(texture_core* void*, const unsigned int) override;
 
