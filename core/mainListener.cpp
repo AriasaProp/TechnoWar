@@ -7,7 +7,7 @@
 
 TranslatedGraphicsFunction *tgf;
 UI_Batch *batcher;
-texture_core tc_1;
+texture_core *tc_1;
 float *tc_data;
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
@@ -158,9 +158,9 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	sp_trans_matrix = tgf->get_shader_uloc(sp, "trans_proj");
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
-	batcher = new UI_Batch;
-	tc_data = (float*){0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
-	texture_core *tc = tgf->gen_texture(2, 2, tc_data);
+	batcher = new UI_Batch(width,height);
+	tc_data = {0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
+	texture_core *tc = tgf->gen_texture(2, 2, (unsigned char*)tc_data);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -175,6 +175,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
+	batcher.resize(width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
