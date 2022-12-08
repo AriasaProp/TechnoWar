@@ -168,7 +168,7 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 void tgf_gles::delete_texture(texture_core *t) {
 	glDeleteTextures(1, &t->id);
 	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), t);
-	if (it != capabilities.end()) {
+	if (it != managedTexture.end()) {
 		managedTexture.erase(it);
 	}
 	delete t;
