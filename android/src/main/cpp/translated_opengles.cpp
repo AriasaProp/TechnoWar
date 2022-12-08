@@ -157,6 +157,7 @@ texture_core *tgf_gles::gen_texture(const int &width, const int &height, const u
 	glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(TGF_TEXTURE_2D, 0);
 	managedTexture.push_back(t);
+	return t;
 }
 void tgf_gles::bind_texture(texture_core *t) {
 	glBindTexture(TGF_TEXTURE_2D, t?t->id:0);
@@ -166,7 +167,7 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 }
 void tgf_gles::delete_texture(texture_core *t) {
 	glDeleteTextures(1, &t->id);
-	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), cap);
+	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), t);
 	if (it != capabilities.end()) {
 		managedTexture.erase(it);
 	}
@@ -210,7 +211,7 @@ void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, con
 }
 //env
 void tgf_gles::switch_capability(const unsigned int &cap, const bool enable) {
-	std::vector<shader_core*>::iterator it = std::find(capabilities.begin(), capabilities.end(), cap);
+	std::vector<unsigned int>::iterator it = std::find(capabilities.begin(), capabilities.end(), cap);
 	if (enable) {
 		if (it == capabilities.end()) {
 			glEnable(cap);
@@ -295,7 +296,6 @@ void tgf_gles::validate() {
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glEnable((*i));
-		(*i)->id = 0;
 	}
 	
 	//shader
@@ -322,12 +322,12 @@ void tgf_gles::validate() {
 	
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
-		glGenTextures(1, &t->id);
-		glBindTexture(TGF_TEXTURE_2D, t->id);
+		glGenTextures(1, &(*i)->id);
+		glBindTexture(TGF_TEXTURE_2D, (*i)->id);
 	  glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
-		glBindTexture(TGF_TEXTURE_2D, 0);
+		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, (*i)->width, (*i)->height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)(*i)->data);
 	}
+	glBindTexture(TGF_TEXTURE_2D, 0);
 	valid = true;
 }
 void tgf_gles::invalidate() {
