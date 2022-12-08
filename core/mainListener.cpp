@@ -194,7 +194,7 @@ void Main::render(float delta) {
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
 	batcher->begin();
-	batcher->draw(tc_1, 0, height*4/5, width, height/5);
+	batcher->draw(tc_1, 0, 0, width, height);
 	batcher->end();
 }
 void Main::pause() {

@@ -308,7 +308,7 @@ void main(){
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	//vertices data size = [number of texture] * 4 * (2 * sizeof(float) + 4 * sizeof(unsigned char))
 	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 8 * (sizeof(float) + 2 * sizeof(unsigned char)), nullptr, TGF_DYNAMIC_DRAW);
-	glBindBuffer(TGF_ARRAY_BUFFER, 0);
+	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI*6*sizeof(unsigned short));
 	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++) {
@@ -319,7 +319,7 @@ void main(){
     *(indices+k+4) = j++;
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
+	//glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, TGF_FLOAT, false, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
