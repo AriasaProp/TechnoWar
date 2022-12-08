@@ -1,5 +1,6 @@
 #include "mainListener.h"
 #include "math/matrix4.h"
+#include "2dbatch/uibatch.h"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>     /* srand, rand */
@@ -8,7 +9,7 @@
 TranslatedGraphicsFunction *tgf;
 UI_Batch *batcher;
 texture_core *tc_1;
-float *tc_data;
+float tc_data[] = {0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int VAO, VBO, IBO;
@@ -159,7 +160,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	batcher = new UI_Batch(width,height);
-	tc_data = {0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
 	texture_core *tc = tgf->gen_texture(2, 2, (unsigned char*)tc_data);
 }
 void Main::resume() {
@@ -208,6 +208,6 @@ void Main::destroy() {
 	if (!tgf) return;
 	tgf->delete_shader(sp);
 	tgf->delete_texture(tc_1);
-	delete tc_data;
+	//delete tc_data;
 	delete batcher;
 }
