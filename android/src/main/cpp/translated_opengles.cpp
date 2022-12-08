@@ -250,10 +250,42 @@ void tgf_gles::validate() {
 	btch->shaderId = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *v_batch = #include "res_shader/2dbatch_shader.vert";
+	const char *v_batch = R"(#version 300 es
+#define LOW lowp
+#define MED mediump
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+	#define HIGH highp
+#else
+	#define HIGH mediump
+#endif
+layout(location = 0) in vec4 a_position;
+layout(location = 1) in vec4 a_color;
+layout(location = 2) in vec2 a_texCoord;
+uniform mat4 u_projTrans;
+out vec4 v_color;
+out vec2 v_texCoord;
+void main() {
+  v_color = a_color;
+  v_texCoord = a_texCoord;
+  gl_Position =  u_projTrans * a_position;
+})";
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
-	const char *f_batch = #include "res_shader/2dbatch_shader.frag";
+	const char *f_batch = R"(#version 300 es
+#define LOW lowp
+#define MED mediump
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+	#define HIGH highp
+#else
+	#define HIGH mediump
+#endif
+layout(location = 0) out vec4 gl_FragColor;
+uniform sampler2D u_texture;
+in vec4 v_color;
+in vec2 v_texCoord;
+void main(){
+  gl_FragColor = v_color * texture(u_texture, v_texCoord);
+})";
 	glShaderSource(utemp[1], 1, &f_batch, 0);
 	glCompileShader(utemp[1]);
 	glAttachShader(btch->shaderId, utemp[0]);
