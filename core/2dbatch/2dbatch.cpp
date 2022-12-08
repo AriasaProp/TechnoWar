@@ -58,11 +58,11 @@ void 2DBatch::draw(void *t, float x, float y, float width, float height, float u
     if (!lastTexture) {
     	lastTexture = t;
     } else if (t != lastTexture) {
-    	tgf->draw_2d_batch_vertices((texture_core*)lastTexture, (void*)vertices, idx);
+    	tgf->draw_2d_batch_vertices((texture_core*)lastTexture, (void*)vertices, texUsed);
     	lastTexture = t;
     }
     else if (texUsed == 2D_MAX_TEXTURE_UI)
-    	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
     const float x2 = x + width;
     const float y2 = y + height;
     unsigned int idx = texUsed * 20;
