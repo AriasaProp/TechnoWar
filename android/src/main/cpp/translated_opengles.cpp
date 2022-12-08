@@ -25,7 +25,7 @@ struct 2d_batch_core {
 	int u_projId;
 	int u_texId;
 	float *proj = new float[16];
-} btch;
+} *btch;
 
 std::vector<shader_core*> managedShader;
 std::vector<texture_core*> managedTexture;
