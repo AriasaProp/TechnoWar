@@ -9,7 +9,7 @@
 TranslatedGraphicsFunction *tgf;
 UI_Batch *batcher;
 texture_core *tc_1;
-float tc_data[] = {0xff0000ff, 0x00ff00ff, 0x0000ffff, 0xffffffff};
+float tc_data[] = {(float)0xff0000ff, (float)0x00ff00ff, (float)0x0000ffff, (float)0xffffffff};
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int VAO, VBO, IBO;
@@ -175,7 +175,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
-	batcher.resize(width, height);
+	batcher->resize(width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
@@ -193,9 +193,9 @@ void Main::render(float delta) {
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
-	batcher.begin();
-	batcher.draw(tc_1, 0, height*4/5, width, height/5);
-	batcher.end();
+	batcher->begin();
+	batcher->draw(tc_1, 0, height*4/5, width, height/5);
+	batcher->end();
 }
 void Main::pause() {
 	if (!tgf) return;
