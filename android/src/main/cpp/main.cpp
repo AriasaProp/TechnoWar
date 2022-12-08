@@ -15,8 +15,6 @@
 #include "translated_opengles.h"
 #include "mainListener.h"
 
-TranslatedGraphicsFunction *tgf;
-
 struct saved_state {
     float angle;
     int32_t x;

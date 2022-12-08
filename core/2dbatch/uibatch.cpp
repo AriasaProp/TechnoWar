@@ -58,7 +58,7 @@ void UI_Batch::draw(texture_core *t, float x, float y, float width, float height
     if (!lastTexture) {
     	lastTexture = t;
     } else if (t != lastTexture) {
-    	tgf->draw_2d_batch_vertices(lastTexture, (void*)vertices, texUsed);
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
     	lastTexture = t;
     }
     else if (texUsed == MAX_TEXTURE_UI)

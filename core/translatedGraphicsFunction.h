@@ -631,6 +631,6 @@ public:
 	virtual void depth_mask(const bool) = 0;
 };
 
-extern TranslatedGraphicsFunction *tgf;
+TranslatedGraphicsFunction *tgf;
 
 #endif //Included_TGF
