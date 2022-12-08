@@ -165,7 +165,7 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(TGF_TEXTURE_2D, param, val);
 }
 void tgf_gles::delete_texture(texture_core *t) {
-	glDeleteTexture(t->id);
+	glDeleteTextures(1, &t->id);
 	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), cap);
 	if (it != capabilities.end()) {
 		managedTexture.erase(it);
@@ -359,7 +359,7 @@ void tgf_gles::invalidate() {
 	}
 	//texture 2d
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
-		glDeleteTexture((*i)->id);
+		glDeleteTextures(1, &(*i)->id);
 		(*i)->id = 0;
 	}
 	
