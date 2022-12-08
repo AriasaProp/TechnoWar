@@ -1,7 +1,6 @@
 #ifndef Included_MainListener
 #define Included_MainListener 1
 
-
 #include "translatedGraphicsFunction.h"
 
 namespace Main {
