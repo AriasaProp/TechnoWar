@@ -1,7 +1,7 @@
-#include "2dbatch.h"
+#include "uibatch.h"
 
-#include "math/matrix4.h"
-#include "translatedGraphicsFunction.h"
+#include "../math/matrix4.h"
+#include "../translatedGraphicsFunction.h"
 
 #define X1 0
 #define Y1 1
@@ -24,37 +24,37 @@
 #define U4 18
 #define V4 19
 
-2DBatch::2DBatch(float width, float height) {
-	vertices = new float[2D_MAX_TEXTURE_UI*20];
+UI_Batch::UI_Batch(float width, float height) {
+	vertices = new float[MAX_TEXTURE_UI*20];
 	projection = new float[16];
 	//prepare
 	resize(width, height);
 }
-2DBatch::~2DBatch() {
+UI_Batch::~UI_Batch() {
 	delete[] vertices;
 	delete[] projetion;
 }
-void 2DBatch::resize(float width, float height) {
+void UI_Batch::resize(float width, float height) {
 	matrix4::toOrtho(projection, 0, 0, width, height, 0, 1);
 	tgf->update_2d_batch_projection(projection);
 }
-void 2DBatch::begin() {
+void UI_Batch::begin() {
   tgf->depth_mask(false);
 }
-void 2DBatch::end() {
+void UI_Batch::end() {
   if (idx > 0)
     	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
   lastTexture = nullptr;
   tgf->depth_mask(true);
   tgf->switch_capability(TGF_BLEND, true);
 }
-void 2DBatch::draw(void *t, float x, float y) {
+void UI_Batch::draw(void *t, float x, float y) {
     draw(t, x, y, t->width, t->height);
 }
-void 2DBatch::draw(void *t, float x, float y, float width, float height) {
+void UI_Batch::draw(void *t, float x, float y, float width, float height) {
     draw(t, x, y, width, height, 0, 1, 1, 0);
 }
-void 2DBatch::draw(void *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
+void UI_Batch::draw(void *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
     if (!lastTexture) {
     	lastTexture = t;
     } else if (t != lastTexture) {

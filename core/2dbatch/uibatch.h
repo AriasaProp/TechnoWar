@@ -1,7 +1,7 @@
-#ifndef Included_2DBatch
-#define Included_2DBatch 1
+#ifndef Included_UI_Batch
+#define Included_UI_Batch 1
 
-struct 2DBatch {
+struct UI_Batch {
 private:
 	int blendSrcFunc = TGF_SRC_ALPHA;
 	int blendDstFunc = TGF_ONE_MINUS_SRC_ALPHA;
@@ -11,8 +11,8 @@ private:
 	void *lastTexture = nullptr;
   
 public:
-	2DBatch(float,float);
-	~2DBatch();
+	UI_Batch(float,float);
+	~UI_Batch();
 	void resize(float, float);
 	void begin();
 	void end();
@@ -22,4 +22,4 @@ public:
   void draw(void*, float, float, float, float, float, float, float, float);
 }
 
-#endif // Included_2DBatch
+#endif // Included_UI_Batch
