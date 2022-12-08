@@ -1,7 +1,6 @@
 #include "uibatch.h"
 
 #include "../math/matrix4.h"
-#include "../translatedGraphicsFunction.h"
 
 #define X1 0
 #define Y1 1
@@ -42,23 +41,24 @@ void UI_Batch::begin() {
   tgf->depth_mask(false);
 }
 void UI_Batch::end() {
-  if (idx > 0)
-    	tgf->draw_2d_batch_vertices(lastTexture, vertices, idx);
+  if (texUsed > 0)
+    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
+  texUsed = 0;
   lastTexture = nullptr;
   tgf->depth_mask(true);
   tgf->switch_capability(TGF_BLEND, true);
 }
-void UI_Batch::draw(void *t, float x, float y) {
+void UI_Batch::draw(texture_core *t, float x, float y) {
     draw(t, x, y, t->width, t->height);
 }
-void UI_Batch::draw(void *t, float x, float y, float width, float height) {
+void UI_Batch::draw(texture_core *t, float x, float y, float width, float height) {
     draw(t, x, y, width, height, 0, 1, 1, 0);
 }
-void UI_Batch::draw(void *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
+void UI_Batch::draw(texture_core *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
     if (!lastTexture) {
     	lastTexture = t;
     } else if (t != lastTexture) {
-    	tgf->draw_2d_batch_vertices((texture_core*)lastTexture, (void*)vertices, texUsed);
+    	tgf->draw_2d_batch_vertices(lastTexture, (void*)vertices, texUsed);
     	lastTexture = t;
     }
     else if (texUsed == MAX_TEXTURE_UI)
