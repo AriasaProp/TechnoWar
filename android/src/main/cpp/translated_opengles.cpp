@@ -303,13 +303,13 @@ void tgf_gles::validate() {
 	btch->indId = utemp[1];
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	//glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
-	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), (float[]){
+	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
+	/*glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), (float[]){
 		10.f, 10.f, (float)0xff0000ff, 0.f, 0.f,
 		10.f, 100.f, (float)0xffffffff, 0.f, 1.f,
 		100.f, 100.f, (float)0xffffffff, 1.f, 1.f, 
 		100.f, 10.f, (float)0xffffffff, 1.f, 0.f
-	}, TGF_DYNAMIC_DRAW);
+	}, TGF_DYNAMIC_DRAW);*/
 	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI * 6 * sizeof(unsigned short));
