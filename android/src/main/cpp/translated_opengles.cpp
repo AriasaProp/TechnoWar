@@ -71,10 +71,8 @@ void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const uns
 	glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
-	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
+	glDrawArrays(TGF_TRIANGLES, 0, count*6);
 	glBindTexture(TGF_TEXTURE_2D, 0);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -306,8 +304,7 @@ void main(){
 	btch->indId = utemp[1];
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	//vertices data size = [number of texture] * 4 * (2 * sizeof(float) + 4 * sizeof(unsigned char))
-	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 8 * (sizeof(float) + 2 * sizeof(unsigned char)), nullptr, TGF_DYNAMIC_DRAW);
+	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), nullptr, TGF_DYNAMIC_DRAW);
 	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI*6*sizeof(unsigned short));
