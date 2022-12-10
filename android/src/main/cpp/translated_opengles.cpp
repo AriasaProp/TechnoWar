@@ -68,10 +68,9 @@ void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const uns
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
-	glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
-	glDrawArrays(TGF_TRIANGLES, 0, count*6);
+	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
 	glBindTexture(TGF_TEXTURE_2D, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -252,42 +251,42 @@ void tgf_gles::validate() {
 	btch->shaderId = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *v_batch = R"(#version 300 es
-#define LOW lowp
-#define MED mediump
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-	#define HIGH highp
-#else
-	#define HIGH mediump
-#endif
-layout(location = 0) in vec4 a_position;
-layout(location = 1) in vec4 a_color;
-layout(location = 2) in vec2 a_texCoord;
-uniform mat4 u_projTrans;
-out vec4 v_color;
-out vec2 v_texCoord;
-void main() {
-  v_color = a_color;
-  v_texCoord = a_texCoord;
-  gl_Position =  u_projTrans * a_position;
-})";
+	const char *v_batch = "#version 300 es\n"
+			"#define LOW lowp\n"
+			"#define MED mediump\n"
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+			"  #define HIGH highp\n"
+			"#else\n"
+			"  #define HIGH mediump\n"
+			"#endif\n"
+			"layout(location = 0) in vec4 a_position;\n"
+			"layout(location = 1) in vec4 a_color;\n"
+			"layout(location = 2) in vec2 a_texCoord;\n"
+			"uniform mat4 u_projTrans;\n"
+			"out vec4 v_color;\n"
+			"out vec2 v_texCoord;\n"
+			"void main() {\n"
+			"  v_color = a_color;\n"
+			"  v_texCoord = a_texCoord;\n"
+			"  gl_Position =  u_projTrans * a_position;\n"
+			"}\n";
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
-	const char *f_batch = R"(#version 300 es
-#define LOW lowp
-#define MED mediump
-#ifdef GL_FRAGMENT_PRECISION_HIGH
-	#define HIGH highp
-#else
-	#define HIGH mediump
-#endif
-layout(location = 0) out vec4 gl_FragColor;
-uniform sampler2D u_texture;
-in vec4 v_color;
-in vec2 v_texCoord;
-void main(){
-  gl_FragColor = v_color * texture(u_texture, v_texCoord);
-})";
+	const char *f_batch = "#version 300 es\n"
+			"#define LOW lowp\n"
+			"#define MED mediump\n"
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+			"	#define HIGH highp\n"
+			"#else\n"
+			"	#define HIGH mediump\n"
+			"#endif\n"
+			"layout(location = 0) out vec4 gl_FragColor;\n"
+			"uniform sampler2D u_texture;\n"
+			"in vec4 v_color;\n"
+			"in vec2 v_texCoord;\n"
+			"void main(){\n"
+			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"
+			"}\n";
 	glShaderSource(utemp[1], 1, &f_batch, 0);
 	glCompileShader(utemp[1]);
 	glAttachShader(btch->shaderId, utemp[0]);
@@ -307,13 +306,12 @@ void main(){
 	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), nullptr, TGF_DYNAMIC_DRAW);
 	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
-	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI*6*sizeof(unsigned short));
-	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++) {
-		k = i * 6;
-    *(indices+k) = *(indices+k+5) = j++;
-    *(indices+k+1) = j++;
-    *(indices+k+2) = *(indices+k+3) = j++;
-    *(indices+k+4) = j++;
+	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI * 6 * sizeof(unsigned short));
+	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++, j += 4, k += 6) {
+    *(indices+k)  = j;
+    *(indices+k+1) = *(indices+k+3) = j+1;
+    *(indices+k+2) = *(indices+k+5) = j+3;
+    *(indices+k+4) = j+2;
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
 	//glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, 0);
