@@ -20,7 +20,7 @@ float worldview_proj[16] = {
 	1.0f,0,0,0,
 	0,1.0f,0,0,
 	0,0,1.0f,0,
-	0,0,0f,1.0f
+	0,0,0.f,1.0f
 };
 float trans_proj[16] = {
 	1.0f,0,0,0,
