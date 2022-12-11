@@ -37,7 +37,7 @@ void bind() {
 	tgf->bind_vertex_array(VAO);
 	tgf->bind_buffer(TGF_ARRAY_BUFFER, VBO);
 	struct {
-		const int color[96] = {
+		const unsigned int color[24] = {
 			//red
 			0xff0000ff,
 			0xff0000ff,
@@ -116,7 +116,7 @@ void bind() {
 	tgf->enable_vertex_attrib_array(0);
 	tgf->vertex_attrib_pointer(0, 3, TGF_FLOAT, false, 3 * sizeof(float), (void*)sizeof(vertices.color));
 	tgf->enable_vertex_attrib_array(1);
-	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, sizeof(int), (void*)0);
+	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, sizeof(unsigned int), (void*)0);
 	tgf->bind_vertex_array(0);
 	//tgf->bind_shader(0);
 	tgf->depth_rangef(0, 1000);
