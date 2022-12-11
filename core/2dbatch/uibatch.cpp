@@ -64,8 +64,10 @@ void UI_Batch::draw(texture_core *t, float x, float y, float width, float height
     	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
     	lastTexture = t;
     }
-    else if (texUsed == MAX_TEXTURE_UI)
+    else if (texUsed == MAX_TEXTURE_UI) {
     	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
+    	texUsed = 0;
+    }
     const float x2 = x + width;
     const float y2 = y + height;
     unsigned int idx = texUsed * 20;

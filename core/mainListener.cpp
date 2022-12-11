@@ -118,7 +118,7 @@ void bind() {
 	tgf->enable_vertex_attrib_array(1);
 	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 4 * sizeof(unsigned char), (void*)0);
 	tgf->bind_vertex_array(0);
-	tgf->bind_shader(0);
+	//tgf->bind_shader(0);
 	tgf->depth_rangef(0, 1000);
 	tgf->switch_capability(TGF_CULL_FACE, true);
 	tgf->switch_capability(TGF_DEPTH_TEST, true);
@@ -193,6 +193,7 @@ void Main::render(float delta) {
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
+	
 	batcher->begin();
 	batcher->draw(tc_1, 0, 0, width, height);
 	batcher->end();

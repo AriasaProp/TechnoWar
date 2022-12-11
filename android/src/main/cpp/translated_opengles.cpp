@@ -66,8 +66,10 @@ void tgf_gles::update_2d_batch_projection(float *proj) {
 void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
 	glUseProgram(btch->shaderId);
 	glBindVertexArray(btch->vaoId);
+	/*
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferData(TGF_ARRAY_BUFFER, count*20*sizeof(float), vertices, TGF_DYNAMIC_DRAW);
+	*/
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
 	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
@@ -303,14 +305,15 @@ void tgf_gles::validate() {
 	btch->indId = utemp[1];
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
-	/*glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI * 20 * sizeof(float), (float[]){
+	float *vertc = new float[MAX_TEXTURE_UI*20];
+	memset(vertc, 0, sizeof(vertc));
+	memcpy(vertc, (float[]) {
 		10.f, 10.f, (float)0xff0000ff, 0.f, 0.f,
 		10.f, 100.f, (float)0xffffffff, 0.f, 1.f,
 		100.f, 100.f, (float)0xffffffff, 1.f, 1.f, 
 		100.f, 10.f, (float)0xffffffff, 1.f, 0.f
-	}, TGF_DYNAMIC_DRAW);*/
-	//glBindBuffer(TGF_ARRAY_BUFFER, 0);
+	}, 20*sizeof(float));
+	glBufferData(TGF_ARRAY_BUFFER, /*MAX_TEXTURE_UI */ 20 * sizeof(float), vertc, TGF_DYNAMIC_DRAW);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI * 6 * sizeof(unsigned short));
 	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++, j += 4, k += 6) {

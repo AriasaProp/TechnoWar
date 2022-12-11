@@ -45,7 +45,6 @@ void matrix4::mul(float *a, float *b) {
 }
 void matrix4::rotate(float *a, float yaw, float pitch, float roll) {
 	const float ycos = cos(yaw), ysin = sin(yaw), pcos = cos(pitch), psin = sin(pitch), rcos = cos(roll), rsin = sin(roll);
-	
 	float t[16] = {
 		pcos*rcos, ysin*psin*rcos-ycos*rsin,ycos*psin*rcos+ysin*rsin,0,
 		pcos*rsin, ysin*psin*rsin+ycos*rcos,ycos*psin*rsin-ysin*rcos,0,
@@ -56,7 +55,7 @@ void matrix4::rotate(float *a, float yaw, float pitch, float roll) {
 }
 void matrix4::toOrtho(float *a, float left, float right, float bottom, float top, float near, float far) {
 		memset(a, 0, 16 * sizeof(float));
-		const float width = (right - left), height = (top - bottom), depth = (far - near);
+		const float width = right - left, height = top - bottom, depth = far - near;
     a[M00] = 2 / width;
     a[M11] = 2 / height;
     a[M22] = -2 / depth;
