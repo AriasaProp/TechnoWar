@@ -67,7 +67,7 @@ void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const uns
 	glUseProgram(btch->shaderId);
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
+	glBufferData(TGF_ARRAY_BUFFER, count*20*sizeof(float), vertices, TGF_DYNAMIC_DRAW);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
 	glUniform1i(btch->u_texId, 0);
 	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
