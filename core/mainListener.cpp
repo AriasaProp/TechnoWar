@@ -49,10 +49,10 @@ void bind() {
 			0xffff00ff,
 			0xffff00ff,
 			//light blue 2
-			0x111199ff,
-			0x111199ff,
-			0x111199ff,
-			0x111199ff,
+			0x0000ffff,
+			0x0000ffff,
+			0x0000ffff,
+			0x0000ffff,
 			//green
 			0x00ff00ff,
 			0x00ff00ff,
