@@ -65,10 +65,10 @@ void matrix4::toOrtho2D(float *a, float width, float height) {
 		memset(a, 0, 16 * sizeof(float));
     a[M00] = 2 / width;
     a[M11] = 2 / height;
-    a[M22] = -2;
+    a[M22] = 1;
     a[M03] = -1;
     a[M13] = -1;
-    a[M23] = -1;
+    //a[M23] = 0;
     a[M33] = 1;
 	}
 
