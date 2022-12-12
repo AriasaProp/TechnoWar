@@ -21,7 +21,7 @@ struct batch_core {
 	int shaderId;
 	unsigned int vaoId;
 	unsigned int indId;
-	unsifned int vertId;
+	unsigned int vertId;
 	int u_projId;
 	int u_texId;
 	float *proj = new float[16];
