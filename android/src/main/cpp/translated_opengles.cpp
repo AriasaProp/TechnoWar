@@ -24,8 +24,9 @@ struct batch_core {
 	unsigned int indId;
 	int u_projId;
 	int u_texId;
-	float *proj = new float[16];
-} *btch;
+};
+
+static batch_core *btch;
 
 std::vector<shader_core*> managedShader;
 std::vector<texture_core*> managedTexture;
