@@ -57,6 +57,18 @@ void UI_Batch::draw(texture_core *t, float x, float y) {
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height) {
     draw(t, x, y, width, height, 0, 1, 1, 0);
 }
+struct vertices_data {
+	float x;
+	float y;
+	struct color {
+		unsigned char r;
+		unsigned char g;
+		unsigned char b;
+		unsigned char a;
+	} colors;
+	float u;
+	float v;
+} temp_vert;
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
     if (!lastTexture) {
     	lastTexture = t;
@@ -68,29 +80,25 @@ void UI_Batch::draw(texture_core *t, float x, float y, float width, float height
     	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
     	texUsed = 0;
     }
-    const float x2 = x + width;
-    const float y2 = y + height;
-    unsigned int idx = texUsed * 20;
-    vertices[idx + X1] = x;
-    vertices[idx + Y1] = y;
-    vertices[idx + C1] = colorPacked;
-    vertices[idx + U1] = u;
-    vertices[idx + V1] = v;
-    vertices[idx + X2] = x;
-    vertices[idx + Y2] = y2;
-    vertices[idx + C2] = colorPacked;
-    vertices[idx + U2] = u;
-    vertices[idx + V2] = v;
-    vertices[idx + X3] = x2;
-    vertices[idx + Y3] = y2;
-    vertices[idx + C3] = colorPacked;
-    vertices[idx + U3] = u2;
-    vertices[idx + V3] = v2;
-    vertices[idx + X4] = x2;
-    vertices[idx + Y4] = y;
-    vertices[idx + C4] = colorPacked;
-    vertices[idx + U4] = u2;
-    vertices[idx + V4] = v2;
+    temp_vert.x = x;
+    temp_vert.y = y;
+    memcpy(&temp_vert.colors, &colorPacked, 4*sizeof(unsigned char));
+    temp_vert.u = u;
+    temp_vert.v = v;
+    vertices_data *cmp = (vertices_data*)(vertices+texUsed);
+    memcpy(cmp, &temp_vert, sizeof(vertices_data));
+    cmp++;
+    temp_vert.y = y + height;
+    temp_vert.v = v2;
+    memcpy(cmp, &temp_vert, sizeof(vertices_data));
+    cmp++;
+    temp_vert.x = x + width;
+    temp_vert.u = u2;
+    memcpy(cmp, &temp_vert, sizeof(vertices_data));
+    cmp++;
+    temp_vert.y = y;
+    temp_vert.v = v;
+    memcpy(cmp, &temp_vert, sizeof(vertices_data));
     texUsed++;
 }
 
