@@ -9,7 +9,6 @@
 TranslatedGraphicsFunction *tgf;
 UI_Batch *batcher;
 texture_core *tc_1;
-float tc_data[] = {(float)0xff0000ff, (float)0x00ff00ff, (float)0x0000ffff, (float)0xffffffff};
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 unsigned int VAO, VBO, IBO;
@@ -156,11 +155,17 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	batcher = new UI_Batch(width,height);
-	tc_1 = tgf->gen_texture(2, 2, (unsigned char*)tc_data);
+	unsigned char tc_data[16] {
+		0xff,0x00,0x00,0xff, 
+		0x00,0xff,0x00,0xff, 
+		0x00,0x00,0xff,0xff, 
+		0xff,0xff,0xff,0xff
+	};
+	tc_1 = tgf->gen_texture(2, 2, tc_data);
 }
 void Main::resume() {
 	if (!tgf) return;
-	r = 1, g = b = 0;
+	r = 0, g = b = 1;
 }
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
@@ -191,7 +196,7 @@ void Main::render(float delta) {
 	tgf->bind_shader(0);
 	
 	batcher->begin();
-	batcher->draw(tc_1, 0.001f, 0.001f, 0.3f, 0.1f);
+	batcher->draw(tc_1, 0, 0, 800.0f, 400.0f);
 	batcher->end();
 }
 void Main::pause() {

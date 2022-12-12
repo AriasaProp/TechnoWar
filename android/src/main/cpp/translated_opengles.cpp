@@ -270,8 +270,8 @@ void tgf_gles::validate() {
 			"void main() {\n"
 			"  v_color = a_color;\n"
 			"  v_texCoord = a_texCoord;\n"
-			"  gl_Position = vec4(a_position.xy, -1.0, 1.0);\n"
-			"}\n";
+			"  gl_Position = u_projTrans * a_position;\n"
+			"}\n\0";
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
 	const char *f_batch = "#version 300 es\n"
@@ -288,7 +288,7 @@ void tgf_gles::validate() {
 			"in vec2 v_texCoord;\n"
 			"void main(){\n"
 			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"
-			"}\n";
+			"}\n\0";
 	glShaderSource(utemp[1], 1, &f_batch, 0);
 	glCompileShader(utemp[1]);
 	glAttachShader(btch->shaderId, utemp[0]);
