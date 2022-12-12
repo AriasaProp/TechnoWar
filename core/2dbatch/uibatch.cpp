@@ -1,32 +1,26 @@
 #include "uibatch.h"
-
+#include <cstring>
 #include "../math/matrix4.h"
-
-#define X1 0
-#define Y1 1
-#define C1 2
-#define U1 3
-#define V1 4
-#define X2 5
-#define Y2 6
-#define C2 7
-#define U2 8
-#define V2 9
-#define X3 10
-#define Y3 11
-#define C3 12
-#define U3 13
-#define V3 14
-#define X4 15
-#define Y4 16
-#define C4 17
-#define U4 18
-#define V4 19
 
 extern TranslatedGraphicsFunction *tgf;
 
+struct vertices_data {
+	float x;
+	float y;
+	struct color {
+		unsigned char r;
+		unsigned char g;
+		unsigned char b;
+		unsigned char a;
+	} colors;
+	float u;
+	float v;
+};
+static vertices_data temp_vert;
+static vertices_data *vertices;
+
 UI_Batch::UI_Batch(float width, float height) {
-	vertices = new float[MAX_TEXTURE_UI*20];
+	vertices = new vertices_data[MAX_TEXTURE_UI*4];
 	projection = new float[16];
 	//prepare
 	resize(width, height);
@@ -57,18 +51,6 @@ void UI_Batch::draw(texture_core *t, float x, float y) {
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height) {
     draw(t, x, y, width, height, 0, 1, 1, 0);
 }
-struct vertices_data {
-	float x;
-	float y;
-	struct color {
-		unsigned char r;
-		unsigned char g;
-		unsigned char b;
-		unsigned char a;
-	} colors;
-	float u;
-	float v;
-} temp_vert;
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
     if (!lastTexture) {
     	lastTexture = t;
@@ -80,9 +62,9 @@ void UI_Batch::draw(texture_core *t, float x, float y, float width, float height
     	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
     	texUsed = 0;
     }
+    memcpy(&temp_vert.colors, &colorPacked, 4*sizeof(unsigned char));
     temp_vert.x = x;
     temp_vert.y = y;
-    memcpy(&temp_vert.colors, &colorPacked, 4*sizeof(unsigned char));
     temp_vert.u = u;
     temp_vert.v = v;
     vertices_data *cmp = (vertices_data*)(vertices+texUsed);

@@ -8,7 +8,6 @@ private:
 	//int blendSrcFunc = TGF_SRC_ALPHA;
 	//int blendDstFunc = TGF_ONE_MINUS_SRC_ALPHA;
 	unsigned int texUsed = 0;
-	void *vertices;
 	float *projection;
 	float colorPacked = (float)0xffffffff;
 	texture_core *lastTexture = nullptr;
