@@ -131,11 +131,9 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	width = w, height = h;
 	if (!tgf) return;
 	r = g = b = 1;
-	//resume();
 	tgf->viewport(0, 0, width, height);
-	worldview_proj[0] = 2.0f/width;
-	worldview_proj[5] = 2.0f/height;
-	worldview_proj[10] = 1.0f/10000.0f; //depth
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f)
+	 
 	
 	// create shader program {
 	const char *vShaderSrc = "uniform mat4 worldview_proj;"
@@ -170,8 +168,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	worldview_proj[0] = 2.0f/width;
-	worldview_proj[5] = 2.0f/height;
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f)
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
