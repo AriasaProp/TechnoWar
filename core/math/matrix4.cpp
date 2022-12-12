@@ -59,9 +59,16 @@ void matrix4::toOrtho(float *a, float left, float right, float bottom, float top
     a[M00] = 2 / width;
     a[M11] = 2 / height;
     a[M22] = -2 / depth;
-    a[M03] = -(right + left) / width;
-    a[M13] = -(top + bottom) / height;
-    a[M23] = -(far + near) / depth;
+    a[M33] = 1;
+	}
+void matrix4::toOrtho2D(float *a, float width, float height) {
+		memset(a, 0, 16 * sizeof(float));
+    a[M00] = 2 / width;
+    a[M11] = 2 / height;
+    a[M22] = -2;
+    a[M03] = -1;
+    a[M13] = -1;
+    a[M23] = -1;
     a[M33] = 1;
 	}
 

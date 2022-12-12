@@ -133,8 +133,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	r = g = b = 1;
 	tgf->viewport(0, 0, width, height);
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
-	 
-	
 	// create shader program {
 	const char *vShaderSrc = "uniform mat4 worldview_proj;"
 		"\nuniform mat4 trans_proj;"

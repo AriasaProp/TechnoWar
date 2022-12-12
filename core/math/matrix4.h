@@ -6,6 +6,7 @@ namespace matrix4 {
 	void mul(float *, float*);
 	void rotate(float *, float, float, float);
 	void toOrtho(float *, float, float, float, float, float, float);
+	void toOrtho2D(float *, float, float, float, float, float, float);
 }
 
 #endif //Included_MATRIX4
