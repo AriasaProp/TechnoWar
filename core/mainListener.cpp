@@ -118,11 +118,6 @@ void bind() {
 	tgf->vertex_attrib_pointer(1, 4, TGF_UNSIGNED_BYTE, true, 4 * sizeof(unsigned char), (void*)0);
 	tgf->bind_vertex_array(0);
 	//tgf->bind_shader(0);
-	tgf->depth_rangef(0, 1000);
-	tgf->switch_capability(TGF_CULL_FACE, true);
-	tgf->switch_capability(TGF_DEPTH_TEST, true);
-	tgf->cull_face(TGF_FRONT);
-	tgf->depth_func(TGF_LESS);
 	binded = true;
 }
 void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
@@ -162,6 +157,13 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		0xff,0xff,0xff,0xff
 	};
 	tc_1 = tgf->gen_texture(2, 2, tc_data);
+	/*
+	tgf->depth_rangef(0, 1000);
+	tgf->switch_capability(TGF_CULL_FACE, true);
+	tgf->switch_capability(TGF_DEPTH_TEST, true);
+	tgf->cull_face(TGF_FRONT);
+	tgf->depth_func(TGF_LESS);
+	*/
 }
 void Main::resume() {
 	if (!tgf) return;
