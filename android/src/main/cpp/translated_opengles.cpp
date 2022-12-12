@@ -183,7 +183,8 @@ void tgf_gles::bind_buffer(unsigned int type, const unsigned int b) {
 	glBindBuffer(type, b);
 }
 void tgf_gles::buffer_data(unsigned int type, long bytes_len, const void *data, unsigned int datatype) {
-	glBufferData(type, bytes_len, data, datatype);
+	glBufferData(type, bytes_len, 0, datatype);
+	glBufferSubData(type, 0, bytes_len, data);
 }
 void tgf_gles::delete_buffer(unsigned int &b) {
 	utemp[0] = b;
