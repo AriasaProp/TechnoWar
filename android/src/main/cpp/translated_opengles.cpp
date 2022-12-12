@@ -304,6 +304,7 @@ void tgf_gles::validate() {
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI*20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
+	glBufferSubData(TGF_ARRAY_BUFFER, 0, MAX_TEXTURE_UI*20 * sizeof(float), 0);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = (unsigned short *) alloca(MAX_TEXTURE_UI * 6 * sizeof(unsigned short));
 	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++, j += 4, k += 6) {
@@ -312,7 +313,8 @@ void tgf_gles::validate() {
     *(indices+k+2) = *(indices+k+5) = j+3;
     *(indices+k+4) = j+2;
 	}
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, sizeof(indices), (void*)indices, TGF_STATIC_DRAW);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), 0, TGF_STATIC_DRAW);
+	glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices);
 	unsigned int stride = 2*sizeof(float)+4*sizeof(unsigned char)+2*sizeof(float);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);

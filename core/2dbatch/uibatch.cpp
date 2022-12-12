@@ -34,33 +34,31 @@ void UI_Batch::resize(float width, float height) {
 	tgf->update_2d_batch_projection(projection);
 }
 void UI_Batch::begin() {
-  tgf->depth_mask(false);
+  //tgf->depth_mask(false);
 }
 void UI_Batch::end() {
   if (texUsed) {
-  	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
-		texUsed = 0;
+  	flush();
   }
   lastTexture = nullptr;
-  tgf->depth_mask(true);
+  //tgf->depth_mask(true);
   tgf->switch_capability(TGF_BLEND, true);
 }
 void UI_Batch::draw(texture_core *t, float x, float y) {
     draw(t, x, y, t->width, t->height);
 }
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height) {
-    draw(t, x, y, width, height, 0, 1, 1, 0);
+    draw(t, x, y, width, height, 0, 0, 1, 1);
 }
 void UI_Batch::draw(texture_core *t, float x, float y, float width, float height, float u, float v, float u2, float v2) {
-    if (!lastTexture) {
+    if (texUsed >= MAX_TEXTURE_UI-1)
+    	flush();
+    	
+    if (!lastTexture)
     	lastTexture = t;
-    } else if (t != lastTexture) {
-    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
+    else if (t != lastTexture) {
+    	flush();
     	lastTexture = t;
-    }
-    else if (texUsed == MAX_TEXTURE_UI) {
-    	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
-    	texUsed = 0;
     }
     memcpy(&temp_vert.colors, &colorPacked, 4*sizeof(unsigned char));
     temp_vert.x = x;
@@ -84,5 +82,9 @@ void UI_Batch::draw(texture_core *t, float x, float y, float width, float height
     texUsed++;
 }
 
-
+//private 
+void UI_Batch::flush() {
+	tgf->draw_2d_batch_vertices(lastTexture, vertices, texUsed);
+  texUsed = 0;
+}
 
