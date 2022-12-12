@@ -20,8 +20,8 @@
 struct batch_core {
 	int shaderId;
 	unsigned int vaoId;
-	int indId;
-	int vertId;
+	unsigned int indId;
+	unsifned int vertId;
 	int u_projId;
 	int u_texId;
 	float *proj = new float[16];

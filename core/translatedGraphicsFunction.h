@@ -579,7 +579,7 @@
 struct texture_core {
 	unsigned int id;
 	int width, height;
-	const unsigned char *data;
+	const void *data;
 };
 //shader core
 struct shader_core {
