@@ -20,8 +20,8 @@
 struct batch_core {
 	int shaderId;
 	unsigned int vaoId;
-	unsigned int indId;
 	unsigned int vertId;
+	unsigned int indId;
 	int u_projId;
 	int u_texId;
 	float *proj = new float[16];
@@ -60,7 +60,7 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 }
 void tgf_gles::update_2d_batch_projection(float *proj) {
 	glUseProgram(btch->shaderId);
-	//glUniformMatrix4fv(btch->u_projId, 1, false, proj);
+	glUniformMatrix4fv(btch->u_projId, 1, false, proj);
 	glUseProgram(0);
 }
 void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
@@ -262,13 +262,13 @@ void tgf_gles::validate() {
 			"layout(location = 0) in vec4 a_position;\n"
 			"layout(location = 1) in vec4 a_color;\n"
 			"layout(location = 2) in vec2 a_texCoord;\n"
-			//"uniform mat4 u_projTrans;\n"
+			"uniform mat4 u_projTrans;\n"
 			"out vec4 v_color;\n"
 			"out vec2 v_texCoord;\n"
 			"void main() {\n"
 			"  v_color = a_color;\n"
 			"  v_texCoord = a_texCoord;\n"
-			"  gl_Position = a_position;\n"
+			"  gl_Position = vec4(a_position.xy, -1.0, 1.0);\n"
 			"}\n";
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
@@ -298,8 +298,7 @@ void tgf_gles::validate() {
 	btch->u_texId = glGetUniformLocation(btch->shaderId, "u_texture");
 	//vao
 	glGenVertexArrays(1, &btch->vaoId);
-	glGenBuffers(1, &btch->vertId);
-	glGenBuffers(1, &btch->indId);
+	glGenBuffers(2, &btch->vertId);//and next
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI*20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
@@ -315,7 +314,7 @@ void tgf_gles::validate() {
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), 0, TGF_STATIC_DRAW);
 	glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices);
 	delete[] indices;
-	unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
+	const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
 	glEnableVertexAttribArray(1);
