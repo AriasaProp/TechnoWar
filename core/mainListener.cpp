@@ -182,16 +182,16 @@ void Main::render(float delta) {
 	);
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	bind();
-	/*
+	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->bind_vertex_array(VAO);
 	tgf->draw_elements(TGF_TRIANGLES, 36, TGF_UNSIGNED_SHORT, 0);
 	tgf->bind_vertex_array(0);
 	tgf->bind_shader(0);
-	*/
+	
 	batcher->begin();
-	batcher->draw(tc_1, 0, 0, width, height);
+	batcher->draw(tc_1, 0.001f, 0.001f, 0.3f, 0.1f);
 	batcher->end();
 }
 void Main::pause() {
