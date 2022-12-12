@@ -132,7 +132,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	if (!tgf) return;
 	r = g = b = 1;
 	tgf->viewport(0, 0, width, height);
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f)
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	 
 	
 	// create shader program {
@@ -168,7 +168,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f)
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
