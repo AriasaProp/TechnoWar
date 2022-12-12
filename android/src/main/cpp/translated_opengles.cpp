@@ -65,14 +65,15 @@ void tgf_gles::update_2d_batch_projection(float *proj) {
 }
 void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
 	glUseProgram(btch->shaderId);
+	glBindTexture(TGF_TEXTURE_2D, t->id);
+	glUniform1i(btch->u_texId, 0);
 	glBindVertexArray(btch->vaoId);
 	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
 	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
-	glBindTexture(TGF_TEXTURE_2D, t->id);
-	glUniform1i(btch->u_texId, 0);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
-	glBindTexture(TGF_TEXTURE_2D, 0);
 	glBindVertexArray(0);
+	glBindTexture(TGF_TEXTURE_2D, 0);
 	glUseProgram(0);
 }
 const char *header_glsl =  "#version 300 es\n"
@@ -311,8 +312,7 @@ void tgf_gles::validate() {
     *(indices+k+2) = *(indices+k+5) = j+3;
     *(indices+k+4) = j+2;
 	}
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), 0, TGF_STATIC_DRAW);
-	glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
 	delete[] indices;
 	const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
