@@ -134,7 +134,10 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p?p->id:0);
+	glUseProgram(p->id);
+}
+void tgf_gles::unbind_shader() {
+	glUseProgram(0);
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
@@ -209,17 +212,17 @@ void tgf_gles::delete_vertex_array(unsigned int &v) {
 mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
 	r->vertex = new mesh_core::data[v_len];
+	r->vertex_len = v_len;
 	memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
 	r->index = new unsigned short[i_len];
-	memcpy(r->index, i, i_len*sizeof(unsigned short));
-	r->vertex_len = v_len;
 	r->index_len = i_len;
+	memcpy(r->index, i, i_len*sizeof(unsigned short));
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);
 	glBindVertexArray(r->vaoId);
-	glBufferData(TGF_ARRAY_BUFFER, v_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
+	glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, i_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
@@ -297,6 +300,40 @@ void tgf_gles::depth_mask(const bool m) {
 	glDepthMask(m);
 }
 
+const char *v_batch = {"#version 300 es\n"\
+		"#define LOW lowp\n"\
+		"#define MED mediump\n"\
+		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
+		"  #define HIGH highp\n"\
+		"#else\n"\
+		"  #define HIGH mediump\n"\
+		"#endif\n"\
+		"layout(location = 0) in vec4 a_position;\n"\
+		"layout(location = 1) in vec4 a_color;\n"\
+		"layout(location = 2) in vec2 a_texCoord;\n"\
+		"uniform mat4 u_projTrans;\n"\
+		"out vec4 v_color;\n"\
+		"out vec2 v_texCoord;\n"\
+		"void main() {\n"\
+		"  v_color = a_color;\n"\
+		"  v_texCoord = a_texCoord;\n"\
+		"  gl_Position = u_projTrans * a_position;\n"\
+		"}\n\0"};
+const char *f_batch = {"#version 300 es\n"\
+		"#define LOW lowp\n"\
+		"#define MED mediump\n"\
+		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
+		"	#define HIGH highp\n"\
+		"#else\n"\
+		"	#define HIGH mediump\n"\
+		"#endif\n"\
+		"layout(location = 0) out vec4 gl_FragColor;\n"\
+		"uniform sampler2D u_texture;\n"\
+		"in vec4 v_color;\n"\
+		"in vec2 v_texCoord;\n"\
+		"void main() {\n"\
+		"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"\
+		"}\n\0"};
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
@@ -306,42 +343,8 @@ void tgf_gles::validate() {
 	btch->shaderId = glCreateProgram();
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	const char *v_batch = {"#version 300 es\n"\
-			"#define LOW lowp\n"\
-			"#define MED mediump\n"\
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
-			"  #define HIGH highp\n"\
-			"#else\n"\
-			"  #define HIGH mediump\n"\
-			"#endif\n"\
-			"layout(location = 0) in vec4 a_position;\n"\
-			"layout(location = 1) in vec4 a_color;\n"\
-			"layout(location = 2) in vec2 a_texCoord;\n"\
-			"uniform mat4 u_projTrans;\n"\
-			"out vec4 v_color;\n"\
-			"out vec2 v_texCoord;\n"\
-			"void main() {\n"\
-			"  v_color = a_color;\n"\
-			"  v_texCoord = a_texCoord;\n"\
-			"  gl_Position = u_projTrans * a_position;\n"\
-			"}\n\0"};
 	glShaderSource(utemp[0], 1, &v_batch, 0);
 	glCompileShader(utemp[0]);
-	const char *f_batch = {"#version 300 es\n"\
-			"#define LOW lowp\n"\
-			"#define MED mediump\n"\
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
-			"	#define HIGH highp\n"\
-			"#else\n"\
-			"	#define HIGH mediump\n"\
-			"#endif\n"\
-			"layout(location = 0) out vec4 gl_FragColor;\n"\
-			"uniform sampler2D u_texture;\n"\
-			"in vec4 v_color;\n"\
-			"in vec2 v_texCoord;\n"\
-			"void main() {\n"\
-			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"\
-			"}\n\0"};
 	glShaderSource(utemp[1], 1, &f_batch, 0);
 	glCompileShader(utemp[1]);
 	glAttachShader(btch->shaderId, utemp[0]);
