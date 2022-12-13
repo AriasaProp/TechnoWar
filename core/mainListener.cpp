@@ -57,7 +57,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	// create mesh {
-	const mesh_core::data *vert = new mesh_core::data[24] {
+	mesh_core::data *vert = new mesh_core::data[24] {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -89,7 +89,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		{ +350.0f, -350.0f, +350.0f, 0x00, 0x00, 0xff, 0xff }, 
 		{ +350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff }
 	};
-	const unsigned short indices[36] {
+	unsigned short indices[36] {
 		0,1,3,1,2,3,//front
 		4,5,7,5,6,7,//left
 		8,9,11,9,10,11,//right
