@@ -575,17 +575,28 @@
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
+//shader core
+struct shader_core {
+	int id;
+	const char *v;
+	const char *f;
+};
 //texture core
 struct texture_core {
 	unsigned int id;
 	int width, height;
 	const void *data;
 };
-//shader core
-struct shader_core {
-	int id;
-	const char *v;
-	const char *f;
+//mesh core
+struct mesh_core {
+	unsigned int vaoId;
+	unsigned int vboV, vboI;
+	unsigned int vertex_len, index_len;// based type len, not in byte
+	struct data {
+		float posx, posy, posz;
+		unsigned char r, g, b, a;
+	} *vertex;
+	unsigned short *index;
 };
 
 struct TranslatedGraphicsFunction {
@@ -618,6 +629,11 @@ public:
 	virtual void gen_vertex_array(unsigned int&) = 0;
 	virtual void bind_vertex_array(const unsigned int) = 0;
 	virtual void delete_vertex_array(unsigned int&) = 0;
+	
+	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
+	virtual void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
+	virtual void draw_mesh(mesh_core*) = 0;
+	virtual void delete_mesh(mesh_core*) = 0;
 
 	virtual void vertex_attrib_pointer(unsigned int, int, unsigned int, bool, int, const void *) = 0;
 	virtual void enable_vertex_attrib_array(const unsigned int) = 0;

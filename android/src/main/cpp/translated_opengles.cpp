@@ -20,16 +20,16 @@
 struct batch_core {
 	int shaderId;
 	unsigned int vaoId;
-	unsigned int vertId;
-	unsigned int indId;
+	unsigned int vertId,indId;
 	int u_projId;
 	int u_texId;
 };
 
 static batch_core *btch;
 
-std::vector<shader_core*> managedShader;
 std::vector<texture_core*> managedTexture;
+std::vector<shader_core*> managedShader;
+std::vector<mesh_core*> managedMesh;
 std::vector<unsigned int> capabilities;
 
 tgf_gles::tgf_gles() {
@@ -42,8 +42,9 @@ tgf_gles::tgf_gles() {
 tgf_gles::~tgf_gles() {
 	invalidate();
 	capabilities.clear();
-	managedShader.clear();
 	managedTexture.clear();
+	managedShader.clear();
+	managedMesh.clear();
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
@@ -204,6 +205,55 @@ void tgf_gles::delete_vertex_array(unsigned int &v) {
 	glDeleteVertexArrays(1, utemp);
 	v = 0;
 }
+	
+mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
+	mesh_core *r = new mesh_core;
+	r->vertex = new mesh_core::data[v_len];
+	memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
+	r->index = new unsigned short[i_len];
+	memcpy(r->index, i, i_len*sizeof(unsigned short));
+	r->vertex_len = v_len;
+	r->index_len = i_len;
+	glGenVertexArrays(1, &r->vaoId);
+	glGenBuffers(2, &r->vboV);
+	glBindVertxArray(r->vaoId);
+	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
+	glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
+	glBufferData(TGF_ARRAY_BUFFER, v_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, i_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
+	glBindVertexArray(0);
+	managedMesh.push_back(r);
+	return r;
+}
+void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
+	glBindVertexArray(r->vaoId);
+	if (v) {
+		glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
+		memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
+		glBufferSubData(TGF_ARRAY_BUFFER, 0, v_len*sizeof(mesh_core::data), (void*)r->vertex);
+	}
+	if (i) {
+		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
+		memcpy(r->index, i, i_len*sizeof(unsigned short));
+		glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, i_len*sizeof(unsigned short), (void*)r->index);
+	}
+	glBindVertexArray(0);
+}
+void tgf_gles::draw_mesh(mesh_core *m) {
+	tgf->bind_vertex_array(m->vaoId);
+	tgf->draw_elements(TGF_TRIANGLES, m->index_len, TGF_UNSIGNED_SHORT, (void*)0);
+	tgf->bind_vertex_array(0);
+}
+void tgf_gles::delete_mesh(mesh_core *m) {
+	glDeleteVertexArrays(1, m->vaoId);
+	delete m;
+}
+
 void tgf_gles::vertex_attrib_pointer(unsigned int loc, int size, unsigned int type, bool normalize, int stride, const void *offset) {
 	glVertexAttribPointer(loc, size, type, normalize, stride, offset);
 }
@@ -309,10 +359,10 @@ void tgf_gles::validate() {
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
 	unsigned short *indices = new unsigned short[MAX_TEXTURE_UI * 6 * sizeof(unsigned short)];
 	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++, j += 4, k += 6) {
-    *(indices+k)  = j;
-    *(indices+k+1) = *(indices+k+3) = j+1;
-    *(indices+k+2) = *(indices+k+5) = j+3;
-    *(indices+k+4) = j+2;
+    *(indices+k)  = j++;
+    *(indices+k+1) = *(indices+k+3) = j++;
+    *(indices+k+4) = j++;
+    *(indices+k+2) = *(indices+k+5) = j++;
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
 	delete[] indices;
@@ -353,6 +403,24 @@ void tgf_gles::validate() {
 		glDeleteShader(utemp[1]);
 	}
 	
+	//mesh
+	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
+	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
+		mesh_core *r = *i;
+		glGenVertexArrays(1, &r->vaoId);
+		glGenBuffers(2, &r->vboV);
+		glBindVertxArray(r->vaoId);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
+		glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
+		glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, TGF_STATIC_DRAW);
+		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
+		glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, TGF_STATIC_DRAW);
+	}
+	glBindVertexArray(0);
+	
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
 		glGenTextures(1, &(*i)->id);
@@ -361,6 +429,7 @@ void tgf_gles::validate() {
 		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, (*i)->width, (*i)->height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)(*i)->data);
 	}
 	glBindTexture(TGF_TEXTURE_2D, 0);
+	
 	valid = true;
 }
 void tgf_gles::invalidate() {
@@ -370,30 +439,27 @@ void tgf_gles::invalidate() {
 	//2d_batch
 	// {
 	glDeleteProgram(btch->shaderId);
-	btch->shaderId = 0;
 	glDeleteVertexArrays(1, &btch->vaoId);
-	btch->vaoId = 0;
-	utemp[0] = btch->vertId;
-	utemp[1] = btch->indId;
-	glDeleteBuffers(2, utemp);
-	btch->vertId = 0;
-	btch->indId = 0;
+	glDeleteBuffers(2, &btch->vertId);
 	// }
 	
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glDisable((*i));
 	}
-	
 	//shader
 	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
 		glDeleteProgram((*i)->id);
-		(*i)->id = 0;
 	}
-	//texture 2d
+	//mesh
+	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
+		mesh_core *r = *i;
+		glDeleteVertexArrays(1, &r->vaoId);
+		glDeleteBuffers(r, &r->vboV);
+	}
+	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
 		glDeleteTextures(1, &(*i)->id);
-		(*i)->id = 0;
 	}
 	
 	valid = false;

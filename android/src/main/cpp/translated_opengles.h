@@ -38,6 +38,11 @@ public:
 	void gen_vertex_array(unsigned int&) override;
 	void bind_vertex_array(const unsigned int) override;
 	void delete_vertex_array(unsigned int&) override;
+	
+	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
+	void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
+	void draw_mesh(mesh_core*) override;
+	void delete_mesh(mesh_core*) override;
 
 	void vertex_attrib_pointer(unsigned int, int, unsigned int type, bool, int, const void *) override;
 	void enable_vertex_attrib_array(const unsigned int) override;
