@@ -57,7 +57,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	// create mesh {
-	const mesh_core::data vert[24] {
+	const mesh_core::data *vert = new mesh_core::data[24] {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -98,6 +98,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
+	delete [] vert;
 	//}
 	batcher = new UI_Batch(width,height);
 	unsigned char tc_data[16] {
