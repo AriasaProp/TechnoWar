@@ -134,10 +134,7 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p->id);
-}
-void tgf_gles::unbind_shader() {
-	glUseProgram(0);
+	glUseProgram(p?p->id:0);
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
