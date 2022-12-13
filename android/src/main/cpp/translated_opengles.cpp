@@ -367,7 +367,7 @@ void tgf_gles::validate() {
     *(indices+k+2) = *(indices+k+5) = j++;
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
-	delete[] indices;
+	//delete[] indices;
 	{
 		const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
 		glEnableVertexAttribArray(0);

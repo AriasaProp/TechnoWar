@@ -46,7 +46,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		"\n}\0", 
 	*fShaderSrc = "precision MED float;"
 		"\nin vec4 v_color;"
-		"\nout vec4 glFragColor;"
+		"\nlayout(location = 0) out vec4 glFragColor;"
 		"\nvoid main() {"
 		"\n    glFragColor = v_color;"
 		"\n}\0";
