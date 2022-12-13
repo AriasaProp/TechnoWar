@@ -216,7 +216,7 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	r->index_len = i_len;
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);
-	glBindVertxArray(r->vaoId);
+	glBindVertexArray(r->vaoId);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
@@ -231,23 +231,23 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	return r;
 }
 void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
-	glBindVertexArray(r->vaoId);
+	glBindVertexArray(m->vaoId);
 	if (v) {
-		glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
-		memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
-		glBufferSubData(TGF_ARRAY_BUFFER, 0, v_len*sizeof(mesh_core::data), (void*)r->vertex);
+		glBindBuffer(TGF_ARRAY_BUFFER, m->vboV);
+		memcpy(m->vertex, v, v_len*sizeof(mesh_core::data));
+		glBufferSubData(TGF_ARRAY_BUFFER, 0, v_len*sizeof(mesh_core::data), (void*)m->vertex);
 	}
 	if (i) {
-		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
-		memcpy(r->index, i, i_len*sizeof(unsigned short));
-		glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, i_len*sizeof(unsigned short), (void*)r->index);
+		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, m->vboI);
+		memcpy(m->index, i, i_len*sizeof(unsigned short));
+		glBufferSubData(TGF_ELEMENT_ARRAY_BUFFER, 0, i_len*sizeof(unsigned short), (void*)m->index);
 	}
 	glBindVertexArray(0);
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	tgf->bind_vertex_array(m->vaoId);
-	tgf->draw_elements(TGF_TRIANGLES, m->index_len, TGF_UNSIGNED_SHORT, (void*)0);
-	tgf->bind_vertex_array(0);
+	glBindVertexArray(m->vaoId);
+	glDrawElements(TGF_TRIANGLES, m->index_len, TGF_UNSIGNED_SHORT, (void*)0);
+	glBindVertexArray(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, m->vaoId);
@@ -366,13 +366,15 @@ void tgf_gles::validate() {
 	}
 	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
 	delete[] indices;
-	const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, TGF_FLOAT, true, stride, (void*)(stride-(2*sizeof(float))));
+	{
+		const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, TGF_FLOAT, true, stride, (void*)(stride-(2*sizeof(float))));
+	}
 	glBindVertexArray(0);
 	//}
 	
@@ -404,22 +406,24 @@ void tgf_gles::validate() {
 	}
 	
 	//mesh
-	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
-	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
-		mesh_core *r = *i;
-		glGenVertexArrays(1, &r->vaoId);
-		glGenBuffers(2, &r->vboV);
-		glBindVertxArray(r->vaoId);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
-		glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
-		glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, TGF_STATIC_DRAW);
-		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
-		glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, TGF_STATIC_DRAW);
+	{
+		const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
+		for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
+			mesh_core *r = *i;
+			glGenVertexArrays(1, &r->vaoId);
+			glGenBuffers(2, &r->vboV);
+			glBindVertexArray(r->vaoId);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
+			glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
+			glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, TGF_STATIC_DRAW);
+			glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
+			glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, TGF_STATIC_DRAW);
+		}
+		glBindVertexArray(0);
 	}
-	glBindVertexArray(0);
 	
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
@@ -455,7 +459,7 @@ void tgf_gles::invalidate() {
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
 		glDeleteVertexArrays(1, &r->vaoId);
-		glDeleteBuffers(r, &r->vboV);
+		glDeleteBuffers(1, &r->vboV);
 	}
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
