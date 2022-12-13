@@ -217,15 +217,15 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);
 	glBindVertexArray(r->vaoId);
+	glBufferData(TGF_ARRAY_BUFFER, v_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
+	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, i_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
 	glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
-	glBufferData(TGF_ARRAY_BUFFER, v_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, i_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
 	glBindVertexArray(0);
 	managedMesh.push_back(r);
 	return r;
@@ -251,6 +251,8 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);
+	delete[] m->vertex;
+	delete[] m->index;
 	delete m;
 }
 

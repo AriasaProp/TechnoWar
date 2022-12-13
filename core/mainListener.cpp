@@ -98,7 +98,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
-	delete [] vert;
+	//delete [] vert;
 	//}
 	batcher = new UI_Batch(width,height);
 	unsigned char tc_data[16] {
