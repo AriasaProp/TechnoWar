@@ -98,7 +98,8 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
-	//delete [] vert;
+	delete[] vert;
+	delete[] indices;
 	//}
 	//batcher = new UI_Batch(width,height);
 	unsigned char tc_data[16] {
@@ -109,11 +110,8 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	tc_1 = tgf->gen_texture(2, 2, tc_data);
 	tgf->switch_capability(TGF_DEPTH_TEST, true);
-	/*
-	tgf->depth_rangef(0, 1000);
 	tgf->switch_capability(TGF_CULL_FACE, true);
 	tgf->cull_face(TGF_FRONT);
-	*/
 	tgf->depth_func(TGF_LESS);
 }
 void Main::resume() {
@@ -128,6 +126,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
+	
 	//batcher->resize(width, height);
 }
 void Main::render(float delta) {

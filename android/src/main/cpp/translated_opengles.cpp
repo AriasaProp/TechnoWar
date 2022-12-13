@@ -27,10 +27,10 @@ struct batch_core {
 
 static batch_core *btch;
 
+std::vector<unsigned int> capabilities;
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
 std::vector<mesh_core*> managedMesh;
-std::vector<unsigned int> capabilities;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -134,7 +134,10 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p?p->id:0);
+	glUseProgram(p->id);
+}
+void tgf_gles::unbind_shader() {
+	glUseProgram(0);
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
@@ -217,15 +220,15 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);
 	glBindVertexArray(r->vaoId);
-	glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)v, TGF_STATIC_DRAW);
+	glBindBuffer(TGF_ARRAY_BUFFER, r->vboV); 
+	glBufferData(TGF_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, TGF_STATIC_DRAW);
 	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, r->vboI);
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)i, TGF_STATIC_DRAW);
+	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, TGF_STATIC_DRAW);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, TGF_FLOAT, false, stride, (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
-	glBindBuffer(TGF_ARRAY_BUFFER, r->vboV);
 	glBindVertexArray(0);
 	managedMesh.push_back(r);
 	return r;
@@ -251,6 +254,7 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);
+	glDeleteBuffers(2, &r->vboV);
 	delete[] m->vertex;
 	delete[] m->index;
 	delete m;
@@ -461,7 +465,7 @@ void tgf_gles::invalidate() {
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
 		glDeleteVertexArrays(1, &r->vaoId);
-		glDeleteBuffers(1, &r->vboV);
+		glDeleteBuffers(2, &r->vboV);
 	}
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
