@@ -250,7 +250,7 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glBindVertexArray(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
-	glDeleteVertexArrays(1, m->vaoId);
+	glDeleteVertexArrays(1, &m->vaoId);
 	delete m;
 }
 
