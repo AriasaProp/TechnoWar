@@ -19,16 +19,3 @@ texture_core::texture_core(unsigned int i, unsigned int w, unsigned int h, const
 texture_core::~texture_core() {
 	delete[] data;
 }
-//mesh core
-struct mesh_core {
-	unsigned int vaoId;
-	unsigned int vboV, vboI;
-	unsigned int vertex_len, index_len;// based type len, not in byte
-	struct data {
-		float posx, posy, posz;
-		unsigned char r, g, b, a;
-	} *vertex;
-	unsigned short *index;
-};
-
-#endif //Included_OBJ_RES
