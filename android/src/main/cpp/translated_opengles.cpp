@@ -53,7 +53,7 @@ const char *header_glsl =  "#version 300 es\n"
 	"    #define HIGH highp\n"
 	"#else\n"
 	"    #define HIGH mediump\n"
-	"#endif\n";
+	"#endif\n\0";
 shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	shader_core *o = new shader_core;
 	o->id = glCreateProgram();
@@ -91,7 +91,6 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 		managedShader.push_back(o);
 	} catch (char *e) {
 		glDeleteProgram(o->id);
-		o->id = 0;
 		delete o;
 		o = nullptr;
 	}
@@ -170,18 +169,16 @@ void tgf_gles::bind_vertex_array(const unsigned int v) {
 	glBindVertexArray(v);
 }
 void tgf_gles::delete_vertex_array(unsigned int &v) {
-	utemp[0] = v;
-	glDeleteVertexArrays(1, utemp);
-	v = 0;
+	glDeleteVertexArrays(1, &v);
 }
 	
 mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
-	r->vertex = new mesh_core::data[v_len];
 	r->vertex_len = v_len;
+	r->vertex = new mesh_core::data[v_len];
 	memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
-	r->index = new unsigned short[i_len];
 	r->index_len = i_len;
+	r->index = new unsigned short[i_len];
 	memcpy(r->index, i, i_len*sizeof(unsigned short));
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);

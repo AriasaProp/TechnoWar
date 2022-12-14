@@ -105,12 +105,12 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
+	/*
 	tgf->bind_shader(sp);
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
-	
+	*/
 }
 void Main::render(float delta) {
 	if (!tgf) return;
