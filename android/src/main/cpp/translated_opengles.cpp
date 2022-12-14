@@ -296,7 +296,7 @@ void tgf_gles::validate() {
 		flat_draw->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(utemp[0], 1, &("#version 300 es\n"
+		const char *vt = "#version 300 es\n"
 			"#define LOW lowp\n"
 			"#define MED mediump\n"
 			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
@@ -314,9 +314,10 @@ void tgf_gles::validate() {
 			"  v_color = a_color;\n"
 			"  v_texCoord = a_texCoord;\n"
 			"  gl_Position =  u_proj * a_position;\n"
-			"}\n\0"), 0);
+			"}\n\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
-		glShaderSource(utemp[1], 1, &("#version 300 es\n"
+		const char *ft = "#version 300 es\n"
 			"#define LOW lowp\n"
 			"#define MED mediump\n"
 			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
@@ -330,7 +331,8 @@ void tgf_gles::validate() {
 			"in vec2 v_texCoord;\n"
 			"void main(){\n"
 			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"
-			"}\n\0"), 0);
+			"}\n\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
 		glAttachShader(flat_draw->shader, utemp[0]);
 		glAttachShader(flat_draw->shader, utemp[1]);
