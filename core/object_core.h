@@ -14,7 +14,7 @@ struct texture_core {
 	unsigned int id;
 	unsigned int width, height;
 	unsigned char *data;
-	texture_core(unsigned int, unsigned int, unsigned int,const unsigned char*);
+	texture_core(unsigned int, unsigned int, unsigned int, unsigned char*);
 	~texture_core();
 };
 //mesh core
