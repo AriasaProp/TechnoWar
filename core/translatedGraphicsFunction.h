@@ -594,7 +594,7 @@ public:
 	virtual int get_shader_uloc(shader_core*, const char *) = 0;
 	virtual void u_matrix4fv(const int&,const int&, const bool&, const float*) = 0;
 	
-	virtual texture_core *gen_texture(const int&, const int&, const void*) = 0;
+	virtual texture_core *gen_texture(const int&, const int&, const unsigned char*) = 0;
 	virtual void bind_texture(texture_core*) = 0;
 	virtual void set_texture_param(const int&, const int&) = 0;
 	virtual void delete_texture(texture_core*) = 0;

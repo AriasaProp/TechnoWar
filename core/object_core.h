@@ -27,7 +27,6 @@ struct mesh_core {
 		unsigned char r, g, b, a;
 	} *vertex;
 	unsigned short *index;
-	mesh_core(unsigned int id, bid)
 };
 
 #endif //Included_OBJ_Core

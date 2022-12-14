@@ -90,7 +90,7 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	char *ver = new char[strlen(header_glsl)+strlen(v)];
 	strcpy(ver, header_glsl);
 	strcat(ver, v);
-	frag = new char[strlen(header_glsl)+strlen(f)];
+	char *frag = new char[strlen(header_glsl)+strlen(f)];
 	strcpy(frag, header_glsl);
 	strcat(frag, f);
 	shader_core *o = new shader_core(glCreateProgram(), ver, frag);
@@ -149,8 +149,8 @@ void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose
 	glUniformMatrix4fv(loc, count, trnspose, mtrix);
 }
 
-texture_core *tgf_gles::gen_texture(const int &width, const int &height, const void *data) {
-	glGenTextures(1, &utemp);
+texture_core *tgf_gles::gen_texture(const int &width, const int &height, const unsigned char *data) {
+	glGenTextures(1, utemp);
 	texture_core *t = new texture_core(utemp[0], width, height, data);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
   glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
