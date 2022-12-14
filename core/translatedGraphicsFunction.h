@@ -570,35 +570,13 @@
 #define TGF_COVERAGE_BUFFER_BIT_NV 0x8000
 // }
 
+#include "object_core.h"
+
 //maximum 2dbatch render 1000
 #define MAX_TEXTURE_UI 1000
 //maximum output log message in char
 #define MAX_GL_MSG 1024
-
-//shader core
-struct shader_core {
-	int id;
-	const char *v;
-	const char *f;
-};
-//texture core
-struct texture_core {
-	unsigned int id;
-	int width, height;
-	const void *data;
-};
-//mesh core
-struct mesh_core {
-	unsigned int vaoId;
-	unsigned int vboV, vboI;
-	unsigned int vertex_len, index_len;// based type len, not in byte
-	struct data {
-		float posx, posy, posz;
-		unsigned char r, g, b, a;
-	} *vertex;
-	unsigned short *index;
-};
-
+ 
 struct TranslatedGraphicsFunction {
 public:
 	TranslatedGraphicsFunction() {}

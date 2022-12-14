@@ -87,27 +87,26 @@ const char *header_glsl =  "#version 300 es\n"
             "    #define HIGH mediump\n"
             "#endif\n";
 shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
-	shader_core *o = new shader_core;
-	o->id = glCreateProgram();
-	o->v = v;
-	o->f = f;
+	char *ver = new char[strlen(header_glsl)+strlen(v)];
+	strcpy(ver, header_glsl);
+	strcat(ver, v);
+	frag = new char[strlen(header_glsl)+strlen(f)];
+	strcpy(frag, header_glsl);
+	strcat(frag, f);
+	shader_core *o = new shader_core(glCreateProgram(), ver, frag);
+	delete[] ver;
+	delete[] frag;
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
-		char *vSrc = (char*)alloca(strlen(header_glsl)+strlen(v));
-		strcpy(vSrc, header_glsl);
-		strcat(vSrc, v);
-		glShaderSource(utemp[0], 1, &vSrc, 0);
+		glShaderSource(utemp[0], 1, &o->v, 0);
 		glCompileShader(utemp[0]);
 		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0) {
 			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
 			throw(msg);
 		}
-		char *fSrc = (char *)alloca(strlen(header_glsl)+strlen(f));
-		strcpy(fSrc, header_glsl);
-		strcat(fSrc, f);
-		glShaderSource(utemp[1], 1, &fSrc, 0);
+		glShaderSource(utemp[1], 1, &o->f, 0);
 		glCompileShader(utemp[1]);
 		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0){
@@ -151,11 +150,8 @@ void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose
 }
 
 texture_core *tgf_gles::gen_texture(const int &width, const int &height, const void *data) {
-	texture_core *t = new texture_core;
-	glGenTextures(1, &t->id);
-	t->width = width;
-	t->height = height;
-	t->data = data;
+	glGenTextures(1, &utemp);
+	texture_core *t = new texture_core(utemp[0], width, height, data);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
   glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
@@ -381,6 +377,7 @@ void tgf_gles::validate() {
 	glBindVertexArray(0);
 	//}
 	
+	
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glEnable((*i));
@@ -391,15 +388,9 @@ void tgf_gles::validate() {
 		(*i)->id = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		char *vSrc = (char*)alloca(strlen(header_glsl)+strlen((*i)->v));
-		strcpy(vSrc, header_glsl);
-		strcat(vSrc, (*i)->v);
-		glShaderSource(utemp[0], 1, &vSrc, 0);
+		glShaderSource(utemp[0], 1, &(*i)->v, 0);
 		glCompileShader(utemp[0]);
-		char *fSrc = (char *)alloca(strlen(header_glsl)+strlen((*i)->f));
-		strcpy(fSrc, header_glsl);
-		strcat(fSrc, (*i)->f);
-		glShaderSource(utemp[1], 1, &fSrc, 0);
+		glShaderSource(utemp[1], 1, &(*i)->f, 0);
 		glCompileShader(utemp[1]);
 		glAttachShader((*i)->id, utemp[0]);
 		glAttachShader((*i)->id, utemp[1]);
@@ -443,8 +434,7 @@ void tgf_gles::invalidate() {
 	if (!valid) return;
 	//invalidating gles resources
 	
-	//2d_batch
-	// {
+	//2d_batch {
 	glDeleteProgram(btch->shaderId);
 	glDeleteVertexArrays(1, &btch->vaoId);
 	glDeleteBuffers(2, &btch->vertId);
