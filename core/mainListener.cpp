@@ -158,6 +158,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
+	
 	worldview_proj[0] = 2.0f/width;
 	worldview_proj[5] = 2.0f/height;
 	tgf->bind_shader(sp);
