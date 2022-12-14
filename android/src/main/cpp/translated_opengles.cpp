@@ -296,42 +296,40 @@ void tgf_gles::validate() {
 		flat_draw->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(utemp[0], 1, &(
-			"#version 300 es\n"/
-			"#define LOW lowp\n"/
-			"#define MED mediump\n"/
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"/
-			"    #define HIGH highp\n"/
-			"#else\n"/
-			"    #define HIGH mediump\n"/
-			"#endif\n"/
-			"layout(location = 0) in vec4 a_position;\n"/
-			"layout(location = 1) in vec4 a_color;\n"/
-			"layout(location = 2) in vec2 a_texCoord;\n"/
-			"uniform mat4 u_proj;\n"/
-			"out vec4 v_color;\n"/
-			"out vec2 v_texCoord;\n"/
-			"void main() {\n"/
-			"  v_color = a_color;\n"/
-			"  v_texCoord = a_texCoord;\n"/
-			"  gl_Position =  u_proj * a_position;\n"/
+		glShaderSource(utemp[0], 1, &("#version 300 es\n"
+			"#define LOW lowp\n"
+			"#define MED mediump\n"
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+			"    #define HIGH highp\n"
+			"#else\n"
+			"    #define HIGH mediump\n"
+			"#endif\n"
+			"layout(location = 0) in vec4 a_position;\n"
+			"layout(location = 1) in vec4 a_color;\n"
+			"layout(location = 2) in vec2 a_texCoord;\n"
+			"uniform mat4 u_proj;\n"
+			"out vec4 v_color;\n"
+			"out vec2 v_texCoord;\n"
+			"void main() {\n"
+			"  v_color = a_color;\n"
+			"  v_texCoord = a_texCoord;\n"
+			"  gl_Position =  u_proj * a_position;\n"
 			"}\n\0"), 0);
 		glCompileShader(utemp[0]);
-		glShaderSource(utemp[1], 1, &(
-			"#version 300 es\n"/
-			"#define LOW lowp\n"/
-			"#define MED mediump\n"/
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"/
-			"  #define HIGH highp\n"/
-			"#else\n"/
-			"  #define HIGH mediump\n"/
-			"#endif\n"/
-			"layout(location = 0) out vec4 gl_FragColor;\n"/
-			"uniform sampler2D u_texture;\n"/
-			"in vec4 v_color;\n"/
-			"in vec2 v_texCoord;\n"/
-			"void main(){\n"/
-			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"/
+		glShaderSource(utemp[1], 1, &("#version 300 es\n"
+			"#define LOW lowp\n"
+			"#define MED mediump\n"
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+			"  #define HIGH highp\n"
+			"#else\n"
+			"  #define HIGH mediump\n"
+			"#endif\n"
+			"layout(location = 0) out vec4 gl_FragColor;\n"
+			"uniform sampler2D u_texture;\n"
+			"in vec4 v_color;\n"
+			"in vec2 v_texCoord;\n"
+			"void main(){\n"
+			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"
 			"}\n\0"), 0);
 		glCompileShader(utemp[1]);
 		glAttachShader(flat_draw->shader, utemp[0]);
