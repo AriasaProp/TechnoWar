@@ -43,10 +43,11 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		"\n    glFragColor = v_color;"
 		"\n}\0";
 	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
-	tgf->bind_shader(sp);
 	sp_worldview_matrix = tgf->get_shader_uloc(sp, "worldview_proj");
 	sp_trans_matrix = tgf->get_shader_uloc(sp, "trans_proj");
+	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
+	tgf->bind_shader(0);
 	// }
 	// create mesh {
 	mesh_core::data vert[24] = {
@@ -105,28 +106,28 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	/*
-	tgf->bind_shader(sp);
+	
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
+	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
-	*/
+	
 }
 void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
-	/*
-	tgf->bind_shader(sp);
+	
 	srand(time(NULL));
 	matrix4::rotate(trans_proj,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
+	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
-	*/
+	
 }
 void Main::pause() {
 	if (!tgf) return;
