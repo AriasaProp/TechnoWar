@@ -16,6 +16,8 @@ public:
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
+	void flat_draw() override;
+	
 	shader_core *gen_shader(const char*, const char*) override;
 	void bind_shader(shader_core*) override;
 	void delete_shader(shader_core*) override;

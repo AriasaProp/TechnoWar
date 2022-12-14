@@ -130,6 +130,7 @@ void Main::render(float delta) {
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
 	
+	tgf->flat_draw();
 }
 void Main::pause() {
 	if (!tgf) return;

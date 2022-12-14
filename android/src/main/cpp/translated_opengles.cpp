@@ -58,6 +58,25 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
+void tgf_gles::flat_draw() {
+	glBindVertexArray(flat_draw->vao);
+	const unsigned int stride = 4 * sizeof(float) + 4 * sizeof(unsigned char);
+	glBindBuffer(TGF_ARRAY_BUFFER, flat_draw->vbov); 
+	struct dtra{
+		float x, y;
+		unsigned char r,g,b,a;
+		float u,v;
+	};
+	dtra tmp[4]={
+		{0.01f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
+		{0.01f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
+		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
+		{0.51f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+	};
+	glBufferSubData(TGF_ARRAY_BUFFER, 0,  sizeof(tmp), (void*)tmp);
+	glDrawElements(TGF_TRIANGLES, 6, TGF_UNSIGNED_SHORT, (void*)0);
+	glBindVertexArray(0);
+}
 const char *header_glsl =  "#version 300 es\n"
 	"#define LOW lowp\n"
 	"#define MED mediump\n"
