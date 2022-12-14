@@ -28,7 +28,8 @@ struct flat_draw_class {
 	unsigned int texRes;
 	unsigned int vao;
 	unsigned int vbov, vboi;
-} *flat_draw;
+};
+static flat_draw_class *flat_draw;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
