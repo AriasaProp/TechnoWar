@@ -30,7 +30,7 @@ public:
 	void buffer_data(unsigned int, long, const void*, unsigned int) override;
 	void delete_buffer(unsigned int&) override;
 
-	texture_core *gen_texture(const int&, const int&, const unsigned char*) override;
+	texture_core *gen_texture(const int&, const int&, unsigned char*) override;
 	void bind_texture(texture_core *) override;
 	void set_texture_param(const int&, const int&) override;
 	void delete_texture(texture_core *) override;

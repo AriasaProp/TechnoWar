@@ -149,7 +149,7 @@ void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose
 	glUniformMatrix4fv(loc, count, trnspose, mtrix);
 }
 
-texture_core *tgf_gles::gen_texture(const int &width, const int &height, const unsigned char *data) {
+texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigned char *data) {
 	glGenTextures(1, utemp);
 	texture_core *t = new texture_core(utemp[0], width, height, data);
 	glBindTexture(TGF_TEXTURE_2D, t->id);
