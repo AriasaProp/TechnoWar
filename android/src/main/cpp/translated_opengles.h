@@ -16,9 +16,6 @@ public:
 	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
-	void update_2d_batch_projection(float *) override;
-	void draw_2d_batch_vertices(texture_core*, void*, const unsigned int) override;
-
 	shader_core *gen_shader(const char*, const char*) override;
 	void bind_shader(shader_core*) override;
 	void delete_shader(shader_core*) override;

@@ -1,16 +1,13 @@
 #include "mainListener.h"
+
 #include "math/matrix4.h"
-#include "2dbatch/uibatch.h"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
 TranslatedGraphicsFunction *tgf;
-/*
-UI_Batch *batcher;
-texture_core *tc_1;
-*/
+
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
 
@@ -104,16 +101,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
 	//}
 	
-	/*
-	batcher = new UI_Batch(width,height);
-	unsigned char tc_data[16] {
-		0xff,0x00,0x00,0xff, 
-		0x00,0xff,0x00,0xff, 
-		0x00,0x00,0xff,0xff, 
-		0xff,0xff,0xff,0xff
-	};
-	tc_1 = tgf->gen_texture(2, 2, tc_data);
-	*/
 	tgf->switch_capability(TGF_DEPTH_TEST, true);
 	tgf->switch_capability(TGF_CULL_FACE, true);
 	tgf->cull_face(TGF_FRONT);
@@ -133,7 +120,6 @@ void Main::resize(unsigned int w, unsigned int h) {
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
 	
-	//batcher->resize(width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
@@ -149,11 +135,6 @@ void Main::render(float delta) {
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
-	/*
-	batcher->begin();
-	batcher->draw(tc_1, 0, 0, 800.0f, 400.0f);
-	batcher->end();
-	*/
 }
 void Main::pause() {
 	if (!tgf) return;
@@ -164,8 +145,4 @@ void Main::destroy() {
 	tgf->delete_shader(sp);
 	tgf->delete_mesh(mp);
 	
-	/*
-	tgf->delete_texture(tc_1);
-	delete batcher;
-	*/
 }

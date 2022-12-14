@@ -570,7 +570,29 @@
 #define TGF_COVERAGE_BUFFER_BIT_NV 0x8000
 // }
 
-#include "object_core.h"
+//shader core
+struct shader_core {
+	int id;
+	char *v;
+	char *f;
+};
+//texture core
+struct texture_core {
+	unsigned int id;
+	unsigned int width, height;
+	unsigned char *data;
+};
+//mesh core
+struct mesh_core {
+	unsigned int vaoId;
+	unsigned int vboV, vboI;
+	unsigned int vertex_len, index_len;// based type len, not in byte
+	struct data {
+		float posx, posy, posz;
+		unsigned char r, g, b, a;
+	} *vertex;
+	unsigned short *index;
+};
 
 //maximum 2dbatch render 1000
 #define MAX_TEXTURE_UI 1000
@@ -584,9 +606,6 @@ public:
 	virtual const char *renderer() = 0;
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
-
-	virtual void update_2d_batch_projection(float *) = 0;
-	virtual void draw_2d_batch_vertices(texture_core*, void*, const unsigned int) = 0;
 
 	virtual shader_core *gen_shader(const char *, const char *) = 0;
 	virtual void bind_shader(shader_core*) = 0;

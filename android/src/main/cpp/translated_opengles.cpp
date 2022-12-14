@@ -15,18 +15,6 @@
 #include <GLES3/gl3.h>
 #endif
 
-
-//for 2d User Interface
-struct batch_core {
-	int shaderId;
-	unsigned int vaoId;
-	unsigned int vertId,indId;
-	int u_projId;
-	int u_texId;
-};
-
-static batch_core *btch;
-
 std::vector<unsigned int> capabilities;
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
@@ -36,7 +24,6 @@ tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
-	btch = new batch_core;
 	validate();
 }
 tgf_gles::~tgf_gles() {
@@ -48,7 +35,6 @@ tgf_gles::~tgf_gles() {
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
-	delete btch;
 }
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
@@ -59,24 +45,6 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 }
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
-}
-void tgf_gles::update_2d_batch_projection(float *proj) {
-	glUseProgram(btch->shaderId);
-	glUniformMatrix4fv(btch->u_projId, 1, false, proj);
-	glUseProgram(0);
-}
-void tgf_gles::draw_2d_batch_vertices(texture_core *t, void *vertices, const unsigned int count) {
-	glUseProgram(btch->shaderId);
-	glBindTexture(TGF_TEXTURE_2D, t->id);
-	glUniform1i(btch->u_texId, 0);
-	glBindVertexArray(btch->vaoId);
-	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	glBufferSubData(TGF_ARRAY_BUFFER, 0, count*20*sizeof(float), vertices);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
-	glDrawElements(TGF_TRIANGLES, count*6, TGF_UNSIGNED_SHORT, 0);
-	glBindVertexArray(0);
-	glBindTexture(TGF_TEXTURE_2D, 0);
-	glUseProgram(0);
 }
 const char *header_glsl =  "#version 300 es\n"
     				"#define LOW lowp\n"
@@ -332,52 +300,6 @@ void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
 	
-	//2d batch {
-	//shader
-	btch->shaderId = glCreateProgram();
-	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(utemp[0], 1, &v_batch, 0);
-	glCompileShader(utemp[0]);
-	glShaderSource(utemp[1], 1, &f_batch, 0);
-	glCompileShader(utemp[1]);
-	glAttachShader(btch->shaderId, utemp[0]);
-	glAttachShader(btch->shaderId, utemp[1]);
-	glLinkProgram(btch->shaderId);
-	glDeleteShader(utemp[0]);
-	glDeleteShader(utemp[1]);
-	btch->u_projId = glGetUniformLocation(btch->shaderId, "u_projTrans");
-	btch->u_texId = glGetUniformLocation(btch->shaderId, "u_texture");
-	//vao
-	glGenVertexArrays(1, &btch->vaoId);
-	glGenBuffers(2, &btch->vertId);//and next
-	glBindVertexArray(btch->vaoId);
-	glBindBuffer(TGF_ARRAY_BUFFER, btch->vertId);
-	glBufferData(TGF_ARRAY_BUFFER, MAX_TEXTURE_UI*20 * sizeof(float), 0, TGF_DYNAMIC_DRAW);
-	glBufferSubData(TGF_ARRAY_BUFFER, 0, MAX_TEXTURE_UI*20 * sizeof(float), 0);
-	glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, btch->indId);
-	unsigned short *indices = new unsigned short[MAX_TEXTURE_UI * 6 * sizeof(unsigned short)];
-	for (unsigned short i = 0, j = 0, k = 0; i < MAX_TEXTURE_UI; i++, j += 4, k += 6) {
-    *(indices+k)  = j++;
-    *(indices+k+1) = *(indices+k+3) = j++;
-    *(indices+k+4) = j++;
-    *(indices+k+2) = *(indices+k+5) = j++;
-	}
-	glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_TEXTURE_UI * 6 * sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
-	//delete[] indices;
-	{
-		const unsigned int stride = 4*sizeof(float)+4*sizeof(unsigned char);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, TGF_FLOAT, true, stride, (void*)(stride-(2*sizeof(float))));
-	}
-	glBindVertexArray(0);
-	//}
-	
-	
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glEnable((*i));
@@ -433,13 +355,7 @@ void tgf_gles::validate() {
 void tgf_gles::invalidate() {
 	if (!valid) return;
 	//invalidating gles resources
-	
-	//2d_batch {
-	glDeleteProgram(btch->shaderId);
-	glDeleteVertexArrays(1, &btch->vaoId);
-	glDeleteBuffers(2, &btch->vertId);
-	// }
-	
+		
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glDisable((*i));
