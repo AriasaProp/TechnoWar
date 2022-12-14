@@ -20,10 +20,19 @@ std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
 std::vector<mesh_core*> managedMesh;
 
+struct flat_draw_class {
+	int shader;
+	int u_proj, u_tex;
+	unsigned int texRes;
+	unsigned int vao;
+	unsigned int vbov, vboi;
+} *flat_draw;
+
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
+	flat_draw = new flat_draw_class;
 	validate();
 }
 tgf_gles::~tgf_gles() {
@@ -32,6 +41,7 @@ tgf_gles::~tgf_gles() {
 	managedTexture.clear();
 	managedShader.clear();
 	managedMesh.clear();
+	delete flat_draw;
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
@@ -267,6 +277,102 @@ void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
 	
+	//flat draw
+	{
+		//texture
+		glGenTextures(1, &flat_draw->texRes);
+		unsigned char texRrs_data[16] = {
+			0x0f,0x02,0x0f,0xff, 
+			0xff,0x02,0xff,0xff, 
+			0x0f,0x02,0x0f,0xff, 
+			0xff,0xf2,0x00,0xff
+		};
+		glBindTexture(TGF_TEXTURE_2D, flat_draw->texRes);
+	  glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, 2, 2, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)texRrs_data);
+	  //shader 
+		flat_draw->shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(utemp[0], 1, &{
+			"#version 300 es\n"/
+			"#define LOW lowp\n"/
+			"#define MED mediump\n"/
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"/
+			"    #define HIGH highp\n"/
+			"#else\n"/
+			"    #define HIGH mediump\n"/
+			"#endif\n"/
+			"layout(location = 0) in vec4 a_position;\n"/
+			"layout(location = 1) in vec4 a_color;\n"/
+			"layout(location = 2) in vec2 a_texCoord;\n"/
+			"uniform mat4 u_proj;\n"/
+			"out vec4 v_color;\n"/
+			"out vec2 v_texCoord;\n"/
+			"void main() {\n"/
+			"  v_color = a_color;\n"/
+			"  v_texCoord = a_texCoord;\n"/
+			"  gl_Position =  u_proj * a_position;\n"/
+			"}\n\0"}, 0);
+		glCompileShader(utemp[0]);
+		glShaderSource(utemp[1], 1, &{
+			"#version 300 es\n"/
+			"#define LOW lowp\n"/
+			"#define MED mediump\n"/
+			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"/
+			"  #define HIGH highp\n"/
+			"#else\n"/
+			"  #define HIGH mediump\n"/
+			"#endif\n"/
+			"layout(location = 0) out vec4 gl_FragColor;\n"/
+			"uniform sampler2D u_texture;\n"/
+			"in vec4 v_color;\n"/
+			"in vec2 v_texCoord;\n"/
+			"void main(){\n"/
+			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"/
+			"}\n\0"}, 0);
+		glCompileShader(utemp[1]);
+		glAttachShader(flat_draw->shader, utemp[0]);
+		glAttachShader(flat_draw->shader, utemp[1]);
+		glLinkProgram(flat_draw->shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		flat_draw->u_proj = glGetUniformLocation(flat_draw->shader, "u_proj");
+		flat_draw->u_tex = glGetUniformLocation(flat_draw->shader, "u_texture");
+		glUseProgram(flat_draw->shader);
+		float tmpMat[16];
+		matrix4::idt(tmpMat);
+		glUniformMatrix4fv(flat_draw->u_proj, 1, false, tmpMat);
+		glUniformi1(flat_draw->u_tex, 0);
+		glUseProgram(0);
+		glBindTexture(TGF_TEXTURE_2D, 0);
+		//mesh
+		glGenVertexArrays(1, &flat_draw->vao);
+		glGenBuffers(2, &flat_draw->vbov);
+		glBindVertexArray(flat_draw->vao);
+		const unsigned int stride = 4 * sizeof(float) + 4 * sizeof(unsigned char);
+		glBindBuffer(TGF_ARRAY_BUFFER, flat_draw->vbov); 
+		glBufferData(TGF_ARRAY_BUFFER, MAX_FLAT_DRAW*4*stride, (void*)0, TGF_DYNAMIC_DRAW);
+		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, flat_draw->vboi);
+		unsigned short indices[MAX_FLAT_DRAW*6];
+		for (unsigned short i = 0, j = 0, k = 0; k < MAX_FLAT_DRAW; i += 6, j += 4, k++) {
+      indices[i] = j;
+      indices[i + 1] = (j + 1);
+      indices[i + 2] = (j + 2);
+      indices[i + 3] = (j + 2);
+      indices[i + 4] = (j + 3);
+      indices[i + 5] = j;
+    }
+		glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_FLAT_DRAW*6*sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, TGF_UNSIGNED_BYTE, true, stride, (void*)(stride-2*sizeof(float)));
+		glBindVertexArray(0);
+	}
+	
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
 		glEnable(*i);
@@ -317,6 +423,14 @@ void tgf_gles::validate() {
 void tgf_gles::invalidate() {
 	if (!valid) return;
 	//invalidating gles resources
+	
+	//flat draw
+	{
+		glDeleteVertexArrays(1, &flat_draw->vao);
+		glDeleteBuffers(2, &flat_draw->vbov);
+		glDeleteProgram(flat_draw->shader);
+		glDeleteTextures(1, &flat_draw->texRes);
+	}
 		
 	//capabilities
 	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
