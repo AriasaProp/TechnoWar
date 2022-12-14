@@ -12,9 +12,9 @@ shader_core::~shader_core() {
 	delete[] v;
 	delete[] f;
 }
-texture_core::texture_core(unsigned int i, unsigned int w, unsigned int h, const unsigned char *d): id(i), width(w), height(h) {
-	data = new unsigned char[strlen(d)];
-	strcpy(data, d);
+texture_core::texture_core(unsigned int i, unsigned int w, unsigned int h, unsigned char *d): id(i), width(w), height(h) {
+	data = new unsigned char[w*h];
+	memcpy(data, d, sizeof(data));
 }
 texture_core::~texture_core() {
 	delete[] data;
