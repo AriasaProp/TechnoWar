@@ -47,23 +47,22 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 	glViewport(x, y, w, h);
 }
 const char *header_glsl =  "#version 300 es\n"
-    				"#define LOW lowp\n"
-    				"#define MED mediump\n"
-            "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-            "    #define HIGH highp\n"
-            "#else\n"
-            "    #define HIGH mediump\n"
-            "#endif\n";
+	"#define LOW lowp\n"
+	"#define MED mediump\n"
+	"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+	"    #define HIGH highp\n"
+	"#else\n"
+	"    #define HIGH mediump\n"
+	"#endif\n";
 shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
-	char *ver = new char[strlen(header_glsl)+strlen(v)];
-	strcpy(ver, header_glsl);
-	strcat(ver, v);
-	char *frag = new char[strlen(header_glsl)+strlen(f)];
-	strcpy(frag, header_glsl);
-	strcat(frag, f);
-	shader_core *o = new shader_core(glCreateProgram(), ver, frag);
-	delete[] ver;
-	delete[] frag;
+	shader_core *o = new shader_core;
+	o->id = glCreateProgram();
+	o->v = new char[strlen(header_glsl)+strlen(v)];
+	strcpy(o->v, header_glsl);
+	strcat(o->v, v);
+	o->f = new char[strlen(header_glsl)+strlen(f)];
+	strcpy(o->f, header_glsl);
+	strcat(o->f, f);
 	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 	try {
@@ -118,8 +117,11 @@ void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose
 }
 
 texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigned char *data) {
-	glGenTextures(1, utemp);
-	texture_core *t = new texture_core(utemp[0], width, height, data);
+	texture_core *t = new texture_core;
+	glGenTextures(1, &t->id);
+	t->width = width;
+	t->height = height;
+	memcpy(t->data, data, width*height*sizeof(unsigned char));
 	glBindTexture(TGF_TEXTURE_2D, t->id);
   glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, width, height, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)data);
@@ -261,41 +263,6 @@ void tgf_gles::depth_mask(const bool m) {
 	switch_capability(TGF_DEPTH_TEST, true);
 	glDepthMask(m);
 }
-
-const char *v_batch = {"#version 300 es\n"\
-		"#define LOW lowp\n"\
-		"#define MED mediump\n"\
-		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
-		"  #define HIGH highp\n"\
-		"#else\n"\
-		"  #define HIGH mediump\n"\
-		"#endif\n"\
-		"layout(location = 0) in vec4 a_position;\n"\
-		"layout(location = 1) in vec4 a_color;\n"\
-		"layout(location = 2) in vec2 a_texCoord;\n"\
-		"uniform mat4 u_projTrans;\n"\
-		"out vec4 v_color;\n"\
-		"out vec2 v_texCoord;\n"\
-		"void main() {\n"\
-		"  v_color = a_color;\n"\
-		"  v_texCoord = a_texCoord;\n"\
-		"  gl_Position = u_projTrans * a_position;\n"\
-		"}\n\0"};
-const char *f_batch = {"#version 300 es\n"\
-		"#define LOW lowp\n"\
-		"#define MED mediump\n"\
-		"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"\
-		"	#define HIGH highp\n"\
-		"#else\n"\
-		"	#define HIGH mediump\n"\
-		"#endif\n"\
-		"layout(location = 0) out vec4 gl_FragColor;\n"\
-		"uniform sampler2D u_texture;\n"\
-		"in vec4 v_color;\n"\
-		"in vec2 v_texCoord;\n"\
-		"void main() {\n"\
-		"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"\
-		"}\n\0"};
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
