@@ -15,6 +15,8 @@
 #include <GLES3/gl3.h>
 #endif
 
+#define MAX_FLAT_DRAW 500
+
 std::vector<unsigned int> capabilities;
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
@@ -294,7 +296,7 @@ void tgf_gles::validate() {
 		flat_draw->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(utemp[0], 1, &{
+		glShaderSource(utemp[0], 1, &(
 			"#version 300 es\n"/
 			"#define LOW lowp\n"/
 			"#define MED mediump\n"/
@@ -313,9 +315,9 @@ void tgf_gles::validate() {
 			"  v_color = a_color;\n"/
 			"  v_texCoord = a_texCoord;\n"/
 			"  gl_Position =  u_proj * a_position;\n"/
-			"}\n\0"}, 0);
+			"}\n\0"), 0);
 		glCompileShader(utemp[0]);
-		glShaderSource(utemp[1], 1, &{
+		glShaderSource(utemp[1], 1, &(
 			"#version 300 es\n"/
 			"#define LOW lowp\n"/
 			"#define MED mediump\n"/
@@ -330,7 +332,7 @@ void tgf_gles::validate() {
 			"in vec2 v_texCoord;\n"/
 			"void main(){\n"/
 			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"/
-			"}\n\0"}, 0);
+			"}\n\0"), 0);
 		glCompileShader(utemp[1]);
 		glAttachShader(flat_draw->shader, utemp[0]);
 		glAttachShader(flat_draw->shader, utemp[1]);
@@ -340,10 +342,9 @@ void tgf_gles::validate() {
 		flat_draw->u_proj = glGetUniformLocation(flat_draw->shader, "u_proj");
 		flat_draw->u_tex = glGetUniformLocation(flat_draw->shader, "u_texture");
 		glUseProgram(flat_draw->shader);
-		float tmpMat[16];
-		matrix4::idt(tmpMat);
+		float tmpMat[16] = {1, 0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
 		glUniformMatrix4fv(flat_draw->u_proj, 1, false, tmpMat);
-		glUniformi1(flat_draw->u_tex, 0);
+		glUniform1i(flat_draw->u_tex, 0);
 		glUseProgram(0);
 		glBindTexture(TGF_TEXTURE_2D, 0);
 		//mesh
