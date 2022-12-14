@@ -7,10 +7,11 @@
 #include <time.h>       /* time */
 
 TranslatedGraphicsFunction *tgf;
-//UI_Batch *batcher;
+UI_Batch *batcher;
 texture_core *tc_1;
 unsigned int width, height;
 float r = 0, g = 0, b = 0;
+/*
 shader_core *sp;
 mesh_core *mp;
 int sp_worldview_matrix, sp_trans_matrix;
@@ -26,13 +27,14 @@ float trans_proj[16] = {
 	0,0,1.0f,0,
 	0,0,0,1.0f
 };
-
+*/
 void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
 	tgf = _tgf;
 	width = w, height = h;
 	if (!tgf) return;
 	r = g = b = 1;
 	tgf->viewport(0, 0, width, height);
+	/*
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	// create shader program {
 	const char *vShaderSrc = "uniform mat4 worldview_proj;"
@@ -101,7 +103,8 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	delete[] vert;
 	delete[] indices;
 	//}
-	//batcher = new UI_Batch(width,height);
+	*/
+	batcher = new UI_Batch(width,height);
 	unsigned char tc_data[16] {
 		0xff,0x00,0x00,0xff, 
 		0x00,0xff,0x00,0xff, 
@@ -122,39 +125,43 @@ void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
+	/*
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
-	
-	//batcher->resize(width, height);
+	*/
+	batcher->resize(width, height);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
+	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
+	/*
+	tgf->bind_shader(sp);
 	srand(time(NULL));
 	matrix4::rotate(trans_proj,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
-	
-	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
-	//batcher->begin();
-	//batcher->draw(tc_1, 0, 0, 800.0f, 400.0f);
-	//batcher->end();
+	*/
+	batcher->begin();
+	batcher->draw(tc_1, 0, 0, 800.0f, 400.0f);
+	batcher->end();
 }
 void Main::pause() {
 	if (!tgf) return;
 }
 void Main::destroy() {
 	if (!tgf) return;
+	/*
 	tgf->delete_shader(sp);
 	tgf->delete_mesh(mp);
+	*/
 	tgf->delete_texture(tc_1);
-	//delete tc_data;
-	//delete batcher;
+	delete tc_data;
+	delete batcher;
 }
