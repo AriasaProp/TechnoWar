@@ -53,7 +53,7 @@ const char *header_glsl =  "#version 300 es\n"
 	"    #define HIGH highp\n"
 	"#else\n"
 	"    #define HIGH mediump\n"
-	"#endif\n\0";
+	"#endif\n";
 shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	shader_core *o = new shader_core;
 	o->id = glCreateProgram();
@@ -99,7 +99,7 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p->id);
+	glUseProgram(p?p->id:0);
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
