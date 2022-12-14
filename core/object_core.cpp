@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-shader_core::shader_core(int i,const char *, const char*): id(i) {
+shader_core::shader_core(int i,const char *V, const char *F): id(i) {
 	v = new char[strlen(V)];
 	strcpy(v, V);
 	f = new char[strlen(F)];
