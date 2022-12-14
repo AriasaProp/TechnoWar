@@ -14,18 +14,8 @@ float r = 0, g = 0, b = 0;
 shader_core *sp;
 mesh_core *mp;
 int sp_worldview_matrix, sp_trans_matrix;
-float worldview_proj[16] = {
-	1.0f,0,0,0,
-	0,1.0f,0,0,
-	0,0,1.0f,0,
-	0,0,0.f,1.0f
-};
-float trans_proj[16] = {
-	1.0f,0,0,0,
-	0,1.0f,0,0,
-	0,0,1.0f,0,
-	0,0,0,1.0f
-};
+float worldview_proj[16];
+float trans_proj[16];
 
 void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
 	tgf = _tgf;
@@ -35,6 +25,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->viewport(0, 0, width, height);
 	
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
+	matrix4::idt(trans_proj);
 	// create shader program {
 	const char *vShaderSrc = "uniform mat4 worldview_proj;"
 		"\nuniform mat4 trans_proj;"
@@ -44,8 +35,8 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		"\nvoid main() {"
 		"\n    v_color = a_color;"
 		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-		"\n}\0", 
-	*fShaderSrc = "precision MED float;"
+		"\n}\0";
+	const char *fShaderSrc = "precision MED float;"
 		"\nin vec4 v_color;"
 		"\nlayout(location = 0) out vec4 glFragColor;"
 		"\nvoid main() {"
@@ -58,7 +49,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	// }
 	// create mesh {
-	mesh_core::data vert[24] {
+	const mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -90,7 +81,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		{ +350.0f, -350.0f, +350.0f, 0x00, 0x00, 0xff, 0xff }, 
 		{ +350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff }
 	};
-	unsigned short indices[36] {
+	const unsigned short indices[36] = {
 		0,1,3,1,2,3,//front
 		4,5,7,5,6,7,//left
 		8,9,11,9,10,11,//right
@@ -100,7 +91,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
 	//}
-	
 	tgf->switch_capability(TGF_DEPTH_TEST, true);
 	tgf->switch_capability(TGF_CULL_FACE, true);
 	tgf->cull_face(TGF_FRONT);
@@ -108,7 +98,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 }
 void Main::resume() {
 	if (!tgf) return;
-	r = 0, g = b = 1;
+	r = 0, g = 1, b = 0;
 }
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
@@ -141,8 +131,6 @@ void Main::pause() {
 }
 void Main::destroy() {
 	if (!tgf) return;
-	
 	tgf->delete_shader(sp);
 	tgf->delete_mesh(mp);
-	
 }
