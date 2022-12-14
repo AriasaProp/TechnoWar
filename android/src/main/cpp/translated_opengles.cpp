@@ -136,9 +136,6 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 void tgf_gles::bind_shader(shader_core *p) {
 	glUseProgram(p->id);
 }
-void tgf_gles::unbind_shader() {
-	glUseProgram(0);
-}
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);
 	std::vector<shader_core*>::iterator it = std::find(managedShader.begin(), managedShader.end(), p);
@@ -254,7 +251,7 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);
-	glDeleteBuffers(2, &r->vboV);
+	glDeleteBuffers(2, &m->vboV);
 	delete[] m->vertex;
 	delete[] m->index;
 	delete m;
