@@ -162,6 +162,5 @@ void Main::destroy() {
 	tgf->delete_mesh(mp);
 	*/
 	tgf->delete_texture(tc_1);
-	delete tc_data;
 	delete batcher;
 }
