@@ -59,7 +59,7 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
-void tgf_gles::ui_draw() {
+void tgf_gles::ui_draw_funct() {
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	struct dtra{

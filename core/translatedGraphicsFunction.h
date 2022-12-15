@@ -607,7 +607,8 @@ public:
 	virtual void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
-	virtual void flat_draw() = 0;
+	virtual void ui_draw_funct() = 0;
+	
 	virtual shader_core *gen_shader(const char *, const char *) = 0;
 	virtual void bind_shader(shader_core*) = 0;
 	virtual void delete_shader(shader_core*) = 0;
