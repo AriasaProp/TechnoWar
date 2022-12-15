@@ -1,4 +1,5 @@
-#include <jni.h>
+#include "native_app.h"
+
 #include <initializer_list>
 #include <memory>
 #include <cstdlib>
@@ -9,7 +10,6 @@
 #include <EGL/egl.h>
 
 #include <android/sensor.h>
-#include <android_native_app_glue.h>
 
 #include "log.h"
 #include "translated_opengles.h"
@@ -266,11 +266,10 @@ void android_main(android_app* app) {
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
-    int ident;
     int events;
+  	android_poll_source* source;
     while (!app->destroyRequested) {
-    	android_poll_source* source;
-      if ((ident=ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source)) >= 0) {
+      if (ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source) >= 0) {
         if (source) source->process(app, source);
       } else {
       	engine_draw(app, &eng);

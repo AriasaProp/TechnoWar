@@ -32,76 +32,66 @@ int8_t android_app_read_cmd(android_app *app) {
     return -1;
 }
 void android_app_pre_exec_cmd(android_app *app, int8_t cmd) {
-    switch (cmd) {
-        case APP_CMD_INPUT_CHANGED:
-            LOGI("APP_CMD_INPUT_CHANGED\n");
-            pthread_mutex_lock(&app->mutex);
-            if (app->inputQueue != NULL) {
-                AInputQueue_detachLooper(app->inputQueue);
-            }
-            app->inputQueue = app->pendingInputQueue;
-            if (app->inputQueue != NULL) {
-                LOGI("Attaching input queue to looper");
-                AInputQueue_attachLooper(app->inputQueue,
-                        app->looper, LOOPER_ID_INPUT, NULL,
-                        &app->inputPollSource);
-            }
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_INIT_WINDOW:
-            LOGI("APP_CMD_INIT_WINDOW\n");
-            pthread_mutex_lock(&app->mutex);
-            app->window = app->pendingWindow;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_TERM_WINDOW:
-            pthread_mutex_lock(&app->mutex);
-            app->window = NULL;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_RESUME:
-        case APP_CMD_START:
-        case APP_CMD_PAUSE:
-        case APP_CMD_STOP:
-            LOGI("activityState=%d\n", cmd);
-            pthread_mutex_lock(&app->mutex);
-            app->activityState = cmd;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_CONFIG_CHANGED:
-            LOGI("APP_CMD_CONFIG_CHANGED\n");
-            AConfiguration_fromAssetManager(app->config,app->activity->assetManager);
-            break;
-        case APP_CMD_DESTROY:
-            LOGI("APP_CMD_DESTROY\n");
-            app->destroyRequested = 1;
-            break;
-    }
+  switch (cmd) {
+    case APP_CMD_INPUT_CHANGED:
+      pthread_mutex_lock(&app->mutex);
+      if (app->inputQueue != NULL) {
+          AInputQueue_detachLooper(app->inputQueue);
+      }
+      app->inputQueue = app->pendingInputQueue;
+      if (app->inputQueue != NULL) {
+          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
+      }
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_INIT_WINDOW:
+      pthread_mutex_lock(&app->mutex);
+      app->window = app->pendingWindow;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_TERM_WINDOW:
+      pthread_mutex_lock(&app->mutex);
+      app->window = NULL;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_RESUME:
+    case APP_CMD_START:
+    case APP_CMD_PAUSE:
+    case APP_CMD_STOP:
+      pthread_mutex_lock(&app->mutex);
+      app->activityState = cmd;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager(app->config,app->activity->assetManager);
+      break;
+    case APP_CMD_DESTROY:
+      app->destroyRequested = 1;
+      break;
+  }
 }
 void android_app_post_exec_cmd(android_app *app, int8_t cmd) {
-    switch (cmd) {
-        case APP_CMD_TERM_WINDOW:
-            LOGI("APP_CMD_TERM_WINDOW\n");
-            pthread_mutex_lock(&app->mutex);
-            app->window = NULL;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_SAVE_STATE:
-            LOGI("APP_CMD_SAVE_STATE\n");
-            pthread_mutex_lock(&app->mutex);
-            app->stateSaved = 1;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-        case APP_CMD_RESUME:
-            free_saved_state(app);
-            break;
-    }
+  switch (cmd) {
+    case APP_CMD_TERM_WINDOW:
+      pthread_mutex_lock(&app->mutex);
+      app->window = NULL;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_SAVE_STATE:
+      pthread_mutex_lock(&app->mutex);
+      app->stateSaved = 1;
+      pthread_cond_broadcast(&app->cond);
+      pthread_mutex_unlock(&app->mutex);
+      break;
+    case APP_CMD_RESUME:
+      free_saved_state(app);
+      break;
+  }
 }
 void app_dummy() {
 }
@@ -109,27 +99,25 @@ static void android_app_destroy(android_app *app) {
     free_saved_state(app);
     pthread_mutex_lock(&app->mutex);
     if (app->inputQueue != NULL) {
-        AInputQueue_detachLooper(app->inputQueue);
+      AInputQueue_detachLooper(app->inputQueue);
     }
     AConfiguration_delete(app->config);
     app->destroyed = 1;
     pthread_cond_broadcast(&app->cond);
-    pthread_mutex_unlock(&app->mutex);
-    // Can't touch android_app object after this.
+    pthread_mutex_unlock(&app->mutex); 
 }
 static void process_input(android_app *app, android_poll_source* source) {
-    AInputEvent* event = NULL;
-    if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
-        LOGI("New input event: type=%d\n", AInputEvent_getType(event));
-        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
-            return;
-        }
-        int32_t handled = 0;
-        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
-        AInputQueue_finishEvent(app->inputQueue, event, handled);
-    } else {
-        LOGI("Failure reading next input event: %s\n", strerror(errno));
+  AInputEvent* event = NULL;
+  if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
+    if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
+        return;
     }
+    int32_t handled = 0;
+    if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
+    AInputQueue_finishEvent(app->inputQueue, event, handled);
+  } else {
+    LOGI("Failure reading next input event: %s\n", strerror(errno));
+  }
 }
 static void process_cmd(android_app *app, android_poll_source* source) {
     int8_t cmd = android_app_read_cmd(app);
@@ -159,8 +147,7 @@ static void* android_app_entry(void* param) {
     return NULL;
 }
 static android_app *android_app_create(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-    android_app *app = (android_app*)malloc(sizeof(app));
-    memset(app, 0, sizeof(app));
+    android_app *app = new android_app;
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
@@ -178,7 +165,7 @@ static android_app *android_app_create(ANativeActivity* activity, void* savedSta
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&app->thread, &attr, android_app_entry, android_app);
+    pthread_create(&app->thread, &attr, android_app_entry, app);
     // Wait for thread to start.
     pthread_mutex_lock(&app->mutex);
     while (!app->running) {
