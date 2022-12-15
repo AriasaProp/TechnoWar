@@ -266,6 +266,9 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
     android_app_set_window((struct android_app*)activity->instance, window);
 }
+static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
+    android_app_write_cmd((struct android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
+}
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
     android_app_set_window((struct android_app*)activity->instance, NULL);
 }
@@ -276,19 +279,21 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue)
     android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-    activity->callbacks->onDestroy = onDestroy;
     activity->callbacks->onStart = onStart;
     activity->callbacks->onResume = onResume;
+    activity->callbacks->onInputQueueCreated = onInputQueueCreated;
+    activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
+    activity->callbacks->onNativeWindowResized = onNativeWindowResized;
     activity->callbacks->onSaveInstanceState = onSaveInstanceState;
+    activity->callbacks->onConfigurationChanged = onConfigurationChanged;
+    activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
+    activity->callbacks->onLowMemory = onLowMemory;
+    activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
+    activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
     activity->callbacks->onPause = onPause;
     activity->callbacks->onStop = onStop;
-    activity->callbacks->onConfigurationChanged = onConfigurationChanged;
-    activity->callbacks->onLowMemory = onLowMemory;
-    activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
-    activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
-    activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
-    activity->callbacks->onInputQueueCreated = onInputQueueCreated;
-    activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
+    activity->callbacks->onDestroy = onDestroy;
+    
     activity->instance = android_app_create(activity, savedState, savedStateSize);
 }
 
