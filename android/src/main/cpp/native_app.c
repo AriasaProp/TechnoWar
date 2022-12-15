@@ -8,89 +8,89 @@
 #include "log.h"
 
 static void free_saved_state(struct android_app* android_app) {
-    pthread_mutex_lock(&android_app->mutex);
-    if (android_app->savedState != NULL) {
-        free(android_app->savedState);
-        android_app->savedState = NULL;
-        android_app->savedStateSize = 0;
-    }
-    pthread_mutex_unlock(&android_app->mutex);
+  pthread_mutex_lock(&android_app->mutex);
+  if (android_app->savedState != NULL) {
+    free(android_app->savedState);
+    android_app->savedState = NULL;
+    android_app->savedStateSize = 0;
+  }
+  pthread_mutex_unlock(&android_app->mutex);
 }
 int8_t android_app_read_cmd(struct android_app* android_app) {
-    int8_t cmd;
-    if (read(android_app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
-        switch (cmd) {
-            case APP_CMD_SAVE_STATE:
-                free_saved_state(android_app);
-                break;
-        }
-        return cmd;
-    } else {
-        LOGI("No data on command pipe!");
+  int8_t cmd;
+  if (read(android_app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
+    switch (cmd) {
+      case APP_CMD_SAVE_STATE:
+        free_saved_state(android_app);
+        break;
     }
-    return -1;
+    return cmd;
+  } else {
+    LOGI("No data on command pipe!");
+  }
+  return -1;
 }
 void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
-    switch (cmd) {
-        case APP_CMD_INPUT_CHANGED:
-            pthread_mutex_lock(&android_app->mutex);
-            if (android_app->inputQueue != NULL) {
-                AInputQueue_detachLooper(android_app->inputQueue);
-            }
-            android_app->inputQueue = android_app->pendingInputQueue;
-            if (android_app->inputQueue != NULL) {
-                AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, &android_app->inputPollSource);
-            }
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_INIT_WINDOW:
-            pthread_mutex_lock(&android_app->mutex);
-            android_app->window = android_app->pendingWindow;
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_TERM_WINDOW:
-            pthread_mutex_lock(&android_app->mutex);
-            android_app->window = NULL;
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_RESUME:
-        case APP_CMD_START:
-        case APP_CMD_PAUSE:
-        case APP_CMD_STOP:
-            pthread_mutex_lock(&android_app->mutex);
-            android_app->activityState = cmd;
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_CONFIG_CHANGED:
-            AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
-            break;
-        case APP_CMD_DESTROY:
-            android_app->destroyRequested = 1;
-            break;
-    }
+  switch (cmd) {
+    case APP_CMD_INPUT_CHANGED:
+      pthread_mutex_lock(&android_app->mutex);
+      if (android_app->inputQueue != NULL) {
+          AInputQueue_detachLooper(android_app->inputQueue);
+      }
+      android_app->inputQueue = android_app->pendingInputQueue;
+      if (android_app->inputQueue != NULL) {
+          AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, &android_app->inputPollSource);
+      }
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_INIT_WINDOW:
+      pthread_mutex_lock(&android_app->mutex);
+      android_app->window = android_app->pendingWindow;
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_TERM_WINDOW:
+      pthread_mutex_lock(&android_app->mutex);
+      android_app->window = NULL;
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_RESUME:
+    case APP_CMD_START:
+    case APP_CMD_PAUSE:
+    case APP_CMD_STOP:
+      pthread_mutex_lock(&android_app->mutex);
+      android_app->activityState = cmd;
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
+      break;
+    case APP_CMD_DESTROY:
+      android_app->destroyRequested = 1;
+      break;
+  }
 }
 void android_app_post_exec_cmd(struct android_app* android_app, int8_t cmd) {
-    switch (cmd) {
-        case APP_CMD_TERM_WINDOW:
-            pthread_mutex_lock(&android_app->mutex);
-            android_app->window = NULL;
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_SAVE_STATE:
-            pthread_mutex_lock(&android_app->mutex);
-            android_app->stateSaved = 1;
-            pthread_cond_broadcast(&android_app->cond);
-            pthread_mutex_unlock(&android_app->mutex);
-            break;
-        case APP_CMD_RESUME:
-            free_saved_state(android_app);
-            break;
-    }
+  switch (cmd) {
+    case APP_CMD_TERM_WINDOW:
+      pthread_mutex_lock(&android_app->mutex);
+      android_app->window = NULL;
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_SAVE_STATE:
+      pthread_mutex_lock(&android_app->mutex);
+      android_app->stateSaved = 1;
+      pthread_cond_broadcast(&android_app->cond);
+      pthread_mutex_unlock(&android_app->mutex);
+      break;
+    case APP_CMD_RESUME:
+      free_saved_state(android_app);
+      break;
+  }
 }
 void app_dummy() {
 }
@@ -157,12 +157,9 @@ static struct android_app* android_app_create(ANativeActivity* activity, void* s
         android_app->savedStateSize = savedStateSize;
         memcpy(android_app->savedState, savedState, savedStateSize);
     }
-    int msgpipe[2];
-    if (pipe(msgpipe)) {
+    if (pipe(&android_app->msgread)) {
         LOGI("could not create pipe: %s", strerror(errno));
     }
-    android_app->msgread = msgpipe[0];
-    android_app->msgwrite = msgpipe[1];
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -207,7 +204,7 @@ static void android_app_set_activity_state(struct android_app* android_app, int8
     pthread_mutex_lock(&android_app->mutex);
     android_app_write_cmd(android_app, cmd);
     while (android_app->activityState != cmd) {
-        pthread_cond_wait(&android_app->cond, &android_app->mutex);
+      pthread_cond_wait(&android_app->cond, &android_app->mutex);
     }
     pthread_mutex_unlock(&android_app->mutex);
 }
@@ -215,7 +212,7 @@ static void android_app_free(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
     android_app_write_cmd(android_app, APP_CMD_DESTROY);
     while (!android_app->destroyed) {
-        pthread_cond_wait(&android_app->cond, &android_app->mutex);
+      pthread_cond_wait(&android_app->cond, &android_app->mutex);
     }
     pthread_mutex_unlock(&android_app->mutex);
     close(android_app->msgread);
