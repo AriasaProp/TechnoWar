@@ -169,14 +169,14 @@ static android_app *android_app_create(ANativeActivity* activity, void* savedSta
     // Wait for thread to start.
     pthread_mutex_lock(&app->mutex);
     while (!app->running) {
-        pthread_cond_wait(&app->cond, &app->mutex);
+      pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);
     return app;
 }
 static void android_app_write_cmd(android_app *app, int8_t cmd) {
     if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-        LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
+      LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
 static void android_app_set_input(android_app *app, AInputQueue* inputQueue) {
@@ -184,7 +184,7 @@ static void android_app_set_input(android_app *app, AInputQueue* inputQueue) {
     app->pendingInputQueue = inputQueue;
     android_app_write_cmd(app, APP_CMD_INPUT_CHANGED);
     while (app->inputQueue != app->pendingInputQueue) {
-        pthread_cond_wait(&app->cond, &app->mutex);
+      pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);
 }
