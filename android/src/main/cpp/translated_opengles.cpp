@@ -338,7 +338,12 @@ void tgf_gles::validate() {
 		ui_draw->u_proj = glGetUniformLocation(ui_draw->shader, "u_proj");
 		ui_draw->u_tex = glGetUniformLocation(ui_draw->shader, "u_texture");
 		glUseProgram(ui_draw->shader);
-		float tmpMat[16] = {1, 0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+		float tmpMat[16] = {
+			1,0,0,0,
+			0,1,0,0,
+			0,0,-1,0,
+			-1,-1,-0.000001,1
+		};
 		glUniformMatrix4fv(ui_draw->u_proj, 1, false, tmpMat);
 		glUniform1i(ui_draw->u_tex, 0);
 		glUseProgram(0);
