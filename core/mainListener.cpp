@@ -114,11 +114,6 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
 	
-	tgf->switch_capability(TGF_DEPTH_TEST, true);
-	tgf->switch_capability(TGF_CULL_FACE, true);
-	tgf->cull_face(TGF_FRONT);
-	tgf->depth_func(TGF_LESS);
-	tgf->depth_mask(true);
 	srand(time(NULL));
 	matrix4::rotate(trans_proj,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
@@ -130,9 +125,6 @@ void Main::render(float delta) {
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
 	
-	tgf->switch_capability(TGF_DEPTH_TEST, false);
-	tgf->switch_capability(TGF_CULL_FACE, false);
-	tgf->depth_mask(false);
 	tgf->ui_draw_funct();
 }
 void Main::pause() {
