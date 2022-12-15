@@ -2,58 +2,79 @@
 #include <cstring>
 #include <cmath>
 
-namespace matrix4 {
-	void idt(float *a) {
-		memcpy(a, (float[]){1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1}, 16 * sizeof(float));
-	}
-	void mul(float *a, float *b) {
-		float t[16] = {
-		  a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3], 
-		  a[1] * b[0] + a[5] * b[1] + a[9] * b[2] + a[13] * b[3], 
-		  a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3], 
-		  a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3], 
-		  a[0] * b[4] + a[4] * b[5] + a[8] * b[6] + a[12] * b[7], 
-		  a[1] * b[4] + a[5] * b[5] + a[9] * b[6] + a[13] * b[7], 
-		  a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7], 
-		  a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7], 
-		  a[0] * b[8] + a[4] * b[9] + a[8] * b[10] + a[12] * b[11], 
-		  a[1] * b[8] + a[5] * b[9] + a[9] * b[10] + a[13] * b[11], 
-		  a[2] * b[8] + a[6] * b[9] + a[10] * b[10] + a[14] * b[11], 
-		  a[3] * b[8] + a[7] * b[9] + a[11] * b[10] + a[15] * b[11], 
-		  a[0] * b[12] + a[4] * b[13] + a[8] * b[14] + a[12] * b[15], 
-		  a[1] * b[12] + a[5] * b[13] + a[9] * b[14] + a[13] * b[15], 
-		  a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15], 
-		  a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15]
-		};
-	  memcpy(a, t, sizeof(float) * 16);
-	}
-	void rotate(float *a, float yaw, float pitch, float roll) {
-		const float ycos = cos(yaw), ysin = sin(yaw), pcos = cos(pitch), psin = sin(pitch), rcos = cos(roll), rsin = sin(roll);
-		
-		float t[16] = {
-			pcos*rcos, ysin*psin*rcos-ycos*rsin,ycos*psin*rcos+ysin*rsin,0,
-			pcos*rsin, ysin*psin*rsin+ycos*rcos,ycos*psin*rsin-ysin*rcos,0,
-			-psin, ysin*pcos,ycos*pcos,0,
-			0,0,0,1.0f
-		};
-		mul(a, t);
-		
-		/*
-		float t[12]{
-		  a[0] * pcos*rcos + a[4] * ysin*psin*rcos-ycos*rsin + a[8] * ycos*psin*rcos+ysin*rsin, 
-		  a[1] * pcos*rcos + a[5] * ysin*psin*rcos-ycos*rsin + a[9] * ycos*psin*rcos+ysin*rsin, 
-		  a[2] * pcos*rcos + a[6] * ysin*psin*rcos-ycos*rsin + a[10] * ycos*psin*rcos+ysin*rsin, 
-		  a[3] * pcos*rcos + a[7] * ysin*psin*rcos-ycos*rsin + a[11] * ycos*psin*rcos+ysin*rsin, 
-		  a[0] * pcos*rsin + a[4] * ysin*psin*rsin+ycos*rcos + a[8] * ycos*psin*rsin-ysin*rcos, 
-		  a[1] * pcos*rsin + a[5] * ysin*psin*rsin+ycos*rcos + a[9] * ycos*psin*rsin-ysin*rcos, 
-		  a[2] * pcos*rsin + a[6] * ysin*psin*rsin+ycos*rcos + a[10] * ycos*psin*rsin-ysin*rcos, 
-		  a[3] * pcos*rsin + a[7] * ysin*psin*rsin+ycos*rcos + a[11] * ycos*psin*rsin-ysin*rcos, 
-		  a[0] * -psin + a[4] * ysin*pcos + a[8] * ycos*psin*rsin-ysin*rcos, 
-		  a[1] * -psin + a[5] * ysin*pcos + a[9] * ycos*psin*rsin-ysin*rcos, 
-		  a[2] * -psin + a[6] * ysin*pcos + a[10] * ycos*psin*rsin-ysin*rcos, 
-		  a[3] * -psin + a[7] * ysin*pcos + a[11] * ycos*psin*rsin-ysin*rcos
-		};
-		memcpy(a, t, 12 * sizeof(float));
-		*/
-	}
+#define M00 0
+#define M01 4
+#define M02 8
+#define M03 12
+#define M10 1
+#define M11 5
+#define M12 9
+#define M13 13
+#define M20 2
+#define M21 6
+#define M22 10
+#define M23 14
+#define M30 3
+#define M31 7
+#define M32 11
+#define M33 15
+
+void matrix4::idt(float *a) {
+	memset(a, 0, 16 * sizeof(float));
+	a[M00] = a[M11] = a[M22] = a[M33] = 1;
 }
+void matrix4::mul(float *a, float *b) {
+  float tmp[16];
+  tmp[M00] = a[M00] * b[M00] + a[M01] * b[M10] + a[M02] * b[M20] + a[M03] * b[M30];
+  tmp[M01] = a[M00] * b[M01] + a[M01] * b[M11] + a[M02] * b[M21] + a[M03] * b[M31];
+  tmp[M02] = a[M00] * b[M02] + a[M01] * b[M12] + a[M02] * b[M22] + a[M03] * b[M32];
+  tmp[M03] = a[M00] * b[M03] + a[M01] * b[M13] + a[M02] * b[M23] + a[M03] * b[M33];
+  tmp[M10] = a[M10] * b[M00] + a[M11] * b[M10] + a[M12] * b[M20] + a[M13] * b[M30];
+  tmp[M11] = a[M10] * b[M01] + a[M11] * b[M11] + a[M12] * b[M21] + a[M13] * b[M31];
+  tmp[M12] = a[M10] * b[M02] + a[M11] * b[M12] + a[M12] * b[M22] + a[M13] * b[M32];
+  tmp[M13] = a[M10] * b[M03] + a[M11] * b[M13] + a[M12] * b[M23] + a[M13] * b[M33];
+  tmp[M20] = a[M20] * b[M00] + a[M21] * b[M10] + a[M22] * b[M20] + a[M23] * b[M30];
+  tmp[M21] = a[M20] * b[M01] + a[M21] * b[M11] + a[M22] * b[M21] + a[M23] * b[M31];
+  tmp[M22] = a[M20] * b[M02] + a[M21] * b[M12] + a[M22] * b[M22] + a[M23] * b[M32];
+  tmp[M23] = a[M20] * b[M03] + a[M21] * b[M13] + a[M22] * b[M23] + a[M23] * b[M33];
+  tmp[M30] = a[M30] * b[M00] + a[M31] * b[M10] + a[M32] * b[M20] + a[M33] * b[M30];
+  tmp[M31] = a[M30] * b[M01] + a[M31] * b[M11] + a[M32] * b[M21] + a[M33] * b[M31];
+  tmp[M32] = a[M30] * b[M02] + a[M31] * b[M12] + a[M32] * b[M22] + a[M33] * b[M32];
+  tmp[M33] = a[M30] * b[M03] + a[M31] * b[M13] + a[M32] * b[M23] + a[M33] * b[M33];
+  memcpy(a, tmp, sizeof(float) * 16);
+}
+void matrix4::rotate(float *a, float yaw, float pitch, float roll) {
+  const float ycos = cos(yaw), ysin = sin(yaw), pcos = cos(pitch), psin = sin(pitch), rcos = cos(roll), rsin = sin(roll);
+  float t[16];
+  memcpy(t, a, 16 * sizeof(float));
+  a[M00] = t[M00] * pcos * rcos + t[M01] * (ysin * psin * rcos - ycos * rsin) + t[M02] * (ycos * psin * rcos + ysin * rsin);
+  a[M10] = t[M10] * pcos * rcos + t[M11] * (ysin * psin * rcos - ycos * rsin) + t[M12] * (ycos * psin * rcos + ysin * rsin);
+  a[M20] = t[M20] * pcos * rcos + t[M21] * (ysin * psin * rcos - ycos * rsin) + t[M22] * (ycos * psin * rcos + ysin * rsin);
+  a[M30] = t[M30] * pcos * rcos + t[M31] * (ysin * psin * rcos - ycos * rsin) + t[M32] * (ycos * psin * rcos + ysin * rsin);
+  a[M01] = t[M00] * pcos * rsin + t[M01] * (ysin * psin * rsin + ycos * rcos) + t[M02] * (ycos * psin * rsin - ysin * rcos);
+  a[M11] = t[M10] * pcos * rsin + t[M11] * (ysin * psin * rsin + ycos * rcos) + t[M12] * (ycos * psin * rsin - ysin * rcos);
+  a[M21] = t[M20] * pcos * rsin + t[M21] * (ysin * psin * rsin + ycos * rcos) + t[M22] * (ycos * psin * rsin - ysin * rcos);
+  a[M31] = t[M30] * pcos * rsin + t[M31] * (ysin * psin * rsin + ycos * rcos) + t[M32] * (ycos * psin * rsin - ysin * rcos);
+  a[M02] = (t[M01] * ysin + t[M02] * ycos) * pcos - t[M00] * psin;
+  a[M12] = (t[M11] * ysin + t[M12] * ycos) * pcos - t[M10] * psin;
+  a[M22] = (t[M21] * ysin + t[M22] * ycos) * pcos - t[M20] * psin;
+  a[M32] = (t[M31] * ysin + t[M32] * ycos) * pcos - t[M30] * psin;
+}
+void matrix4::toOrtho(float *a, float left, float right, float bottom, float top, float near, float far) {
+  memset(a, 0, 16 * sizeof(float));
+  a[M00] = 2 / (right - left);
+  a[M11] = 2 / (top - bottom);
+  a[M22] = 2 / (near - far);
+  a[M33] = 1;
+}
+void matrix4::toOrtho2D(float *a, float width, float height) {
+  memset(a, 0, 16 * sizeof(float));
+  a[M00] = 2 / width;
+  a[M11] = 2 / height;
+  a[M22] = 1;
+  a[M33] = 1;
+  a[M03] = -1;
+  a[M13] = -1;
+  a[M23] = -0.001f;
+}
+
