@@ -47,13 +47,6 @@ public:
 	void enable_vertex_attrib_array(const unsigned int) override;
 	void draw_elements(int, unsigned int, int, const void *) override;
 	
-	//env
-	void switch_capability(const unsigned int&, const bool) override;
-	void cull_face(const unsigned int&) override;
-	void depth_func(const unsigned int&) override;
-	void depth_rangef(float near,float far) override;
-	void depth_mask(const bool) override;
-	
 	// Android may lost resources
 	void validate();
 	void invalidate();

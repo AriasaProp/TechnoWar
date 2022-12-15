@@ -16,7 +16,6 @@
 
 #define MAX_UI_DRAW 500
 
-std::vector<unsigned int> capabilities;
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
 std::vector<mesh_core*> managedMesh;
@@ -40,7 +39,6 @@ tgf_gles::tgf_gles() {
 }
 tgf_gles::~tgf_gles() {
 	invalidate();
-	capabilities.clear();
 	managedTexture.clear();
 	managedShader.clear();
 	managedMesh.clear();
@@ -60,6 +58,9 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 	glViewport(x, y, w, h);
 }
 void tgf_gles::ui_draw_funct() {
+	glDisable(TGF_DEPTH_TEST);
+	glDisable(TGF_DEPTH_TEST);
+	glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	struct dtra{
@@ -244,6 +245,12 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 	glBindVertexArray(0);
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
+	glEnable(TGF_DEPTH_TEST);
+	glCullFace(face);
+	glEnable(TGF_DEPTH_TEST);
+	glDepthFunc(TGF_LESS);
+	//glDepthRangef(0, 1);
+	glDepthMask(true);
 	glBindVertexArray(m->vaoId);
 	glDrawElements(TGF_TRIANGLES, m->index_len, TGF_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
@@ -264,37 +271,6 @@ void tgf_gles::enable_vertex_attrib_array(const unsigned int loc) {
 }
 void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
 	glDrawElements(drawType, indSize, inType, offset);
-}
-//env
-void tgf_gles::switch_capability(const unsigned int &cap, const bool enable) {
-	std::vector<unsigned int>::iterator it = std::find(capabilities.begin(), capabilities.end(), cap);
-	if (enable) {
-		if (it == capabilities.end()) {
-			glEnable(cap);
-			capabilities.push_back(cap);
-		}
-	} else {
-		if (it != capabilities.end()) {
-			glDisable(cap);
-			capabilities.erase(it);
-		}
-	}
-}
-void tgf_gles::cull_face(const unsigned int &face) {
-	switch_capability(TGF_CULL_FACE, true);
-	glCullFace(face);
-}
-void tgf_gles::depth_func(const unsigned int &func) {
-	switch_capability(TGF_DEPTH_TEST, true);
-	glDepthFunc(func);
-}
-void tgf_gles::depth_rangef(float near,float far) {
-	switch_capability(TGF_DEPTH_TEST, true);
-	glDepthRangef(near, far);
-}
-void tgf_gles::depth_mask(const bool m) {
-	switch_capability(TGF_DEPTH_TEST, true);
-	glDepthMask(m);
 }
 void tgf_gles::validate() {
 	if (valid) return;
@@ -395,10 +371,6 @@ void tgf_gles::validate() {
 		glBindVertexArray(0);
 	}
 	
-	//capabilities
-	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
-		glEnable(*i);
-	}
 	//shader
 	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
 		(*i)->id = glCreateProgram();
@@ -453,11 +425,7 @@ void tgf_gles::invalidate() {
 		glDeleteProgram(ui_draw->shader);
 		glDeleteTextures(1, &ui_draw->texRes);
 	}
-		
-	//capabilities
-	for (std::vector<unsigned int>::iterator i = capabilities.begin(); i != capabilities.end(); i++) {
-		glDisable(*i);
-	}
+	
 	//shader
 	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
 		glDeleteProgram((*i)->id);
