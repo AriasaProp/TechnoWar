@@ -14,14 +14,14 @@
 #include <GLES3/gl3.h>
 #endif
 
-#define MAX_FLAT_DRAW 500
+#define MAX_UI_DRAW 500
 
 std::vector<unsigned int> capabilities;
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
 std::vector<mesh_core*> managedMesh;
 
-struct flat_draw_class {
+struct btch {
 	int shader;
 	int u_proj, u_tex;
 	unsigned int texRes;
@@ -29,13 +29,13 @@ struct flat_draw_class {
 	unsigned int vbov, vboi;
 };
 
-static flat_draw_class *flat_draw;
+static btch *ui_draw;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
-	flat_draw = new flat_draw_class;
+	ui_draw = new btch;
 	validate();
 }
 tgf_gles::~tgf_gles() {
@@ -44,7 +44,7 @@ tgf_gles::~tgf_gles() {
 	managedTexture.clear();
 	managedShader.clear();
 	managedMesh.clear();
-	delete flat_draw;
+	delete ui_draw;
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
@@ -59,15 +59,15 @@ void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
-void tgf_gles::flat_draw() {
-	glUseProgram(flat_draw->shader);
-	glBindVertexArray(flat_draw->vao);
+void tgf_gles::ui_draw() {
+	glUseProgram(ui_draw->shader);
+	glBindVertexArray(ui_draw->vao);
 	struct dtra{
 		float x, y;
 		unsigned char r,g,b,a;
 		float u,v;
 	};
-	glBindBuffer(TGF_ARRAY_BUFFER, flat_draw->vbov); 
+	glBindBuffer(TGF_ARRAY_BUFFER, ui_draw->vbov); 
 	dtra tmp[4] = {
 		{0.01f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
 		{0.01f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
@@ -303,18 +303,18 @@ void tgf_gles::validate() {
 	//flat draw
 	{
 		//texture
-		glGenTextures(1, &flat_draw->texRes);
+		glGenTextures(1, &ui_draw->texRes);
 		unsigned char texRrs_data[16] = {
 			0x0f,0x02,0x0f,0xff, 
 			0xff,0x02,0xff,0xff, 
 			0x0f,0x02,0x0f,0xff, 
 			0xff,0xf2,0x00,0xff
 		};
-		glBindTexture(TGF_TEXTURE_2D, flat_draw->texRes);
+		glBindTexture(TGF_TEXTURE_2D, ui_draw->texRes);
 	  glPixelStorei(TGF_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(TGF_TEXTURE_2D, 0, TGF_RGBA8, 2, 2, 0, TGF_RGBA, TGF_UNSIGNED_BYTE, (void*)texRrs_data);
 	  //shader 
-		flat_draw->shader = glCreateProgram();
+		ui_draw->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 		const char *vt = "#version 300 es\n"
@@ -355,29 +355,29 @@ void tgf_gles::validate() {
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
-		glAttachShader(flat_draw->shader, utemp[0]);
-		glAttachShader(flat_draw->shader, utemp[1]);
-		glLinkProgram(flat_draw->shader);
+		glAttachShader(ui_draw->shader, utemp[0]);
+		glAttachShader(ui_draw->shader, utemp[1]);
+		glLinkProgram(ui_draw->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		flat_draw->u_proj = glGetUniformLocation(flat_draw->shader, "u_proj");
-		flat_draw->u_tex = glGetUniformLocation(flat_draw->shader, "u_texture");
-		glUseProgram(flat_draw->shader);
+		ui_draw->u_proj = glGetUniformLocation(ui_draw->shader, "u_proj");
+		ui_draw->u_tex = glGetUniformLocation(ui_draw->shader, "u_texture");
+		glUseProgram(ui_draw->shader);
 		float tmpMat[16] = {1, 0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
-		glUniformMatrix4fv(flat_draw->u_proj, 1, false, tmpMat);
-		glUniform1i(flat_draw->u_tex, 0);
+		glUniformMatrix4fv(ui_draw->u_proj, 1, false, tmpMat);
+		glUniform1i(ui_draw->u_tex, 0);
 		glUseProgram(0);
 		glBindTexture(TGF_TEXTURE_2D, 0);
 		//mesh
-		glGenVertexArrays(1, &flat_draw->vao);
-		glGenBuffers(2, &flat_draw->vbov);
-		glBindVertexArray(flat_draw->vao);
+		glGenVertexArrays(1, &ui_draw->vao);
+		glGenBuffers(2, &ui_draw->vbov);
+		glBindVertexArray(ui_draw->vao);
 		const unsigned int stride = 4 * sizeof(float) + 4 * sizeof(unsigned char);
-		glBindBuffer(TGF_ARRAY_BUFFER, flat_draw->vbov); 
-		glBufferData(TGF_ARRAY_BUFFER, MAX_FLAT_DRAW*4*stride, (void*)0, TGF_DYNAMIC_DRAW);
-		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, flat_draw->vboi);
-		unsigned short indices[MAX_FLAT_DRAW*6];
-		for (unsigned short i = 0, j = 0, k = 0; k < MAX_FLAT_DRAW; i += 6, j += 4, k++) {
+		glBindBuffer(TGF_ARRAY_BUFFER, ui_draw->vbov); 
+		glBufferData(TGF_ARRAY_BUFFER, MAX_UI_DRAW*4*stride, (void*)0, TGF_DYNAMIC_DRAW);
+		glBindBuffer(TGF_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
+		unsigned short indices[MAX_UI_DRAW*6];
+		for (unsigned short i = 0, j = 0, k = 0; k < MAX_UI_DRAW; i += 6, j += 4, k++) {
       indices[i] = j;
       indices[i + 1] = (j + 1);
       indices[i + 2] = (j + 2);
@@ -385,7 +385,7 @@ void tgf_gles::validate() {
       indices[i + 4] = (j + 3);
       indices[i + 5] = j;
     }
-		glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_FLAT_DRAW*6*sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
+		glBufferData(TGF_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indices, TGF_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, TGF_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);
@@ -448,10 +448,10 @@ void tgf_gles::invalidate() {
 	
 	//flat draw
 	{
-		glDeleteVertexArrays(1, &flat_draw->vao);
-		glDeleteBuffers(2, &flat_draw->vbov);
-		glDeleteProgram(flat_draw->shader);
-		glDeleteTextures(1, &flat_draw->texRes);
+		glDeleteVertexArrays(1, &ui_draw->vao);
+		glDeleteBuffers(2, &ui_draw->vbov);
+		glDeleteProgram(ui_draw->shader);
+		glDeleteTextures(1, &ui_draw->texRes);
 	}
 		
 	//capabilities
