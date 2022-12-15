@@ -391,7 +391,7 @@ void tgf_gles::validate() {
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, TGF_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, TGF_UNSIGNED_BYTE, true, stride, (void*)(stride-2*sizeof(float)));
+		glVertexAttribPointer(2, 2, TGF_FLOAT, true, stride, (void*)(stride-2*sizeof(float)));
 		glBindVertexArray(0);
 	}
 	
