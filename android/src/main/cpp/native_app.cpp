@@ -181,7 +181,7 @@ static void onDestroy(ANativeActivity* activity) {
     }
     pthread_mutex_unlock(&app->mutex);
     close(app->msgread);
-    close(apl->msgwrite);
+    close(app->msgwrite);
     pthread_cond_destroy(&app->cond);
     pthread_mutex_destroy(&app->mutex);
     free(app);
