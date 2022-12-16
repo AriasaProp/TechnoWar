@@ -58,7 +58,7 @@ static void process_cmd(android_app* app) {
           }
           app->inputQueue = app->pendingInputQueue;
           if (app->inputQueue != NULL) {
-              AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &process_input);
+              AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, (void*)&process_input);
           }
           pthread_cond_broadcast(&app->cond);
           pthread_mutex_unlock(&app->mutex);
@@ -107,7 +107,7 @@ static void* android_app_entry(void* param) {
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &process_cmd);
+    ALooper_addFd(looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, (void*)&process_cmd);
     app->looper = looper;
     pthread_mutex_lock(&app->mutex);
     app->running = true;
@@ -203,7 +203,7 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
         android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
     }
     app->pendingWindow = window; 
-    android_app_write_cmd(app, APP_CMD_INIT_WINDOW)
+    android_app_write_cmd(app, APP_CMD_INIT_WINDOW);
     while (app->window != app->pendingWindow) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -276,7 +276,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&app->thread, &attr, android_app_entry, android_app);
+    pthread_create(&app->thread, &attr, android_app_entry, app);
     pthread_attr_destroy(&attr);
     pthread_mutex_lock(&app->mutex);
     while (!app->running) {
