@@ -17,8 +17,6 @@ static void free_saved_state(struct android_app* android_app) {
     }
     pthread_mutex_unlock(&android_app->mutex);
 }
-int8_t android_app_read_cmd(struct android_app* android_app) {
-}
 void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
     switch (cmd) {
         case APP_CMD_INPUT_CHANGED:
@@ -28,7 +26,7 @@ void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
             }
             android_app->inputQueue = android_app->pendingInputQueue;
             if (android_app->inputQueue != NULL) {
-                android_poll_sources inpts = process_input;
+                android_poll_source inpts = process_input;
                 AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, &inpts);
             }
             pthread_cond_broadcast(&android_app->cond);
@@ -124,9 +122,9 @@ static void* android_app_entry(void* param) {
     struct android_app* android_app = (struct android_app*)param;
     android_app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
-    android_poll_sources cmds = process_cmd;
+    android_poll_source cmds = process_cmd;
     android_app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, android_app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmds);
+    ALooper_addFd(android_app->looper, android_app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &cmds);
     pthread_mutex_lock(&android_app->mutex);
     android_app->running = true;
     pthread_cond_broadcast(&android_app->cond);
@@ -257,7 +255,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
     android_app_set_window((struct android_app*)activity->instance, window);
 }
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
+static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
     android_app_write_cmd((struct android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
