@@ -7,19 +7,17 @@
 #include <android/configuration.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 struct android_app;
 struct android_poll_source {
     int32_t id;
-    struct android_app* app;
-    void (*process)(struct android_app* app, struct android_poll_source* source);
+    android_app* app;
+    void (*process)(android_app* app, android_poll_source* source);
 }; 
 struct android_app {
     void* userData;
-    void (*onAppCmd)(struct android_app* app, int32_t cmd);
-    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
+    void (*onAppCmd)(android_app* app, int32_t cmd);
+    int32_t (*onInputEvent)(android_app* app, AInputEvent* event);
     ANativeActivity* activity;
     AConfiguration* config;
     void* savedState;
@@ -29,18 +27,18 @@ struct android_app {
     ANativeWindow* window;
     ARect contentRect;
     int activityState;
-    int destroyRequested;
+    bool destroyRequested;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     int msgread;
     int msgwrite;
     pthread_t thread;
-    struct android_poll_source cmdPollSource;
-    struct android_poll_source inputPollSource;
-    int running;
-    int stateSaved;
-    int destroyed;
-    int redrawNeeded;
+    android_poll_source cmdPollSource;
+    android_poll_source inputPollSource;
+    bool running;
+    bool stateSaved;
+    bool destroyed;
+    bool redrawNeeded;
     AInputQueue* pendingInputQueue;
     ANativeWindow* pendingWindow;
     ARect pendingContentRect;
@@ -68,14 +66,7 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-int8_t android_app_read_cmd(struct android_app*);
-void android_app_pre_exec_cmd(struct android_app*, int8_t);
-void android_app_post_exec_cmd(struct android_app*, int8_t);
-void app_dummy();
-extern void android_main(struct android_app*);
-#ifdef __cplusplus
-}
-#endif
+extern void android_main(android_app*);
 #endif /* _NATIVE_APP_ */
 
 
