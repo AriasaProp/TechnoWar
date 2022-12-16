@@ -17,6 +17,19 @@ static void free_saved_state(struct android_app* android_app) {
     }
     pthread_mutex_unlock(&android_app->mutex);
 }
+static void process_input(android_app* app) {
+    AInputEvent* event = NULL;
+    if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
+        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
+            return;
+        }
+        int32_t handled = 0;
+        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
+        AInputQueue_finishEvent(app->inputQueue, event, handled);
+    } else {
+        LOGI("Failure reading next input event: %s\n", strerror(errno));
+    }
+}
 void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
     switch (cmd) {
         case APP_CMD_INPUT_CHANGED:
@@ -94,19 +107,6 @@ static void android_app_destroy(struct android_app* android_app) {
     pthread_cond_broadcast(&android_app->cond);
     pthread_mutex_unlock(&android_app->mutex);
     // Can't touch android_app object after this.
-}
-static void process_input(android_app* app) {
-    AInputEvent* event = NULL;
-    if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
-        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
-            return;
-        }
-        int32_t handled = 0;
-        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
-        AInputQueue_finishEvent(app->inputQueue, event, handled);
-    } else {
-        LOGI("Failure reading next input event: %s\n", strerror(errno));
-    }
 }
 static void process_cmd(android_app* app) {
     int8_t cmd;
