@@ -255,7 +255,7 @@ void android_main(android_app* app) {
     app->onInputEvent = poll_input;
     eng.sensorManager = ASensorManager_getInstance();
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER ,nullptr, &sensor_process);
+    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER ,nullptr, (void*)&sensor_process);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
