@@ -104,12 +104,8 @@ void Main::resize(unsigned int w, unsigned int h) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-<<<<<<< HEAD
-	worldview_proj[0] = 2.0f/width;
-	worldview_proj[5] = 2.0f/height;
-=======
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
->>>>>>> modify-direct
+	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->bind_shader(0);
