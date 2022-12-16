@@ -263,7 +263,7 @@ void android_main(android_app* app) {
   	android_poll_source* source;
     while (!app->destroyRequested) {
       if (ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source) >= 0) {
-        if (source) (**source)(app);
+        if (source) (*source)(app);
       } else {
       	engine_draw(app, &eng);
       }
