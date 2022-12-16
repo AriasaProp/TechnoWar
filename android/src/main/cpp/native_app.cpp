@@ -49,8 +49,7 @@ void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
             }
             android_app->inputQueue = android_app->pendingInputQueue;
             if (android_app->inputQueue != NULL) {
-                android_poll_source inpts = process_input;
-                AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, &inpts);
+                AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, (void*)&process_input);
             }
             pthread_cond_broadcast(&android_app->cond);
             pthread_mutex_unlock(&android_app->mutex);
