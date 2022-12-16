@@ -9,36 +9,32 @@
 #include <android/native_activity.h>
 
 struct android_app;
-struct android_poll_source {
-    int32_t id;
-    android_app* app;
-    void (*process)(android_app* app, android_poll_source* source);
-}; 
+typedef void (*android_poll_source)(android_app*); 
 struct android_app {
-    void* userData;
-    void (*onAppCmd)(android_app* app, int32_t cmd);
-    int32_t (*onInputEvent)(android_app* app, AInputEvent* event);
-    ANativeActivity* activity;
-    AConfiguration* config;
-    void* savedState;
-    size_t savedStateSize;
-    ALooper* looper;
-    AInputQueue* inputQueue;
-    ANativeWindow* window;
-    ARect contentRect;
-    int activityState;
     bool destroyRequested;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    int msgread;
-    int msgwrite;
-    pthread_t thread;
-    android_poll_source cmdPollSource;
-    android_poll_source inputPollSource;
     bool running;
     bool stateSaved;
     bool destroyed;
     bool redrawNeeded;
+    
+    int activityState;
+    int msgread, msgwrite;
+    
+    size_t savedStateSize;
+    
+    void* userData;
+    void (*onAppCmd)(android_app*, int32_t);
+    int32_t (*onInputEvent)(android_app*, AInputEvent*);
+    ANativeActivity* activity;
+    AConfiguration* config;
+    void* savedState;
+    ALooper* looper;
+    AInputQueue* inputQueue;
+    ANativeWindow* window;
+    ARect contentRect;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    pthread_t thread;
     AInputQueue* pendingInputQueue;
     ANativeWindow* pendingWindow;
     ARect pendingContentRect;

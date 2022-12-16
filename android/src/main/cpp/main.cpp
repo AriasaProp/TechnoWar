@@ -36,7 +36,6 @@ struct engine {
     bool destroyed;
     int32_t width;
     int32_t height;
-    android_app* app;
     ASensorManager* sensorManager;
     const ASensor* accelerometerSensor;
     ASensorEventQueue* sensorEventQueue;
@@ -237,7 +236,7 @@ static void poll_cmd(android_app* app, int32_t cmd) {
       break;
 	}
 }
-static void sensor_process(android_app* app, android_poll_source* src) {
+static void sensor_process(android_app* app) {
     engine* eng = (engine*)app->userData;
 		if (eng->accelerometerSensor) {
 	      ASensorEvent event;
@@ -250,19 +249,13 @@ static void sensor_process(android_app* app, android_poll_source* src) {
 }
 void android_main(android_app* app) {
     engine eng;
-    memset(&eng, 0, sizeof(eng));
+    memset(&eng, 0, sizeof(engine));
     app->userData = &eng;
     app->onAppCmd = poll_cmd;
     app->onInputEvent = poll_input;
-    eng.app = app;
     eng.sensorManager = ASensorManager_getInstance();
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    //input sensor event on loop
-    android_poll_source snsr;
-    snsr.id = LOOPER_ID_USER;
-    snsr.app = app;
-    snsr.process = sensor_process;
-    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, snsr.id ,nullptr, &snsr);
+    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, snsr.id ,nullptr, &sensor_process);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
@@ -270,7 +263,7 @@ void android_main(android_app* app) {
   	android_poll_source* source;
     while (!app->destroyRequested) {
       if (ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source) >= 0) {
-        if (source) source->process(app, source);
+        if (source) (*source)(app);
       } else {
       	engine_draw(app, &eng);
       }
