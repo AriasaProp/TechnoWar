@@ -339,7 +339,7 @@ void tgf_gles::validate() {
 			1,0,0,0,
 			0,1,0,0,
 			0,0,-1,0,
-			-1,-1,-0.000001,1
+			-1,-1,0.001f,1
 		};
 		glUniformMatrix4fv(ui_draw->u_proj, 1, false, tmpMat);
 		glUniform1i(ui_draw->u_tex, 0);
@@ -349,11 +349,11 @@ void tgf_gles::validate() {
 		glGenVertexArrays(1, &ui_draw->vao);
 		glGenBuffers(2, &ui_draw->vbov);
 		glBindVertexArray(ui_draw->vao);
-		const unsigned int stride = 4 * sizeof(float) + 4 * sizeof(unsigned char);
+		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW*4*stride, (void*)0, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * stride, (void*)0, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
-		unsigned short indices[MAX_UI_DRAW*6];
+		unsigned short indices[MAX_UI_DRAW * 6];
 		for (unsigned short i = 0, j = 0, k = 0; k < MAX_UI_DRAW; i += 6, j += 4, k++) {
       indices[i] = j;
       indices[i + 1] = (j + 1);
@@ -362,7 +362,7 @@ void tgf_gles::validate() {
       indices[i + 4] = (j + 3);
       indices[i + 5] = j;
     }
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void*)indices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);

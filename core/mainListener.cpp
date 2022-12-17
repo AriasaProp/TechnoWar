@@ -96,7 +96,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 }
 void Main::resume() {
 	if (!tgf) return;
-	r = 0, g = 1, b = 0;
+	r = 0.2f, g = 0.3f, b = 0.5f;
 }
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
