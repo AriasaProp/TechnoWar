@@ -49,7 +49,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->bind_shader(0);
-	//if (sp_worldview_matrix <= 0) r = .5f;
 	// }
 	// create mesh {
 	mesh_core::data vert[24] = {
@@ -126,7 +125,7 @@ void Main::render(float delta) {
 	tgf->draw_mesh(mp);
 	tgf->bind_shader(0);
 	
-	//tgf->ui_draw_funct();
+	tgf->ui_draw_funct();
 }
 void Main::pause() {
 	if (!tgf) return;
@@ -136,5 +135,4 @@ void Main::destroy() {
 	
 	tgf->delete_shader(sp);
 	tgf->delete_mesh(mp);
-	
 }

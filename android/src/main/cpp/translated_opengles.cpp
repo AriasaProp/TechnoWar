@@ -26,9 +26,7 @@ struct btch {
 	unsigned int texRes;
 	unsigned int vao;
 	unsigned int vbov, vboi;
-};
-
-static btch *ui_draw;
+} *ui_draw;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -67,14 +65,13 @@ void tgf_gles::ui_draw_funct() {
 		float x, y;
 		unsigned char r,g,b,a;
 		float u,v;
-	};
-	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-	dtra tmp[4] = {
+	} tmp[4] = {
 		{0.01f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
 		{0.01f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
 		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
 		{0.51f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
 	};
+	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 	glBufferSubData(GL_ARRAY_BUFFER, 0,  sizeof(tmp), (void*)tmp);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
