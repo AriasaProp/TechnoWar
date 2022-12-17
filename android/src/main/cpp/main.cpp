@@ -46,7 +46,7 @@ struct engine {
     saved_state state;
     float accel[3];
 };
-/*
+
 static int32_t poll_input(android_app* app, AInputEvent* event) {
     engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
@@ -56,7 +56,7 @@ static int32_t poll_input(android_app* app, AInputEvent* event) {
     }
     return 0;
 }
-*/
+
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
   if (!term) return;
 	if (eng->display) {

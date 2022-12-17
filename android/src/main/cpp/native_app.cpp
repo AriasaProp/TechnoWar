@@ -17,7 +17,7 @@ static void free_saved_state(android_app *app) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-void process_input(android_app* app) {
+static void process_input(android_app* app) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
@@ -42,7 +42,7 @@ static void android_app_destroy(android_app *app) {
     pthread_mutex_unlock(&app->mutex);
     // Can't touch android_app object after this.
 }
-void process_cmd(android_app* app) {
+static void process_cmd(android_app* app) {
     int8_t cmd;
     if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGI("No data on command pipe!");
@@ -122,7 +122,6 @@ static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-    android_poll_source cmds = process_cmd;
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, nullptr);
     pthread_mutex_lock(&app->mutex);
