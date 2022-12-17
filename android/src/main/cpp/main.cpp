@@ -46,6 +46,7 @@ struct engine {
     saved_state state;
     float accel[3];
 };
+/*
 static int32_t poll_input(android_app* app, AInputEvent* event) {
     engine* eng = (engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
@@ -55,7 +56,7 @@ static int32_t poll_input(android_app* app, AInputEvent* event) {
     }
     return 0;
 }
-
+*/
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
   if (!term) return;
 	if (eng->display) {
@@ -252,11 +253,10 @@ void android_main(android_app* app) {
     memset(&eng, 0, sizeof(engine));
     app->userData = &eng;
     app->onAppCmd = poll_cmd;
-    app->onInputEvent = poll_input;
-  	android_poll_source snsr = sensor_process;
+    //app->onInputEvent = poll_input;
     eng.sensorManager = ASensorManager_getInstance();
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER ,nullptr, (void*)&snsr);
+    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER , NULL, &sensor_process);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
