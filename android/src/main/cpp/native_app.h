@@ -8,8 +8,6 @@
 #include <android/looper.h>
 #include <android/native_activity.h>
 
-struct android_app;
-typedef void (*android_poll_source)(android_app*); 
 struct android_app {
     bool destroyRequested;
     bool running;
@@ -62,6 +60,9 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
+extern process_input(android_app*);
+extern process_cmd(android_app*);
+extern process_sensor(android_app*);
 extern void android_main(android_app*);
 #endif /* _NATIVE_APP_ */
 

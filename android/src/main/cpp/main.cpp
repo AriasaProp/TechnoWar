@@ -237,7 +237,7 @@ static void poll_cmd(android_app* app, int32_t cmd) {
       break;
 	}
 }
-static void sensor_process(android_app* app) {
+static void process_sensor(android_app* app) {
     engine* eng = (engine*)app->userData;
 		if (eng->accelerometerSensor) {
 	      ASensorEvent event;
@@ -253,20 +253,28 @@ void android_main(android_app* app) {
     memset(&eng, 0, sizeof(engine));
     app->userData = &eng;
     app->onAppCmd = poll_cmd;
-    //app->onInputEvent = poll_input;
+    app->onInputEvent = poll_input;
     eng.sensorManager = ASensorManager_getInstance();
     eng.accelerometerSensor = ASensorManager_getDefaultSensor(eng.sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER , NULL, &sensor_process);
+    eng.sensorEventQueue = ASensorManager_createEventQueue(eng.sensorManager,app->looper, LOOPER_ID_USER , NULL, nullptr);
     if (app->savedState) {
         eng.state = *(saved_state*)app->savedState;
     }
     int events;
-  	android_poll_source* source;
     while (!app->destroyRequested) {
-      if (ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events,(void**)&source) >= 0) {
-        if (source) (*source)(app);
-      } else {
-      	engine_draw(app, &eng);
+      switch (ALooper_pollAll(eng.running ? 0 : -1, nullptr, &events, nullptr)) {
+      	case LOOPER_ID_MAIN:
+      		process_cmd(app);
+      		break;
+        case LOOPER_ID_INPUT:
+      		process_input(app);
+        	break;
+        case LOOPER_ID_USER:
+      		process_sensor(app);
+        	break;
+        default:
+      		engine_draw(app, &eng);
+        	break;
       }
     }
     if (tgf) delete tgf;
