@@ -22,9 +22,7 @@
 
 struct android_app {
     bool destroyRequested;
-    bool running;
     bool destroyed;
-    bool redrawNeeded;
     
     int appCmdState;
     int msgread, msgwrite;
@@ -363,10 +361,6 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    pthread_mutex_lock(&app->mutex);
-    app->running = true;
-    pthread_cond_broadcast(&app->cond);
-    pthread_mutex_unlock(&app->mutex);
     
     engine *eng = new engine;
     memset(eng, 0, sizeof(engine));
@@ -571,9 +565,4 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     pthread_create(&app->thread, &attr, android_app_entry, app);
     pthread_attr_destroy(&attr);
-    pthread_mutex_lock(&app->mutex);
-    while (!app->running) {
-        pthread_cond_wait(&app->cond, &app->mutex);
-    }
-    pthread_mutex_unlock(&app->mutex);
 }
