@@ -14,7 +14,7 @@
 #include <GLES3/gl3.h>
 #endif
 
-#define MAX_UI_DRAW 500
+#define MAX_UI_DRAW 100
 
 std::vector<texture_core*> managedTexture;
 std::vector<shader_core*> managedShader;
@@ -22,8 +22,6 @@ std::vector<mesh_core*> managedMesh;
 
 struct btch {
 	int shader;
-	int u_proj, u_tex;
-	unsigned int texRes;
 	unsigned int vao;
 	unsigned int vbov, vboi;
 } *ui_draw;
@@ -274,18 +272,7 @@ void tgf_gles::validate() {
 	
 	//flat draw
 	{
-		//texture
-		glGenTextures(1, &ui_draw->texRes);
-		unsigned char texRrs_data[16] = {
-			0x0f,0x02,0x0f,0xff, 
-			0xff,0x02,0xff,0xff, 
-			0x0f,0x02,0x0f,0xff, 
-			0xff,0xf2,0x00,0xff
-		};
-		glBindTexture(GL_TEXTURE_2D, ui_draw->texRes);
-	  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)texRrs_data);
-	  //shader 
+		//shader 
 		ui_draw->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
@@ -300,13 +287,12 @@ void tgf_gles::validate() {
 			"layout(location = 0) in vec4 a_position;\n"
 			"layout(location = 1) in vec4 a_color;\n"
 			"layout(location = 2) in vec2 a_texCoord;\n"
-			"uniform mat4 u_proj;\n"
 			"out vec4 v_color;\n"
 			"out vec2 v_texCoord;\n"
 			"void main() {\n"
 			"  v_color = a_color;\n"
 			"  v_texCoord = a_texCoord;\n"
-			"  gl_Position =  u_proj * a_position;\n"
+			"  gl_Position =  a_position;\n"
 			"}\n\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
@@ -319,11 +305,10 @@ void tgf_gles::validate() {
 			"  #define HIGH mediump\n"
 			"#endif\n"
 			"layout(location = 0) out vec4 gl_FragColor;\n"
-			"uniform sampler2D u_texture;\n"
 			"in vec4 v_color;\n"
 			"in vec2 v_texCoord;\n"
 			"void main(){\n"
-			"  gl_FragColor = v_color * texture(u_texture, v_texCoord);\n"
+			"  gl_FragColor = (v_color + vec4(v_texCoord, v_color.b, v_color.a)) / 2;\n"
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -332,19 +317,6 @@ void tgf_gles::validate() {
 		glLinkProgram(ui_draw->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		ui_draw->u_proj = glGetUniformLocation(ui_draw->shader, "u_proj");
-		ui_draw->u_tex = glGetUniformLocation(ui_draw->shader, "u_texture");
-		glUseProgram(ui_draw->shader);
-		float tmpMat[16] = {
-			1,0,0,0,
-			0,1,0,0,
-			0,0,-1,0,
-			-1,-1,0.001f,1
-		};
-		glUniformMatrix4fv(ui_draw->u_proj, 1, false, tmpMat);
-		glUniform1i(ui_draw->u_tex, 0);
-		glUseProgram(0);
-		glBindTexture(GL_TEXTURE_2D, 0);
 		//mesh
 		glGenVertexArrays(1, &ui_draw->vao);
 		glGenBuffers(2, &ui_draw->vbov);
@@ -368,7 +340,7 @@ void tgf_gles::validate() {
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, true, stride, (void*)(stride-2*sizeof(float)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, true, stride, (void*)(2*sizeof(float)+4*sizeof(unsigned char)));
 		glBindVertexArray(0);
 	}
 	

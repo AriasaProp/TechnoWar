@@ -72,9 +72,9 @@ void matrix4::toOrtho2D(float *a, float width, float height) {
   a[M00] = 2 / width;
   a[M11] = 2 / height;
   a[M22] = 1;
-  a[M33] = 1;
   a[M03] = -1;
   a[M13] = -1;
   a[M23] = -0.001f;
+  a[M33] = 1;
 }
 
