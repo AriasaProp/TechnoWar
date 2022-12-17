@@ -17,7 +17,7 @@ static void free_saved_state(android_app *app) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-static void process_input(android_app* app) {
+void process_input(android_app *app) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
@@ -42,7 +42,7 @@ static void android_app_destroy(android_app *app) {
     pthread_mutex_unlock(&app->mutex);
     // Can't touch android_app object after this.
 }
-static void process_cmd(android_app* app) {
+void process_cmd(android_app* app) {
     int8_t cmd;
     if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGI("No data on command pipe!");

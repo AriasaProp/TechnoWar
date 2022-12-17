@@ -237,7 +237,7 @@ static void poll_cmd(android_app* app, int32_t cmd) {
       break;
 	}
 }
-static void process_sensor(android_app* app) {
+void process_sensor(android_app* app) {
     engine* eng = (engine*)app->userData;
 		if (eng->accelerometerSensor) {
 	      ASensorEvent event;

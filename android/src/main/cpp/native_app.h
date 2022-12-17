@@ -60,9 +60,9 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-static void process_input(android_app*);
-static void process_cmd(android_app*);
-static void process_sensor(android_app*);
+extern void process_input(android_app*);
+extern void process_cmd(android_app*);
+extern void process_sensor(android_app*);
 extern void android_main(android_app*);
 #endif /* _NATIVE_APP_ */
 
