@@ -278,13 +278,6 @@ void tgf_gles::validate() {
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 		const char *vt = "#version 300 es\n"
-			"#define LOW lowp\n"
-			"#define MED mediump\n"
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-			"    #define HIGH highp\n"
-			"#else\n"
-			"    #define HIGH mediump\n"
-			"#endif\n"
 			"layout(location = 0) in vec4 a_position;\n"
 			"layout(location = 1) in vec4 a_color;\n"
 			"layout(location = 2) in vec2 a_texCoord;\n"
@@ -297,25 +290,34 @@ void tgf_gles::validate() {
 			"}\n\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
+		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
+		if (temp[0] == 0) {
+			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
+			glClearColor(1,0 0,1);
+		}
 		const char *ft = "#version 300 es\n"
-			"#define LOW lowp\n"
-			"#define MED mediump\n"
-			"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-			"  #define HIGH highp\n"
-			"#else\n"
-			"  #define HIGH mediump\n"
-			"#endif\n"
-			"layout(location = 0) out vec4 gl_FragColor;\n"
 			"in vec4 v_color;\n"
 			"in vec2 v_texCoord;\n"
-			"void main(){\n"
+			"layout(location = 0) out vec4 gl_FragColor;\n"
+			"void main() {\n"
 			"  gl_FragColor = v_color;\n"
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
+		glCompileShader(utemp[1]);
+		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
+		if (temp[0] == 0) {
+			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
+			glClearColor(0,1 0,1);
+		}
 		glAttachShader(ui_draw->shader, utemp[0]);
 		glAttachShader(ui_draw->shader, utemp[1]);
 		glLinkProgram(ui_draw->shader);
+		glGetProgramiv(ui_draw->shader, GL_LINK_STATUS, temp);
+		if (temp[0] == 0){
+			glGetProgramInfoLog(ui_draw->shader, MAX_GL_MSG, 0, msg);
+			glClearColor(0,0, 1,1);
+		}
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
 		//mesh

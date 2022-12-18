@@ -174,7 +174,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
   	
   	if (!eng->created) {
-  		tgf = new tgf_gles;
+  		tgf = new tgf_gles();
   		eng->created = true;
   		Main::create(tgf, eng->width, eng->height);
   		eng->resume = false;
