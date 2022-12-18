@@ -56,21 +56,22 @@ void tgf_gles::clear(const unsigned int &m) {
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
+struct dtra{
+	float x, y;
+	unsigned char r,g,b,a;
+	float u, v;
+};
+static const dtra tmp[4] = {
+	{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
+	{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
+	{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+	{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
+};
 void tgf_gles::ui_draw_funct() {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
-	struct dtra{
-		float x, y;
-		unsigned char r,g,b,a;
-		float u, v;
-	} tmp[4] = {
-		{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
-		{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-		{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
-		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
-	};
 	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 	glBufferSubData(GL_ARRAY_BUFFER, 0,  sizeof(tmp), (void*)tmp);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -290,11 +291,6 @@ void tgf_gles::validate() {
 			"}\n\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
-		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
-		if (temp[0] == 0) {
-			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
-			glClearColor(1,0,0,1);
-		}
 		const char *ft = "#version 300 es\n"
 			"in vec4 v_color;\n"
 			"in vec2 v_texCoord;\n"
@@ -305,19 +301,9 @@ void tgf_gles::validate() {
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
 		glCompileShader(utemp[1]);
-		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
-		if (temp[0] == 0) {
-			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
-			glClearColor(0,1, 0,1);
-		}
 		glAttachShader(ui_draw->shader, utemp[0]);
 		glAttachShader(ui_draw->shader, utemp[1]);
 		glLinkProgram(ui_draw->shader);
-		glGetProgramiv(ui_draw->shader, GL_LINK_STATUS, temp);
-		if (temp[0] == 0){
-			glGetProgramInfoLog(ui_draw->shader, MAX_GL_MSG, 0, msg);
-			glClearColor(0,0, 1,1);
-		}
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
 		//mesh
