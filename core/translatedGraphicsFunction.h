@@ -612,7 +612,6 @@ public:
 	
 	virtual shader_core *gen_shader(const char *, const char *) = 0;
 	virtual void bind_shader(shader_core*) = 0;
-	virtual void unbind_shader() = 0;
 	virtual void delete_shader(shader_core*) = 0;
 	virtual int get_shader_uloc(shader_core*, const char *) = 0;
 	virtual void u_matrix4fv(const int&,const int&, const bool&, const float*) = 0;

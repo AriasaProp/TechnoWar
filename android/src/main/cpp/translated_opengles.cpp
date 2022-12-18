@@ -59,17 +59,16 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 void tgf_gles::ui_draw_funct() {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	//glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	struct dtra{
 		float x, y;
 		unsigned char r,g,b,a;
-		float u,v;
+		float u, v;
 	} tmp[4] = {
-		{0.01f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
-		{0.01f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-		{0.51f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+		{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
+		{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
+		{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
 		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
 	};
 	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
@@ -85,7 +84,7 @@ const char *header_glsl =  "#version 300 es\n"
 	"    #define HIGH highp\n"
 	"#else\n"
 	"    #define HIGH mediump\n"
-	"#endif\n";
+	"#endif\n\0";
 shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	shader_core *o = new shader_core;
 	o->id = glCreateProgram();
@@ -131,11 +130,7 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p->id);
-}
-void tgf_gles::unbind_shader() {
-	glUseProgram(0);
-
+	glUseProgram(p?p->id:0);
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);

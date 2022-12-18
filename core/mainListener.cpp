@@ -46,7 +46,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
-	tgf->unbind_shader();
+	tgf->bind_shader(NULL);
 	// }
 	// create mesh {
 	mesh_core::data vert[24] = {
@@ -106,7 +106,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
-	tgf->unbind_shader();
+	tgf->bind_shader(NULL);
 	
 }
 void Main::render(float delta) {
@@ -122,7 +122,7 @@ void Main::render(float delta) {
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->draw_mesh(mp);
-	tgf->unbind_shader();
+	tgf->bind_shader(NULL);
 	
 	tgf->ui_draw_funct();
 }
