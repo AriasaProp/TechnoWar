@@ -396,7 +396,6 @@ void tgf_gles::invalidate() {
 		glDeleteVertexArrays(1, &ui_draw->vao);
 		glDeleteBuffers(2, &ui_draw->vbov);
 		glDeleteProgram(ui_draw->shader);
-		glDeleteTextures(1, &ui_draw->texRes);
 	}
 	
 	//shader
