@@ -23,14 +23,15 @@ std::vector<mesh_core*> managedMesh;
 struct btch {
 	int shader;
 	unsigned int vao;
-	unsigned int vbov, vboi;
-} *ui_draw;
+	unsigned int vbov;
+} *ui_draw = nullptr;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
 	ui_draw = new btch;
+	memset(ui_draw,0,sizeof(btch));
 	validate();
 }
 tgf_gles::~tgf_gles() {
@@ -68,12 +69,12 @@ void tgf_gles::ui_draw_funct() {
 	} tmp[4] = {
 		{0.01f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
 		{0.01f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
 		{0.51f, 0.01f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+		{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
 	};
 	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 	glBufferSubData(GL_ARRAY_BUFFER, 0,  sizeof(tmp), (void*)tmp);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -249,7 +250,6 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	//glDepthRangef(0, 1);
 	glDepthMask(true);
 	glBindVertexArray(m->vaoId);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
@@ -314,7 +314,7 @@ void tgf_gles::validate() {
 			"in vec4 v_color;\n"
 			"in vec2 v_texCoord;\n"
 			"void main(){\n"
-			"  gl_FragColor = (v_color + vec4(v_texCoord, v_color.b, v_color.a)) / 2;\n"
+			"  gl_FragColor = v_color;\n"
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -325,22 +325,11 @@ void tgf_gles::validate() {
 		glDeleteShader(utemp[1]);
 		//mesh
 		glGenVertexArrays(1, &ui_draw->vao);
-		glGenBuffers(2, &ui_draw->vbov);
+		glGenBuffers(1, &ui_draw->vbov);
 		glBindVertexArray(ui_draw->vao);
 		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * stride, (void*)0, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
-		unsigned short indices[MAX_UI_DRAW * 6];
-		for (unsigned short i = 0, j = 0, k = 0; k < MAX_UI_DRAW; i += 6, j += 4, k++) {
-      indices[i] = j;
-      indices[i + 1] = (j + 1);
-      indices[i + 2] = (j + 2);
-      indices[i + 3] = (j + 2);
-      indices[i + 4] = (j + 3);
-      indices[i + 5] = j;
-    }
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void*)indices, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);
@@ -400,7 +389,7 @@ void tgf_gles::invalidate() {
 	//flat draw
 	{
 		glDeleteVertexArrays(1, &ui_draw->vao);
-		glDeleteBuffers(2, &ui_draw->vbov);
+		glDeleteBuffers(1, &ui_draw->vbov);
 		glDeleteProgram(ui_draw->shader);
 	}
 	
