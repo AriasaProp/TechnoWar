@@ -293,7 +293,7 @@ void tgf_gles::validate() {
 		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0) {
 			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
-			glClearColor(1,0 0,1);
+			glClearColor(1,0,0,1);
 		}
 		const char *ft = "#version 300 es\n"
 			"in vec4 v_color;\n"
@@ -308,7 +308,7 @@ void tgf_gles::validate() {
 		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
 		if (temp[0] == 0) {
 			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
-			glClearColor(0,1 0,1);
+			glClearColor(0,1, 0,1);
 		}
 		glAttachShader(ui_draw->shader, utemp[0]);
 		glAttachShader(ui_draw->shader, utemp[1]);
