@@ -13,13 +13,15 @@ public:
 	tgf_gles();
 	~tgf_gles() override;
 	const char *renderer() override;
-	void clearcolormask(const unsigned int&, const float&, const float&, const float&, const float&) override;
+	void clearcolor(const float&, const float&, const float&, const float&) override;
+	void clear(const unsigned int&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
 	void ui_draw_funct() override;
 	
 	shader_core *gen_shader(const char*, const char*) override;
 	void bind_shader(shader_core*) override;
+	void unbind_shader() override;
 	void delete_shader(shader_core*) override;
 	int get_shader_uloc(shader_core*, const char *) override;
 	void u_matrix4fv(const int&,const int&, const bool&, const float *) override;

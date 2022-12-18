@@ -46,8 +46,10 @@ tgf_gles::~tgf_gles() {
 const char *tgf_gles::renderer() {
 	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 }
-void tgf_gles::clearcolormask(const unsigned int &m, const float &r, const float &g, const float &b, const float &a) {
+void tgf_gles::clearcolor(const float &r, const float &g, const float &b, const float &a) {
 	glClearColor(r, g, b, a);
+}
+void tgf_gles::clear(const unsigned int &m) {
 	glClear(m);
 }
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
@@ -56,7 +58,7 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 void tgf_gles::ui_draw_funct() {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	glDepthMask(false);
+	//glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	struct dtra{
@@ -128,7 +130,11 @@ shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
 	return o;
 }
 void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p?p->id:0);
+	glUseProgram(p->id);
+}
+void tgf_gles::unbind_shader() {
+	glUseProgram(0);
+
 }
 void tgf_gles::delete_shader(shader_core *p) {
 	glDeleteProgram(p->id);

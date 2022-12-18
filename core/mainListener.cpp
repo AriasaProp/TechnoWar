@@ -9,7 +9,6 @@
 TranslatedGraphicsFunction *tgf;
 
 unsigned int width, height;
-float r = 0, g = 0, b = 0;
 
 shader_core *sp;
 mesh_core *mp;
@@ -21,7 +20,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	tgf = _tgf;
 	width = w, height = h;
 	if (!tgf) return;
-	r = g = b = 1;
 	tgf->viewport(0, 0, width, height);
 	
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
@@ -93,10 +91,11 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
 	//}
+	tgf->clearcolor(1,1,1,1);
 }
 void Main::resume() {
 	if (!tgf) return;
-	r = 0.2f, g = 0.3f, b = 0.5f;
+	tgf->clearcolor(0.2f,0.3f,0.5f,1);
 }
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
@@ -107,12 +106,12 @@ void Main::resize(unsigned int w, unsigned int h) {
 	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
-	tgf->bind_shader(0);
+	tgf->unbind_shader();
 	
 }
 void Main::render(float delta) {
 	if (!tgf) return;
-	tgf->clearcolormask(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT, r, g, b, 1.f);
+	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
 	srand(time(NULL));
 	matrix4::rotate(trans_proj,
@@ -123,7 +122,7 @@ void Main::render(float delta) {
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 	tgf->draw_mesh(mp);
-	tgf->bind_shader(0);
+	tgf->unbind_shader();
 	
 	tgf->ui_draw_funct();
 }
