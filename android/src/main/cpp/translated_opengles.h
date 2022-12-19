@@ -41,6 +41,7 @@ public:
 	
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
+	void world_mesh(float,float) override;
 	void draw_mesh(mesh_core*) override;
 	void delete_mesh(mesh_core*) override;
 

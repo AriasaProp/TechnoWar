@@ -9,12 +9,7 @@
 TranslatedGraphicsFunction *tgf;
 
 unsigned int width, height;
-
-shader_core *sp;
 mesh_core *mp;
-int sp_worldview_matrix, sp_trans_matrix;
-float worldview_proj[16];
-float trans_proj[16];
 
 void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
 	tgf = _tgf;
@@ -22,33 +17,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
-	matrix4::idt(trans_proj);
-	// create shader program {
-	const char *vShaderSrc = "\nuniform mat4 worldview_proj;"
-		"\nuniform mat4 trans_proj;"
-		"\nlayout(location = 0) in vec4 a_position;"
-		"\nlayout(location = 1) in vec4 a_color;"
-		"\nout vec4 v_color;"
-		"\nvoid main() {"
-		"\n    v_color = a_color;"
-		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-		"\n}\0";
-	const char *fShaderSrc = "\nprecision MED float;"
-		"\nin vec4 v_color;"
-		"\nlayout(location = 0) out vec4 fragColor;"
-		"\nvoid main() {"
-		"\n    fragColor = v_color;"
-		"\n}\0";
-	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
-	sp_worldview_matrix = tgf->get_shader_uloc(sp, "worldview_proj");
-	sp_trans_matrix = tgf->get_shader_uloc(sp, "trans_proj");
-	tgf->bind_shader(sp);
-	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
-	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
-	tgf->bind_shader(NULL);
-	// }
-	// create mesh {
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -90,23 +58,17 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
-	//}
+	
 }
 void Main::resume() {
 	if (!tgf) return;
-	tgf->clearcolor(0.2f,0.3f,0.5f,1);
 }
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
-	
-	tgf->bind_shader(sp);
-	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
-	tgf->bind_shader(NULL);
-	
+	tgf->world_mesh((float)w,(float)h);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
@@ -115,15 +77,12 @@ void Main::render(float delta) {
 	tgf->ui_draw_funct();
 	{
 		srand(time(NULL));
-		matrix4::rotate(trans_proj,
+		matrix4::rotate(mp->trans,
 			M_PI / std::fmax(float(rand()%1000), 240.0f),
 			M_PI / std::fmax(float(rand()%1000), 240.0f),
 			M_PI / std::fmax(float(rand()%1000), 240.0f)
 		);
-		tgf->bind_shader(sp);
-		tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
 		tgf->draw_mesh(mp);
-		tgf->bind_shader(NULL);
 	}
 }
 void Main::pause() {
@@ -132,6 +91,5 @@ void Main::pause() {
 void Main::destroy() {
 	if (!tgf) return;
 	
-	tgf->delete_shader(sp);
 	tgf->delete_mesh(mp);
 }

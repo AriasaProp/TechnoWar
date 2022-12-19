@@ -592,6 +592,12 @@ struct mesh_core {
 		unsigned char r, g, b, a;
 	} *vertex;
 	unsigned short *index;
+	float trans[16] = {
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		0,0,0,1
+	};
 };
 
 //maximum 2dbatch render 1000
@@ -632,6 +638,7 @@ public:
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
 	virtual void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
+	virtual void world_mesh(float,float) = 0;
 	virtual void draw_mesh(mesh_core*) = 0;
 	virtual void delete_mesh(mesh_core*) = 0;
 

@@ -25,6 +25,11 @@ struct btch {
 	unsigned int vao;
 	unsigned int vbov;
 } *ui_draw = nullptr;
+struct world_btch {
+	int shader;
+	int u_worldProj;
+	int u_transProj;
+} *ws = nullptr;
 
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -32,6 +37,8 @@ tgf_gles::tgf_gles() {
 	msg = new char[MAX_GL_MSG];
 	ui_draw = new btch;
 	memset(ui_draw,0,sizeof(btch));
+	ws = new world_btch;
+	memset(ws,0,sizeof(world_btch));
 	validate();
 }
 tgf_gles::~tgf_gles() {
@@ -40,6 +47,7 @@ tgf_gles::~tgf_gles() {
 	managedShader.clear();
 	managedMesh.clear();
 	delete ui_draw;
+	delete ws;
 	delete[] temp;
 	delete[] utemp;
 	delete[] msg;
@@ -235,6 +243,17 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
+void tgf_gles::world_mesh(float width, float height) {
+	glUseProgram(ws->shader);
+	float w[16] = {
+		2.f/width,0,0,0,
+		0,2.f/height,0,0,
+		0,0,0.0005f,0,
+		0,0,0,1
+	};
+	glUniformMatrix4fv(ws->u_worldProj, 1, false, w);
+	glUseProgram(0);
+}
 void tgf_gles::draw_mesh(mesh_core *m) {
 	
 	//glEnable(GL_CULL_FACE);
@@ -242,7 +261,8 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
-	
+	glUseProgram(ws->shader);
+	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	glBindVertexArray(m->vaoId);
 	glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboI);
@@ -250,6 +270,7 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glUseProgram(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);
@@ -271,7 +292,55 @@ void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, con
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
-	glClearColor(1,1,0,1);
+	//world draw
+	{
+		ws->shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		const char *vt = "#version 300 es\n"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nuniform mat4 worldview_proj;"
+			"\nuniform mat4 trans_proj;"
+			"\nlayout(location = 0) in vec4 a_position;"
+			"\nlayout(location = 1) in vec4 a_color;"
+			"\nout vec4 v_color;"
+			"\nvoid main() {"
+			"\n    v_color = a_color;"
+			"\n    gl_Position = worldview_proj * trans_proj * a_position;"
+			"\n}\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
+		glCompileShader(utemp[0]);
+		const char *ft = "#version 300 es\n"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nprecision MED float;"
+			"\nin vec4 v_color;"
+			"\nlayout(location = 0) out vec4 fragColor;"
+			"\nvoid main() {"
+			"\n    fragColor = v_color;"
+			"\n}\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
+		glCompileShader(utemp[1]);
+		glCompileShader(utemp[1]);
+		glAttachShader(ws->shader, utemp[0]);
+		glAttachShader(ws->shader, utemp[1]);
+		glLinkProgram(ws->shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		ws->u_worldProj = tgf->get_shader_uloc(sp, "worldview_proj");
+		ws->u_transProj = tgf->get_shader_uloc(sp, "trans_proj");
+	}
 	//flat draw
 	{
 		//shader 
@@ -306,6 +375,7 @@ void tgf_gles::validate() {
 		glLinkProgram(ui_draw->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
+		
 		//mesh
 		glGenVertexArrays(1, &ui_draw->vao);
 		glGenBuffers(1, &ui_draw->vbov);
@@ -381,7 +451,10 @@ void tgf_gles::validate() {
 void tgf_gles::invalidate() {
 	if (!valid) return;
 	//invalidating gles resources
-	
+	//world draw
+	{
+		glDeleteProgram(ws->shader);
+	}
 	//flat draw
 	{
 		glDeleteVertexArrays(1, &ui_draw->vao);
