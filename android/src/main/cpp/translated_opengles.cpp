@@ -56,24 +56,11 @@ void tgf_gles::clear(const unsigned int &m) {
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
 }
-struct dtra{
-	float x, y;
-	unsigned char r,g,b,a;
-	float u, v;
-};
-static const dtra tmp[4] = {
-	{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
-	{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-	{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
-	{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
-};
 void tgf_gles::ui_draw_funct() {
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_CULL_FACE);
+	//glDisable(GL_DEPTH_TEST);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-	glBufferSubData(GL_ARRAY_BUFFER, 0,  sizeof(tmp), (void*)tmp);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -310,9 +297,19 @@ void tgf_gles::validate() {
 		glGenVertexArrays(1, &ui_draw->vao);
 		glGenBuffers(1, &ui_draw->vbov);
 		glBindVertexArray(ui_draw->vao);
+		struct dtra{
+			float x, y;
+			unsigned char r,g,b,a;
+			float u, v;
+		} tmp[4] = {
+			{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
+			{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
+			{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
+		};
 		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * stride, (void*)0, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * stride, (void*)tmp, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);
