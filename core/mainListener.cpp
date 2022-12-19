@@ -6,16 +6,14 @@
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-TranslatedGraphicsFunction *tgf;
-
 unsigned int width, height;
 mesh_core *mp, *flatA;
 
-void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
-	tgf = _tgf;
+void Main::create(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
+	tgf->world_mesh((float)w,(float)h);
 	
 	mesh_core::data vert[24] = {
 		//front red
@@ -66,7 +64,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	unsigned short indc1[6] = {0,1,3,1,2,3};
 	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
-	tgf->world_mesh((float)w,(float)h);
 }
 void Main::resume() {
 	if (!tgf) return;

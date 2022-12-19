@@ -21,7 +21,7 @@
 #include "translated_opengles.h"
 #include "mainListener.h"
 
-static TranslatedGraphicsFunction *tgf;
+TranslatedGraphicsFunction *tgf = nullptr;
 
 struct android_app {
     bool destroyed;
@@ -176,7 +176,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	if (!eng->created) {
   		tgf = new tgf_gles();
   		eng->created = true;
-  		Main::create(tgf, eng->width, eng->height);
+  		Main::create(eng->width, eng->height);
   		eng->resume = false;
   		eng->resize = false;
   	} else if (newCtx) {
@@ -186,14 +186,15 @@ static void engine_draw(android_app *app, engine *eng) {
   		eng->resize = false;
   		Main::resize(eng->width, eng->height);
   	}
-  }
-  if (eng->resize) {
-  	eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  	eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
-  	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
-  	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
-  	eng->resize = false;
-		Main::resize(eng->width, eng->height);
+  } else {
+  	if (eng->resize) {
+			eng->resize = false;
+			eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
+			eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
+			eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
+			Main::resize(eng->width, eng->height);
+		}
   }
   if (eng->resume) {
   	Main::resume();

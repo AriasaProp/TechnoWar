@@ -75,77 +75,6 @@ void tgf_gles::ui_draw_funct() {
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-const char *header_glsl = "#version 300 es\n"
-	"#define LOW lowp\n"
-	"#define MED mediump\n"
-	"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-	"    #define HIGH highp\n"
-	"#else\n"
-	"    #define HIGH mediump\n"
-	"#endif\n\0";
-shader_core *tgf_gles::gen_shader(const char *v, const char *f) {
-	shader_core *o = new shader_core;
-	o->id = glCreateProgram();
-	o->v = new char[strlen(header_glsl)+strlen(v)];
-	strcpy(o->v, header_glsl);
-	strcat(o->v, v);
-	o->f = new char[strlen(header_glsl)+strlen(f)];
-	strcpy(o->f, header_glsl);
-	strcat(o->f, f);
-	utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-	utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-	try {
-		glShaderSource(utemp[0], 1, &o->v, 0);
-		glCompileShader(utemp[0]);
-		glGetShaderiv(utemp[0], GL_COMPILE_STATUS, temp);
-		if (temp[0] == 0) {
-			glGetShaderInfoLog(utemp[0], MAX_GL_MSG, 0, msg);
-			throw(msg);
-		}
-		glShaderSource(utemp[1], 1, &o->f, 0);
-		glCompileShader(utemp[1]);
-		glGetShaderiv(utemp[1], GL_COMPILE_STATUS, temp);
-		if (temp[0] == 0){
-			glGetShaderInfoLog(utemp[1], MAX_GL_MSG, 0, msg);
-			throw(msg);
-		}
-		glAttachShader(o->id, utemp[0]);
-		glAttachShader(o->id, utemp[1]);
-		glLinkProgram(o->id);
-		glGetProgramiv(o->id, GL_LINK_STATUS, temp);
-		if (temp[0] == 0){
-			glGetProgramInfoLog(o->id, MAX_GL_MSG, 0, msg);
-			throw(msg);
-		}
-		managedShader.push_back(o);
-	} catch (char *e) {
-		glDeleteProgram(o->id);
-		delete o;
-		o = nullptr;
-	}
-	glDeleteShader(utemp[0]);
-	glDeleteShader(utemp[1]);
-	return o;
-}
-void tgf_gles::bind_shader(shader_core *p) {
-	glUseProgram(p?p->id:0);
-}
-void tgf_gles::delete_shader(shader_core *p) {
-	glDeleteProgram(p->id);
-	std::vector<shader_core*>::iterator it = std::find(managedShader.begin(), managedShader.end(), p);
-  if(it != managedShader.end())
-    managedShader.erase(it);
-  delete[] p->v;
-  delete[] p->f;
-  delete p;
-}
-int tgf_gles::get_shader_uloc(shader_core *p, const char *name) {
-	return glGetUniformLocation(p->id, name);
-}
-void tgf_gles::u_matrix4fv(const int &loc,const int &count, const bool &trnspose, const float *mtrix) {
-	glUniformMatrix4fv(loc, count, trnspose, mtrix);
-}
-
 texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigned char *data) {
 	texture_core *t = new texture_core;
 	glGenTextures(1, &t->id);
@@ -173,32 +102,6 @@ void tgf_gles::delete_texture(texture_core *t) {
 	}
 	delete[] t->data;
 	delete t;
-}
-void tgf_gles::gen_buffer(unsigned int &b) {
-	glGenBuffers(1, utemp);
-	b = utemp[0];
-}
-void tgf_gles::bind_buffer(unsigned int type, const unsigned int b) {
-	glBindBuffer(type, b);
-}
-void tgf_gles::buffer_data(unsigned int type, long bytes_len, const void *data, unsigned int datatype) {
-	glBufferData(type, bytes_len, 0, datatype);
-	glBufferSubData(type, 0, bytes_len, data);
-}
-void tgf_gles::delete_buffer(unsigned int &b) {
-	utemp[0] = b;
-	glDeleteBuffers(1, utemp);
-	b = 0;
-}
-void tgf_gles::gen_vertex_array(unsigned int &v) {
-	glGenVertexArrays(1, utemp);
-	v = utemp[0];
-}
-void tgf_gles::bind_vertex_array(const unsigned int v) {
-	glBindVertexArray(v);
-}
-void tgf_gles::delete_vertex_array(unsigned int &v) {
-	glDeleteVertexArrays(1, &v);
 }
 mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
@@ -282,15 +185,6 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete m;
 }
 
-void tgf_gles::vertex_attrib_pointer(unsigned int loc, int size, unsigned int type, bool normalize, int stride, const void *offset) {
-	glVertexAttribPointer(loc, size, type, normalize, stride, offset);
-}
-void tgf_gles::enable_vertex_attrib_array(const unsigned int loc) {
-	glEnableVertexAttribArray(loc);
-}
-void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, const void *offset) {
-	glDrawElements(drawType, indSize, inType, offset);
-}
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources

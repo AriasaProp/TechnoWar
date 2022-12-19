@@ -570,12 +570,6 @@
 #define TGF_COVERAGE_BUFFER_BIT_NV 0x8000
 // }
 
-//shader core
-struct shader_core {
-	int id;
-	char *v;
-	char *f;
-};
 //texture core
 struct texture_core {
 	unsigned int id;
@@ -616,25 +610,10 @@ public:
 
 	virtual void ui_draw_funct() = 0;
 	
-	virtual shader_core *gen_shader(const char *, const char *) = 0;
-	virtual void bind_shader(shader_core*) = 0;
-	virtual void delete_shader(shader_core*) = 0;
-	virtual int get_shader_uloc(shader_core*, const char *) = 0;
-	virtual void u_matrix4fv(const int&,const int&, const bool&, const float*) = 0;
-	
 	virtual texture_core *gen_texture(const int&, const int&, unsigned char*) = 0;
 	virtual void bind_texture(texture_core*) = 0;
 	virtual void set_texture_param(const int&, const int&) = 0;
 	virtual void delete_texture(texture_core*) = 0;
-	
-	virtual void gen_buffer(unsigned int&) = 0;
-	virtual void bind_buffer(unsigned int, const unsigned int) = 0;
-	virtual void buffer_data(unsigned int, long, const void*, unsigned int) = 0;
-	virtual void delete_buffer(unsigned int&) = 0;
-
-	virtual void gen_vertex_array(unsigned int&) = 0;
-	virtual void bind_vertex_array(const unsigned int) = 0;
-	virtual void delete_vertex_array(unsigned int&) = 0;
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
 	virtual void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
@@ -643,10 +622,8 @@ public:
 	virtual void draw_mesh(mesh_core*) = 0;
 	virtual void end_mesh() = 0;
 	virtual void delete_mesh(mesh_core*) = 0;
-
-	virtual void vertex_attrib_pointer(unsigned int, int, unsigned int, bool, int, const void *) = 0;
-	virtual void enable_vertex_attrib_array(const unsigned int) = 0;
-	virtual void draw_elements(int, unsigned int, int, const void *) = 0;
 };
+
+extern TranslatedGraphicsFunction *tgf;
 
 #endif //Included_TGF

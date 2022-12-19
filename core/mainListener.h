@@ -4,7 +4,7 @@
 #include "translatedGraphicsFunction.h"
 
 namespace Main {
-	void create(TranslatedGraphicsFunction*, unsigned int, unsigned int);
+	void create(unsigned int, unsigned int);
 	void resume();
 	void resize(unsigned int, unsigned int);
 	void render(float);
