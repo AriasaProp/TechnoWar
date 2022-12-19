@@ -62,7 +62,7 @@ void tgf_gles::ui_draw_funct() {
 	glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -309,8 +309,8 @@ void tgf_gles::validate() {
 		} tmp[4] = {
 			{-1.0f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
 			{-1.0f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
 			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
+			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
 		};
 		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
