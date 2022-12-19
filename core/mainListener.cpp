@@ -9,7 +9,7 @@
 TranslatedGraphicsFunction *tgf;
 
 unsigned int width, height;
-mesh_core *mp;
+mesh_core *mp, *flatA;
 
 void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int h) {
 	tgf = _tgf;
@@ -58,7 +58,14 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
-	
+	mesh_core::data vert1[4] = {
+		{15.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
+		{15.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
+		{width/2.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
+		{width/2.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
+	}
+	unsigned short indc1[6] = {0,1,2,1,2,3}
+	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -84,6 +91,7 @@ void Main::render(float delta) {
 		);
 		tgf->draw_mesh(mp);
 	}
+	tgf->draw_mesh(flatA);
 }
 void Main::pause() {
 	if (!tgf) return;
