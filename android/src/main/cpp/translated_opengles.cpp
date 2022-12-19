@@ -231,13 +231,13 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 	glBindVertexArray(0);
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	/*
+	
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
-	glDepthMask(true);
-	*/
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS);
+	//glDepthMask(true);
+	
 	glBindVertexArray(m->vaoId);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
