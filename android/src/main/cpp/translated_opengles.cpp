@@ -208,11 +208,11 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
 	glBindBuffer(GL_ARRAY_BUFFER, r->vboV); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0); 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	managedMesh.push_back(r);
 	return r;
 }
@@ -320,8 +320,8 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, true, stride, (void*)(2*sizeof(float)+4*sizeof(unsigned char)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0); 
 		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	}
 	
 	//shader
@@ -352,11 +352,11 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
 		glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
 		glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
