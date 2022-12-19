@@ -68,7 +68,7 @@ void tgf_gles::ui_draw_funct() {
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-const char *header_glsl =  "#version 300 es\n"
+const char *header_glsl = "#version 300 es\n"
 	"#define LOW lowp\n"
 	"#define MED mediump\n"
 	"#ifdef GL_FRAGMENT_PRECISION_HIGH\n"

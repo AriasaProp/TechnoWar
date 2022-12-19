@@ -101,7 +101,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-	//matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
+	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);
@@ -112,17 +112,18 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
-	srand(time(NULL));
-	matrix4::rotate(trans_proj,
-		M_PI / std::fmax(float(rand()%1000), 240.0f),
-		M_PI / std::fmax(float(rand()%1000), 240.0f),
-		M_PI / std::fmax(float(rand()%1000), 240.0f)
-	);
-	tgf->bind_shader(sp);
-	tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
-	tgf->draw_mesh(mp);
-	tgf->bind_shader(NULL);
-	
+	{
+		srand(time(NULL));
+		matrix4::rotate(trans_proj,
+			M_PI / std::fmax(float(rand()%1000), 240.0f),
+			M_PI / std::fmax(float(rand()%1000), 240.0f),
+			M_PI / std::fmax(float(rand()%1000), 240.0f)
+		);
+		tgf->bind_shader(sp);
+		tgf->u_matrix4fv(sp_trans_matrix, 1, false, trans_proj);
+		tgf->draw_mesh(mp);
+		tgf->bind_shader(NULL);
+	}
 	tgf->ui_draw_funct();
 }
 void Main::pause() {
