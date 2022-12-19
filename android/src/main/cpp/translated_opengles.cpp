@@ -26,9 +26,11 @@ struct btch {
 	unsigned int vbov;
 } *ui_draw = nullptr;
 struct world_btch {
+	bool dirty_worldProj;
 	int shader;
 	int u_worldProj;
 	int u_transProj;
+	float worldProj[16];
 } *ws = nullptr;
 
 tgf_gles::tgf_gles() {
@@ -237,28 +239,40 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 	glBindVertexArray(0);
 }
 void tgf_gles::world_mesh(float width, float height) {
-	glUseProgram(ws->shader);
 	float w[16] = {
 		2.f/width,0,0,0,
 		0,2.f/height,0,0,
 		0,0,0.0005f,0,
 		0,0,0,1
 	};
-	glUniformMatrix4fv(ws->u_worldProj, 1, false, w);
-	glUseProgram(0);
+	memcpy(ws->worldProj,w,16*sizeof(float));
+	ws->dirty_worldProj = true;
 }
-void tgf_gles::draw_mesh(mesh_core *m) {
+static bool mesh_beginned;
+void tgf_gles::begin_mesh() {
+	mesh_beginned = true;
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
 	glUseProgram(ws->shader);
-	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+	if (ws->dirty_worldProj) {
+		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
+		ws->dirty_worldProj = false;
+	}
+}
+void tgf_gles::draw_mesh(mesh_core *m) {
+	if (!mesh_beginned) return;
 	glBindVertexArray(m->vaoId);
+	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
+}
+void tgf_gles::end_mesh() {
+	if (!mesh_beginned) return;
 	glBindVertexArray(0);
 	glUseProgram(0);
+	mesh_beginned = false;
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);

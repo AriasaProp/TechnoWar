@@ -66,6 +66,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	unsigned short indc1[6] = {0,1,3,1,2,3};
 	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
+	tgf->world_mesh((float)w,(float)h);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -81,6 +82,7 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
+	tgf->begin_mesh();
 	{
 		srand(time(NULL));
 		matrix4::rotate(mp->trans,
@@ -91,6 +93,7 @@ void Main::render(float delta) {
 		tgf->draw_mesh(mp);
 	}
 	tgf->draw_mesh(flatA);
+	tgf->end_mesh();
 	tgf->ui_draw_funct();
 }
 void Main::pause() {

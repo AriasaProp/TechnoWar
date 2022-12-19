@@ -42,7 +42,9 @@ public:
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void world_mesh(float,float) override;
+	void begin_mesh() override;
 	void draw_mesh(mesh_core*) override;
+	void end_mesh() override;
 	void delete_mesh(mesh_core*) override;
 
 	void vertex_attrib_pointer(unsigned int, int, unsigned int type, bool, int, const void *) override;
