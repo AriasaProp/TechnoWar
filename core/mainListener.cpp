@@ -36,9 +36,9 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		"\n}\0";
 	const char *fShaderSrc = "\nprecision MED float;"
 		"\nin vec4 v_color;"
-		"\nlayout(location = 0) out vec4 glFragColor;"
+		"\nlayout(location = 0) out vec4 fragColor;"
 		"\nvoid main() {"
-		"\n    glFragColor = v_color;"
+		"\n    fragColor = v_color;"
 		"\n}\0";
 	sp = tgf->gen_shader(vShaderSrc, fShaderSrc);
 	sp_worldview_matrix = tgf->get_shader_uloc(sp, "worldview_proj");

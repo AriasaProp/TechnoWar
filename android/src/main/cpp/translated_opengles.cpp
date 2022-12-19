@@ -59,6 +59,7 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 void tgf_gles::ui_draw_funct() {
 	//glDisable(GL_CULL_FACE);
 	//glDisable(GL_DEPTH_TEST);
+	glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -232,11 +233,11 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
 	
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);
-	//glDepthMask(true);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glDepthMask(true);
 	
 	glBindVertexArray(m->vaoId);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
@@ -285,9 +286,9 @@ void tgf_gles::validate() {
 		const char *ft = "#version 300 es\n"
 			"in vec4 v_color;\n"
 			"in vec2 v_texCoord;\n"
-			"layout(location = 0) out vec4 gl_FragColor;\n"
+			"layout(location = 0) out vec4 fragColor;\n"
 			"void main() {\n"
-			"  gl_FragColor = v_color;\n"
+			"  fragColor = v_color;\n"
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -306,9 +307,9 @@ void tgf_gles::validate() {
 			unsigned char r,g,b,a;
 			float u, v;
 		} tmp[4] = {
-			{-0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
-			{-0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-			{0.51f, -0.51f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+			{-1.0f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
+			{-1.0f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
+			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
 			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
 		};
 		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
