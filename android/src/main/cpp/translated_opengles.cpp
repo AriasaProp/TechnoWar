@@ -170,12 +170,14 @@ void tgf_gles::begin_mesh() {
 void tgf_gles::draw_mesh(mesh_core *m) {
 	if (!mesh_beginned) return;
 	glBindVertexArray(m->vaoId);
+	glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboI);
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 }
 void tgf_gles::end_mesh() {
 	if (!mesh_beginned) return;
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
