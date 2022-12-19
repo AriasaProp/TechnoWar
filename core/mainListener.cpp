@@ -81,7 +81,6 @@ void Main::render(float delta) {
 	if (!tgf) return;
 	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
-	tgf->ui_draw_funct();
 	{
 		srand(time(NULL));
 		matrix4::rotate(mp->trans,
@@ -92,6 +91,7 @@ void Main::render(float delta) {
 		tgf->draw_mesh(mp);
 	}
 	tgf->draw_mesh(flatA);
+	tgf->ui_draw_funct();
 }
 void Main::pause() {
 	if (!tgf) return;

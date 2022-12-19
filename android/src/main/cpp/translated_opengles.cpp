@@ -65,9 +65,6 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 	glViewport(x, y, w, h);
 }
 void tgf_gles::ui_draw_funct() {
-	//glDisable(GL_CULL_FACE);
-	//glDisable(GL_DEPTH_TEST);
-	glDepthMask(false);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
@@ -350,19 +347,15 @@ void tgf_gles::validate() {
 		const char *vt = "#version 300 es\n"
 			"layout(location = 0) in vec4 a_position;\n"
 			"layout(location = 1) in vec4 a_color;\n"
-			"layout(location = 2) in vec2 a_texCoord;\n"
 			"out vec4 v_color;\n"
-			"out vec2 v_texCoord;\n"
 			"void main() {\n"
 			"  v_color = a_color;\n"
-			"  v_texCoord = a_texCoord;\n"
 			"  gl_Position =  a_position;\n"
 			"}\n\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
 		const char *ft = "#version 300 es\n"
 			"in vec4 v_color;\n"
-			"in vec2 v_texCoord;\n"
 			"layout(location = 0) out vec4 fragColor;\n"
 			"void main() {\n"
 			"  fragColor = v_color;\n"
@@ -383,23 +376,19 @@ void tgf_gles::validate() {
 		struct dtra{
 			float x, y;
 			unsigned char r,g,b,a;
-			float u, v;
 		} tmp[4] = {
-			{-1.0f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 0}, 
-			{-1.0f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 0}, 
-			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff, 1, 1}, 
-			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff, 0, 1}, 
+			{-1.0f, -1.0f, 0xff, 0xff, 0xff, 0xff}, 
+			{-1.0f, 0.51f, 0xff, 0xff, 0xff, 0xff}, 
+			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff}, 
+			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff}, 
 		};
-		const unsigned int stride = 4 * (sizeof(float) + sizeof(unsigned char));
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-		glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * stride, (void*)tmp, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(dtra), (void*)tmp, GL_DYNAMIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0); 
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, stride, (void*)0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(dtra), (void*)0);
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(2*sizeof(float)));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, true, stride, (void*)(2*sizeof(float)+4*sizeof(unsigned char)));
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(dtra), (void*)(2*sizeof(float)));
 		glBindVertexArray(0);
 	}
 	
