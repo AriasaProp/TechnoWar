@@ -17,8 +17,9 @@
 #define MAX_UI_DRAW 100
 
 std::vector<texture_core*> managedTexture;
-std::vector<shader_core*> managedShader;
 std::vector<mesh_core*> managedMesh;
+
+//TranslatedGraphicsFunction *tgf = nullptr;
 
 struct btch {
 	int shader;
@@ -46,7 +47,6 @@ tgf_gles::tgf_gles() {
 tgf_gles::~tgf_gles() {
 	invalidate();
 	managedTexture.clear();
-	managedShader.clear();
 	managedMesh.clear();
 	delete ui_draw;
 	delete ws;
@@ -283,22 +283,6 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(dtra), (void*)0);
 		glBindVertexArray(0);
 	}
-	
-	//shader
-	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
-		(*i)->id = glCreateProgram();
-		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(utemp[0], 1, &(*i)->v, 0);
-		glCompileShader(utemp[0]);
-		glShaderSource(utemp[1], 1, &(*i)->f, 0);
-		glCompileShader(utemp[1]);
-		glAttachShader((*i)->id, utemp[0]);
-		glAttachShader((*i)->id, utemp[1]);
-		glLinkProgram((*i)->id);
-		glDeleteShader(utemp[0]);
-		glDeleteShader(utemp[1]);
-	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
@@ -341,10 +325,6 @@ void tgf_gles::invalidate() {
 		glDeleteProgram(ui_draw->shader);
 	}
 	
-	//shader
-	for (std::vector<shader_core*>::iterator i = managedShader.begin(); i != managedShader.end(); i++) {
-		glDeleteProgram((*i)->id);
-	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
