@@ -338,8 +338,8 @@ void tgf_gles::validate() {
 		glLinkProgram(ws->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		ws->u_worldProj = tgf->get_shader_uloc(sp, "worldview_proj");
-		ws->u_transProj = tgf->get_shader_uloc(sp, "trans_proj");
+		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
+		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
 	}
 	//flat draw
 	{
