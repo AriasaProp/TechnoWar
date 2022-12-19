@@ -25,7 +25,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	matrix4::idt(trans_proj);
 	// create shader program {
-	const char *vShaderSrc = "\nuniform mat4 worldview_proj;"
+	const char *vShaderSrc = "uniform mat4 worldview_proj;"
 		"\nuniform mat4 trans_proj;"
 		"\nlayout(location = 0) in vec4 a_position;"
 		"\nlayout(location = 1) in vec4 a_color;"
@@ -34,8 +34,7 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 		"\n    v_color = a_color;"
 		"\n    gl_Position = worldview_proj * trans_proj * a_position;"
 		"\n}\0";
-	const char *fShaderSrc = "\nprecision MED float;"
-		"\nin vec4 v_color;"
+	const char *fShaderSrc = "in vec4 v_color;"
 		"\nlayout(location = 0) out vec4 fragColor;"
 		"\nvoid main() {"
 		"\n    fragColor = v_color;"
