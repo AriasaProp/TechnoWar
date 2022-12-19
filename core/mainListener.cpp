@@ -91,7 +91,6 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
 	//}
-	tgf->clearcolor(1,1,1,1);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -102,7 +101,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-	matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
+	//matrix4::toOrtho(worldview_proj, 0, width, 0, height, 0, 10000.0f);
 	
 	tgf->bind_shader(sp);
 	tgf->u_matrix4fv(sp_worldview_matrix, 1, false, worldview_proj);

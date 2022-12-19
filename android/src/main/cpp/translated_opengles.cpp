@@ -271,7 +271,7 @@ void tgf_gles::draw_elements(int drawType, unsigned int indSize, int inType, con
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
-	
+	glClearColor(1,1,0,1);
 	//flat draw
 	{
 		//shader 
