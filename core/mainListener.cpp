@@ -61,10 +61,10 @@ void Main::create(TranslatedGraphicsFunction *_tgf,unsigned int w, unsigned int 
 	mesh_core::data vert1[4] = {
 		{15.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
 		{15.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
-		{width/2.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
 		{width/2.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
+		{width/2.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
 	};
-	unsigned short indc1[6] = {0,1,2,1,2,3};
+	unsigned short indc1[6] = {0,1,3,1,2,3};
 	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
 }
 void Main::resume() {

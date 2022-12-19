@@ -69,9 +69,7 @@ void tgf_gles::ui_draw_funct() {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-	glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -221,8 +219,6 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0); 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	managedMesh.push_back(r);
 	return r;
 }
@@ -238,8 +234,6 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 		memcpy(m->index, i, i_len*sizeof(unsigned short));
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, i_len*sizeof(unsigned short), (void*)m->index);
 	}
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 void tgf_gles::world_mesh(float width, float height) {
@@ -262,11 +256,7 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glUseProgram(ws->shader);
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	glBindVertexArray(m->vaoId);
-	glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboI);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -348,18 +338,15 @@ void tgf_gles::validate() {
 		const char *vt = "#version 300 es\n"
 			"layout(location = 0) in vec4 a_position;\n"
 			"layout(location = 1) in vec4 a_color;\n"
-			"out vec4 v_color;\n"
 			"void main() {\n"
-			"  v_color = a_color;\n"
 			"  gl_Position =  a_position;\n"
 			"}\n\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
 		const char *ft = "#version 300 es\n"
-			"in vec4 v_color;\n"
 			"layout(location = 0) out vec4 fragColor;\n"
 			"void main() {\n"
-			"  fragColor = v_color;\n"
+			"  fragColor = vec4(1.0);\n"
 			"}\n\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -376,20 +363,16 @@ void tgf_gles::validate() {
 		glBindVertexArray(ui_draw->vao);
 		struct dtra{
 			float x, y;
-			unsigned char r,g,b,a;
 		} tmp[4] = {
-			{-1.0f, -1.0f, 0xff, 0xff, 0xff, 0xff}, 
-			{-1.0f, 0.51f, 0xff, 0xff, 0xff, 0xff}, 
-			{0.51f, 0.51f, 0xff, 0xff, 0xff, 0xff}, 
-			{0.51f, -1.0f, 0xff, 0xff, 0xff, 0xff}, 
+			{-1.0f, -1.0f}, 
+			{-1.0f, 0.51f}, 
+			{0.51f, 0.51f}, 
+			{0.51f, -1.0f}, 
 		};
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(dtra), (void*)tmp, GL_DYNAMIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0); 
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(dtra), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(dtra), (void*)(2*sizeof(float)));
 		glBindVertexArray(0);
 	}
 	
@@ -423,8 +406,6 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	glBindVertexArray(0);
 	//texture
