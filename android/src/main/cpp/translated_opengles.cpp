@@ -201,15 +201,15 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glGenVertexArrays(1, &r->vaoId);
 	glGenBuffers(2, &r->vboV);
 	glBindVertexArray(r->vaoId);
+	glBindBuffer(GL_ARRAY_BUFFER, r->vboV); 
+	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
-	glBindBuffer(GL_ARRAY_BUFFER, r->vboV); 
-	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	glBindVertexArray(0);
 	//glBindBuffer(GL_ARRAY_BUFFER, 0); 
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -231,13 +231,13 @@ void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len,
 	glBindVertexArray(0);
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	
+	/*
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
-	
+	*/
 	glBindVertexArray(m->vaoId);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
@@ -345,15 +345,15 @@ void tgf_gles::validate() {
 		glGenVertexArrays(1, &r->vaoId);
 		glGenBuffers(2, &r->vboV);
 		glBindVertexArray(r->vaoId);
+		glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
+		glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 		const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
-		glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
-		glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	}
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
