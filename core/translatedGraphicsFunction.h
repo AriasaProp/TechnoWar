@@ -623,7 +623,6 @@ public:
 	virtual void end_mesh() = 0;
 	virtual void delete_mesh(mesh_core*) = 0;
 };
-
 extern TranslatedGraphicsFunction *tgf;
 
 #endif //Included_TGF

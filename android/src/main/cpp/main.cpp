@@ -21,8 +21,6 @@
 #include "translated_opengles.h"
 #include "mainListener.h"
 
-TranslatedGraphicsFunction *tgf = nullptr;
-
 struct android_app {
     bool destroyed;
     
