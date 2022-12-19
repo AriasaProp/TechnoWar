@@ -65,6 +65,8 @@ void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) 
 	glViewport(x, y, w, h);
 }
 void tgf_gles::ui_draw_funct() {
+	glDepthMask(false);
+	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ui_draw->shader);
 	glBindVertexArray(ui_draw->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
@@ -252,9 +254,8 @@ void tgf_gles::world_mesh(float width, float height) {
 	glUseProgram(0);
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glDepthMask(true);
