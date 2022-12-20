@@ -294,7 +294,7 @@ void tgf_gles::validate() {
 		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
 		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(dtra), (void*)tmp, GL_DYNAMIC_DRAW);
 		unsigned short indices[6] = {0,1,3, 1,2,3};
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboi);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned short), (void*)indices, GL_STATIC_DRAW);
 		glBindVertexArray(ui_draw->vao);
 		glEnableVertexAttribArray(0);
