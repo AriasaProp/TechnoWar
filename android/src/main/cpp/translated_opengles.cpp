@@ -279,6 +279,8 @@ void tgf_gles::validate() {
 		glLinkProgram(ui_draw->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
+		glUseProgram(ui_draw->shader);
+		glUseProgram(0);
 		
 		//mesh
 		glGenVertexArrays(1, &ui_draw->vao);
