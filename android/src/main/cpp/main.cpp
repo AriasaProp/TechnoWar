@@ -237,8 +237,7 @@ static void engine_draw(android_app *app, engine *eng) {
 static void process_cmd(const int8_t &cmd, android_app* app, engine *eng) {
 		switch (cmd) {
 	    case APP_CMD_RESUME:
-	  		if (eng->created)
-					eng->resume = true;
+				eng->resume = true;
 	      eng->running = true;
         pthread_mutex_lock(&app->mutex);
 			  if (app->savedState != NULL) {
@@ -401,8 +400,9 @@ static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_DESTROY);
+    app->destroyed = false;
     while (!app->destroyed) {
-        pthread_cond_wait(&app->cond, &app->mutex);
+    	pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);
     close(app->msgread);

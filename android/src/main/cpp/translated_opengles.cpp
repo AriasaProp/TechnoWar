@@ -33,8 +33,9 @@ struct world_btch {
 	int u_transProj;
 	float worldProj[16];
 } *ws = nullptr;
-
+unsigned int validC = 0;
 tgf_gles::tgf_gles() {
+	validC = 0;
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
@@ -190,7 +191,6 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete[] m->index;
 	delete m;
 }
-unsigned int validC = 0;
 void tgf_gles::validate() {
 	if (validC++) {
 		glClearColor(0,0,1,1);
