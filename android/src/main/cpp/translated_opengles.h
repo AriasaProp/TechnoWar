@@ -4,13 +4,7 @@
 #include "translatedGraphicsFunction.h"
 
 struct tgf_gles : public TranslatedGraphicsFunction {
-private:
-	bool valid = false;
-	int *temp = 0;
-	unsigned int *utemp = 0;
-	char *msg = 0;
-public:
-	tgf_gles();
+	tgf_gles() = default;
 	~tgf_gles() override;
 	const char *renderer() override;
 	void clearcolor(const float&, const float&, const float&, const float&) override;
