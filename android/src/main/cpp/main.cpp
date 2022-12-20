@@ -234,12 +234,7 @@ static void engine_draw(android_app *app, engine *eng) {
 	}
 }
 
-static void process_cmd(android_app* app, engine *eng) {
-    int8_t cmd;
-    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-        LOGI("No data on command pipe!");
-    		return;
-    }
+static void process_cmd(const int8_t &cmd, android_app* app, engine *eng) {
 		switch (cmd) {
 	    case APP_CMD_RESUME:
 	  		if (eng->created)
@@ -319,33 +314,6 @@ static void process_cmd(android_app* app, engine *eng) {
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
 }
-static void process_input(engine *eng) {
-    AInputEvent* event = NULL;
-    if (AInputQueue_getEvent(eng->inputQueue, &event) >= 0) {
-        if (AInputQueue_preDispatchEvent(eng->inputQueue, event)) {
-            return;
-        }
-        int32_t handled = 0;
-		    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-		        eng->state.x = AMotionEvent_getX(event, 0);
-		        eng->state.y = AMotionEvent_getY(event, 0);
-		        handled = 1;
-		    }
-        AInputQueue_finishEvent(eng->inputQueue, event, handled);
-    } else {
-        LOGI("Failure reading next input event: %s\n", strerror(errno));
-    }
-}
-static void process_sensor(engine *eng) {
-		if (eng->accelerometerSensor) {
-	      ASensorEvent event;
-	      while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&event, 1) > 0) {
-	      		eng->accel[0] = event.acceleration.x/2.f+ 0.5f;
-	      		eng->accel[1] = event.acceleration.y/2.f + 0.5f;
-	      		eng->accel[2] = event.acceleration.z/2.f + 0.5f;
-	      }
-	  }
-}
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
@@ -361,17 +329,44 @@ static void* android_app_entry(void* param) {
     if (app->savedState) {
         eng->state = *(saved_state*)app->savedState;
     }
+		int8_t cmd;	
     int events;
+    ASensorEvent s_event;
+    AInputEvent* i_event;
     while (!eng->destroyed) {
       switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
       	case LOOPER_ACTIVITY: //android activity queue
-      		process_cmd(app, eng);
+			    if (read(app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd))
+      			process_cmd(cmd, app, eng);
+			    else
+		        LOGI("No data on command pipe!");
       		break;
         case LOOPER_INPUT: //input queue
-      		process_input(eng);
+			    if (AInputQueue_getEvent(eng->inputQueue, &i_event) >= 0) {
+		        if (AInputQueue_preDispatchEvent(eng->inputQueue, i_event))
+	            break;
+		        int32_t handled = 0;
+		        switch (AInputEvent_getType(i_event)) {
+		        	case AINPUT_EVENT_TYPE_MOTION:
+				        eng->state.x = AMotionEvent_getX(i_event, 0);
+				        eng->state.y = AMotionEvent_getY(i_event, 0);
+				        handled = 1;
+				        break;
+				      default:
+				      	break;
+				    }
+		        AInputQueue_finishEvent(eng->inputQueue, i_event, handled);
+			    } else {
+			    	LOGI("Failure reading next input event: %s\n", strerror(errno));
+			    }
         	break;
         case LOOPER_SENSOR: //sensor queue
-      		process_sensor(eng);
+			    assert(eng->accelerometerSensor);
+				  while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&s_event, 1) > 0) {
+			  		eng->accel[0] = s_event.acceleration.x/2.f+ 0.5f;
+			  		eng->accel[1] = s_event.acceleration.y/2.f + 0.5f;
+			  		eng->accel[2] = s_event.acceleration.z/2.f + 0.5f;
+				  }
         	break;
         default:
       		engine_draw(app, eng);
