@@ -279,8 +279,8 @@ void tgf_gles::validate() {
 		float v_t[8] = {
 			-1, -1,
 			-1, 0,
-			0, -1
-			0, 0,
+			0, -1,
+			0, 0
 		};
 		glGenVertexArrays(1, &ubatch->vao);
 		glGenBuffers(1, &ubatch->vbo);
