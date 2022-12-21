@@ -122,13 +122,11 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	return r;
 }
 void tgf_gles::world_mesh(float width, float height) {
-	float w[16] = {
-		2.f/width,0,0,0,
-		0,2.f/height,0,0,
-		0,0,0.0005f,0,
-		0,0,0,1
-	};
-	memcpy(ws->worldProj,w,16*sizeof(float));
+	memset(ws->worldProj,0,16*sizeof(float));
+	ws->worldProj[0] = 2.f/width;
+	ws->worldProj[5] = 2.f/width;
+	ws->worldProj[10] = 0.0005f;
+	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
 }
 static bool mesh_beginned;
@@ -147,15 +145,15 @@ void tgf_gles::begin_mesh() {
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
 	if (!mesh_beginned) return;
-	glBindVertexArray(m->vao);
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+	glBindVertexArray(m->vao);
 	if (m->dirty_vertex) {
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
 		m->dirty_vertex = false;
 	}
 	if (m->dirty_index) {
-		glBindBuffer(GL_ARRAY_BUFFER, m->ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 		m->dirty_index = false;
 	}
@@ -178,6 +176,9 @@ void tgf_gles::end_mesh() {
 	glUseProgram(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
+	std::vector<mesh_core*>::iterator it = std::find(managedMesh.begin(), managedMesh.end(), m);
+	if (it == managedTexture.end()) return;
+	managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
 	glDeleteBuffers(2, &m->vbo);
 	delete[] m->vertex;
@@ -306,8 +307,8 @@ void tgf_gles::validate() {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
 		(*i)->dirty_index = false;
+		glBindVertexArray(0);
 	}
-	glBindVertexArray(0);
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
 		glGenTextures(1, &(*i)->id);
