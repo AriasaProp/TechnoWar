@@ -11,15 +11,12 @@ struct tgf_gles : public TranslatedGraphicsFunction {
 	void clear(const unsigned int&) override;
 	void viewport(const int&, const int&, const int&, const int&) override;
 
-	void ui_draw_funct() override;
-	
 	texture_core *gen_texture(const int&, const int&, unsigned char*) override;
 	void bind_texture(texture_core *) override;
 	void set_texture_param(const int&, const int&) override;
 	void delete_texture(texture_core *) override;
 	
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
-	void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void world_mesh(float,float) override;
 	void begin_mesh() override;
 	void draw_mesh(mesh_core*) override;
