@@ -91,6 +91,7 @@ void Main::render(float delta) {
 	}
 	tgf->draw_mesh(flatA);
 	tgf->end_mesh();
+	
 }
 void Main::pause() {
 	if (!tgf) return;

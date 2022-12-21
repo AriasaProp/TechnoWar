@@ -24,7 +24,7 @@ unsigned int *utemp = 0;
 char *msg = 0;
 
 int f_shader;
-unsigned int f_vao,f_vbo,f_ibo;
+unsigned int f_vao,f_vbo;
 
 struct world_btch {
 	bool dirty_worldProj;
@@ -168,7 +168,7 @@ void tgf_gles::end_mesh() {
 	glDepthMask(false);
 	glUseProgram(f_shader);
 	glBindVertexArray(f_vao);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -278,19 +278,16 @@ void tgf_gles::validate() {
 		float v_t[8] = {
 			-1, -1,
 			-1, 0,
-			0, -1,
-			0, 0
+			0, 0,
+			0, -1
 		};
-		unsigned short i_i[6] = {0,1,3,1,2,3};
 		glGenVertexArrays(1, &f_vao);
-		glGenBuffers(2, &f_vbo);
+		glGenBuffers(1, &f_vbo);
 		glBindVertexArray(f_vao);
 		glBindBuffer(GL_ARRAY_BUFFER, f_vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(v_t), (void*)v_t, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, f_ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(i_i), (void*)i_i, GL_STATIC_DRAW);
 		glBindVertexArray(0);
 	}
 	//mesh
