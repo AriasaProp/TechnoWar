@@ -177,7 +177,7 @@ void tgf_gles::end_mesh() {
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	std::vector<mesh_core*>::iterator it = std::find(managedMesh.begin(), managedMesh.end(), m);
-	if (it == managedTexture.end()) return;
+	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
 	glDeleteBuffers(2, &m->vbo);
