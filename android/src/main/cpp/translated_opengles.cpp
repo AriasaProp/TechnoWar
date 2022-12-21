@@ -96,7 +96,7 @@ void tgf_gles::delete_texture(texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void flat_render(float *v, unsigned int len) {
+void tgf_gles::flat_render(float *v, unsigned int len) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(false);
