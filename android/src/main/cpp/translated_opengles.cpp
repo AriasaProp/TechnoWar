@@ -23,6 +23,9 @@ int *temp = 0;
 unsigned int *utemp = 0;
 char *msg = 0;
 
+int f_shader;
+unsigned int f_vao,f_vbo,f_ibo;
+
 struct world_btch {
 	bool dirty_worldProj;
 	int shader;
@@ -142,14 +145,14 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 	glBindVertexArray(m->vaoId);
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	if (m->dirty_vertex) {
-		m->dirty_vertex = false;
 		glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
+		m->dirty_vertex = false;
 	}
 	if (m->dirty_index) {
-		m->dirty_index = false;
 		glBindBuffer(GL_ARRAY_BUFFER, m->vboI);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
+		m->dirty_index = false;
 	}
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 }
@@ -158,6 +161,16 @@ void tgf_gles::end_mesh() {
 	glBindVertexArray(0);
 	glUseProgram(0);
 	mesh_beginned = false;
+	
+	//test there to draw UI Batch
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(false);
+	glUseProgram(f_shader);
+	glBindVertexArray(f_vao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
+	glBindVertexArray(0);
+	glUseProgram(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	glDeleteVertexArrays(1, &m->vaoId);
@@ -221,14 +234,73 @@ void tgf_gles::validate() {
 		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
 		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
 	}
+	//flat draw
+	{
+		f_shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		const char *vt = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nlayout(location = 0) in vec4 a_position;"
+			"\nvoid main() {"
+			"\n    gl_Position = a_position;"
+			"\n}\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
+		glCompileShader(utemp[0]);
+		const char *ft = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nprecision MED float;"
+			"\nlayout(location = 0) out vec4 fragColor;"
+			"\nvoid main() {"
+			"\n    fragColor = vec4(1.0);"
+			"\n}\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
+		glCompileShader(utemp[1]);
+		glCompileShader(utemp[1]);
+		glAttachShader(f_shader, utemp[0]);
+		glAttachShader(f_shader, utemp[1]);
+		glLinkProgram(f_shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		
+		float v_t[8] = {
+			-1, -1,
+			-1, 0,
+			0, -1,
+			0, 0
+		};
+		unsigned short i_i[6] = {0,1,3,1,2,3};
+		glGenVertexArrays(1, &f_vao);
+		glGenBuffers(2, &f_vbo);
+		glBindVertexArray(f_vao);
+		glBindBuffer(GL_ARRAY_BUFFER, f_vbo);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(v_t), (void*)v_t, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, f_ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(i_i), (void*)i_i, GL_STATIC_DRAW);
+		glBindVertexArray(0);
+	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
 		glGenVertexArrays(1, &r->vaoId);
 		glGenBuffers(2, &r->vboV);
+		glBindVertexArray(r->vaoId);
 		glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
 		glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-		glBindVertexArray(r->vaoId);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 		glEnableVertexAttribArray(1);
@@ -254,6 +326,12 @@ void tgf_gles::invalidate() {
 	//world draw
 	{
 		glDeleteProgram(ws->shader);
+	}
+	//flat draw
+	{
+		glDeleteProgram(f_shader);
+		glDeleteVertexArrays(1, &f_vao);
+		glDeleteBuffers(2, &f_vbo);
 	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
