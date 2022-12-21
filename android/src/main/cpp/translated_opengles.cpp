@@ -23,8 +23,10 @@ int *temp = 0;
 unsigned int *utemp = 0;
 char *msg = 0;
 
-int f_shader;
-unsigned int f_vao,f_vbo;
+struct ui_batch {
+	int shader;
+	unsigned int vao,vbo;
+} *ubatch = nullptr;
 
 struct world_btch {
 	bool dirty_worldProj;
@@ -35,10 +37,11 @@ struct world_btch {
 } *ws = nullptr;
 unsigned int validC = 0;
 tgf_gles::tgf_gles() {
-	validC = 0;
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
+	ubatch = new ui_batch;
+	memset(ubatch,0,sizeof(ui_batch));
 	ws = new world_btch;
 	memset(ws,0,sizeof(world_btch));
 	validate();
@@ -47,6 +50,7 @@ tgf_gles::~tgf_gles() {
 	invalidate();
 	managedTexture.clear();
 	managedMesh.clear();
+	delete ubatch;
 	delete ws;
 	delete[] temp;
 	delete[] utemp;
@@ -105,13 +109,15 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glBindVertexArray(r->vaoId);
 	glBindBuffer(GL_ARRAY_BUFFER, r->vboV); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
+	r->dirty_vertex = false;
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
+	r->dirty_index = false;
 	glBindVertexArray(0);
 	managedMesh.push_back(r);
 	return r;
@@ -166,8 +172,8 @@ void tgf_gles::end_mesh() {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(false);
-	glUseProgram(f_shader);
-	glBindVertexArray(f_vao);
+	glUseProgram(ubatch->shader);
+	glBindVertexArray(ubatch->vao);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -180,9 +186,6 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete m;
 }
 void tgf_gles::validate() {
-	if (validC++) {
-		glClearColor(0,0,1,1);
-	}
 	if (valid) return;
 	//validating gles resources
 	//world draw
@@ -236,7 +239,7 @@ void tgf_gles::validate() {
 	}
 	//flat draw
 	{
-		f_shader = glCreateProgram();
+		ubatch->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
 		const char *vt = "#version 300 es"
@@ -269,22 +272,21 @@ void tgf_gles::validate() {
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
 		glCompileShader(utemp[1]);
-		glAttachShader(f_shader, utemp[0]);
-		glAttachShader(f_shader, utemp[1]);
-		glLinkProgram(f_shader);
+		glAttachShader(ubatch->shader, utemp[0]);
+		glAttachShader(ubatch->shader, utemp[1]);
+		glLinkProgram(ubatch->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		
 		float v_t[8] = {
 			-1, -1,
 			-1, 0,
-			0, 0,
 			0, -1
+			0, 0,
 		};
-		glGenVertexArrays(1, &f_vao);
-		glGenBuffers(1, &f_vbo);
-		glBindVertexArray(f_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, f_vbo);
+		glGenVertexArrays(1, &ubatch->vao);
+		glGenBuffers(1, &ubatch->vbo);
+		glBindVertexArray(ubatch->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(v_t), (void*)v_t, GL_STATIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
@@ -304,8 +306,8 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
-		glBindVertexArray(0);
 	}
+	glBindVertexArray(0);
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
 		glGenTextures(1, &(*i)->id);
@@ -326,9 +328,9 @@ void tgf_gles::invalidate() {
 	}
 	//flat draw
 	{
-		glDeleteProgram(f_shader);
-		glDeleteVertexArrays(1, &f_vao);
-		glDeleteBuffers(2, &f_vbo);
+		glDeleteProgram(ubatch->shader);
+		glDeleteVertexArrays(1, &ubatch->vao);
+		glDeleteBuffers(2, &ubatch->vbo);
 	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
