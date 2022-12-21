@@ -89,7 +89,7 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
 }
 void tgf_gles::delete_texture(texture_core *t) {
-	std::unorderer_set<texture_core*>::iterator it = managedTexture.find(t);
+	std::unordered_set<texture_core*>::iterator it = managedTexture.find(t);
 	if (it == managedTexture.end()) return;
 	managedTexture.erase(it);
 	glDeleteTextures(1, &t->id);
@@ -177,7 +177,7 @@ void tgf_gles::end_mesh() {
 	mesh_beginned = false;
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
-	std::unorderer_set<mesh_core*>::iterator it = managedMesh.find(m);
+	std::unordered_set<mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
@@ -288,7 +288,7 @@ void tgf_gles::validate() {
 		glBindVertexArray(0);
 	}
 	//mesh
-	for (std::unorderer_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+	for (std::unordered_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glGenVertexArrays(1, &(*i)->vao);
 		glGenBuffers(2, &(*i)->vbo);
 		glBindVertexArray((*i)->vao);
@@ -303,7 +303,7 @@ void tgf_gles::validate() {
 		glBindVertexArray(0);
 	}
 	//texture
-	for (std::unorderer_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);
 		glBindTexture(GL_TEXTURE_2D, (*i)->id);
 	  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -327,12 +327,12 @@ void tgf_gles::invalidate() {
 		glDeleteBuffers(1, &ubatch->vbo);
 	}
 	//mesh
-	for (std::unorderer_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+	for (std::unordered_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glDeleteVertexArrays(1, &(*i)->vao);
 		glDeleteBuffers(2, &(*i)->vbo);
 	}
 	//texture
-	for (std::unorderer_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glDeleteTextures(1, &(*i)->id);
 	}
 	
