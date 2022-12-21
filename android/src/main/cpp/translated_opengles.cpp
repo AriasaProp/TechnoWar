@@ -124,7 +124,7 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 void tgf_gles::world_mesh(float width, float height) {
 	memset(ws->worldProj,0,16*sizeof(float));
 	ws->worldProj[0] = 2.f/width;
-	ws->worldProj[5] = 2.f/width;
+	ws->worldProj[5] = 2.f/height;
 	ws->worldProj[10] = 0.0005f;
 	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
@@ -299,14 +299,12 @@ void tgf_gles::validate() {
 		glBindVertexArray((*i)->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
 		glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
-		(*i)->dirty_vertex = true;
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
-		(*i)->dirty_index = true;
 		glBindVertexArray(0);
 	}
 	//texture
