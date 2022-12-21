@@ -100,10 +100,10 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	mesh_core *r = new mesh_core;
 	r->vertex_len = v_len;
 	r->vertex = new mesh_core::data[v_len];
-	memcpy(r->vertex, v, sizeof(r->vertex));
+	memcpy(r->vertex, v, v_len*sizeof(mesh_core::data));
 	r->index_len = i_len;
 	r->index = new unsigned short[i_len];
-	memcpy(r->index, i, sizeof(r->index));
+	memcpy(r->index, i, i_len*sizeof(unsigned short));
 	glGenVertexArrays(1, &r->vao);
 	glGenBuffers(2, &r->vbo);
 	glBindVertexArray(r->vao);
@@ -299,14 +299,14 @@ void tgf_gles::validate() {
 		glBindVertexArray((*i)->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
 		glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
-		(*i)->dirty_vertex = false;
+		(*i)->dirty_vertex = true;
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
-		(*i)->dirty_index = false;
+		(*i)->dirty_index = true;
 		glBindVertexArray(0);
 	}
 	//texture
