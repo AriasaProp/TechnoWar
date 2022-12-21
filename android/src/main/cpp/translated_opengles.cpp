@@ -2,7 +2,8 @@
 
 #include <memory> // alloca, malloc, calloc, alloc, etc
 #include <cstring> //str.. function
-#include <vector>
+#include <unordered_set>
+#include <algorithm>
 
 // make opengles lastest possible version
 // minimum API version is 21
@@ -16,8 +17,8 @@
 
 #define MAX_UI_DRAW 100
 
-std::vector<texture_core*> managedTexture;
-std::vector<mesh_core*> managedMesh;
+std::unordered_set<texture_core*> managedTexture;
+std::unordered_set<mesh_core*> managedMesh;
 bool valid = false;
 int *temp = 0;
 unsigned int *utemp = 0;
@@ -78,7 +79,7 @@ texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigne
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	managedTexture.push_back(t);
+	managedTexture.insert(t);
 	return t;
 }
 void tgf_gles::bind_texture(texture_core *t) {
@@ -88,13 +89,25 @@ void tgf_gles::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
 }
 void tgf_gles::delete_texture(texture_core *t) {
+	std::unorderer_set<texture_core*>::iterator it = managedTexture.find(t);
+	if (it == managedTexture.end()) return;
+	managedTexture.erase(it);
 	glDeleteTextures(1, &t->id);
-	std::vector<texture_core*>::iterator it = std::find(managedTexture.begin(), managedTexture.end(), t);
-	if (it != managedTexture.end()) {
-		managedTexture.erase(it);
-	}
 	delete[] t->data;
 	delete t;
+}
+void flat_render(float *v, unsigned int len) {
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDepthMask(false);
+	glUseProgram(ubatch->shader);
+	glBindVertexArray(ubatch->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
+	glBindVertexArray(0);
+	glUseProgram(0);
+	
 }
 mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
@@ -109,16 +122,14 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glBindVertexArray(r->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-	r->dirty_vertex = false;
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
-	r->dirty_index = false;
 	glBindVertexArray(0);
-	managedMesh.push_back(r);
+	managedMesh.insert(r);
 	return r;
 }
 void tgf_gles::world_mesh(float width, float height) {
@@ -158,25 +169,15 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 		m->dirty_index = false;
 	}
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
+	glBindVertexArray(0);
 }
 void tgf_gles::end_mesh() {
 	if (!mesh_beginned) return;
-	glBindVertexArray(0);
 	glUseProgram(0);
 	mesh_beginned = false;
-	
-	//test there to draw UI Batch
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDepthMask(false);
-	glUseProgram(ubatch->shader);
-	glBindVertexArray(ubatch->vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
-	glUseProgram(0);
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
-	std::vector<mesh_core*>::iterator it = std::find(managedMesh.begin(), managedMesh.end(), m);
+	std::unorderer_set<mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
@@ -277,23 +278,17 @@ void tgf_gles::validate() {
 		glLinkProgram(ubatch->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		float v_t[8] = {
-			-1, -1,
-			-1, 0,
-			0, -1,
-			0, 0
-		};
 		glGenVertexArrays(1, &ubatch->vao);
 		glGenBuffers(1, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(v_t), (void*)v_t, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*2*sizeof(float), NULL, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
 		glBindVertexArray(0);
 	}
 	//mesh
-	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
+	for (std::unorderer_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glGenVertexArrays(1, &(*i)->vao);
 		glGenBuffers(2, &(*i)->vbo);
 		glBindVertexArray((*i)->vao);
@@ -308,7 +303,7 @@ void tgf_gles::validate() {
 		glBindVertexArray(0);
 	}
 	//texture
-	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
+	for (std::unorderer_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);
 		glBindTexture(GL_TEXTURE_2D, (*i)->id);
 	  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -332,12 +327,12 @@ void tgf_gles::invalidate() {
 		glDeleteBuffers(1, &ubatch->vbo);
 	}
 	//mesh
-	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
+	for (std::unorderer_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glDeleteVertexArrays(1, &(*i)->vao);
 		glDeleteBuffers(2, &(*i)->vbo);
 	}
 	//texture
-	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
+	for (std::unorderer_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glDeleteTextures(1, &(*i)->id);
 	}
 	

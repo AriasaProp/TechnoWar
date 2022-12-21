@@ -9,6 +9,8 @@
 unsigned int width, height;
 mesh_core *mp, *flatA;
 
+float v_t[8] = {-1, -1, -1, 0, 0, -1, 0, 0};
+
 void Main::create(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
@@ -92,6 +94,7 @@ void Main::render(float delta) {
 	tgf->draw_mesh(flatA);
 	tgf->end_mesh();
 	
+	tgf->flat_render(v_t, 8);
 }
 void Main::pause() {
 	if (!tgf) return;

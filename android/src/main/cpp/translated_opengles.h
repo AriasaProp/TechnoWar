@@ -16,6 +16,8 @@ struct tgf_gles : public TranslatedGraphicsFunction {
 	void set_texture_param(const int&, const int&) override;
 	void delete_texture(texture_core *) override;
 	
+	void flat_render(float *, unsigned int) override;
+	
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void world_mesh(float,float) override;
 	void begin_mesh() override;

@@ -596,7 +596,7 @@ struct mesh_core {
 };
 
 //maximum 2dbatch render 1000
-#define MAX_TEXTURE_UI 1000
+#define MAX_TEXTURE_UI 100
 //maximum output log message in char
 #define MAX_GL_MSG 1024
  
@@ -613,6 +613,8 @@ public:
 	virtual void bind_texture(texture_core*) = 0;
 	virtual void set_texture_param(const int&, const int&) = 0;
 	virtual void delete_texture(texture_core*) = 0;
+	
+	virtual void flat_render(float *, unsigned int) = 0;
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
 	virtual void world_mesh(float,float) = 0;
