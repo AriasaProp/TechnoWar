@@ -23,13 +23,6 @@ int *temp = 0;
 unsigned int *utemp = 0;
 char *msg = 0;
 
-//TranslatedGraphicsFunction *tgf = nullptr;
-
-struct btch {
-	int shader;
-	unsigned int vao;
-	unsigned int vbov,vboi;
-} *ui_draw = nullptr;
 struct world_btch {
 	bool dirty_worldProj;
 	int shader;
@@ -43,8 +36,6 @@ tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
-	ui_draw = new btch;
-	memset(ui_draw,0,sizeof(btch));
 	ws = new world_btch;
 	memset(ws,0,sizeof(world_btch));
 	validate();
@@ -53,7 +44,6 @@ tgf_gles::~tgf_gles() {
 	invalidate();
 	managedTexture.clear();
 	managedMesh.clear();
-	delete ui_draw;
 	delete ws;
 	delete[] temp;
 	delete[] utemp;
@@ -70,19 +60,6 @@ void tgf_gles::clear(const unsigned int &m) {
 }
 void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
 	glViewport(x, y, w, h);
-}
-void tgf_gles::ui_draw_funct() {
-	glDepthMask(false);
-	glDisable(GL_DEPTH_TEST);
-	glUseProgram(ui_draw->shader);
-	glBindVertexArray(ui_draw->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, (void*)0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
 }
 texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigned char *data) {
 	texture_core *t = new texture_core;
@@ -125,30 +102,16 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	glBindVertexArray(r->vaoId);
 	glBindBuffer(GL_ARRAY_BUFFER, r->vboV); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	const unsigned int stride = 3 * sizeof(float) + 4 * sizeof(unsigned char);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, stride, (void*)(3*sizeof(float)));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	glBindVertexArray(0);
 	managedMesh.push_back(r);
 	return r;
-}
-void tgf_gles::update_mesh(mesh_core *m, mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
-	glBindVertexArray(m->vaoId);
-	if (v) {
-		glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
-		memcpy(m->vertex, v, v_len*sizeof(mesh_core::data));
-		glBufferSubData(GL_ARRAY_BUFFER, 0, v_len*sizeof(mesh_core::data), (void*)m->vertex);
-	}
-	if (i) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboI);
-		memcpy(m->index, i, i_len*sizeof(unsigned short));
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, i_len*sizeof(unsigned short), (void*)m->index);
-	}
-	glBindVertexArray(0);
 }
 void tgf_gles::world_mesh(float width, float height) {
 	float w[16] = {
@@ -177,15 +140,21 @@ void tgf_gles::begin_mesh() {
 void tgf_gles::draw_mesh(mesh_core *m) {
 	if (!mesh_beginned) return;
 	glBindVertexArray(m->vaoId);
-	glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->vboI);
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+	if (m->dirty_vertex) {
+		m->dirty_vertex = false;
+		glBindBuffer(GL_ARRAY_BUFFER, m->vboV);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
+	}
+	if (m->dirty_index) {
+		m->dirty_index = false;
+		glBindBuffer(GL_ARRAY_BUFFER, m->vboI);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
+	}
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 }
 void tgf_gles::end_mesh() {
 	if (!mesh_beginned) return;
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 	mesh_beginned = false;
@@ -208,7 +177,7 @@ void tgf_gles::validate() {
 		ws->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
 		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		const char *vt = "#version 300 es\n"
+		const char *vt = "#version 300 es"
 			"\n#define LOW lowp"
 			"\n#define MED mediump"
 			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -227,7 +196,7 @@ void tgf_gles::validate() {
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
-		const char *ft = "#version 300 es\n"
+		const char *ft = "#version 300 es"
 			"\n#define LOW lowp"
 			"\n#define MED mediump"
 			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -252,59 +221,6 @@ void tgf_gles::validate() {
 		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
 		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
 	}
-	//flat draw
-	{
-		//shader 
-		ui_draw->shader = glCreateProgram();
-		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		const char *vt = "#version 300 es\n"
-			"layout(location = 0) in vec4 a_position;\n"
-			"layout(location = 1) in vec4 a_color;\n"
-			"void main() {\n"
-			"  gl_Position =  a_position;\n"
-			"}\n\0";
-		glShaderSource(utemp[0], 1, &vt, 0);
-		glCompileShader(utemp[0]);
-		const char *ft = "#version 300 es\n"
-			"layout(location = 0) out vec4 fragColor;\n"
-			"void main() {\n"
-			"  fragColor = vec4(1.0);\n"
-			"}\n\0";
-		glShaderSource(utemp[1], 1, &ft, 0);
-		glCompileShader(utemp[1]);
-		glCompileShader(utemp[1]);
-		glAttachShader(ui_draw->shader, utemp[0]);
-		glAttachShader(ui_draw->shader, utemp[1]);
-		glLinkProgram(ui_draw->shader);
-		glDeleteShader(utemp[0]);
-		glDeleteShader(utemp[1]);
-		glUseProgram(ui_draw->shader);
-		glUseProgram(0);
-		
-		//mesh
-		glGenVertexArrays(1, &ui_draw->vao);
-		glGenBuffers(2, &ui_draw->vbov);
-		struct dtra{
-			float x, y;
-		} tmp[4] = {
-			{-1.0f, -1.0f}, 
-			{-1.0f, 0.51f}, 
-			{0.51f, 0.51f}, 
-			{0.51f, -1.0f}, 
-		};
-		glBindBuffer(GL_ARRAY_BUFFER, ui_draw->vbov); 
-		glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(dtra), (void*)tmp, GL_DYNAMIC_DRAW);
-		unsigned short indices[6] = {0,1,3, 1,2,3};
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ui_draw->vboi);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned short), (void*)indices, GL_STATIC_DRAW);
-		glBindVertexArray(ui_draw->vao);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(dtra), (void*)0);
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0); 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); 
-	}
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;
@@ -312,16 +228,14 @@ void tgf_gles::validate() {
 		glGenBuffers(2, &r->vboV);
 		glBindBuffer(GL_ARRAY_BUFFER, r->vboV);
 		glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 		glBindVertexArray(r->vaoId);
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(mesh_core::data), (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->vboI);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 	//texture
 	for (std::vector<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); i++) {
@@ -341,13 +255,6 @@ void tgf_gles::invalidate() {
 	{
 		glDeleteProgram(ws->shader);
 	}
-	//flat draw
-	{
-		glDeleteProgram(ui_draw->shader);
-		glDeleteVertexArrays(1, &ui_draw->vao);
-		glDeleteBuffers(2, &ui_draw->vbov);
-	}
-	
 	//mesh
 	for (std::vector<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); i++) {
 		mesh_core *r = *i;

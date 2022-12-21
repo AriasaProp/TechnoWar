@@ -578,6 +578,8 @@ struct texture_core {
 };
 //mesh core
 struct mesh_core {
+	bool dirty_vertex;
+	bool dirty_index;
 	unsigned int vaoId;
 	unsigned int vboV, vboI;
 	unsigned int vertex_len, index_len;// based type len, not in byte
@@ -608,15 +610,12 @@ public:
 	virtual void clear(const unsigned int&) = 0;
 	virtual void viewport(const int&, const int&, const int&, const int&) = 0;
 
-	virtual void ui_draw_funct() = 0;
-	
 	virtual texture_core *gen_texture(const int&, const int&, unsigned char*) = 0;
 	virtual void bind_texture(texture_core*) = 0;
 	virtual void set_texture_param(const int&, const int&) = 0;
 	virtual void delete_texture(texture_core*) = 0;
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
-	virtual void update_mesh(mesh_core*, mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
 	virtual void world_mesh(float,float) = 0;
 	virtual void begin_mesh() = 0;
 	virtual void draw_mesh(mesh_core*) = 0;
