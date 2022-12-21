@@ -578,16 +578,15 @@ struct texture_core {
 };
 //mesh core
 struct mesh_core {
-	bool dirty_vertex;
-	bool dirty_index;
-	unsigned int vaoId;
-	unsigned int vboV, vboI;
+	bool dirty_vertex, dirty_index;
+	unsigned int vao;
+	unsigned int vbo, ibo;
 	unsigned int vertex_len, index_len;// based type len, not in byte
 	struct data {
-		float posx, posy, posz;
+		float x, y, z;
 		unsigned char r, g, b, a;
-	} *vertex;
-	unsigned short *index;
+	} *vertex = nullptr;
+	unsigned short *index = nullptr;
 	float trans[16] = {
 		1,0,0,0,
 		0,1,0,0,
