@@ -101,7 +101,7 @@ struct engine {
     EGLConfig eConfig;
     saved_state state;
     float accel[3];
-    touch_pointer input_pointer_cache[20];
+    touch_pointer input_pointer_cache[20] = {0};
 };
 
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
@@ -351,56 +351,51 @@ static void* android_app_entry(void* param) {
       		break;
         case LOOPER_INPUT: //input queue
 			    if (AInputQueue_getEvent(eng->inputQueue, &i_event) >= 0) {
-		        if (AInputQueue_preDispatchEvent(eng->inputQueue, i_event))
-	            break;
-		        int32_t handled = 0;
-		        switch (AInputEvent_getType(i_event)) {
-		        	case AINPUT_EVENT_TYPE_MOTION:
-		        		motion_act = AMotionEvent_getAction(i_event);
-								motion_ptr = (motion_act&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-								motion_ptr_act = motion_act&AMOTION_EVENT_ACTION_MASK;
-								touch_pointer &ip = eng->input_pointer_cache[motion_ptr];
-								switch(motion_ptr_act) {
-							    case AMOTION_EVENT_ACTION_DOWN:
-							    	ip.active = true;
-						        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
-						        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
-							    	break;
-							    case AMOTION_EVENT_ACTION_MOVE:
-						        ip.x = AMotionEvent_getX(i_event, 0);
-						        ip.y = AMotionEvent_getY(i_event, 0);
-							    	break;
-							    case AMOTION_EVENT_ACTION_UP:
-							    	ip.active = false;
-							    	
-							    	break;
-							    case AMOTION_EVENT_ACTION_CANCEL:
-							    	ip.active = false;
-							    	break;
-							    case AMOTION_EVENT_ACTION_OUTSIDE:
-							    	ip.active = false;
-							    	break;
-							    case AMOTION_EVENT_ACTION_POINTER_DOWN:
-							    	break;
-							    case AMOTION_EVENT_ACTION_POINTER_UP:
-							    	break;
-							    case AMOTION_EVENT_ACTION_SCROLL:
-							    	break;
-							    case AMOTION_EVENT_ACTION_HOVER_ENTER:
-							    	break;
-							    case AMOTION_EVENT_ACTION_HOVER_MOVE:
-							    	break;
-							    case AMOTION_EVENT_ACTION_HOVER_EXIT:
-							    	break;
-							    default:
-							    	break;
-								}
-				        handled = 1;
-				        break;
-				      default:
-				      	break;
-				    }
-		        AInputQueue_finishEvent(eng->inputQueue, i_event, handled);
+		        if (!AInputQueue_preDispatchEvent(eng->inputQueue, i_event)) {
+			        int32_t handled = 0;
+			        switch (AInputEvent_getType(i_event)) {
+			        	case AINPUT_EVENT_TYPE_MOTION:
+			        		motion_act = AMotionEvent_getAction(i_event);
+									motion_ptr = (motion_act&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+									motion_ptr_act = motion_act&AMOTION_EVENT_ACTION_MASK;
+									touch_pointer &ip = eng->input_pointer_cache[motion_ptr];
+									switch(motion_ptr_act) {
+								    case AMOTION_EVENT_ACTION_DOWN:
+								    	ip.active = true;
+							        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
+							        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
+								    	break;
+								    case AMOTION_EVENT_ACTION_MOVE:
+							        ip.x = AMotionEvent_getX(i_event, 0);
+							        ip.y = AMotionEvent_getY(i_event, 0);
+								    	break;
+								    case AMOTION_EVENT_ACTION_UP:
+								    	ip.active = false;
+								    	
+								    	break;
+								    case AMOTION_EVENT_ACTION_CANCEL:
+								    	ip.active = false;
+								    	break;
+								    case AMOTION_EVENT_ACTION_OUTSIDE:
+								    	ip.active = false;
+								    	break;
+								    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+								    	break;
+								    case AMOTION_EVENT_ACTION_POINTER_UP:
+								    	break;
+								    case AMOTION_EVENT_ACTION_SCROLL:
+								    	break;
+								    case AMOTION_EVENT_ACTION_HOVER_ENTER:
+								    	break;
+								    case AMOTION_EVENT_ACTION_HOVER_MOVE:
+								    	break;
+								    case AMOTION_EVENT_ACTION_HOVER_EXIT:
+								    	break;
+									}
+					        handled = 1;
+					    }
+			        AInputQueue_finishEvent(eng->inputQueue, i_event, handled);
+		        }
 			    } else {
 			    	LOGI("Failure reading next input event: %s\n", strerror(errno));
 			    }
