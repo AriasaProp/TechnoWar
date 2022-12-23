@@ -36,7 +36,6 @@ struct world_btch {
 	int u_transProj;
 	float worldProj[16];
 } *ws = nullptr;
-unsigned int validC = 0;
 tgf_gles::tgf_gles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
@@ -107,7 +106,6 @@ void tgf_gles::flat_render(float *v, unsigned int len) {
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
 	glBindVertexArray(0);
 	glUseProgram(0);
-	
 }
 mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
@@ -140,9 +138,7 @@ void tgf_gles::world_mesh(float width, float height) {
 	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
 }
-static bool mesh_beginned;
 void tgf_gles::begin_mesh() {
-	mesh_beginned = true;
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
@@ -155,7 +151,6 @@ void tgf_gles::begin_mesh() {
 	}
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	if (!mesh_beginned) return;
 	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
 	glBindVertexArray(m->vao);
 	if (m->dirty_vertex) {
@@ -169,12 +164,10 @@ void tgf_gles::draw_mesh(mesh_core *m) {
 		m->dirty_index = false;
 	}
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
-	glBindVertexArray(0);
 }
 void tgf_gles::end_mesh() {
-	if (!mesh_beginned) return;
+	glBindVertexArray(0);
 	glUseProgram(0);
-	mesh_beginned = false;
 }
 void tgf_gles::delete_mesh(mesh_core *m) {
 	std::unordered_set<mesh_core*>::iterator it = managedMesh.find(m);
