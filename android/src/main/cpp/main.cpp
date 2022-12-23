@@ -74,6 +74,11 @@ enum {
 	TERM_EGL_CONTEXT = 2,
 	TERM_EGL_DISPLAY = 4
 };
+struct pointer {
+	bool active;
+	float xs, ys;
+	float x, y;
+}
 struct engine {
     bool created;
     bool resize;
@@ -96,6 +101,7 @@ struct engine {
     EGLConfig eConfig;
     saved_state state;
     float accel[3];
+    pointer input_pointer[20];
 };
 
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
@@ -233,7 +239,6 @@ static void engine_draw(android_app *app, engine *eng) {
 		}
 	}
 }
-
 static void process_cmd(const int8_t &cmd, android_app* app, engine *eng) {
 		switch (cmd) {
 	    case APP_CMD_RESUME:
@@ -331,7 +336,11 @@ static void* android_app_entry(void* param) {
 		int8_t cmd;	
     int events;
     ASensorEvent s_event;
+    //input env
     AInputEvent* i_event;
+    int32_t motion_act;
+    int8_t motion_ptr, motion_ptr_act;
+    //end input env
     while (!eng->destroyed) {
       switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
       	case LOOPER_ACTIVITY: //android activity queue
@@ -347,8 +356,45 @@ static void* android_app_entry(void* param) {
 		        int32_t handled = 0;
 		        switch (AInputEvent_getType(i_event)) {
 		        	case AINPUT_EVENT_TYPE_MOTION:
-				        eng->state.x = AMotionEvent_getX(i_event, 0);
-				        eng->state.y = AMotionEvent_getY(i_event, 0);
+		        		motion_act = AInputEvent_getAction(i_event);
+								motion_ptr = (motion_act&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+								motion_ptr_act = motion_act&AMOTION_EVENT_ACTION_MASK;
+								pointer &ip = eng->input_pointer[motion_ptr];
+								switch(motion_ptr_act) {
+							    case AMOTION_EVENT_ACTION_DOWN:
+							    	ip.active = true;
+						        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
+						        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
+							    	break;
+							    case AMOTION_EVENT_ACTION_MOVE:
+						        ip.x = AMotionEvent_getX(i_event, 0);
+						        ip.y = AMotionEvent_getY(i_event, 0);
+							    	break;
+							    case AMOTION_EVENT_ACTION_UP:
+							    	ip.active = false;
+							    	
+							    	break;
+							    case AMOTION_EVENT_ACTION_CANCEL:
+							    	ip.active = false;
+							    	break;
+							    case AMOTION_EVENT_ACTION_OUTSIDE:
+							    	ip.active = false;
+							    	break;
+							    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+							    	break;
+							    case AMOTION_EVENT_ACTION_POINTER_UP:
+							    	break;
+							    case AMOTION_EVENT_ACTION_SCROLL:
+							    	break;
+							    case AMOTION_EVENT_ACTION_HOVER_ENTER:
+							    	break;
+							    case AMOTION_EVENT_ACTION_HOVER_MOVE:
+							    	break;
+							    case AMOTION_EVENT_ACTION_HOVER_EXIT:
+							    	break;
+							    default:
+							    	break;
+								}
 				        handled = 1;
 				        break;
 				      default:

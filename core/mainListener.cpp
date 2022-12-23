@@ -60,9 +60,9 @@ void Main::create(unsigned int w, unsigned int h) {
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
 	mesh_core::data vert1[4] = {
 		{15.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
-		{15.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
-		{width/2.f, height/2.f, 0.f,0xff,0xff,0xff,0xff},
-		{width/2.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
+		{15.f, 360.f, 0.f,0xff,0xff,0xff,0xff},
+		{700.f, 360.f, 0.f,0xff,0xff,0xff,0xff},
+		{700.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
 	};
 	unsigned short indc1[6] = {0,1,3,1,2,3};
 	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
@@ -82,15 +82,13 @@ void Main::render(float delta) {
 	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
 	tgf->begin_mesh();
-	{
-		srand(time(NULL));
-		matrix4::rotate(mp->trans,
-			M_PI / std::fmax(float(rand()%1000), 240.0f),
-			M_PI / std::fmax(float(rand()%1000), 240.0f),
-			M_PI / std::fmax(float(rand()%1000), 240.0f)
-		);
-		tgf->draw_mesh(mp);
-	}
+	srand(time(NULL));
+	matrix4::rotate(mp->trans,
+		M_PI / std::fmax(float(rand()%1000), 240.0f),
+		M_PI / std::fmax(float(rand()%1000), 240.0f),
+		M_PI / std::fmax(float(rand()%1000), 240.0f)
+	);
+	tgf->draw_mesh(mp);
 	tgf->draw_mesh(flatA);
 	tgf->end_mesh();
 	
