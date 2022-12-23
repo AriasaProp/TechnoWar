@@ -74,11 +74,11 @@ enum {
 	TERM_EGL_CONTEXT = 2,
 	TERM_EGL_DISPLAY = 4
 };
-struct pointer {
+struct touch_pointer {
 	bool active;
 	float xs, ys;
 	float x, y;
-}
+};
 struct engine {
     bool created;
     bool resize;
@@ -101,7 +101,7 @@ struct engine {
     EGLConfig eConfig;
     saved_state state;
     float accel[3];
-    pointer input_pointer[20];
+    touch_pointer input_pointer_cache[20];
 };
 
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
@@ -356,10 +356,10 @@ static void* android_app_entry(void* param) {
 		        int32_t handled = 0;
 		        switch (AInputEvent_getType(i_event)) {
 		        	case AINPUT_EVENT_TYPE_MOTION:
-		        		motion_act = AInputEvent_getAction(i_event);
+		        		motion_act = AMotionEvent_getAction(i_event);
 								motion_ptr = (motion_act&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 								motion_ptr_act = motion_act&AMOTION_EVENT_ACTION_MASK;
-								pointer &ip = eng->input_pointer[motion_ptr];
+								touch_pointer &ip = eng->input_pointer_cache[motion_ptr];
 								switch(motion_ptr_act) {
 							    case AMOTION_EVENT_ACTION_DOWN:
 							    	ip.active = true;
