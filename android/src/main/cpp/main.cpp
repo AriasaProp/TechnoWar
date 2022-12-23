@@ -101,7 +101,7 @@ struct engine {
     EGLConfig eConfig;
     saved_state state;
     float accel[3];
-    touch_pointer input_pointer_cache[20] = {0};
+    touch_pointer input_pointer_cache[20] = {};
 };
 
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
