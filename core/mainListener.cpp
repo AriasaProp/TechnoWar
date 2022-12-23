@@ -92,7 +92,7 @@ void Main::render(float delta) {
 	tgf->draw_mesh(flatA);
 	tgf->end_mesh();
 	
-	tgf->flat_render(v_t, 8);
+	//tgf->flat_render(v_t, 8);
 }
 void Main::pause() {
 	if (!tgf) return;
