@@ -195,7 +195,7 @@ void tgf_gles::view_projection(float width, float height) {
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
-	glClearDepth(1.0f);
+	glClearDepthf(1.0f);
 	//world draw
 	{
 		ws->shader = glCreateProgram();
