@@ -98,18 +98,19 @@ void tgf_gles::delete_texture(texture_core *t) {
 	delete t;
 }
 void tgf_gles::flat_render(float *v, unsigned int len) {
-	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	/*
 	glDisable(GL_CULL_FACE);
-	glDepthMask(false);
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(false);
+	*/
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
 	}
 	glBindVertexArray(ubatch->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -138,11 +139,13 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	return r;
 }
 void tgf_gles::begin_mesh() {
+	/*
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glDepthMask(true);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
+	*/
 	glUseProgram(ws->shader);
 	if (ws->dirty_worldProj) {
 		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
@@ -150,22 +153,18 @@ void tgf_gles::begin_mesh() {
 	}
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
+	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+	glBindVertexArray(m->vao);
 	if (m->dirty_vertex) {
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
 		m->dirty_vertex = false;
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	if (m->dirty_index) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 		m->dirty_index = false;
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
-	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
-	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
-	glBindVertexArray(m->vao);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 }
 void tgf_gles::end_mesh() {
