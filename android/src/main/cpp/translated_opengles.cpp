@@ -29,7 +29,7 @@ struct ui_batch {
 	int shader;
 	int u_projection;
 	unsigned int vao,vbo;
-	float ui_projection[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	float ui_projection[16] = {1,0,0,0,0,1,0,0,0,0,1,0,-1,-1,0,1};
 } *ubatch = nullptr;
 
 struct world_btch {
@@ -37,7 +37,7 @@ struct world_btch {
 	int shader;
 	int u_worldProj;
 	int u_transProj;
-	float worldProj[16] = {1,0,0,0,0,1,0,0,0,0,1,0,-1,-1,0,1};
+	float worldProj[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 } *ws = nullptr;
 tgf_gles::tgf_gles() {
 	temp = new int[2];
