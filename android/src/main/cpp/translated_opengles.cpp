@@ -219,6 +219,7 @@ void tgf_gles::validate() {
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
+		glAttachShader(ws->shader, utemp[0]);
 		const char *ft = "#version 300 es"
 			"\n#define LOW lowp"
 			"\n#define MED mediump"
@@ -235,8 +236,6 @@ void tgf_gles::validate() {
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
-		glCompileShader(utemp[1]);
-		glAttachShader(ws->shader, utemp[0]);
 		glAttachShader(ws->shader, utemp[1]);
 		glLinkProgram(ws->shader);
 		glDeleteShader(utemp[0]);
@@ -264,6 +263,7 @@ void tgf_gles::validate() {
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
+		glAttachShader(ubatch->shader, utemp[0]);
 		const char *ft = "#version 300 es"
 			"\n#define LOW lowp"
 			"\n#define MED mediump"
@@ -279,8 +279,6 @@ void tgf_gles::validate() {
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
-		glCompileShader(utemp[1]);
-		glAttachShader(ubatch->shader, utemp[0]);
 		glAttachShader(ubatch->shader, utemp[1]);
 		glLinkProgram(ubatch->shader);
 		glDeleteShader(utemp[0]);
