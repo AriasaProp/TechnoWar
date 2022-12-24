@@ -29,11 +29,7 @@ struct ui_batch {
 	int shader;
 	int u_projection;
 	unsigned int vao,vbo;
-	float ui_projection[16] = {
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		-1,-1,0,1};
+	float ui_projection[16];
 } *ubatch = nullptr;
 
 struct world_btch {
@@ -41,11 +37,7 @@ struct world_btch {
 	int shader;
 	int u_worldProj;
 	int u_transProj;
-	float worldProj[16] = {
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,0,1};
+	float worldProj[16];
 } *ws = nullptr;
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -187,16 +179,17 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete m;
 }
 void tgf_gles::view_projection(float width, float height) {
-	//memset(ws->worldProj,0,16*sizeof(float));
+	memset(ws->worldProj,0,16*sizeof(float));
 	ws->worldProj[0] = 2.f/width;
 	ws->worldProj[5] = 2.f/height;
 	ws->worldProj[10] = 0.0005f;
-	//ws->worldProj[15] = 1;
+	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
-	//memset(ubatch->ui_projection,0,16*sizeof(float));
+	memset(ubatch->ui_projection,0,16*sizeof(float));
 	ubatch->ui_projection[0] = 2.f/width;
 	ubatch->ui_projection[5] = 2.f/height;
-	//ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1;
+	ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1.f;
+	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1.f;
 	ubatch->dirty_projection = true;
 }
 void tgf_gles::validate() {
