@@ -150,18 +150,22 @@ void tgf_gles::begin_mesh() {
 	}
 }
 void tgf_gles::draw_mesh(mesh_core *m) {
-	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
-	glBindVertexArray(m->vao);
 	if (m->dirty_vertex) {
 		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
 		m->dirty_vertex = false;
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	if (m->dirty_index) {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 		m->dirty_index = false;
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
+	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+	glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+	glBindVertexArray(m->vao);
 	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 }
 void tgf_gles::end_mesh() {
