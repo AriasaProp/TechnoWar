@@ -31,7 +31,6 @@ struct ui_batch {
 	unsigned int vao,vbo;
 	float ui_projection[16];
 } *ubatch = nullptr;
-
 struct world_btch {
 	bool dirty_worldProj;
 	int shader;
@@ -306,8 +305,8 @@ void tgf_gles::validate() {
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(mesh_core::data), (void*)(3*sizeof(float)));
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
-		glBindVertexArray(0);
 	}
+	glBindVertexArray(0);
 	//texture
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);
@@ -316,22 +315,17 @@ void tgf_gles::validate() {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	
 	valid = true;
 }
 void tgf_gles::invalidate() {
-	if (!valid) return;
 	//invalidating gles resources
+	if (!valid) return;
 	//world draw
-	{
-		glDeleteProgram(ws->shader);
-	}
+	glDeleteProgram(ws->shader);
 	//flat draw
-	{
-		glDeleteProgram(ubatch->shader);
-		glDeleteVertexArrays(1, &ubatch->vao);
-		glDeleteBuffers(1, &ubatch->vbo);
-	}
+	glDeleteProgram(ubatch->shader);
+	glDeleteVertexArrays(1, &ubatch->vao);
+	glDeleteBuffers(1, &ubatch->vbo);
 	//mesh
 	for (std::unordered_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glDeleteVertexArrays(1, &(*i)->vao);
@@ -341,7 +335,5 @@ void tgf_gles::invalidate() {
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glDeleteTextures(1, &(*i)->id);
 	}
-	
 	valid = false;
-	glClearColor(1,0,0,1);
 }
