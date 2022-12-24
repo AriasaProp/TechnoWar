@@ -9,7 +9,7 @@
 unsigned int width, height;
 mesh_core *mp;
 
-float v_t[8] = {10, 10, 10, 200, 200, 10, 200, 200};
+float v_t[8] = {120, 120, 120, 600, 600, 120, 600, 600};
 
 void Main::create(unsigned int w, unsigned int h) {
 	width = w, height = h;

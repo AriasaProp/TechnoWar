@@ -142,10 +142,9 @@ void tgf_gles::begin_mesh() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glDepthMask(true);
-	/*
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	*/
+	
 	glUseProgram(ws->shader);
 	if (ws->dirty_worldProj) {
 		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
