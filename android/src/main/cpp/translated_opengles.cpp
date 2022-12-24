@@ -98,6 +98,9 @@ void tgf_gles::delete_texture(texture_core *t) {
 	delete t;
 }
 void tgf_gles::flat_render(float *v, unsigned int len) {
+	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glDisable(GL_CULL_FACE);
 	glDepthMask(false);
 	glDisable(GL_DEPTH_TEST);
@@ -107,8 +110,6 @@ void tgf_gles::flat_render(float *v, unsigned int len) {
 		ubatch->dirty_projection = false;
 	}
 	glBindVertexArray(ubatch->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
 	glBindVertexArray(0);
 	glUseProgram(0);
