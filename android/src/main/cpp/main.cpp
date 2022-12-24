@@ -63,7 +63,6 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-
 struct saved_state {
     float angle;
     int32_t x;
@@ -103,7 +102,6 @@ struct engine {
     float accel[3];
     touch_pointer input_pointer_cache[20] = {};
 };
-
 static void engine_egl_terminate(engine *eng, const unsigned int term) {
   if (!term) return;
 	if (eng->display) {
@@ -488,12 +486,10 @@ static void onStop(ANativeActivity* activity) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_STOP);
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
-    android_app *app = (android_app*)activity->instance;
-    android_app_write_cmd(app, APP_CMD_CONFIG_CHANGED);
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONFIG_CHANGED);
 }
 static void onLowMemory(ANativeActivity* activity) {
-    android_app *app = (android_app*)activity->instance;
-    android_app_write_cmd(app, APP_CMD_LOW_MEMORY);
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_LOW_MEMORY);
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
     android_app *app = (android_app*)activity->instance;

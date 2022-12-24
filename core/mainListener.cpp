@@ -7,7 +7,7 @@
 #include <time.h>       /* time */
 
 unsigned int width, height;
-mesh_core *mp, *flatA;
+mesh_core *mp;
 
 float v_t[8] = {10, 10, 10, 200, 200, 10, 200, 200};
 
@@ -58,14 +58,6 @@ void Main::create(unsigned int w, unsigned int h) {
 		20,21,23,21,22,23//back
 	};
 	mp = tgf->gen_mesh(vert, 24, indices, 36);
-	mesh_core::data vert1[4] = {
-		{15.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
-		{15.f, 360.f, 0.f,0xff,0xff,0xff,0xff},
-		{700.f, 360.f, 0.f,0xff,0xff,0xff,0xff},
-		{700.f, 10.f, 0.f,0xff,0xff,0xff,0xff},
-	};
-	unsigned short indc1[6] = {0,1,3,1,2,3};
-	flatA = tgf->gen_mesh(vert1, 4, indc1, 6);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -89,7 +81,6 @@ void Main::render(float delta) {
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
 	tgf->draw_mesh(mp);
-	tgf->draw_mesh(flatA);
 	tgf->end_mesh();
 	
 	tgf->flat_render(v_t, 8);
@@ -99,6 +90,5 @@ void Main::pause() {
 }
 void Main::destroy() {
 	if (!tgf) return;
-	
 	tgf->delete_mesh(mp);
 }
