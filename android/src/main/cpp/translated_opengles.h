@@ -19,12 +19,13 @@ struct tgf_gles : public TranslatedGraphicsFunction {
 	void flat_render(float *, unsigned int) override;
 	
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
-	void world_mesh(float,float) override;
 	void begin_mesh() override;
 	void draw_mesh(mesh_core*) override;
 	void end_mesh() override;
 	void delete_mesh(mesh_core*) override;
 
+	void view_projection(float,float) override;
+	
 	// Android may lost resources
 	void validate();
 	void invalidate();

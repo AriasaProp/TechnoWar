@@ -25,8 +25,11 @@ unsigned int *utemp = 0;
 char *msg = 0;
 
 struct ui_batch {
-	int shader;
+	bool dirty_projection;
+	int shader
+	unsigned int u_projection;
 	unsigned int vao,vbo;
+	float ui_projection[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 } *ubatch = nullptr;
 
 struct world_btch {
@@ -34,7 +37,7 @@ struct world_btch {
 	int shader;
 	int u_worldProj;
 	int u_transProj;
-	float worldProj[16];
+	float worldProj[16] = {1,0,0,0,0,1,0,0,0,0,1,0,-1,-1,0,1};
 } *ws = nullptr;
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -97,9 +100,13 @@ void tgf_gles::delete_texture(texture_core *t) {
 }
 void tgf_gles::flat_render(float *v, unsigned int len) {
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
 	glDepthMask(false);
+	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
+	if (ubatch->dirty_projection) {
+		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
+		ubatch->dirty_projection = false;
+	}
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
@@ -130,20 +137,12 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	managedMesh.insert(r);
 	return r;
 }
-void tgf_gles::world_mesh(float width, float height) {
-	memset(ws->worldProj,0,16*sizeof(float));
-	ws->worldProj[0] = 2.f/width;
-	ws->worldProj[5] = 2.f/height;
-	ws->worldProj[10] = 0.0005f;
-	ws->worldProj[15] = 1;
-	ws->dirty_worldProj = true;
-}
 void tgf_gles::begin_mesh() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
+	glDepthMask(true);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glDepthMask(true);
 	glUseProgram(ws->shader);
 	if (ws->dirty_worldProj) {
 		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
@@ -178,6 +177,19 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete[] m->vertex;
 	delete[] m->index;
 	delete m;
+}
+void tgf_gles::view_projection(float width, float height) {
+	memset(ws->worldProj,0,16*sizeof(float));
+	ws->worldProj[0] = 2.f/width;
+	ws->worldProj[5] = 2.f/height;
+	ws->worldProj[10] = 0.0005f;
+	//ws->worldProj[15] = 1;
+	ws->dirty_worldProj = true;
+	memset(ubatch->ui_projection,0,16*sizeof(float));
+	ubatch->ui_projection[0] = 2.f/width;
+	ubatch->ui_projection[5] = 2.f/height;
+	//ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1;
+	ubatch->dirty_projection = true;
 }
 void tgf_gles::validate() {
 	if (valid) return;
@@ -245,8 +257,9 @@ void tgf_gles::validate() {
 			"\n    #define HIGH mediump"
 			"\n#endif"
 			"\nlayout(location = 0) in vec4 a_position;"
+			"\nuniform mat4 projection;"
 			"\nvoid main() {"
-			"\n    gl_Position = a_position;"
+			"\n    gl_Position = projection * a_position;"
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
@@ -271,6 +284,7 @@ void tgf_gles::validate() {
 		glLinkProgram(ubatch->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
+		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "projection");
 		glGenVertexArrays(1, &ubatch->vao);
 		glGenBuffers(1, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
