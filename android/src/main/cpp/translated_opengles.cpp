@@ -98,10 +98,7 @@ void tgf_gles::delete_texture(texture_core *t) {
 	delete t;
 }
 void tgf_gles::flat_render(float *v, unsigned int len) {
-	/*
-	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-	*/
 	glDepthMask(false);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
@@ -143,6 +140,7 @@ void tgf_gles::begin_mesh() {
 	glCullFace(GL_FRONT);
 	glDepthMask(true);
 	glEnable(GL_DEPTH_TEST);
+	//glDepthRangef(0.f, 1.f)
 	glDepthFunc(GL_LESS);
 	
 	glUseProgram(ws->shader);
@@ -197,6 +195,7 @@ void tgf_gles::view_projection(float width, float height) {
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
+	glClearDepth(1.0f);
 	//world draw
 	{
 		ws->shader = glCreateProgram();
