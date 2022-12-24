@@ -345,4 +345,5 @@ void tgf_gles::invalidate() {
 	}
 	
 	valid = false;
+	glClearColor(1,0,0,1);
 }
