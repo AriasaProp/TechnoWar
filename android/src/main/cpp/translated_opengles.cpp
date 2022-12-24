@@ -99,7 +99,7 @@ void tgf_gles::delete_texture(texture_core *t) {
 }
 void tgf_gles::flat_render(float *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
-	glDepthMask(false);
+	//glDepthMask(false);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
@@ -138,11 +138,8 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 void tgf_gles::begin_mesh() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	glDepthMask(true);
+	//glDepthMask(true);
 	glEnable(GL_DEPTH_TEST);
-	//glDepthRangef(0.f, 1.f)
-	glDepthFunc(GL_LESS);
-	
 	glUseProgram(ws->shader);
 	if (ws->dirty_worldProj) {
 		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
@@ -195,7 +192,9 @@ void tgf_gles::view_projection(float width, float height) {
 void tgf_gles::validate() {
 	if (valid) return;
 	//validating gles resources
+	glDepthRangef(0.0f, 1.0f);
 	glClearDepthf(1.0f);
+	glDepthFunc(GL_LESS);
 	//world draw
 	{
 		ws->shader = glCreateProgram();
