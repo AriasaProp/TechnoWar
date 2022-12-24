@@ -29,7 +29,11 @@ struct ui_batch {
 	int shader;
 	int u_projection;
 	unsigned int vao,vbo;
-	float ui_projection[16] = {1,0,0,0,0,1,0,0,0,0,1,0,-1,-1,0,1};
+	float ui_projection[16] = {
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		-1,-1,0,1};
 } *ubatch = nullptr;
 
 struct world_btch {
@@ -37,7 +41,11 @@ struct world_btch {
 	int shader;
 	int u_worldProj;
 	int u_transProj;
-	float worldProj[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+	float worldProj[16] = {
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		0,0,0,1};
 } *ws = nullptr;
 tgf_gles::tgf_gles() {
 	temp = new int[2];
@@ -256,10 +264,10 @@ void tgf_gles::validate() {
 			"\n#else"
 			"\n    #define HIGH mediump"
 			"\n#endif"
+			"\nuniform mat4 proj;"
 			"\nlayout(location = 0) in vec4 a_position;"
-			"\nuniform mat4 projection;"
 			"\nvoid main() {"
-			"\n    gl_Position = projection * a_position;"
+			"\n    gl_Position = proj * a_position;"
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
 		glCompileShader(utemp[0]);
@@ -284,7 +292,7 @@ void tgf_gles::validate() {
 		glLinkProgram(ubatch->shader);
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
-		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "projection");
+		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "proj");
 		glGenVertexArrays(1, &ubatch->vao);
 		glGenBuffers(1, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
