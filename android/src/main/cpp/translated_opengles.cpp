@@ -179,13 +179,13 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete m;
 }
 void tgf_gles::view_projection(float width, float height) {
-	memset(ws->worldProj,0,16*sizeof(float));
+	//memset(ws->worldProj,0,16*sizeof(float));
 	ws->worldProj[0] = 2.f/width;
 	ws->worldProj[5] = 2.f/height;
 	ws->worldProj[10] = 0.0005f;
 	//ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
-	memset(ubatch->ui_projection,0,16*sizeof(float));
+	//memset(ubatch->ui_projection,0,16*sizeof(float));
 	ubatch->ui_projection[0] = 2.f/width;
 	ubatch->ui_projection[5] = 2.f/height;
 	//ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1;
