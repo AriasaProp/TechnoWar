@@ -260,7 +260,8 @@ static void* android_app_entry(void* param) {
     //input env
     int32_t handled;
     AInputEvent* i_event;
-    int32_t *motion_act;
+    int32_t motion;
+    int8_t motion_ptr, motion_act;
     //end input env
     while (!eng->destroyed) {
       switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
@@ -353,9 +354,11 @@ static void* android_app_entry(void* param) {
 			        handled = 0;
 			        switch (AInputEvent_getType(i_event)) {
 			        	case AINPUT_EVENT_TYPE_MOTION:
-			        		motion_act = AMotionEvent_getAction(i_event);
-									touch_pointer &ip = eng->input_pointer_cache[(motion_act&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT];
-									switch(motion_act&AMOTION_EVENT_ACTION_MASK) {
+			        		motion = AMotionEvent_getAction(i_event);
+			        		motion_ptr = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+									motion_act = motion&AMOTION_EVENT_ACTION_MASK;
+									touch_pointer &ip = eng->input_pointer_cache[motion_ptr];
+									switch(motion_act) {
 								    case AMOTION_EVENT_ACTION_DOWN:
 								    	ip.active = true;
 							        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
