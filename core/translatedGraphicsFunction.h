@@ -617,11 +617,12 @@ public:
 	virtual void flat_render(float *, unsigned int) = 0;
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
-	virtual void world_mesh(float,float) = 0;
 	virtual void begin_mesh() = 0;
 	virtual void draw_mesh(mesh_core*) = 0;
 	virtual void end_mesh() = 0;
 	virtual void delete_mesh(mesh_core*) = 0;
+	
+	virtual void view_projection(float,float) = 0;
 };
 extern TranslatedGraphicsFunction *tgf;
 
