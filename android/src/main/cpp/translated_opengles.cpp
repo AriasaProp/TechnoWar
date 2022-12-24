@@ -139,10 +139,10 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	return r;
 }
 void tgf_gles::begin_mesh() {
-	glDepthMask(true);
-	/*
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
+	glDepthMask(true);
+	/*
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	*/
