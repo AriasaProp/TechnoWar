@@ -15,7 +15,7 @@ void Main::create(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
-	tgf->world_mesh((float)w,(float)h);
+	tgf->view_projection((float)w,(float)h);
 	
 	mesh_core::data vert[24] = {
 		//front red
@@ -75,7 +75,7 @@ void Main::resize(unsigned int w, unsigned int h) {
 	if (!tgf) return;
 	tgf->viewport(0, 0, width, height);
 	
-	tgf->world_mesh((float)w,(float)h);
+	tgf->view_projection((float)w,(float)h);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
