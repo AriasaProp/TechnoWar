@@ -26,8 +26,8 @@ char *msg = 0;
 
 struct ui_batch {
 	bool dirty_projection;
-	int shader
-	unsigned int u_projection;
+	int shader;
+	int u_projection;
 	unsigned int vao,vbo;
 	float ui_projection[16] = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
 } *ubatch = nullptr;
