@@ -11,15 +11,16 @@ input *m_input = nullptr;
 
 mesh_core *mp;
 
-float v_t[8] = {120, 120, 120, 600, 600, 120, 600, 600};
+flat_vertex v_t[4] = {
+	{120, 120, ([]unsigned char){0xff,0x00,0x00,0xff}},
+	{120, 600, ([]unsigned char){0x00,0x00,0xff,0xff}},
+	{600, 120, ([]unsigned char){0xff,0x00,0x00,0xff}},
+	{600, 600, ([]unsigned char){0x00,0xff,0x00,0xff}}
+};
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	if (!tgf) return;
-	m_graphics->viewport(0, 0, width, height);
-	m_graphics->view_projection((float)w,(float)h);
-	
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -63,35 +64,22 @@ void Main::create(graphics *_graphics, input *_input) {
 	mp = m_graphics->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
-	if (!tgf) return;
-}
-void Main::resize(unsigned int w, unsigned int h) {
-	width = w, height = h;
-	if (!tgf) return;
-	m_graphics->viewport(0, 0, width, height);
-	
-	m_graphics->view_projection((float)w,(float)h);
 }
 void Main::render(float delta) {
-	if (!tgf) return;
-	m_graphics->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
+	m_graphics->clear(1|2|4);
 	
-	m_graphics->begin_mesh();
 	srand(time(NULL));
 	matrix4::rotate(mp->trans,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	m_graphics->draw_mesh(mp);
-	m_graphics->end_mesh();
+	m_graphics->render_mesh(&mp, 1);
 	
-	m_graphics->flat_render(v_t, 8);
+	m_graphics->flat_render(v_t, 4);
 }
 void Main::pause() {
-	if (!tgf) return;
 }
 void Main::destroy() {
-	if (!tgf) return;
 	m_graphics->delete_mesh(mp);
 }

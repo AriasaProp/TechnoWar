@@ -177,7 +177,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	}
   	if (eng->resize) {
   		eng->resize = false;
-  		Main::resize(eng->width, eng->height);
+  		m_android_graphics->resize_viewport(eng->width, eng->height);
   	}
   }
 	if (eng->resize) {
@@ -186,7 +186,7 @@ static void engine_draw(android_app *app, engine *eng) {
 		eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
 		eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
 		eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
-		Main::resize(eng->width, eng->height);
+		m_android_graphics->resize_viewport(eng->width, eng->height);
 	}
   if (eng->resume) {
   	Main::resume();

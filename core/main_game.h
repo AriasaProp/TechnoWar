@@ -1,15 +1,12 @@
 #ifndef Included_MainListener
 #define Included_MainListener 1
 
-#include "translatedGraphicsFunction.h"
-
-extern graphics *m_graphics;
-extern input *m_input;
+#include "graphics/graphics.h"
+#include "input/input.h"
 
 namespace Main {
-	void create(unsigned int, unsigned int);
+	void create(graphics*, input*);
 	void resume();
-	void resize(unsigned int, unsigned int);
 	void render(float);
 	void pause();
 	void destroy();
