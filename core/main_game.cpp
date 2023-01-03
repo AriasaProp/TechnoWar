@@ -14,14 +14,14 @@ mesh_core *mp;
 flat_vertex *v_t;
 
 void Main::create(graphics *_graphics, input *_input) {
+	m_graphics = _graphics;
+	m_input = _input;
 	v_t = new flat_vertex[4]{
 		{120.f, 120.f, 0xff, 0xff, 0x00, 0xff},
 		{120.f, 300.f, 0x00, 0xff, 0x00, 0xff},
 		{300.f, 120.f, 0x00, 0xff, 0xff, 0xff},
 		{300.f, 300.f, 0x00, 0x00, 0xff, 0xff}
-	}
-	m_graphics = _graphics;
-	m_input = _input;
+	};
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
