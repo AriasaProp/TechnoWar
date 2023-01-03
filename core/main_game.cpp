@@ -11,14 +11,22 @@ input *m_input = nullptr;
 
 mesh_core *mp;
 
-flat_vertex v_t[4] = {
-	{120, 120, ([]unsigned char){0xff,0x00,0x00,0xff}},
-	{120, 600, ([]unsigned char){0x00,0x00,0xff,0xff}},
-	{600, 120, ([]unsigned char){0xff,0x00,0x00,0xff}},
-	{600, 600, ([]unsigned char){0x00,0xff,0x00,0xff}}
-};
+flat_vertex *v_t;
 
 void Main::create(graphics *_graphics, input *_input) {
+	v_t = new flat_vertex[4];
+	v_t[0].x = 120;
+	v_t[0].y = 120;
+	memcpy(v_t[0].color, ([]unsigned char){0xff,0x00,0x00,0xff}, 4*sizeof(unsigned char));
+	v_t[1].x = 120;
+	v_t[1].y = 300;
+	memcpy(v_t[1].color, ([]unsigned char){0xff,0xff,0x00,0xff}, 4*sizeof(unsigned char));
+	v_t[2].x = 300;
+	v_t[2].y = 120;
+	memcpy(v_t[2].color, ([]unsigned char){0x00,0xff,0x00,0xff}, 4*sizeof(unsigned char));
+	v_t[3].x = 300;
+	v_t[3].y = 300;
+	memcpy(v_t[3].color, ([]unsigned char){0x00,0xff,0x00,0xff}, 4*sizeof(unsigned char));
 	m_graphics = _graphics;
 	m_input = _input;
 	mesh_core::data vert[24] = {
@@ -82,4 +90,5 @@ void Main::pause() {
 }
 void Main::destroy() {
 	m_graphics->delete_mesh(mp);
+	delete[] v_t;
 }
