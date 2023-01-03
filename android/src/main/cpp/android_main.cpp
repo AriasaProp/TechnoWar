@@ -325,7 +325,7 @@ static void* android_app_entry(void* param) {
 			    }
       		break;
         case LOOPER_INPUT: //input queue
-        	m_input->input_sensor();
+        	m_input->process_input();
         	break;
         case LOOPER_SENSOR: //sensor queue
         	m_input->process_sensor();
