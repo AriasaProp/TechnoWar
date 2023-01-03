@@ -90,7 +90,7 @@ struct engine {
     EGLSurface surface;
     EGLContext context;
     EGLConfig eConfig;
-		void engine_egl_terminate(const unsigned int term) {
+		void egl_terminate(const unsigned int term) {
 		  	if (!term || !display) return;
 				eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 				if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
@@ -211,15 +211,15 @@ static void engine_draw(android_app *app, engine *eng) {
   		case EGL_BAD_SURFACE:
   		case EGL_BAD_NATIVE_WINDOW:
   		case EGL_BAD_CURRENT_SURFACE:
-  			engine_egl_terminate(eng, TERM_EGL_SURFACE);
+  			eng->egl_terminate(TERM_EGL_SURFACE);
   			break;
   		case EGL_BAD_CONTEXT:
   		case EGL_CONTEXT_LOST:
-  			engine_egl_terminate(eng, TERM_EGL_CONTEXT);
+  			eng->egl_terminate(TERM_EGL_CONTEXT);
   			break;
   		case EGL_NOT_INITIALIZED:
   		case EGL_BAD_DISPLAY:
-  			engine_egl_terminate(eng, TERM_EGL_DISPLAY);
+  			eng->egl_terminate(TERM_EGL_DISPLAY);
   			break;
   		default:
 				break;
@@ -272,21 +272,21 @@ static void* android_app_entry(void* param) {
 					    	m_input->attach_sensor();
 					      break;
 				      case APP_CMD_INPUT_INIT:
-				        	m_input->set_input_queue(app->inputQueue)
 				          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
+				        	m_input->set_input_queue(app->inputQueue);
 					      break;
 				      case APP_CMD_INPUT_TERM:
-				      	if (eng->inputQueue != NULL) {
-				        	AInputQueue_detachLooper(eng->inputQueue);
+				      	if (app->inputQueue != NULL) {
+				        	m_input->set_input_queue(NULL);
+				        	AInputQueue_detachLooper(app->inputQueue);
 					        app->inputQueue = NULL;
-				        	m_input->set_input_queue(NULL)
 				      	}
 				        break;
 					    case APP_CMD_LOST_FOCUS:
 					    	m_input->detach_sensor();
 					      break;
 				      case APP_CMD_TERM_WINDOW:
-					  		engine_egl_terminate(eng, TERM_EGL_SURFACE);
+					  		eng->egl_terminate(TERM_EGL_SURFACE);
 				        app->window = NULL;
 				        eng->window = NULL;
 				        break;
@@ -313,10 +313,10 @@ static void* android_app_entry(void* param) {
 				      case APP_CMD_DESTROY:
 					  		eng->destroyed = true;
 					  		engine_draw(app, eng);
-					  		engine_egl_terminate(eng, TERM_EGL_DISPLAY);
+					  		eng->egl_terminate(TERM_EGL_DISPLAY);
 				        break;
 				      default:
-				      		break;
+				      	break;
 				  	}
 				    pthread_mutex_lock(&app->mutex);
 				    app->appCmdState = cmd;
@@ -347,6 +347,7 @@ static void* android_app_entry(void* param) {
     }
     if (app->inputQueue != NULL) {
         AInputQueue_detachLooper(app->inputQueue);
+        app->inputQueue = NULL;
     }
     AConfiguration_delete(app->config);
     app->destroyed = true;
