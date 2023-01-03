@@ -93,8 +93,8 @@ struct engine {
 		  	if (!term || !display) return;
 				eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 				if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-		    	assert(m_android_graphics);
-		    	m_android_graphics->invalidate();
+		    	if (m_android_graphics)
+		    		m_android_graphics->invalidate();
 		    	eglDestroyContext(display, context);
 		    	context = EGL_NO_CONTEXT;
 		    }
@@ -109,7 +109,7 @@ struct engine {
 		}
 };
 static void engine_draw(android_app *app, engine *eng, android_input *m_android_input) {
-  if (!eng->window || !eng->running) return;
+  if (!eng->window) return;
   if (!eng->display || !eng->context || !eng->surface) {
   	if (!eng->display) {
     	eng->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -161,9 +161,8 @@ static void engine_draw(android_app *app, engine *eng, android_input *m_android_
   	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &width);
   	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &height);
   	
-  	if (!m_android_graphics) {
+  	if (!m_android_graphics)
   		m_android_graphics = new android_graphics_opengles;
-  	}
   	if (!eng->created) {
   		eng->created = true;
   		Main::create(m_android_graphics, m_android_input);
@@ -187,7 +186,7 @@ static void engine_draw(android_app *app, engine *eng, android_input *m_android_
   	Main::resume();
 		eng->resume = false;
   }
-  //if (!eng->running) return;
+  if (!eng->running) return;
   eng->state.angle += .01f;
   if (eng->state.angle > 1) {
       eng->state.angle = 0;
@@ -231,8 +230,9 @@ static void* android_app_entry(void* param) {
     {
 	    engine *eng = new engine;
 	    memset(eng, 0, sizeof(engine));
-	    android_input m_android_input;
-	    m_android_input.sensorEventQueue = ASensorManager_createEventQueue(m_android_input.sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
+	    android_input *m_android_input = new android_input;
+	    memset(m_android_input, 0, sizeof(android_input))
+	    m_android_input->sensorEventQueue = ASensorManager_createEventQueue(m_android_input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
 	    if (app->savedState) {
 	        eng->state = *(saved_state*)app->savedState;
 	    }
@@ -267,7 +267,7 @@ static void* android_app_entry(void* param) {
 							    	eng->resize = true;
 							    	break;
 							    case APP_CMD_GAINED_FOCUS:
-							    	m_android_input.attach_sensor();
+							    	m_android_input->attach_sensor();
 								    pthread_mutex_lock(&app->mutex);
 								    app->appCmdState = cmd;
 								    pthread_cond_broadcast(&app->cond);
@@ -275,7 +275,7 @@ static void* android_app_entry(void* param) {
 							      break;
 						      case APP_CMD_INPUT_INIT:
 					          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
-					        	m_android_input.set_input_queue(app->inputQueue);
+					        	m_android_input->set_input_queue(app->inputQueue);
 								    pthread_mutex_lock(&app->mutex);
 								    app->appCmdState = cmd;
 								    pthread_cond_broadcast(&app->cond);
@@ -283,7 +283,7 @@ static void* android_app_entry(void* param) {
 							      break;
 						      case APP_CMD_INPUT_TERM:
 						      	if (app->inputQueue != NULL) {
-						        	m_android_input.set_input_queue(NULL);
+						        	m_android_input->set_input_queue(NULL);
 						        	AInputQueue_detachLooper(app->inputQueue);
 							        app->inputQueue = NULL;
 						      	}
@@ -293,7 +293,7 @@ static void* android_app_entry(void* param) {
 								    pthread_mutex_unlock(&app->mutex);
 						        break;
 							    case APP_CMD_LOST_FOCUS:
-							    	m_android_input.detach_sensor();
+							    	m_android_input->detach_sensor();
 								    pthread_mutex_lock(&app->mutex);
 								    app->appCmdState = cmd;
 								    pthread_cond_broadcast(&app->cond);
@@ -328,7 +328,7 @@ static void* android_app_entry(void* param) {
 						        break;
 						      case APP_CMD_PAUSE:
 							  		eng->pause = true;
-							  		engine_draw(app, eng, &m_android_input);
+							  		engine_draw(app, eng, m_android_input);
 							      eng->running = false;
 								    pthread_mutex_lock(&app->mutex);
 								    app->appCmdState = cmd;
@@ -337,7 +337,7 @@ static void* android_app_entry(void* param) {
 							      break;
 						      case APP_CMD_DESTROY:
 							  		eng->destroyed = true;
-							  		engine_draw(app, eng, &m_android_input);
+							  		engine_draw(app, eng, m_android_input);
 							  		eng->egl_terminate(TERM_EGL_DISPLAY);
 						        break;
 						      default:
@@ -346,18 +346,19 @@ static void* android_app_entry(void* param) {
 					    }
 		      		break;
 		        case LOOPER_INPUT: //input queue
-		        	m_android_input.process_input();
+		        	m_android_input->process_input();
 		        	break;
 		        case LOOPER_SENSOR: //sensor queue
-		        	m_android_input.process_sensor();
+		        	m_android_input->process_sensor();
 		        	break;
 	      	}
 	      	continue;
 	      }
-    		engine_draw(app, eng, &m_android_input);
+    		engine_draw(app, eng, m_android_input);
 	    }
-	    delete eng;
-	    if (m_android_graphics) delete m_android_graphics;
+	    delete(eng);
+	    delete(m_android_graphics);
+	    if (m_android_graphics) delete(m_android_graphics);
 		}
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
