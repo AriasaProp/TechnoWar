@@ -19,7 +19,7 @@
 
 #include "log.h"
 #include "android_input.h"
-#include "translated_opengles.h"
+#include "android_graphics_opengles.h"
 #include "main_game.h"
 
 struct android_app {
@@ -74,6 +74,8 @@ enum {
 	TERM_EGL_CONTEXT = 2,
 	TERM_EGL_DISPLAY = 4
 };
+static android_graphics *m_android_graphics = nullptr;
+static android_input *m_android_input = nullptr;
 struct engine {
     saved_state state;
     bool created;
@@ -94,9 +96,8 @@ struct engine {
 		  	if (!term || !display) return;
 				eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 				if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-		    	if (tgf) {
-		    		((tgf_gles*)tgf)->invalidate();
-		    	}
+		    	assert(m_android_graphics);
+		    	m_android_graphics->invalidate();
 		    	eglDestroyContext(display, context);
 		    	context = EGL_NO_CONTEXT;
 		    }
@@ -162,17 +163,17 @@ static void engine_draw(android_app *app, engine *eng) {
   	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
   	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
   	
-  	if (!tgf) {
-  		tgf = new tgf_gles();
+  	if (!m_android_graphics) {
+  		m_android_graphics = new android_graphics_opengles;
   	}
   	
   	if (!eng->created) {
   		eng->created = true;
-  		Main::create(eng->width, eng->height);
+  		Main::create(m_android_graphics, m_android_input);
   		eng->resume = false;
   		eng->resize = false;
   	} else if (newCtx) {
-			((tgf_gles*)tgf)->validate();
+			m_android_graphics->validate();
   	}
   	if (eng->resize) {
   		eng->resize = false;
@@ -234,10 +235,10 @@ static void* android_app_entry(void* param) {
     ALooper_addFd(app->looper, app->msgread, LOOPER_ACTIVITY, ALOOPER_EVENT_INPUT, NULL, nullptr);
     
     engine *eng = new engine;
-    android_input *m_input = new android_input;
+    m_android_input = new android_input;
     
     memset(eng, 0, sizeof(engine));
-    m_input->sensorEventQueue = ASensorManager_createEventQueue(m_input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
+    m_android_input->sensorEventQueue = ASensorManager_createEventQueue(m_android_input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
     if (app->savedState) {
         eng->state = *(saved_state*)app->savedState;
     }
@@ -269,21 +270,21 @@ static void* android_app_entry(void* param) {
 					    	eng->resize = true;
 					    	break;
 					    case APP_CMD_GAINED_FOCUS:
-					    	m_input->attach_sensor();
+					    	m_android_input->attach_sensor();
 					      break;
 				      case APP_CMD_INPUT_INIT:
-				          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
-				        	m_input->set_input_queue(app->inputQueue);
+			          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
+			        	m_android_input->set_input_queue(app->inputQueue);
 					      break;
 				      case APP_CMD_INPUT_TERM:
 				      	if (app->inputQueue != NULL) {
-				        	m_input->set_input_queue(NULL);
+				        	m_android_input->set_input_queue(NULL);
 				        	AInputQueue_detachLooper(app->inputQueue);
 					        app->inputQueue = NULL;
 				      	}
 				        break;
 					    case APP_CMD_LOST_FOCUS:
-					    	m_input->detach_sensor();
+					    	m_android_input->detach_sensor();
 					      break;
 				      case APP_CMD_TERM_WINDOW:
 					  		eng->egl_terminate(TERM_EGL_SURFACE);
@@ -325,20 +326,19 @@ static void* android_app_entry(void* param) {
 			    }
       		break;
         case LOOPER_INPUT: //input queue
-        	m_input->process_input();
+        	m_android_input->process_input();
         	break;
         case LOOPER_SENSOR: //sensor queue
-        	m_input->process_sensor();
+        	m_android_input->process_sensor();
         	break;
         default:
       		engine_draw(app, eng);
         	break;
       }
     }
-    if (tgf) delete tgf;
-    //no rendering anymore
     delete eng;
-    //destroy
+    if (m_android_graphics) delete m_android_graphics;
+    if (m_android_input) delete m_android_input;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);

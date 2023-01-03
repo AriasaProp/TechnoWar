@@ -6,16 +6,19 @@
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-unsigned int width, height;
+graphics *m_graphics = nullptr;
+input *m_input = nullptr;
+
 mesh_core *mp;
 
 float v_t[8] = {120, 120, 120, 600, 600, 120, 600, 600};
 
-void Main::create(unsigned int w, unsigned int h) {
-	width = w, height = h;
+void Main::create(graphics *_graphics, input *_input) {
+	m_graphics = _graphics;
+	m_input = _input;
 	if (!tgf) return;
-	tgf->viewport(0, 0, width, height);
-	tgf->view_projection((float)w,(float)h);
+	m_graphics->viewport(0, 0, width, height);
+	m_graphics->view_projection((float)w,(float)h);
 	
 	mesh_core::data vert[24] = {
 		//front red
@@ -57,7 +60,7 @@ void Main::create(unsigned int w, unsigned int h) {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	mp = tgf->gen_mesh(vert, 24, indices, 36);
+	mp = m_graphics->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
 	if (!tgf) return;
@@ -65,30 +68,30 @@ void Main::resume() {
 void Main::resize(unsigned int w, unsigned int h) {
 	width = w, height = h;
 	if (!tgf) return;
-	tgf->viewport(0, 0, width, height);
+	m_graphics->viewport(0, 0, width, height);
 	
-	tgf->view_projection((float)w,(float)h);
+	m_graphics->view_projection((float)w,(float)h);
 }
 void Main::render(float delta) {
 	if (!tgf) return;
-	tgf->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
+	m_graphics->clear(TGF_COLOR_BUFFER_BIT|TGF_DEPTH_BUFFER_BIT|TGF_STENCIL_BUFFER_BIT);
 	
-	tgf->begin_mesh();
+	m_graphics->begin_mesh();
 	srand(time(NULL));
 	matrix4::rotate(mp->trans,
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	tgf->draw_mesh(mp);
-	tgf->end_mesh();
+	m_graphics->draw_mesh(mp);
+	m_graphics->end_mesh();
 	
-	tgf->flat_render(v_t, 8);
+	m_graphics->flat_render(v_t, 8);
 }
 void Main::pause() {
 	if (!tgf) return;
 }
 void Main::destroy() {
 	if (!tgf) return;
-	tgf->delete_mesh(mp);
+	m_graphics->delete_mesh(mp);
 }

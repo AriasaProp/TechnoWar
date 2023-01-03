@@ -3,6 +3,9 @@
 
 #include "translatedGraphicsFunction.h"
 
+extern graphics *m_graphics;
+extern input *m_input;
+
 namespace Main {
 	void create(unsigned int, unsigned int);
 	void resume();

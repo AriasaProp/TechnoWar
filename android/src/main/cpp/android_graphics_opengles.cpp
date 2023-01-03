@@ -1,4 +1,4 @@
-#include "translated_opengles.h"
+#include "android_graphics_opengles.h"
 
 #include <memory> // alloca, malloc, calloc, alloc, etc
 #include <cstring> //str.. function
@@ -23,6 +23,7 @@ bool valid = false;
 int *temp = 0;
 unsigned int *utemp = 0;
 char *msg = 0;
+float width, height;
 
 struct ui_batch {
 	bool dirty_projection;
@@ -38,7 +39,7 @@ struct world_btch {
 	int u_transProj;
 	float worldProj[16];
 } *ws = nullptr;
-tgf_gles::tgf_gles() {
+android_graphics_opengles::android_graphics_opengles() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	msg = new char[MAX_GL_MSG];
@@ -48,7 +49,8 @@ tgf_gles::tgf_gles() {
 	memset(ws,0,sizeof(world_btch));
 	validate();
 }
-tgf_gles::~tgf_gles() {
+android_graphics::~android_graphics(){}
+android_graphics_opengles::~android_graphics_opengles() {
 	invalidate();
 	managedTexture.clear();
 	managedMesh.clear();
@@ -58,38 +60,45 @@ tgf_gles::~tgf_gles() {
 	delete[] utemp;
 	delete[] msg;
 }
-const char *tgf_gles::renderer() {
-	return reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+const float android_graphics_opengles::getWidth() {
+	return width;
 }
-void tgf_gles::clearcolor(const float &r, const float &g, const float &b, const float &a) {
+const float android_graphics_opengles::getHeight() {
+	return height;
+}
+void android_graphics_opengles::clear(const unsigned int &m) {
+	*utemp = 0;
+	if (m&1)
+		*utemp |= GL_COLOR_BUFFER_BIT;
+	if (m&2)
+		*utemp |= GL_DEPTH_BUFFER_BIT;
+	if (m&4)
+		*utemp |= GL_STENCIL_BUFFER_BIT;
+	glClear(*utemp);
+}
+void android_graphics_opengles::clearcolor(const float &r, const float &g, const float &b, const float &a) {
 	glClearColor(r, g, b, a);
 }
-void tgf_gles::clear(const unsigned int &m) {
-	glClear(m);
-}
-void tgf_gles::viewport(const int &x, const int &y, const int &w, const int &h) {
-	glViewport(x, y, w, h);
-}
-texture_core *tgf_gles::gen_texture(const int &width, const int &height, unsigned char *data) {
+texture_core *android_graphics_opengles::gen_texture(const int &width, const int &height, unsigned char *data) {
 	texture_core *t = new texture_core;
 	glGenTextures(1, &t->id);
 	t->width = width;
 	t->height = height;
 	memcpy(t->data, data, width*height*sizeof(unsigned char));
 	glBindTexture(GL_TEXTURE_2D, t->id);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	managedTexture.insert(t);
 	return t;
 }
-void tgf_gles::bind_texture(texture_core *t) {
+void android_graphics_opengles::bind_texture(texture_core *t) {
 	glBindTexture(GL_TEXTURE_2D, t?t->id:0);
 }
-void tgf_gles::set_texture_param(const int &param, const int &val) {
+void android_graphics_opengles::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
 }
-void tgf_gles::delete_texture(texture_core *t) {
+void android_graphics_opengles::delete_texture(texture_core *t) {
 	std::unordered_set<texture_core*>::iterator it = managedTexture.find(t);
 	if (it == managedTexture.end()) return;
 	managedTexture.erase(it);
@@ -97,9 +106,8 @@ void tgf_gles::delete_texture(texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void tgf_gles::flat_render(float *v, unsigned int len) {
+void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
-	//glDepthMask(false);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
@@ -107,12 +115,12 @@ void tgf_gles::flat_render(float *v, unsigned int len) {
 	}
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 2*len*sizeof(float), (void*)v);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, len*sizeof(flat_vertex), (void*)v);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
+mesh_core *android_graphics_opengles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
 	r->vertex_len = v_len;
 	r->vertex = new mesh_core::data[v_len];
@@ -135,37 +143,35 @@ mesh_core *tgf_gles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned sho
 	managedMesh.insert(r);
 	return r;
 }
-void tgf_gles::begin_mesh() {
+void android_graphics_opengles::mesh_render(mesh_core **meshes,const unsigned int &count) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
-	//glDepthMask(true);
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(ws->shader);
 	if (ws->dirty_worldProj) {
 		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
 		ws->dirty_worldProj = false;
 	}
-}
-void tgf_gles::draw_mesh(mesh_core *m) {
-	glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
-	glBindVertexArray(m->vao);
-	if (m->dirty_vertex) {
-		glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
-		m->dirty_vertex = false;
+	for (unsigned int i = 0; i < count; ++i) {
+		mesh_core *m = *(meshes+i);
+		glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+		glBindVertexArray(m->vao);
+		if (m->dirty_vertex) {
+			glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(mesh_core::data), (void*)m->vertex);
+			m->dirty_vertex = false;
+		}
+		if (m->dirty_index) {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
+			m->dirty_index = false;
+		}
+		glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
 	}
-	if (m->dirty_index) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
-		m->dirty_index = false;
-	}
-	glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
-}
-void tgf_gles::end_mesh() {
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-void tgf_gles::delete_mesh(mesh_core *m) {
+void android_graphics_opengles::delete_mesh(mesh_core *m) {
 	std::unordered_set<mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
@@ -175,21 +181,23 @@ void tgf_gles::delete_mesh(mesh_core *m) {
 	delete[] m->index;
 	delete m;
 }
-void tgf_gles::view_projection(float width, float height) {
-	memset(ws->worldProj,0,16*sizeof(float));
+void android_graphics_opengles::resize_viewport(const int w, const int h) {
+	glViewport(0, 0, w, h);
+	width = (float)w, height = (float)h;
+	memset(ws->worldProj, 0, 16 * sizeof(float));
 	ws->worldProj[0] = 2.f/width;
 	ws->worldProj[5] = 2.f/height;
 	ws->worldProj[10] = 0.0005f;
 	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
-	memset(ubatch->ui_projection,0,16*sizeof(float));
+	memset(ubatch->ui_projection, 0, 16 * sizeof(float));
 	ubatch->ui_projection[0] = 2.f/width;
 	ubatch->ui_projection[5] = 2.f/height;
 	ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1.f;
 	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1.f;
 	ubatch->dirty_projection = true;
 }
-void tgf_gles::validate() {
+void android_graphics_opengles::validate() {
 	if (valid) return;
 	//validating gles resources
 	glDepthRangef(0.0f, 1.0f);
@@ -258,7 +266,10 @@ void tgf_gles::validate() {
 			"\n#endif"
 			"\nuniform mat4 proj;"
 			"\nlayout(location = 0) in vec4 a_position;"
+			"\nlayout(location = 1) in vec4 a_color;"
+			"\nout vec4 v_color;"
 			"\nvoid main() {"
+			"\n    v_color = a_color;"
 			"\n    gl_Position = proj * a_position;"
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
@@ -273,9 +284,10 @@ void tgf_gles::validate() {
 			"\n    #define HIGH mediump"
 			"\n#endif"
 			"\nprecision MED float;"
+			"\nin vec4 v_color;"
 			"\nlayout(location = 0) out vec4 fragColor;"
 			"\nvoid main() {"
-			"\n    fragColor = vec4(1.0);"
+			"\n    fragColor = v_color;"
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -288,9 +300,11 @@ void tgf_gles::validate() {
 		glGenBuffers(1, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
 		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*2*sizeof(float), NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*)0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(flat_vertex), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(flat_vertex), (void*)(2 * sizeof(float)));
 		glBindVertexArray(0);
 	}
 	//mesh
@@ -312,13 +326,13 @@ void tgf_gles::validate() {
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);
 		glBindTexture(GL_TEXTURE_2D, (*i)->id);
-	  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 	valid = true;
 }
-void tgf_gles::invalidate() {
+void android_graphics_opengles::invalidate() {
 	//invalidating gles resources
 	if (!valid) return;
 	//world draw
