@@ -18,8 +18,9 @@
 #include <android/sensor.h>
 
 #include "log.h"
+#include "android_input.h"
 #include "translated_opengles.h"
-#include "mainListener.h"
+#include "main_game.h"
 
 struct android_app {
     bool destroyed;
@@ -73,12 +74,8 @@ enum {
 	TERM_EGL_CONTEXT = 2,
 	TERM_EGL_DISPLAY = 4
 };
-struct touch_pointer {
-	bool active;
-	float xs, ys;
-	float x, y;
-};
 struct engine {
+    saved_state state;
     bool created;
     bool resize;
     bool resume;
@@ -89,42 +86,32 @@ struct engine {
     int32_t height;
     
     ANativeWindow* window; //used in glThread
-    AInputQueue* inputQueue;
-    
-    ASensorManager* sensorManager;
-    const ASensor* accelerometerSensor;
-    ASensorEventQueue* sensorEventQueue;
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
     EGLConfig eConfig;
-    saved_state state;
-    float accel[3];
-    touch_pointer input_pointer_cache[20] = {};
+		void engine_egl_terminate(const unsigned int term) {
+		  	if (!term || !display) return;
+				eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+				if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
+		    	if (tgf) {
+		    		((tgf_gles*)tgf)->invalidate();
+		    	}
+		    	eglDestroyContext(display, context);
+		    	context = EGL_NO_CONTEXT;
+		    }
+		    if (surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+		      eglDestroySurface(display, surface);
+		    	surface = EGL_NO_SURFACE;
+		    }
+		    if (term & TERM_EGL_DISPLAY) {
+		  		eglTerminate(display);
+		    	display = EGL_NO_DISPLAY;
+		    }
+		}
 };
-static void engine_egl_terminate(engine *eng, const unsigned int term) {
-  if (!term) return;
-	if (eng->display) {
-		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		if (eng->context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-    	if (tgf) {
-    		((tgf_gles*)tgf)->invalidate();
-    	}
-    	eglDestroyContext(eng->display, eng->context);
-    	eng->context = EGL_NO_CONTEXT;
-    }
-    if (eng->surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-      eglDestroySurface(eng->display, eng->surface);
-    	eng->surface = EGL_NO_SURFACE;
-    }
-    if (term & TERM_EGL_DISPLAY) {
-  		eglTerminate(eng->display);
-    	eng->display = EGL_NO_DISPLAY;
-    }
-	}
-}
 static void engine_draw(android_app *app, engine *eng) {
-  if (!eng->window) return;
+  if (!eng->window || !eng->running) return;
   if (!eng->display || !eng->context || !eng->surface) {
   	if (!eng->display) {
     	eng->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -175,8 +162,11 @@ static void engine_draw(android_app *app, engine *eng) {
   	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
   	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
   	
-  	if (!eng->created) {
+  	if (!tgf) {
   		tgf = new tgf_gles();
+  	}
+  	
+  	if (!eng->created) {
   		eng->created = true;
   		Main::create(eng->width, eng->height);
   		eng->resume = false;
@@ -188,21 +178,20 @@ static void engine_draw(android_app *app, engine *eng) {
   		eng->resize = false;
   		Main::resize(eng->width, eng->height);
   	}
-  } else {
-  	if (eng->resize) {
-			eng->resize = false;
-			eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
-			eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
-			eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
-			Main::resize(eng->width, eng->height);
-		}
   }
+	if (eng->resize) {
+		eng->resize = false;
+		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+		eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
+		eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &eng->width);
+		eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &eng->height);
+		Main::resize(eng->width, eng->height);
+	}
   if (eng->resume) {
   	Main::resume();
 		eng->resume = false;
   }
-  if (!eng->running) return;
+  //if (!eng->running) return;
   eng->state.angle += .01f;
   if (eng->state.angle > 1) {
       eng->state.angle = 0;
@@ -245,21 +234,15 @@ static void* android_app_entry(void* param) {
     ALooper_addFd(app->looper, app->msgread, LOOPER_ACTIVITY, ALOOPER_EVENT_INPUT, NULL, nullptr);
     
     engine *eng = new engine;
+    android_input *m_input = new android_input;
+    
     memset(eng, 0, sizeof(engine));
-    eng->sensorManager = ASensorManager_getInstance();
-    eng->accelerometerSensor = ASensorManager_getDefaultSensor(eng->sensorManager,ASENSOR_TYPE_ACCELEROMETER);
-    eng->sensorEventQueue = ASensorManager_createEventQueue(eng->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
+    m_input->sensorEventQueue = ASensorManager_createEventQueue(m_input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
     if (app->savedState) {
         eng->state = *(saved_state*)app->savedState;
     }
 		int8_t cmd;	
     int events;
-    ASensorEvent s_event;
-    //input env
-    int32_t handled;
-    AInputEvent* i_event;
-    int32_t motion;
-    int8_t motion_ptr, motion_act;
     //end input env
     while (!eng->destroyed) {
       switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
@@ -286,26 +269,21 @@ static void* android_app_entry(void* param) {
 					    	eng->resize = true;
 					    	break;
 					    case APP_CMD_GAINED_FOCUS:
-					      if (eng->accelerometerSensor) {
-					        ASensorEventQueue_enableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-					        ASensorEventQueue_setEventRate(eng->sensorEventQueue,eng->accelerometerSensor,(1000L/60)*1000);
-					      }
+					    	m_input->attach_sensor();
 					      break;
 				      case APP_CMD_INPUT_INIT:
-				        	eng->inputQueue = app->inputQueue;
-				          AInputQueue_attachLooper(eng->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
+				        	m_input->set_input_queue(app->inputQueue)
+				          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
 					      break;
 				      case APP_CMD_INPUT_TERM:
 				      	if (eng->inputQueue != NULL) {
 				        	AInputQueue_detachLooper(eng->inputQueue);
-					        eng->inputQueue = NULL;
 					        app->inputQueue = NULL;
+				        	m_input->set_input_queue(NULL)
 				      	}
 				        break;
 					    case APP_CMD_LOST_FOCUS:
-					      if (eng->accelerometerSensor) {
-					        ASensorEventQueue_disableSensor(eng->sensorEventQueue,eng->accelerometerSensor);
-					      }
+					    	m_input->detach_sensor();
 					      break;
 				      case APP_CMD_TERM_WINDOW:
 					  		engine_egl_terminate(eng, TERM_EGL_SURFACE);
@@ -347,63 +325,10 @@ static void* android_app_entry(void* param) {
 			    }
       		break;
         case LOOPER_INPUT: //input queue
-			    if (AInputQueue_getEvent(eng->inputQueue, &i_event) >= 0) {
-		        if (!AInputQueue_preDispatchEvent(eng->inputQueue, i_event)) {
-			        handled = 0;
-			        switch (AInputEvent_getType(i_event)) {
-			        	case AINPUT_EVENT_TYPE_MOTION:
-			        		motion = AMotionEvent_getAction(i_event);
-			        		motion_ptr = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-									motion_act = motion&AMOTION_EVENT_ACTION_MASK;
-									touch_pointer &ip = eng->input_pointer_cache[motion_ptr];
-									switch(motion_act) {
-								    case AMOTION_EVENT_ACTION_DOWN:
-								    	ip.active = true;
-							        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
-							        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
-								    	break;
-								    case AMOTION_EVENT_ACTION_MOVE:
-							        ip.x = AMotionEvent_getX(i_event, 0);
-							        ip.y = AMotionEvent_getY(i_event, 0);
-								    	break;
-								    case AMOTION_EVENT_ACTION_UP:
-								    	ip.active = false;
-								    	break;
-								    case AMOTION_EVENT_ACTION_CANCEL:
-								    	ip.active = false;
-								    	break;
-								    case AMOTION_EVENT_ACTION_OUTSIDE:
-								    	ip.active = false;
-								    	break;
-								    case AMOTION_EVENT_ACTION_POINTER_DOWN:
-								    	break;
-								    case AMOTION_EVENT_ACTION_POINTER_UP:
-								    	break;
-								    case AMOTION_EVENT_ACTION_SCROLL:
-								    	break;
-								    case AMOTION_EVENT_ACTION_HOVER_ENTER:
-								    	break;
-								    case AMOTION_EVENT_ACTION_HOVER_MOVE:
-								    	break;
-								    case AMOTION_EVENT_ACTION_HOVER_EXIT:
-								    	break;
-									}
-					        handled = 1;
-					        break;
-					    }
-			        AInputQueue_finishEvent(eng->inputQueue, i_event, handled);
-		        }
-			    } else {
-			    	LOGI("Failure reading next input event: %s\n", strerror(errno));
-			    }
+        	m_input->input_sensor();
         	break;
         case LOOPER_SENSOR: //sensor queue
-			    assert(eng->accelerometerSensor);
-				  while (ASensorEventQueue_getEvents(eng->sensorEventQueue,&s_event, 1) > 0) {
-			  		eng->accel[0] = s_event.acceleration.x/2.f+ 0.5f;
-			  		eng->accel[1] = s_event.acceleration.y/2.f + 0.5f;
-			  		eng->accel[2] = s_event.acceleration.z/2.f + 0.5f;
-				  }
+        	m_input->process_sensor();
         	break;
         default:
       		engine_draw(app, eng);
