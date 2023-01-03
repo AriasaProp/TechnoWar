@@ -198,7 +198,8 @@ static void engine_draw(android_app *app, engine *eng) {
   }
   if (eng->destroyed) {
   	m_Main->destroy();
-		eng->created = false;
+  	delete(m_Main);
+  	m_Main = nullptr;
 		eng->destroyed = false;
   }
 	if (!eglSwapBuffers(eng->display, eng->surface)) {

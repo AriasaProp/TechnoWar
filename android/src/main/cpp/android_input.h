@@ -12,7 +12,7 @@ public:
   const ASensor* gyroscopeSensor;
   ASensorEventQueue* sensorEventQueue;
 	android_input();
-	~android_input();
+	~android_input() override;
 	float	getAccelerometerX() override;
   float getAccelerometerY() override;
   float getAccelerometerZ() override;

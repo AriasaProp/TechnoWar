@@ -3,6 +3,7 @@
 
 struct input {
 public:
+	virtual ~input() = 0;
   virtual float	getAccelerometerX() = 0;
   virtual float getAccelerometerY() = 0;
   virtual float getAccelerometerZ() = 0;
