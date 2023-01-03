@@ -75,7 +75,6 @@ enum {
 	TERM_EGL_DISPLAY = 4
 };
 static android_graphics *m_android_graphics = nullptr;
-static android_input *m_android_input = nullptr;
 struct engine {
     saved_state state;
     bool created;
@@ -111,7 +110,7 @@ struct engine {
 		    }
 		}
 };
-static void engine_draw(android_app *app, engine *eng) {
+static void engine_draw(android_app *app, engine *eng, android_input *m_android_input) {
   if (!eng->window || !eng->running) return;
   if (!eng->display || !eng->context || !eng->surface) {
   	if (!eng->display) {
@@ -233,112 +232,111 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, LOOPER_ACTIVITY, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    
-    engine *eng = new engine;
-    m_android_input = new android_input;
-    
-    memset(eng, 0, sizeof(engine));
-    m_android_input->sensorEventQueue = ASensorManager_createEventQueue(m_android_input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
-    if (app->savedState) {
-        eng->state = *(saved_state*)app->savedState;
-    }
-		int8_t cmd;	
-    int events;
-    //end input env
-    while (!eng->destroyed) {
-      switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
-      	case LOOPER_ACTIVITY: //android activity queue
-			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) {
-		        LOGI("No data on command pipe!");
-			    } else {
-						switch (cmd) {
-					    case APP_CMD_RESUME:
-								eng->resume = true;
-					      eng->running = true;
-				        pthread_mutex_lock(&app->mutex);
-							  if (app->savedState != NULL) {
-						      free(app->savedState);
-						      app->savedState = NULL;
-						      app->savedStateSize = 0;
-							  }
-							  pthread_mutex_unlock(&app->mutex);
-				        break;
-				      case APP_CMD_INIT_WINDOW:
-				        eng->window = app->window;
-				        break;
-					    case APP_CMD_WINDOW_RESIZED:
-					    	eng->resize = true;
-					    	break;
-					    case APP_CMD_GAINED_FOCUS:
-					    	m_android_input->attach_sensor();
-					      break;
-				      case APP_CMD_INPUT_INIT:
-			          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
-			        	m_android_input->set_input_queue(app->inputQueue);
-					      break;
-				      case APP_CMD_INPUT_TERM:
-				      	if (app->inputQueue != NULL) {
-				        	m_android_input->set_input_queue(NULL);
-				        	AInputQueue_detachLooper(app->inputQueue);
-					        app->inputQueue = NULL;
-				      	}
-				        break;
-					    case APP_CMD_LOST_FOCUS:
-					    	m_android_input->detach_sensor();
-					      break;
-				      case APP_CMD_TERM_WINDOW:
-					  		eng->egl_terminate(TERM_EGL_SURFACE);
-				        app->window = NULL;
-				        eng->window = NULL;
-				        break;
-				      case APP_CMD_CONFIG_CHANGED:
-				        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-				        break;
-				      case APP_CMD_SAVE_STATE:
-				        pthread_mutex_lock(&app->mutex);
-							  if (app->savedState != NULL) {
-						      free(app->savedState);
-						      app->savedState = NULL;
-						      app->savedStateSize = 0;
-							  }
-				  			pthread_mutex_unlock(&app->mutex);
-					      app->savedState = malloc(sizeof(saved_state));
-					      *((saved_state*)app->savedState) = eng->state;
-					      app->savedStateSize = sizeof(saved_state);
-				        break;
-				      case APP_CMD_PAUSE:
-					  		eng->pause = true;
-					  		engine_draw(app, eng);
-					      eng->running = false;
-					      break;
-				      case APP_CMD_DESTROY:
-					  		eng->destroyed = true;
-					  		engine_draw(app, eng);
-					  		eng->egl_terminate(TERM_EGL_DISPLAY);
-				        break;
-				      default:
-				      	break;
-				  	}
-				    pthread_mutex_lock(&app->mutex);
-				    app->appCmdState = cmd;
-				    pthread_cond_broadcast(&app->cond);
-				    pthread_mutex_unlock(&app->mutex);
-			    }
-      		break;
-        case LOOPER_INPUT: //input queue
-        	m_android_input->process_input();
-        	break;
-        case LOOPER_SENSOR: //sensor queue
-        	m_android_input->process_sensor();
-        	break;
-        default:
-      		engine_draw(app, eng);
-        	break;
-      }
-    }
-    delete eng;
-    if (m_android_graphics) delete m_android_graphics;
-    if (m_android_input) delete m_android_input;
+    {
+	    engine *eng = new engine;
+	    memset(eng, 0, sizeof(engine));
+	    android_input m_android_input;
+	    m_android_input.sensorEventQueue = ASensorManager_createEventQueue(m_android_input.sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
+	    if (app->savedState) {
+	        eng->state = *(saved_state*)app->savedState;
+	    }
+			int8_t cmd;	
+	    int events;
+	    //end input env
+	    while (!eng->destroyed) {
+	      switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, &events, nullptr)) {
+	      	case LOOPER_ACTIVITY: //android activity queue
+				    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) {
+			        LOGI("No data on command pipe!");
+				    } else {
+							switch (cmd) {
+						    case APP_CMD_RESUME:
+									eng->resume = true;
+						      eng->running = true;
+					        pthread_mutex_lock(&app->mutex);
+								  if (app->savedState != NULL) {
+							      free(app->savedState);
+							      app->savedState = NULL;
+							      app->savedStateSize = 0;
+								  }
+								  pthread_mutex_unlock(&app->mutex);
+					        break;
+					      case APP_CMD_INIT_WINDOW:
+					        eng->window = app->window;
+					        break;
+						    case APP_CMD_WINDOW_RESIZED:
+						    	eng->resize = true;
+						    	break;
+						    case APP_CMD_GAINED_FOCUS:
+						    	m_android_input.attach_sensor();
+						      break;
+					      case APP_CMD_INPUT_INIT:
+				          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
+				        	m_android_input.set_input_queue(app->inputQueue);
+						      break;
+					      case APP_CMD_INPUT_TERM:
+					      	if (app->inputQueue != NULL) {
+					        	m_android_input.set_input_queue(NULL);
+					        	AInputQueue_detachLooper(app->inputQueue);
+						        app->inputQueue = NULL;
+					      	}
+					        break;
+						    case APP_CMD_LOST_FOCUS:
+						    	m_android_input.detach_sensor();
+						      break;
+					      case APP_CMD_TERM_WINDOW:
+						  		eng->egl_terminate(TERM_EGL_SURFACE);
+					        app->window = NULL;
+					        eng->window = NULL;
+					        break;
+					      case APP_CMD_CONFIG_CHANGED:
+					        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+					        break;
+					      case APP_CMD_SAVE_STATE:
+					        pthread_mutex_lock(&app->mutex);
+								  if (app->savedState != NULL) {
+							      free(app->savedState);
+							      app->savedState = NULL;
+							      app->savedStateSize = 0;
+								  }
+					  			pthread_mutex_unlock(&app->mutex);
+						      app->savedState = malloc(sizeof(saved_state));
+						      *((saved_state*)app->savedState) = eng->state;
+						      app->savedStateSize = sizeof(saved_state);
+					        break;
+					      case APP_CMD_PAUSE:
+						  		eng->pause = true;
+						  		engine_draw(app, eng, &m_android_input);
+						      eng->running = false;
+						      break;
+					      case APP_CMD_DESTROY:
+						  		eng->destroyed = true;
+						  		engine_draw(app, eng, &m_android_input);
+						  		eng->egl_terminate(TERM_EGL_DISPLAY);
+					        break;
+					      default:
+					      	break;
+					  	}
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+				    }
+	      		break;
+	        case LOOPER_INPUT: //input queue
+	        	m_android_input.process_input();
+	        	break;
+	        case LOOPER_SENSOR: //sensor queue
+	        	m_android_input.process_sensor();
+	        	break;
+	        default:
+	      		engine_draw(app, eng, &m_android_input);
+	        	break;
+	      }
+	    }
+	    delete eng;
+	    if (m_android_graphics) delete m_android_graphics;
+		}
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
