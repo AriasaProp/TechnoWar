@@ -249,7 +249,6 @@ static void* android_app_entry(void* param) {
 	    if (app->savedState) {
 	        eng.state = *(saved_state*)app->savedState;
 	    }
-			int ident;
 	    //end input env
 	    while (!eng.destroyed) {
 	      switch (ALooper_pollAll(eng.running ? 0 : -1, nullptr, nullptr, nullptr)) {
