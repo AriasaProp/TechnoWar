@@ -4,7 +4,7 @@
 #include "graphics/graphics.h"
 #include "input/input.h"
 
-namespace Main {
+struct Main {
 	void create(graphics*, input*);
 	void resume();
 	void render(float);
