@@ -22,6 +22,7 @@ android_input::android_input() {
   accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
   gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
 }
+input::~input(){}
 android_input::~android_input() {
 	detach_sensor();
 	set_input_queue(NULL);
