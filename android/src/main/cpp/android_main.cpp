@@ -214,7 +214,7 @@ static void engine_draw(android_app *app, engine *eng) {
   	m_Main->destroy();
   	delete(m_Main);
   	m_Main = nullptr;
-		eng->destroyed = false;
+		//eng->destroyed = false;
   }
 	if (!eglSwapBuffers(eng->display, eng->surface)) {
 		switch (eglGetError()) {
