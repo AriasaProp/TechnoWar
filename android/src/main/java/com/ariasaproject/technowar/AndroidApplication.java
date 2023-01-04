@@ -38,7 +38,7 @@ public class AndroidApplication extends NativeActivity {
   @Override
   protected void onDestroy() {
   	super.onDestroy();
-    //sendMessage("onDestroy");
+    sendMessage("onDestroy");
   }
   
   private void sendMessage(String msg) {
