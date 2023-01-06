@@ -92,7 +92,7 @@ void android_input::set_input_queue(AInputQueue *i) {
 		AInputQueue_detachLooper(inputQueue);
 	inputQueue = i;
 	if (inputQueue)
-		AInputQueue_attachLooper(inputQueue, app->looper, 2, NULL, nullptr);
+		AInputQueue_attachLooper(inputQueue, m_looper, 2, NULL, nullptr);
 }
 AInputEvent* i_event;
 void android_input::process_input() {
