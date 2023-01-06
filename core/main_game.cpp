@@ -1,5 +1,6 @@
 #include "main_game.h"
 
+#include "user_interface/user_interface.h"
 #include "math/matrix4.h"
 #include <cstring>
 #include <cmath>
@@ -10,18 +11,13 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-
-flat_vertex *v_t;
+user_interface::Actor *ml;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	v_t = new flat_vertex[4]{
-		{120.f, 120.f, 0xff, 0xff, 0x00, 0xff},
-		{120.f, 300.f, 0x00, 0xff, 0x00, 0xff},
-		{300.f, 120.f, 0x00, 0xff, 0xff, 0xff},
-		{300.f, 300.f, 0x00, 0x00, 0xff, 0xff}
-	};
+	ml = new Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
+	user_interface::addActor(ml);
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -77,11 +73,12 @@ void Main::render(float delta) {
 	);
 	m_graphics->mesh_render(&mp, 1);
 	
-	m_graphics->flat_render(v_t, 4);
+	user_interface::draw(m_graphics);
 }
 void Main::pause() {
 }
 void Main::destroy() {
 	m_graphics->delete_mesh(mp);
-	delete[] v_t;
+	user_interface::clearActor();
+	delete ml;
 }
