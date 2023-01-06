@@ -16,7 +16,7 @@ user_interface::Actor *ml;
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	ml = new Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
+	ml = new user_interface::Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
 	user_interface::addActor(ml);
 	mesh_core::data vert[24] = {
 		//front red
