@@ -36,12 +36,8 @@ struct android_app {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     pthread_t thread;
-};
-enum { 
-    LOOPER_ACTIVITY = 1,
-    LOOPER_INPUT = 2,
-    LOOPER_SENSOR = 3,
-};
+}; 
+
 enum {
     APP_CMD_START,
     APP_CMD_RESUME,
@@ -215,24 +211,23 @@ static void* android_app_entry(void* param) {
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(app->looper, app->msgread, LOOPER_ACTIVITY, ALOOPER_EVENT_INPUT, NULL, nullptr);
+    ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
 	  engine *eng = new engine;
 	  memset(eng,0,sizeof(engine));
-	  eng->input = new android_input;
-	  eng->input->sensorEventQueue = ASensorManager_createEventQueue(eng->input->sensorManager,app->looper, LOOPER_SENSOR , NULL, nullptr);
+	  eng->input = new android_input(app->looper);
 	  if (app->savedState) {
 	      eng->state = *(saved_state*)app->savedState;
 	  }
 	  //end input env
 	  while (!eng->destroyed) {
 	    switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, nullptr, nullptr)) {
-	      case LOOPER_INPUT: //input queue
+	      case 2: //input queue
 	      	eng->input->process_input();
 	      	break;
-	      case LOOPER_SENSOR: //sensor queue
+	      case 3: //sensor queue
 	      	eng->input->process_sensor();
 	      	break;
-	    	case LOOPER_ACTIVITY: //android activity queue
+	    	case 1: //android activity queue
 					int8_t cmd;
 			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
 					switch (cmd) {
@@ -265,7 +260,6 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_INPUT_INIT:
-		          AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_INPUT, NULL, nullptr);
 		        	eng->input->set_input_queue(app->inputQueue);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -275,7 +269,6 @@ static void* android_app_entry(void* param) {
 			      case APP_CMD_INPUT_TERM:
 			      	if (app->inputQueue != NULL) {
 			        	eng->input->set_input_queue(NULL);
-			        	AInputQueue_detachLooper(app->inputQueue);
 				        app->inputQueue = NULL;
 			      	}
 					    pthread_mutex_lock(&app->mutex);

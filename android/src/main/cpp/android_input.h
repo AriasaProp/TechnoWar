@@ -1,17 +1,14 @@
 #ifndef Included_Android_Input
 #define Included_Android_Input 1
 
-#include "android/input.h"
-#include "android/sensor.h"
+#include <android/input.h>
+#include <android/sensor.h>
+#include <android/looper.h>
 #include "input/input.h"
 
 struct android_input : public input {
 public:
-	ASensorManager* sensorManager;
-  const ASensor* accelerometerSensor;
-  const ASensor* gyroscopeSensor;
-  ASensorEventQueue* sensorEventQueue;
-	android_input();
+	android_input(ALooper*);
 	~android_input() override;
 	float	getAccelerometerX() override;
   float getAccelerometerY() override;

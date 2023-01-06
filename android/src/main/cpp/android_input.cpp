@@ -12,8 +12,14 @@ float *m_accelerometer;
 float *m_gyroscope;
 touch_pointer *input_pointer_cache;
 ASensorEvent *s_event;
+ASensorManager* sensorManager;
+const ASensor* accelerometerSensor;
+const ASensor* gyroscopeSensor;
+ASensorEventQueue* sensorEventQueue;
+ALooper *m_looper;
 
-android_input::android_input() {
+android_input::android_input(ALooper *_looper) {
+	m_looper = _looper;
 	m_accelerometer = new float[3]{};
 	m_gyroscope = new float[3]{};
 	input_pointer_cache = new touch_pointer[20]{};
@@ -21,6 +27,7 @@ android_input::android_input() {
   sensorManager = ASensorManager_getInstance();
   accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
   gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
+	sensorEventQueue = ASensorManager_createEventQueue(sensorManager, _looper, 3 , NULL, nullptr);
 }
 input::~input(){}
 android_input::~android_input() {
@@ -81,7 +88,11 @@ bool android_input::isCatchKey(int keycode) {
 bool input_enabled = false;
 AInputQueue *inputQueue = NULL;
 void android_input::set_input_queue(AInputQueue *i) {
+	if (inputQueue)
+		AInputQueue_detachLooper(inputQueue);
 	inputQueue = i;
+	if (inputQueue)
+		AInputQueue_attachLooper(inputQueue, app->looper, 2, NULL, nullptr);
 }
 AInputEvent* i_event;
 void android_input::process_input() {
@@ -98,12 +109,12 @@ void android_input::process_input() {
 				switch(motion_act) {
 			    case AMOTION_EVENT_ACTION_DOWN:
 			    	ip.active = true;
-		        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
-		        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
+		        ip.xs = ip.x = AMotionEvent_getX(i_event, motion_ptr);
+		        ip.ys = ip.y = AMotionEvent_getY(i_event, motion_ptr);
 			    	break;
 			    case AMOTION_EVENT_ACTION_MOVE:
-		        ip.x = AMotionEvent_getX(i_event, 0);
-		        ip.y = AMotionEvent_getY(i_event, 0);
+		        ip.x = AMotionEvent_getX(i_event, motion_ptr);
+		        ip.y = AMotionEvent_getY(i_event, motion_ptr);
 			    	break;
 			    case AMOTION_EVENT_ACTION_UP:
 			    	ip.active = false;
