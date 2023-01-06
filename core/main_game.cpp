@@ -11,13 +11,15 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-user_interface::Actor *ml;
+user_interface::Actor *ml, mb;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
 	ml = new user_interface::Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
 	user_interface::addActor(ml);
+	mb = new user_interface::Actor{700,100,300,250,{0x00, 0xff, 0x00, 0xff}};
+	user_interface::addActor(mb);
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -81,4 +83,5 @@ void Main::destroy() {
 	m_graphics->delete_mesh(mp);
 	user_interface::clearActor();
 	delete ml;
+	delete mb;
 }
