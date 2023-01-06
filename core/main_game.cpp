@@ -74,8 +74,8 @@ void Main::render(float delta) {
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
 	m_graphics->mesh_render(&mp, 1);
-	ml->color[2] = (unsigned char)(0xff * ((float)m_input->getX()/m_graphics->getWidth()));
-	ml->color[2] = (unsigned char)(0xff * ((float)m_input->getY()/m_graphics->getHeight()));
+	ml->color[2] = (unsigned char)(0xff * ((float)m_input->getX(0)/m_graphics->getWidth()));
+	mb->color[2] = (unsigned char)(0xff * ((float)m_input->getY(0)/m_graphics->getHeight()));
 	user_interface::draw(m_graphics);
 }
 void Main::pause() {
