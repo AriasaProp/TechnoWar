@@ -86,52 +86,51 @@ void android_input::set_input_queue(AInputQueue *i) {
 AInputEvent* i_event;
 void android_input::process_input() {
 	if (inputQueue == NULL) return;
-	if (AInputQueue_getEvent(inputQueue, &i_event) >= 0) {
-    if (!AInputQueue_preDispatchEvent(inputQueue, i_event)) {
-      int32_t handled = 0;
-			switch (AInputEvent_getType(i_event)) {
-				case AINPUT_EVENT_TYPE_MOTION:
-					int32_t motion = AMotionEvent_getAction(i_event);
-					int8_t motion_ptr = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-					int8_t motion_act = motion&AMOTION_EVENT_ACTION_MASK;
-					touch_pointer &ip = input_pointer_cache[motion_ptr];
-					switch(motion_act) {
-				    case AMOTION_EVENT_ACTION_DOWN:
-				    	ip.active = true;
-			        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
-			        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
-				    	break;
-				    case AMOTION_EVENT_ACTION_MOVE:
-			        ip.x = AMotionEvent_getX(i_event, 0);
-			        ip.y = AMotionEvent_getY(i_event, 0);
-				    	break;
-				    case AMOTION_EVENT_ACTION_UP:
-				    	ip.active = false;
-				    	break;
-				    case AMOTION_EVENT_ACTION_CANCEL:
-				    	ip.active = false;
-				    	break;
-				    case AMOTION_EVENT_ACTION_OUTSIDE:
-				    	ip.active = false;
-				    	break;
-				    case AMOTION_EVENT_ACTION_POINTER_DOWN:
-				    	break;
-				    case AMOTION_EVENT_ACTION_POINTER_UP:
-				    	break;
-				    case AMOTION_EVENT_ACTION_SCROLL:
-				    	break;
-				    case AMOTION_EVENT_ACTION_HOVER_ENTER:
-				    	break;
-				    case AMOTION_EVENT_ACTION_HOVER_MOVE:
-				    	break;
-				    case AMOTION_EVENT_ACTION_HOVER_EXIT:
-				    	break;
-					}
-			    handled = 1;
-			    break;
-			}
-      AInputQueue_finishEvent(inputQueue, i_event, handled);
-    }
+	if (AInputQueue_getEvent(inputQueue, &i_event) < 0) return;
+  if (!AInputQueue_preDispatchEvent(inputQueue, i_event)) {
+    int32_t handled = 0;
+		switch (AInputEvent_getType(i_event)) {
+			case AINPUT_EVENT_TYPE_MOTION:
+				int32_t motion = AMotionEvent_getAction(i_event);
+				int8_t motion_ptr = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+				int8_t motion_act = motion&AMOTION_EVENT_ACTION_MASK;
+				touch_pointer &ip = input_pointer_cache[motion_ptr];
+				switch(motion_act) {
+			    case AMOTION_EVENT_ACTION_DOWN:
+			    	ip.active = true;
+		        ip.xs = ip.x = AMotionEvent_getX(i_event, 0);
+		        ip.ys = ip.y = AMotionEvent_getY(i_event, 0);
+			    	break;
+			    case AMOTION_EVENT_ACTION_MOVE:
+		        ip.x = AMotionEvent_getX(i_event, 0);
+		        ip.y = AMotionEvent_getY(i_event, 0);
+			    	break;
+			    case AMOTION_EVENT_ACTION_UP:
+			    	ip.active = false;
+			    	break;
+			    case AMOTION_EVENT_ACTION_CANCEL:
+			    	ip.active = false;
+			    	break;
+			    case AMOTION_EVENT_ACTION_OUTSIDE:
+			    	ip.active = false;
+			    	break;
+			    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+			    	break;
+			    case AMOTION_EVENT_ACTION_POINTER_UP:
+			    	break;
+			    case AMOTION_EVENT_ACTION_SCROLL:
+			    	break;
+			    case AMOTION_EVENT_ACTION_HOVER_ENTER:
+			    	break;
+			    case AMOTION_EVENT_ACTION_HOVER_MOVE:
+			    	break;
+			    case AMOTION_EVENT_ACTION_HOVER_EXIT:
+			    	break;
+				}
+		    handled = 1;
+		    break;
+		}
+    AInputQueue_finishEvent(inputQueue, i_event, handled);
   }
 }
 
