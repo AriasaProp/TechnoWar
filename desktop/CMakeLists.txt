@@ -1,10 +1,6 @@
 cmake_minimum_required (VERSION 3.4.1)
 
-# Set default compile flags for GCC
-if(CMAKE_COMPILER_IS_GNUCXX)
-    message(STATUS "GCC detected, adding compile flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
-endif(CMAKE_COMPILER_IS_GNUCXX)
+project(DesktopApp)
 
 if (MSVC)
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
@@ -12,7 +8,7 @@ if (MSVC)
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std=c++11 /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std=c++11 /Wall /Wextra /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /MTd /D \"_DEBUG\"")
     set(CMAKE_CXX_FLAGS_RELEASE "/O3 /Oi /MT /D \"NDEBUG\"")
 else()
@@ -33,8 +29,6 @@ else()
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ../lib)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
 endif()
-
-project(DesktopApp)
 
 # set(CORE_SRC "../core")
 # file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
