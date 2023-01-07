@@ -30,7 +30,7 @@ include_directories(${Include_Dir})
 
 # add_subdirectory(${CORE_SRC} bin/core)
 
-if(CMAKE_SYSTEM_NAME Windows)
+if(MSVC)
 	add_executable(${PROJECT_NAME} WIN32 desktop_main.cpp)
 else()
 	add_executable(${PROJECT_NAME} desktop_main.cpp)
