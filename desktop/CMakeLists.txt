@@ -28,7 +28,7 @@ else()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
 endif()
 
-project (DesktopApp LANGUAGES CXX)
+project(DesktopApp)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_DEBUG_POSTFIX "d")
 
