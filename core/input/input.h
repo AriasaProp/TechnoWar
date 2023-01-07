@@ -24,9 +24,6 @@ public:
   virtual float getAzimuth() = 0;
   virtual float getPitch() = 0;
   virtual float getRoll() = 0;
-  virtual long getCurrentEventTime() = 0;
-  virtual void setCatchKey(int keycode, bool catchKey) = 0;
-  virtual bool isCatchKey(int keycode) = 0;
 };
 
 

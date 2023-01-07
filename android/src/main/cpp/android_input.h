@@ -30,9 +30,6 @@ public:
   float getAzimuth() override;
   float getPitch() override;
   float getRoll() override;
-  long getCurrentEventTime() override;
-  void setCatchKey(int keycode, bool catchKey) override;
-  bool isCatchKey(int keycode) override;
   
   void set_input_queue(AInputQueue *);
   void process_input();

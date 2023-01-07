@@ -50,9 +50,7 @@ int android_input::getX(unsigned int p = 0) {	return input_pointer_cache[p].x; }
 int android_input::getDeltaX(unsigned int p = 0) {	return input_pointer_cache[p].x - input_pointer_cache[p].xs; }
 int android_input::getY(unsigned int p = 0) {	return input_pointer_cache[p].y; }
 int android_input::getDeltaY(unsigned int p = 0) {	return input_pointer_cache[p].y - input_pointer_cache[p].ys; }
-bool android_input::justTouched() {
-	return false;
-}
+bool android_input::justTouched() {	return false; }
 bool android_input::isTouched(unsigned int p = 0) { return input_pointer_cache[p].active; }
 float android_input::getPressure(unsigned int p = 0) {
 	return false;
@@ -78,15 +76,6 @@ float android_input::getPitch() {
 float android_input::getRoll() {
 	return 0;
 }
-long android_input::getCurrentEventTime() {
-	return 0;
-}
-void android_input::setCatchKey(int keycode, bool catchKey) {
-	//todo
-}
-bool android_input::isCatchKey(int keycode) {
-	return false;
-}
 bool input_enabled = false;
 AInputQueue *inputQueue = NULL;
 void android_input::set_input_queue(AInputQueue *i) {
@@ -108,10 +97,9 @@ void android_input::process_input() {
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {
 		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
 		    case AMOTION_EVENT_ACTION_DOWN:
-		    {
-					if (AMotionEvent_getEdgeFlags(i_event) != 0) {
+					if (AMotionEvent_getEdgeFlags(i_event) != 0)
 						break;
-					}
+		    {
 					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
 						break;
