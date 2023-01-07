@@ -44,3 +44,4 @@ add_executable(${PROJECT_NAME} ${Src_Files})
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${Include_Dir} ${Include_subDir})
 target_link_libraries(${PROJECT_NAME} core)
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
