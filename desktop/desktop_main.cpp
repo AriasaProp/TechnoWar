@@ -77,7 +77,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
     // Unix
 int main () {
 	int a = 7;
-	a -= 2;
+	a -= 3;
 	return 1;
 }
 #elif __linux__
