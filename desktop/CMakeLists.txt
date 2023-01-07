@@ -29,6 +29,11 @@ file(GLOB_RECURSE Src_Files "*.cpp")
 include_directories(${Include_Dir})
 
 # add_subdirectory(${CORE_SRC} bin/core)
-add_executable(${PROJECT_NAME} desktop_main.cpp)
+
+if(CMAKE_SYSTEM_NAME Windows)
+	add_executable(${PROJECT_NAME} WIN32 desktop_main.cpp)
+else()
+	add_executable(${PROJECT_NAME} desktop_main.cpp)
+endif()
 # target_link_libraries(${PROJECT_NAME} core)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
