@@ -104,29 +104,38 @@ void android_input::process_input() {
   int32_t handled = 0;
 	switch (AInputEvent_getType(i_event)) {
 		case AINPUT_EVENT_TYPE_MOTION:
-			int32_t motion = AMotionEvent_getAction(i_event);
-			int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-			if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
-				break;
-			touch_pointer &ip = input_pointer_cache[pointer_index];
+			const int32_t motion = AMotionEvent_getAction(i_event);
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {
 		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
 		    case AMOTION_EVENT_ACTION_DOWN:
+		    {
+					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
+						break;
+					touch_pointer &ip = input_pointer_cache[pointer_index];
 		    	ip.active = true;
 	        ip.xs = ip.x = AMotionEvent_getX(i_event, pointer_index);
 	        ip.ys = ip.y = AMotionEvent_getY(i_event, pointer_index);
+		    }
 		    	break;
 		    case AMOTION_EVENT_ACTION_MOVE:
-	        ip.x = AMotionEvent_getX(i_event, pointer_index);
-	        ip.y = AMotionEvent_getY(i_event, pointer_index);
+		    	for (size_t i = 0, j = AMotionEvent_getPointerCount(i_event); (i<j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
+						touch_pointer &ip = input_pointer_cache[i];
+						if (!ip.active) continue;
+		        ip.x = AMotionEvent_getX(i_event, pointer_index);
+		        ip.y = AMotionEvent_getY(i_event, pointer_index);
+		    	}
 		    	break;
 		    case AMOTION_EVENT_ACTION_POINTER_UP:
 		    case AMOTION_EVENT_ACTION_UP:
 		    case AMOTION_EVENT_ACTION_OUTSIDE:
-		    	ip.active = false;
+		    {
+					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+					memset(&input_pointer_cache[pointer_index], 0, sizeof(touch_pointer));
+		    }
 		    	break;
 		    case AMOTION_EVENT_ACTION_CANCEL:
-		    	ip.active = false;
+		    	memset(input_pointer_cache, 0, MAX_TOUCH_POINTERS_COUNT*sizeof(touch_pointer))
 		    	break;
 		    case AMOTION_EVENT_ACTION_SCROLL:
 		    case AMOTION_EVENT_ACTION_HOVER_ENTER:
