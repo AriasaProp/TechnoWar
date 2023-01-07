@@ -1,0 +1,23 @@
+name: CMake
+
+on: [workflow_dispatch]
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Configure CMake
+      run: |
+        cmake -S ${{github.workspace}}/desktop -B ${{github.workspace}}/desktop/build-${{ matrix.os }} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake --build ${{github.workspace}}/desktop/build-${{ matrix.os }} --config ${{env.BUILD_TYPE}}
+    - name: Download a Build Artifact
+      uses: actions/download-artifact@v3.0.2
+      with:
+        name: All-Make
+        path: ${{github.workspace}}/desktop
