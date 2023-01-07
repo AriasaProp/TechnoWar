@@ -122,8 +122,8 @@ void android_input::process_input() {
 		    	for (size_t i = 0, j = AMotionEvent_getPointerCount(i_event); (i<j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
 						touch_pointer &ip = input_pointer_cache[i];
 						if (!ip.active) continue;
-		        ip.x = AMotionEvent_getX(i_event, pointer_index);
-		        ip.y = AMotionEvent_getY(i_event, pointer_index);
+		        ip.x = AMotionEvent_getX(i_event, i);
+		        ip.y = AMotionEvent_getY(i_event, i);
 		    	}
 		    	break;
 		    case AMOTION_EVENT_ACTION_POINTER_UP:
@@ -135,7 +135,7 @@ void android_input::process_input() {
 		    }
 		    	break;
 		    case AMOTION_EVENT_ACTION_CANCEL:
-		    	memset(input_pointer_cache, 0, MAX_TOUCH_POINTERS_COUNT*sizeof(touch_pointer))
+		    	memset(input_pointer_cache, 0, MAX_TOUCH_POINTERS_COUNT*sizeof(touch_pointer));
 		    	break;
 		    case AMOTION_EVENT_ACTION_SCROLL:
 		    case AMOTION_EVENT_ACTION_HOVER_ENTER:
