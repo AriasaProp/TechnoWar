@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.4.1)
 
+-Wignored-qualifiers
+
 if (MSVC)
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
@@ -32,16 +34,12 @@ project (DesktopApp LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_DEBUG_POSTFIX "d")
 
-set(CORE_SRC "../core")
-
-file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
+# set(CORE_SRC "../core")
+# file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
 file(GLOB_RECURSE Src_Files "*.cpp")
-
-add_subdirectory(${CORE_SRC} bin/core)
-
+# add_subdirectory(${CORE_SRC} bin/core)
 add_executable(${PROJECT_NAME} ${Src_Files})
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${Include_Dir} ${Include_subDir})
-target_link_libraries(${PROJECT_NAME} core)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Include_Dir} #[[${Include_subDir}]])
+# target_link_libraries(${PROJECT_NAME} core)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
