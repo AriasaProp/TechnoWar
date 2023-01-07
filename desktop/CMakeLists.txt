@@ -6,13 +6,13 @@ if (MSVC)
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++latest /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /MTd /D \"_DEBUG\"")
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Oi /MT /D \"NDEBUG\"")
+    set(CMAKE_CXX_FLAGS_RELEASE "/O3 /Oi /MT /D \"NDEBUG\"")
 else()
-    set(CMAKE_CXX_FLAGS "-std=c++1z -Wall -Wextra -Werror")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
 if (MSVC)
@@ -28,9 +28,9 @@ else()
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
 endif()
 
+project (DesktopApp LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_DEBUG_POSTFIX "d")
-
-project (DesktopApp)
 
 set(CORE_SRC "../core")
 
@@ -40,7 +40,7 @@ file(GLOB_RECURSE Src_Files "*.cpp")
 
 add_subdirectory(${CORE_SRC} bin/core)
 
-add_executable(DesktopApp ${Src_Files})
+add_executable(${PROJECT_NAME} ${Src_Files})
 
-target_include_directories((DesktopApp PRIVATE ${Include_Dir} ${Include_subDir})
-target_link_libraries(DesktopApp core)
+target_include_directories(${PROJECT_NAME} PRIVATE ${Include_Dir} ${Include_subDir})
+target_link_libraries(${PROJECT_NAME} core)
