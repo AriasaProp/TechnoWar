@@ -18,8 +18,8 @@ jobs:
     - name: Configure CMake
       run: |
         cmake -S ${{github.workspace}}/desktop -B ${{github.workspace}}/desktop/build-${{ matrix.os }} -DCMAKE_BUILD_TYPE=Release
-    - name: Download a Build Artifact
-      uses: actions/download-artifact@v3.0.2
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v3
       with:
         name: All-Make
-        path: ${{runner.workspace}}/desktop
+        path: ${{github.workspace}}/desktop/
