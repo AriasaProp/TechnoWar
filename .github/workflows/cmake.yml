@@ -9,17 +9,19 @@ env:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
     - name: Configure CMake
       run: |
-        cmake -S ${{github.workspace}}/desktop -B ${{github.workspace}}/desktop/build-${{ matrix.os }} -DCMAKE_BUILD_TYPE=Release
+        cmake -S ${{github.workspace}}\desktop -B ${{github.workspace}}\desktop\build-${{ matrix.os }} --build
+        cd desktop\build-${{ matrix.os }}
+        make install
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3
       with:
         name: All-Make
-        path: ${{github.workspace}}/desktop/
+        path: ${{github.workspace}}\desktop\
