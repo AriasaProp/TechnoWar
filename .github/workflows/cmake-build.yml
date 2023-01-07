@@ -1,6 +1,6 @@
 name: Build CMake
 
-on: workflow_dispatch
+on: [workflow_dispatch]
 
 jobs:
   build:
@@ -15,7 +15,7 @@ jobs:
           cmake-version: '3.25.1'
       - name: Use cmake
         run: |
-          cmake -S /desktop/ -B /desktop/bin-${{matrix.os}}
+          cmake -S /desktop/ -B /desktop/bin-${{ matrix.os }}
           make
       - name: Publish Artifacts
         uses: actions/upload-artifact@v3
