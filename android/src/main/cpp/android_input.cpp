@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#define MAX_TOUCH_POINTERS_COUNT 30
+
 struct touch_pointer {
 	bool active;
 	float xs, ys;
@@ -22,7 +24,7 @@ android_input::android_input(ALooper *_looper) {
 	m_looper = _looper;
 	m_accelerometer = new float[3]{};
 	m_gyroscope = new float[3]{};
-	input_pointer_cache = new touch_pointer[20]{};
+	input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
 	s_event = new ASensorEvent[2];
   sensorManager = ASensorManager_getInstance();
   accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
@@ -98,51 +100,44 @@ AInputEvent* i_event;
 void android_input::process_input() {
 	if (inputQueue == NULL) return;
 	if (AInputQueue_getEvent(inputQueue, &i_event) < 0) return;
-  if (!AInputQueue_preDispatchEvent(inputQueue, i_event)) {
-    int32_t handled = 0;
-		switch (AInputEvent_getType(i_event)) {
-			case AINPUT_EVENT_TYPE_MOTION:
-				int32_t motion = AMotionEvent_getAction(i_event);
-				int8_t motion_ptr = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-				int8_t motion_act = motion&AMOTION_EVENT_ACTION_MASK;
-				touch_pointer &ip = input_pointer_cache[motion_ptr];
-				switch(motion_act) {
-			    case AMOTION_EVENT_ACTION_DOWN:
-			    	ip.active = true;
-		        ip.xs = ip.x = AMotionEvent_getX(i_event, motion_ptr);
-		        ip.ys = ip.y = AMotionEvent_getY(i_event, motion_ptr);
-			    	break;
-			    case AMOTION_EVENT_ACTION_MOVE:
-		        ip.x = AMotionEvent_getX(i_event, motion_ptr);
-		        ip.y = AMotionEvent_getY(i_event, motion_ptr);
-			    	break;
-			    case AMOTION_EVENT_ACTION_UP:
-			    	ip.active = false;
-			    	break;
-			    case AMOTION_EVENT_ACTION_CANCEL:
-			    	ip.active = false;
-			    	break;
-			    case AMOTION_EVENT_ACTION_OUTSIDE:
-			    	ip.active = false;
-			    	break;
-			    case AMOTION_EVENT_ACTION_POINTER_DOWN:
-			    	break;
-			    case AMOTION_EVENT_ACTION_POINTER_UP:
-			    	break;
-			    case AMOTION_EVENT_ACTION_SCROLL:
-			    	break;
-			    case AMOTION_EVENT_ACTION_HOVER_ENTER:
-			    	break;
-			    case AMOTION_EVENT_ACTION_HOVER_MOVE:
-			    	break;
-			    case AMOTION_EVENT_ACTION_HOVER_EXIT:
-			    	break;
-				}
-		    handled = 1;
-		    break;
-		}
-    AInputQueue_finishEvent(inputQueue, i_event, handled);
-  }
+  if (AInputQueue_preDispatchEvent(inputQueue, i_event) != 0) return;
+  int32_t handled = 0;
+	switch (AInputEvent_getType(i_event)) {
+		case AINPUT_EVENT_TYPE_MOTION:
+			int32_t motion = AMotionEvent_getAction(i_event);
+			int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+			if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
+				break;
+			touch_pointer &ip = input_pointer_cache[pointer_index];
+			switch(motion&AMOTION_EVENT_ACTION_MASK) {
+		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
+		    case AMOTION_EVENT_ACTION_DOWN:
+		    	ip.active = true;
+	        ip.xs = ip.x = AMotionEvent_getX(i_event, pointer_index);
+	        ip.ys = ip.y = AMotionEvent_getY(i_event, pointer_index);
+		    	break;
+		    case AMOTION_EVENT_ACTION_MOVE:
+	        ip.x = AMotionEvent_getX(i_event, pointer_index);
+	        ip.y = AMotionEvent_getY(i_event, pointer_index);
+		    	break;
+		    case AMOTION_EVENT_ACTION_POINTER_UP:
+		    case AMOTION_EVENT_ACTION_UP:
+		    case AMOTION_EVENT_ACTION_OUTSIDE:
+		    	ip.active = false;
+		    	break;
+		    case AMOTION_EVENT_ACTION_CANCEL:
+		    	ip.active = false;
+		    	break;
+		    case AMOTION_EVENT_ACTION_SCROLL:
+		    case AMOTION_EVENT_ACTION_HOVER_ENTER:
+		    case AMOTION_EVENT_ACTION_HOVER_MOVE:
+		    case AMOTION_EVENT_ACTION_HOVER_EXIT:
+		    	break;
+			}
+	    handled = 1;
+	    break;
+	}
+  AInputQueue_finishEvent(inputQueue, i_event, handled);
 }
 
 bool sensor_enabled = false;
