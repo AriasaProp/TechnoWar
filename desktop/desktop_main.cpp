@@ -1,6 +1,5 @@
-#ifndef UNICODE
-#define UNICODE
-#endif 
+#ifndef Main_define_Included
+#define Main_define_Included
 
 #ifdef _WIN32 // note the underscore: without it, it's not msdn official!
 #include <windows.h>
@@ -76,8 +75,31 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 }
 #elif __unix__ // all unices, not all compilers
     // Unix
+int main () {
+	int a = 7;
+	a -= 2;
+	return 1;
+}
 #elif __linux__
     // linux
+int main () {
+	int a = 7;
+	a *= 9;
+	return 1;
+}
 #elif __APPLE__
     // Mac OS, not sure if this is covered by __posix__ and/or __unix__ though...
+int main () {
+	int a = 7;
+	a *= 2;
+	//MAC_OS
+	return 1;
+}
+#else
+int main () {
+	return 0;
+}
 #endif
+
+
+#endif // main def
