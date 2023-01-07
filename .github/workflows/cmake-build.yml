@@ -1,0 +1,39 @@
+name: Build CMake
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os.host }}
+      strategy:
+        matrix:
+          os:
+            - name: win64
+              architecture: x86-64
+              host: windows-latest
+            - name: win32
+              architecture: x86
+              host: windows-latest
+            - name: macos64
+              architecture: x86-64
+              host: macos-latest
+            - name: ubuntu_arm64
+              architecture: arm64
+              host: ubuntu-latest
+            - name: ubuntu64
+              architecture: x86-64
+              host: ubuntu-latest
+    steps:
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v1.13
+        with:
+          cmake-version: '3.25.1'
+      - name: Use cmake
+        run: |
+          cmake -S /desktop/ -B /desktop/bin-${{matrix.os.name}}
+          make
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: All-Make
+          path: ${{github.workspace}}/desktop
