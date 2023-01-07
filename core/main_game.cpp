@@ -11,7 +11,7 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-user_interface::Actor *ml, *mb;
+user_interface::Actor *ml, *mb, *mc;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
@@ -20,6 +20,8 @@ void Main::create(graphics *_graphics, input *_input) {
 	user_interface::addActor(ml);
 	mb = new user_interface::Actor{700,100,300,250,{0x00, 0xff, 0x00, 0xff}};
 	user_interface::addActor(mb);
+	mc = new user_interface::Actor{1100,100,250,200,{0x00, 0xff, 0x00, 0xff}};
+	user_interface::addActor(mc);
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -86,6 +88,12 @@ void Main::render(float delta) {
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
+	memcpy(mc->color, (unsigned char[]){
+		(unsigned char)(0xff * ((float)m_input->getX(2)/m_graphics->getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(2)/m_graphics->getHeight())),
+		0x00,
+		0xff
+	}, 4*sizeof(unsigned char));
 	user_interface::draw(m_graphics);
 }
 void Main::pause() {
@@ -95,4 +103,5 @@ void Main::destroy() {
 	user_interface::clearActor();
 	delete ml;
 	delete mb;
+	delete mc;
 }

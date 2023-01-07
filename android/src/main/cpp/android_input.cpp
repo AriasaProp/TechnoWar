@@ -109,6 +109,9 @@ void android_input::process_input() {
 		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
 		    case AMOTION_EVENT_ACTION_DOWN:
 		    {
+					if (AMotionEvent_getEdgeFlags(i_event) != 0) {
+						break;
+					}
 					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
 						break;
@@ -131,7 +134,13 @@ void android_input::process_input() {
 		    case AMOTION_EVENT_ACTION_OUTSIDE:
 		    {
 					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-					memset(&input_pointer_cache[pointer_index], 0, sizeof(touch_pointer));
+					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
+						break;
+					touch_pointer &ip = input_pointer_cache[pointer_index];
+					if (!ip.active) break;
+		    	ip.active = false;
+	        ip.x = AMotionEvent_getX(i_event, pointer_index);
+	        ip.y = AMotionEvent_getY(i_event, pointer_index);
 		    }
 		    	break;
 		    case AMOTION_EVENT_ACTION_CANCEL:
