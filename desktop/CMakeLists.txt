@@ -42,5 +42,5 @@ add_subdirectory(${CORE_SRC} bin/core)
 
 add_executable(DesktopApp ${Src_Files})
 
-target_include_directories(ext PRIVATE ${Include_Dir} ${Include_subDir})
+target_include_directories((DesktopApp PRIVATE ${Include_Dir} ${Include_subDir})
 target_link_libraries(DesktopApp core)
