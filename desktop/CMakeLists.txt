@@ -28,6 +28,6 @@ file(GLOB_RECURSE Src_Files "*.cpp")
 include_directories(${Include_Dir})
 
 # add_subdirectory(${CORE_SRC} bin/core)
-add_executable(${PROJECT_NAME} ${Src_Files})
+add_executable(${PROJECT_NAME} desktop_main.cpp)
 # target_link_libraries(${PROJECT_NAME} core)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
