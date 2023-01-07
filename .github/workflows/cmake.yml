@@ -16,8 +16,6 @@ jobs:
     - name: Configure CMake
       run: |
         cmake -S ${{ github.workspace }}/desktop -B ${{ github.workspace }}/desktop/build-${{ matrix.os }}
-        cd desktop/build-${{ matrix.os }}
-        make
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3
       with:
