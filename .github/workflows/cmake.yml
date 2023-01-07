@@ -15,12 +15,12 @@ jobs:
     - uses: actions/checkout@v3
     - name: Configure CMake
       run: |
-        cmake -S ${{github.workspace}}\desktop -B ${{github.workspace}}\desktop\build-${{ matrix.os }}
-        cd desktop\build-${{ matrix.os }}
+        cmake -S ${{github.workspace}}/desktop -B ${{github.workspace}}/desktop/build-${{ matrix.os }}
+        cd desktop/build-${{ matrix.os }}
         cmake --build
         make install
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v3
       with:
         name: All-Make
-        path: ${{github.workspace}}\desktop\
+        path: ${{github.workspace}}/desktop/
