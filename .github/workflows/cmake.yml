@@ -1,6 +1,9 @@
-name: CMake
+name: CMake Desktop
 
-on: [workflow_dispatch]
+on:
+  push:
+    paths:
+      - 'desktop/**'
 env:
   BUILD_TYPE: Release
 
