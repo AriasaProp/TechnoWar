@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.4.1)
 
-project(DesktopApp)
+project(DesktopApp LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -22,10 +22,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ../lib)
 
 # set(CORE_SRC "../core")
 # file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
-file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
 file(GLOB_RECURSE Src_Files "*.cpp")
+include_directories(.)
 # add_subdirectory(${CORE_SRC} bin/core)
-add_executable(${PROJECT_NAME} ${Src_Files})
-target_include_directories(${PROJECT_NAME} PRIVATE ${Include_Dir} #[[${Include_subDir}]])
+add_executable(${PROJECT_NAME} desktop_main.cpp)
 # target_link_libraries(${PROJECT_NAME} core)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
