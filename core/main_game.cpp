@@ -75,14 +75,14 @@ void Main::render(float delta) {
 	);
 	m_graphics->mesh_render(&mp, 1);
 	memcpy(ml->color, (unsigned char[]){
-		0xff * ((float)m_input->getX(0)/m_graphics->getWidth()),
-		0xff * ((float)m_input->getY(0)/m_graphics->getHeight()),
+		(unsigned char)(0xff * ((float)m_input->getX(0)/m_graphics->getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(0)/m_graphics->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(mb->color, (unsigned char[]){
-		0xff * ((float)m_input->getX(1)/m_graphics->getWidth()),
-		0xff * ((float)m_input->getY(1)/m_graphics->getHeight()),
+		(unsigned char)(0xff * ((float)m_input->getX(1)/m_graphics->getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(1)/m_graphics->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
