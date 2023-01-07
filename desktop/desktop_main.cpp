@@ -6,7 +6,7 @@ int main () {
     int b(3);    // initial value = 2
     int result;  // initial value undetermined
 
-    a = a + 6;
+    a = a + 7;
     result = a - b;
     cout << result;
 
