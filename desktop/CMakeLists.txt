@@ -1,16 +1,22 @@
 cmake_minimum_required (VERSION 3.4.1)
 
+# Set default compile flags for GCC
+if(CMAKE_COMPILER_IS_GNUCXX)
+    message(STATUS "GCC detected, adding compile flags")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra")
+endif(CMAKE_COMPILER_IS_GNUCXX)
+
 if (MSVC)
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
     string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
   else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std=c++11 /WX /EHsc /nologo /Zc:wchar_t /Zc:forScope /Zc:inline /GS /D \"_UNICODE\" /D \"UNICODE\"")
     set(CMAKE_CXX_FLAGS_DEBUG "/Od /Zi /MTd /D \"_DEBUG\"")
     set(CMAKE_CXX_FLAGS_RELEASE "/O3 /Oi /MT /D \"NDEBUG\"")
 else()
-    set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+    set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra")
     set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
@@ -29,8 +35,6 @@ else()
 endif()
 
 project(DesktopApp)
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_DEBUG_POSTFIX "d")
 
 # set(CORE_SRC "../core")
 # file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
