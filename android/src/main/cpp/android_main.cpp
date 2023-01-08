@@ -444,11 +444,11 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     pthread_mutex_unlock(&app->mutex);
 }
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-		(void*)window;
+		(void)window;
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-		(void*)window;
+		(void)window;
     android_app *app = (android_app*)activity->instance;
     if(app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
@@ -477,7 +477,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     pthread_mutex_unlock(&app->mutex);
 }
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-		(void*) queue;
+		(void) queue;
     android_app *app = (android_app*)activity->instance;
     if(app->inputQueue == NULL) return;
     pthread_mutex_lock(&app->mutex);
