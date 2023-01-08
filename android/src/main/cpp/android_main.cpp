@@ -94,7 +94,7 @@ struct engine {
 	}
 };
 static Main *m_Main = nullptr;
-static void engine_draw(android_app *app, engine *eng) {
+static void engine_draw(engine *eng) {
   if (!eng->window || !eng->running) return;
   if (!eng->display || !eng->context || !eng->surface) {
   	if (!eng->display) {
@@ -312,7 +312,7 @@ static void* android_app_entry(void* param) {
 			        break;
 			      case APP_CMD_PAUSE:
 				  		eng->pause = true;
-				  		engine_draw(app, eng);
+				  		engine_draw(eng);
 				      eng->running = false;
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -321,7 +321,7 @@ static void* android_app_entry(void* param) {
 				      break;
 			      case APP_CMD_DESTROY:
 				  		eng->destroyed = true;
-				  		engine_draw(app, eng);
+				  		engine_draw(eng);
 				  		eng->egl_terminate(TERM_EGL_DISPLAY);
 			        break;
 			      default:
@@ -330,7 +330,7 @@ static void* android_app_entry(void* param) {
 			  	}
 			  	break;
 			  default:
-					engine_draw(app, eng);
+					engine_draw(eng);
 			  	break;
 	    }
 	  }
@@ -444,9 +444,11 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     pthread_mutex_unlock(&app->mutex);
 }
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
+		(void*)window;
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
+		(void*)window;
     android_app *app = (android_app*)activity->instance;
     if(app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
@@ -475,6 +477,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     pthread_mutex_unlock(&app->mutex);
 }
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
+		(void*) queue;
     android_app *app = (android_app*)activity->instance;
     if(app->inputQueue == NULL) return;
     pthread_mutex_lock(&app->mutex);
