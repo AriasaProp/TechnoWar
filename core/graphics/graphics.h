@@ -37,8 +37,8 @@ struct mesh_core {
 };
 
 struct graphics {
-	virtual const float getWidth() = 0;
-	virtual const float getHeight() = 0;
+	virtual float getWidth() = 0;
+	virtual float getHeight() = 0;
 	//tag with level, 1 is color, 2 is buffer, 4 is stencil
 	virtual void clear(const unsigned int&) = 0;
 	virtual void clearcolor(const float&, const float&, const float&, const float&) = 0;

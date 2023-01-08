@@ -60,10 +60,10 @@ android_graphics_opengles::~android_graphics_opengles() {
 	delete[] utemp;
 	delete[] msg;
 }
-const float android_graphics_opengles::getWidth() {
+float android_graphics_opengles::getWidth() {
 	return width;
 }
-const float android_graphics_opengles::getHeight() {
+float android_graphics_opengles::getHeight() {
 	return height;
 }
 void android_graphics_opengles::clear(const unsigned int &m) {

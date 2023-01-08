@@ -7,8 +7,8 @@ struct android_graphics_opengles : public android_graphics {
 	android_graphics_opengles();
 	~android_graphics_opengles() override;
 	
-	const float getWidth() override;
-	const float getHeight() override;
+	float getWidth() override;
+	float getHeight() override;
 	
 	void clear(const unsigned int&) override;
 	void clearcolor(const float&, const float&, const float&, const float&) override;
