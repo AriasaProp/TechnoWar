@@ -29,7 +29,7 @@ struct ui_batch {
 	bool dirty_projection;
 	int shader;
 	int u_projection;
-	unsigned int vao,vbo;
+	unsigned int vao, vbo, ibo;
 	float ui_projection[16];
 } *ubatch = nullptr;
 struct world_btch {
@@ -356,7 +356,7 @@ void android_graphics_opengles::invalidate() {
 	//flat draw
 	glDeleteProgram(ubatch->shader);
 	glDeleteVertexArrays(1, &ubatch->vao);
-	glDeleteBuffers(1, &ubatch->vbo);
+	glDeleteBuffers(2, &ubatch->vbo);
 	//mesh
 	for (std::unordered_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
 		glDeleteVertexArrays(1, &(*i)->vao);
