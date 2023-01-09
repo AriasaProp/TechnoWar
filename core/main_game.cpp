@@ -16,11 +16,23 @@ Actor ml = NULL, mb = NULL, mc = NULL;
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	ml = Actor{120,120,400,350,0xffff00ff};
+	ml.x = 120;
+	ml.y = 120;
+	ml.width = 400;
+	ml.height = 350;
+	ml.color = 0xffff00ff;
 	user_interface::addActor(&ml);
-	mb = Actor{700,100,300,250,0x00ff00ff};
+	mb.x = 700;
+	mb.y = 100;
+	mb.width = 300;
+	mb.height = 250;
+	mb.color = 0x00ff00ff;
 	user_interface::addActor(&mb);
-	mc = Actor{1100,100,250,200,0x00ff00ff};
+	mc.x = 1100;
+	mc.y = 100;
+	mc.width = 250;
+	mc.height = 200;
+	mc.color = 0x00ff00ff;
 	user_interface::addActor(&mc);
 	mesh_core::data vert[24] = {
 		//front red
