@@ -263,7 +263,7 @@ void android_graphics_opengles::validate() {
 			indexs[j+4] = k+2;
 			indexs[j+5] = k+3;
 		}
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, &ubatch->ibo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW);
