@@ -203,55 +203,6 @@ void android_graphics_opengles::validate() {
 	glDepthRangef(0.0f, 1.0f);
 	glClearDepthf(1.0f);
 	glDepthFunc(GL_LESS);
-	//world draw
-	memset(ws,0,sizeof(world_btch));
-	{
-		ws->shader = glCreateProgram();
-		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		const char *vt = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nuniform mat4 worldview_proj;"
-			"\nuniform mat4 trans_proj;"
-			"\nlayout(location = 0) in vec4 a_position;"
-			"\nlayout(location = 1) in vec4 a_color;"
-			"\nout vec4 v_color;"
-			"\nvoid main() {"
-			"\n    v_color = a_color;"
-			"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-			"\n}\0";
-		glShaderSource(utemp[0], 1, &vt, 0);
-		glCompileShader(utemp[0]);
-		glAttachShader(ws->shader, utemp[0]);
-		const char *ft = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nprecision MED float;"
-			"\nin vec4 v_color;"
-			"\nlayout(location = 0) out vec4 fragColor;"
-			"\nvoid main() {"
-			"\n    fragColor = v_color;"
-			"\n}\0";
-		glShaderSource(utemp[1], 1, &ft, 0);
-		glCompileShader(utemp[1]);
-		glAttachShader(ws->shader, utemp[1]);
-		glLinkProgram(ws->shader);
-		glDeleteShader(utemp[0]);
-		glDeleteShader(utemp[1]);
-		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
-		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
-	}
 	//flat draw
 	memset(ubatch,0,sizeof(ui_batch));
 	{
@@ -308,6 +259,55 @@ void android_graphics_opengles::validate() {
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(flat_vertex), (void*)(2 * sizeof(float)));
 		glBindVertexArray(0);
+	}
+	//world draw
+	memset(ws,0,sizeof(world_btch));
+	{
+		ws->shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		const char *vt = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nuniform mat4 worldview_proj;"
+			"\nuniform mat4 trans_proj;"
+			"\nlayout(location = 0) in vec4 a_position;"
+			"\nlayout(location = 1) in vec4 a_color;"
+			"\nout vec4 v_color;"
+			"\nvoid main() {"
+			"\n    v_color = a_color;"
+			"\n    gl_Position = worldview_proj * trans_proj * a_position;"
+			"\n}\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
+		glCompileShader(utemp[0]);
+		glAttachShader(ws->shader, utemp[0]);
+		const char *ft = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nprecision MED float;"
+			"\nin vec4 v_color;"
+			"\nlayout(location = 0) out vec4 fragColor;"
+			"\nvoid main() {"
+			"\n    fragColor = v_color;"
+			"\n}\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
+		glCompileShader(utemp[1]);
+		glAttachShader(ws->shader, utemp[1]);
+		glLinkProgram(ws->shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
+		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
 	}
 	//mesh
 	for (std::unordered_set<mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {

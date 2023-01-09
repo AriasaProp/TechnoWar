@@ -218,7 +218,6 @@ static void* android_app_entry(void* param) {
 	  if (app->savedState) {
 	      eng->state = *(saved_state*)app->savedState;
 	  }
-	  //end input env
 	  while (!eng->destroyed) {
 	    switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
@@ -443,12 +442,10 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     }
     pthread_mutex_unlock(&app->mutex);
 }
-static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-		(void)window;
+static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
-static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-		(void)window;
+static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
     if(app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
@@ -476,8 +473,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-		(void) queue;
+static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     android_app *app = (android_app*)activity->instance;
     if(app->inputQueue == NULL) return;
     pthread_mutex_lock(&app->mutex);

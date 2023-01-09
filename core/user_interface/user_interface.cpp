@@ -21,14 +21,23 @@ void user_interface::draw(graphics *g) {
 	len *= 4;
 	flat_vertex *tmp_v = new flat_vertex[len];
 	flat_vertex *d_tmp = tmp_v;
+	flat_vertex fv;
 	for(Actor *act : *actors) {
-		memcpy(d_tmp, (flat_vertex[]){
-			{act->x, act->y, act->color[0], act->color[1], act->color[2], act->color[3]},
-			{act->x, act->y+act->height, act->color[0], act->color[1], act->color[2], act->color[3]},
-			{act->x+act->width, act->y, act->color[0], act->color[1], act->color[2], act->color[3]},
-			{act->x+act->width, act->y+act->height, act->color[0], act->color[1], act->color[2], act->color[3]}
-		}, 4*sizeof(flat_vertex));
-		d_tmp += 4;
+		fv.x = act->x;
+		fv.y = act->y;
+		memcpy(&fv.r, act->color, 4*sizeof(unsigned char));
+		memcpy(d_tmp, &fv, sizeof(flat_vertex));
+		d_tmp++;
+		fv.y += act->height;
+		memcpy(d_tmp, &fv, sizeof(flat_vertex));
+		d_tmp++;
+		fv.x += act->width;
+		fv.y = act->y;
+		memcpy(d_tmp, &fv, sizeof(flat_vertex));
+		d_tmp++;
+		fv.y += act->height;
+		memcpy(d_tmp, &fv, sizeof(flat_vertex));
+		d_tmp++;
 	}
 	g->flat_render(tmp_v, len);
 	delete[] tmp_v;
@@ -37,6 +46,7 @@ void user_interface::clearActor() {
 	if (!actors) return;
 	actors->clear();
 	delete actors;
+	actors = nullptr;
 }
 /*
 void user_interface::keyDown(int keyCode) {
