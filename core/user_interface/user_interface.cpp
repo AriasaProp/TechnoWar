@@ -61,7 +61,7 @@ void user_interface::draw(graphics *g) {
 		{1225, 100, 0x00, 0xff, 0xff, 0xff},
 		{1225, 200, 0x00, 0xff, 0xff, 0xff}
 	};
-	g->flat_render(tmp_v, 12);
+	g->flat_render(tmp_v, 3);
 }
 void user_interface::clearActor() {
 	if (!actors) return;

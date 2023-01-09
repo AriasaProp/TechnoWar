@@ -116,7 +116,7 @@ void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len) {
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, len*sizeof(flat_vertex), (void*)v);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, len);
+	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -251,8 +251,20 @@ void android_graphics_opengles::validate() {
 		glDeleteShader(utemp[1]);
 		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "proj");
 		glGenVertexArrays(1, &ubatch->vao);
-		glGenBuffers(1, &ubatch->vbo);
+		glGenBuffers(2, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
+		unsigned short indexs[MAX_UI_DRAW*6];
+		for (size_t i = 0; i < MAX_UI_DRAW; i++) {
+			const unsigned short j = i * 6, k = i * 4;
+			indexs[j] = k;
+			indexs[j+1] = k+1;
+			indexs[j+2] = k+2;
+			indexs[j+3] = k+1;
+			indexs[j+4] = k+2;
+			indexs[j+5] = k+3;
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, &ubatch->ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
