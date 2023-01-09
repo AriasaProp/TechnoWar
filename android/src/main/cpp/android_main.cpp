@@ -184,7 +184,6 @@ static void engine_draw(engine *eng) {
   	m_Main->destroy();
   	delete(m_Main);
   	m_Main = nullptr;
-		//eng->destroyed = false;
   }
 	if (!eglSwapBuffers(eng->display, eng->surface)) {
 		switch (eglGetError()) {
