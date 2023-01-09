@@ -24,12 +24,13 @@ void user_interface::draw(graphics *g) {
 	size_t i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
 	texture_core *useTex = (*t)->tex;
-	while((i < len) && (t != actors->end())) {
+	while(t != actors->end()) {
+		Actor *act = *t;
 		if (useTex != (*t)->tex) {
-			g->flat_render(tmp_v, i);
+			g->flat_render(tmp_v, i, useTex);
+			i = 0;
 			useTex = (*t)->tex;
 		}
-		Actor *act = *t;
 		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
@@ -49,7 +50,7 @@ void user_interface::draw(graphics *g) {
 		memcpy(&tmp_v[i*4+3], &fv, sizeof(flat_vertex));
 		i++, t++;
 	}
-	g->flat_render(tmp_v, i);
+	g->flat_render(tmp_v, i, useTex);
 	delete[] tmp_v;
 }
 void user_interface::clearActor() {
