@@ -11,17 +11,17 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-Actor *ml, *mb, *mc;
+Actor ml = NULL, mb = NULL, mc = NULL;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	ml = new Actor{120,120,400,350,0xffff00ff};
-	user_interface::addActor(ml);
-	mb = new Actor{700,100,300,250,0x00ff00ff};
-	user_interface::addActor(mb);
-	mc = new Actor{1100,100,250,200,0x00ff00ff};
-	user_interface::addActor(mc);
+	ml = Actor{120,120,400,350,0xffff00ff};
+	user_interface::addActor(&ml);
+	mb = Actor{700,100,300,250,0x00ff00ff};
+	user_interface::addActor(&mb);
+	mc = Actor{1100,100,250,200,0x00ff00ff};
+	user_interface::addActor(&mc);
 	mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -78,19 +78,19 @@ void Main::render(float delta) {
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
 	m_graphics->mesh_render(&mp, 1);
-	memcpy(&ml->color, (unsigned char[]){
+	memcpy(&ml.color, (unsigned char[]){
 		(unsigned char)(0xff * ((float)m_input->getX(0)/m_graphics->getWidth())),
 		(unsigned char)(0xff * ((float)m_input->getY(0)/m_graphics->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
-	memcpy(&mb->color, (unsigned char[]){
+	memcpy(&mb.color, (unsigned char[]){
 		(unsigned char)(0xff * ((float)m_input->getX(1)/m_graphics->getWidth())),
 		(unsigned char)(0xff * ((float)m_input->getY(1)/m_graphics->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
-	memcpy(&mc->color, (unsigned char[]){
+	memcpy(&mc.color, (unsigned char[]){
 		(unsigned char)(0xff * ((float)m_input->getX(2)/m_graphics->getWidth())),
 		(unsigned char)(0xff * ((float)m_input->getY(2)/m_graphics->getHeight())),
 		0x00,
@@ -103,7 +103,4 @@ void Main::pause() {
 void Main::destroy() {
 	m_graphics->delete_mesh(mp);
 	user_interface::clearActor();
-	delete ml;
-	delete mb;
-	delete mc;
 }
