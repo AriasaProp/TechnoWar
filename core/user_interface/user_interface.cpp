@@ -16,30 +16,28 @@ void user_interface::removeActor(user_interface::Actor *a) {
 }
 void user_interface::draw(graphics *g) {
 	if (!actors) return;
-	size_t len = actors->size();
+	const size_t len = actors->size();
 	if (len == 0) return;
-	len *= 4;
-	flat_vertex *tmp_v = new flat_vertex[len];
-	flat_vertex *d_tmp = tmp_v;
+	flat_vertex *tmp_v = new flat_vertex[len*4];
 	flat_vertex fv;
-	for(Actor *act : *actors) {
+	size_t i = 0;
+	std::unordered_set<user_interface::Actor*>::iterator t = actors.begin();
+	while((i < len) && (t != actors.end())) {
+		Actor *act = *t;
+		memcpy(&fv.r, act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
-		memcpy(&fv.r, act->color, 4*sizeof(unsigned char));
-		memcpy(d_tmp, &fv, sizeof(flat_vertex));
-		d_tmp++;
+		memcpy(&tmp_v[i*4], &fv, sizeof(flat_vertex));
 		fv.y += act->height;
-		memcpy(d_tmp, &fv, sizeof(flat_vertex));
-		d_tmp++;
+		memcpy(&tmp_v[i*4+1], &fv, sizeof(flat_vertex));
 		fv.x += act->width;
 		fv.y = act->y;
-		memcpy(d_tmp, &fv, sizeof(flat_vertex));
-		d_tmp++;
+		memcpy(&tmp_v[i*4+2], &fv, sizeof(flat_vertex));
 		fv.y += act->height;
-		memcpy(d_tmp, &fv, sizeof(flat_vertex));
-		d_tmp++;
+		memcpy(&tmp_v[i*4+3], &fv, sizeof(flat_vertex));
+		i++, t++;
 	}
-	g->flat_render(tmp_v, len);
+	g->flat_render(tmp_v, len*4);
 	delete[] tmp_v;
 }
 void user_interface::clearActor() {
