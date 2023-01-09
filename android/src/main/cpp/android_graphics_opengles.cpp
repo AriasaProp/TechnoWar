@@ -259,9 +259,9 @@ void android_graphics_opengles::validate() {
 			indexs[j] = k;
 			indexs[j+1] = k+1;
 			indexs[j+2] = k+2;
-			indexs[j+3] = k+1;
+			indexs[j+3] = k+3;
 			indexs[j+4] = k+2;
-			indexs[j+5] = k+3;
+			indexs[j+5] = k+1;
 		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
