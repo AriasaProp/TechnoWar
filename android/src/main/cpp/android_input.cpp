@@ -139,7 +139,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.erase(key);
 					}
-					key_events(new key_event{keyCode,key_event::event::KEY_UP});
+					key_events.insert(new key_event{keyCode,key_event::event::KEY_UP});
 				}
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
@@ -147,7 +147,7 @@ void android_input::process_input() {
 			}
 		}
 			break;
-		case AINPUT_EVENT_TYPE_MOTION:
+		case AINPUT_EVENT_TYPE_MOTION: {
 			const int32_t motion = AMotionEvent_getAction(i_event);
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {
 		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
@@ -196,6 +196,7 @@ void android_input::process_input() {
 		    	break;
 			}
 	    handled = 1;
+		}
 	    break;
 	}
   AInputQueue_finishEvent(inputQueue, i_event, handled);
