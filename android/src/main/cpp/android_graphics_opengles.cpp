@@ -115,7 +115,7 @@ void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len) {
 	}
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, len*sizeof(flat_vertex), (void*)v);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	glUseProgram(0);
