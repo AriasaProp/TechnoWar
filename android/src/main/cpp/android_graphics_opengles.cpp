@@ -204,6 +204,7 @@ void android_graphics_opengles::validate() {
 	glClearDepthf(1.0f);
 	glDepthFunc(GL_LESS);
 	//world draw
+	memset(ws,0,sizeof(world_btch));
 	{
 		ws->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
@@ -252,6 +253,7 @@ void android_graphics_opengles::validate() {
 		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
 	}
 	//flat draw
+	memset(ubatch,0,sizeof(ui_batch));
 	{
 		ubatch->shader = glCreateProgram();
 		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
