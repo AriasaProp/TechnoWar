@@ -17,7 +17,7 @@ struct key_event {
 		KEY_UP,
 		KEY_DOWN
 	} type;
-}
+};
 float *m_accelerometer;
 float *m_gyroscope;
 touch_pointer *input_pointer_cache;
@@ -97,9 +97,9 @@ void process_event() {
 			}
 				break;
 			case key_event::event::KEY_DOWN:{
-				std::unordered_set<int>::iterator key = just_key_pressed.find(keyCode);
+				std::unordered_set<int>::iterator key = just_key_pressed.find(k->keyCode);
 				if(key != just_key_pressed.end()) {
-					just_key_pressed.insert(key);
+					just_key_pressed.insert(k->keyCode);
 				}
 			}
 				break;
@@ -123,7 +123,7 @@ void android_input::process_input() {
   if (AInputQueue_preDispatchEvent(inputQueue, i_event) != 0) return;
   int32_t handled = 0;
 	switch (AInputEvent_getType(i_event)) {
-		case AINPUT_EVENT_TYPE_KEY:
+		case AINPUT_EVENT_TYPE_KEY: {
 			int32_t keyCode = AKeyEvent_getKeyCode(i_event);
 			switch (AKeyEvent_getAction(i_event)) {
 				case AKEY_EVENT_ACTION_DOWN: {
@@ -131,7 +131,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.insert(keyCode);
 					}
-					key_events(new key_event{keyCode,key_event::event::KEY_DOWN});
+					key_events.insert(new key_event{keyCode,key_event::event::KEY_DOWN});
 				}
 					break;
 				case AKEY_EVENT_ACTION_UP: {
@@ -145,6 +145,7 @@ void android_input::process_input() {
 				case AKEY_EVENT_ACTION_MULTIPLE:
 					break;
 			}
+		}
 			break;
 		case AINPUT_EVENT_TYPE_MOTION:
 			const int32_t motion = AMotionEvent_getAction(i_event);
