@@ -11,7 +11,7 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-Actor ml = NULL, mb = NULL, mc = NULL;
+Actor ml, mb, mc;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
