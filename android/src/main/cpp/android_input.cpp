@@ -87,7 +87,7 @@ float android_input::getRoll() {
 	return 0;
 }
   
-void process_event() {
+void android_input::process_event() {
 	if(just_key_pressed.size() > 0) {
 		just_key_pressed.clear();
 	}
