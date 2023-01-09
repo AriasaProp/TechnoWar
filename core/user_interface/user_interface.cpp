@@ -21,7 +21,7 @@ void user_interface::draw(graphics *g) {
 	len *= 4;
 	flat_vertex *tmp_v = new flat_vertex[len];
 	flat_vertex *d_tmp = tmp_v;
-	for(Actor *act : actors) {
+	for(Actor *act : *actors) {
 		memcpy(d_tmp, (flat_vertex[]){
 			{act->x, act->y, act->color[0], act->color[1], act->color[2], act->color[3]},
 			{act->x, act->y+act->height, act->color[0], act->color[1], act->color[2], act->color[3]},
