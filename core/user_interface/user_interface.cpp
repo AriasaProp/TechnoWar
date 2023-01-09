@@ -31,6 +31,7 @@ void user_interface::draw(graphics *g) {
 void user_interface::clearActor() {
 	actors.clear();
 }
+/*
 void user_interface::keyDown(int keyCode) {
 	
 }
@@ -55,6 +56,6 @@ void user_interface::mouseMoved(float x,float y) {
 void user_interface::scrolled(float amout) {
 	
 }
-	
+*/
 
 
