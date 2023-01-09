@@ -5,8 +5,9 @@ std::unordered_set<Actor*> *actors;
 
 void user_interface::addActor(Actor *a) {
 	if (!actors)
-		actors = new std::unordered_set<Actor*>;
-	actors->insert(a);
+		actors = new std::unordered_set<Actor*>({a});
+	else
+		actors->insert(a);
 }
 void user_interface::removeActor(Actor *a) {
 	if (!actors) return;
