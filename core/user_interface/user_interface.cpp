@@ -1,35 +1,42 @@
 #include "user_interface.h"
 #include <unordered_set>
 
-std::unordered_set<user_interface::Actor*> actors;
+std::unordered_set<user_interface::Actor*> *actors;
 
 void user_interface::addActor(user_interface::Actor *a) {
-	actors.insert(a);
+	if (!actors)
+		actors = new std::unordered_set<user_interface::Actor*>();
+	actors->insert(a);
 }
 void user_interface::removeActor(user_interface::Actor *a) {
-	actors.erase(a);
+	if (!actors) return;
+	std::unordered_set<user_interface::Actor*>::iterator v = actors->find(a);
+	if (v == actors->end()) return;
+	actors->erase(v);
 }
 void user_interface::draw(graphics *g) {
-	size_t len = actors.size();
+	if (!actors) return;
+	size_t len = actors->size();
 	if (len == 0) return;
 	len *= 4;
-	flat_vertex *tmp_v = (flat_vertex*)alloca(len*sizeof(flat_vertex));
+	flat_vertex *tmp_v = new flat_vertex[len];
 	flat_vertex *d_tmp = tmp_v;
 	for(Actor *act : actors) {
-		flat_vertex per[4] = {
+		memcpy(d_tmp, (flat_vertex[]){
 			{act->x, act->y, act->color[0], act->color[1], act->color[2], act->color[3]},
 			{act->x, act->y+act->height, act->color[0], act->color[1], act->color[2], act->color[3]},
 			{act->x+act->width, act->y, act->color[0], act->color[1], act->color[2], act->color[3]},
 			{act->x+act->width, act->y+act->height, act->color[0], act->color[1], act->color[2], act->color[3]}
-		};
-		memcpy(d_tmp, per, 4*sizeof(flat_vertex));
+		}, 4*sizeof(flat_vertex));
 		d_tmp += 4;
 	}
-	
 	g->flat_render(tmp_v, len);
+	delete[] tmp_v;
 }
 void user_interface::clearActor() {
-	actors.clear();
+	if (!actors) return;
+	actors->clear();
+	delete actors;
 }
 /*
 void user_interface::keyDown(int keyCode) {
