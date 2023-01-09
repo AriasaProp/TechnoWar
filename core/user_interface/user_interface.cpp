@@ -16,7 +16,6 @@ void user_interface::removeActor(Actor *a) {
 	actors->erase(v);
 }
 void user_interface::draw(graphics *g) {
-	/*
 	if (!actors) return;
 	const size_t len = actors->size();
 	if (len == 0) return;
@@ -42,9 +41,7 @@ void user_interface::draw(graphics *g) {
 		memcpy(&tmp_v[i*4+3], &fv, sizeof(flat_vertex));
 		i++, t++;
 	}
-	g->flat_render(tmp_v, len*4);
-	delete[] tmp_v;
-	*/
+	/*
 	flat_vertex tmp_v[12] = {
 		{120, 120, 0xff, 0x00, 0x00, 0xff},
 		{120, 295, 0xff, 0x00, 0x00, 0xff},
@@ -61,7 +58,9 @@ void user_interface::draw(graphics *g) {
 		{1225, 100, 0x00, 0xff, 0xff, 0xff},
 		{1225, 200, 0x00, 0xff, 0xff, 0xff}
 	};
-	g->flat_render(tmp_v, 3);
+	*/
+	g->flat_render(tmp_v, len);
+	delete[] tmp_v;
 }
 void user_interface::clearActor() {
 	if (!actors) return;
