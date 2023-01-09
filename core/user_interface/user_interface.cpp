@@ -21,8 +21,8 @@ void user_interface::draw(graphics *g) {
 	flat_vertex *tmp_v = new flat_vertex[len*4];
 	flat_vertex fv;
 	size_t i = 0;
-	std::unordered_set<user_interface::Actor*>::iterator t = actors.begin();
-	while((i < len) && (t != actors.end())) {
+	std::unordered_set<user_interface::Actor*>::iterator t = actors->begin();
+	while((i < len) && (t != actors->end())) {
 		Actor *act = *t;
 		memcpy(&fv.r, act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
