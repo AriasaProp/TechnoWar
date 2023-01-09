@@ -2,12 +2,9 @@
 #define Included_User_Interface 1
 
 #include "../graphics/graphics.h"
+#include "actors/actor.h"
 
 namespace user_interface {
-	struct Actor {
-		float x,y,width,height;
-		unsigned char color[4];
-	};
 	struct Touchable {
 		bool hit(float, float);
 	};

@@ -1,16 +1,16 @@
 #include "user_interface.h"
 #include <unordered_set>
 
-std::unordered_set<user_interface::Actor*> *actors;
+std::unordered_set<Actor*> *actors;
 
-void user_interface::addActor(user_interface::Actor *a) {
+void user_interface::addActor(Actor *a) {
 	if (!actors)
-		actors = new std::unordered_set<user_interface::Actor*>();
+		actors = new std::unordered_set<Actor*>;
 	actors->insert(a);
 }
-void user_interface::removeActor(user_interface::Actor *a) {
+void user_interface::removeActor(Actor *a) {
 	if (!actors) return;
-	std::unordered_set<user_interface::Actor*>::iterator v = actors->find(a);
+	std::unordered_set<Actor*>::iterator v = actors->find(a);
 	if (v == actors->end()) return;
 	actors->erase(v);
 }
@@ -21,10 +21,13 @@ void user_interface::draw(graphics *g) {
 	flat_vertex *tmp_v = new flat_vertex[len*4];
 	flat_vertex fv;
 	size_t i = 0;
-	std::unordered_set<user_interface::Actor*>::iterator t = actors->begin();
+	std::unordered_set<Actor*>::iterator t = actors->begin();
 	while((i < len) && (t != actors->end())) {
 		Actor *act = *t;
-		memcpy(&fv.r, act->color, 4*sizeof(unsigned char));
+		fv.r = act->color[0];
+		fv.g = act->color[1];
+		fv.b = act->color[2];
+		fv.a = act->color[3];
 		fv.x = act->x;
 		fv.y = act->y;
 		memcpy(&tmp_v[i*4], &fv, sizeof(flat_vertex));

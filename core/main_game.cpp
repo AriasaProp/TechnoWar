@@ -11,16 +11,16 @@ graphics *m_graphics = nullptr;
 input *m_input = nullptr;
 
 mesh_core *mp;
-user_interface::Actor *ml, *mb, *mc;
+Actor *ml, *mb, *mc;
 
 void Main::create(graphics *_graphics, input *_input) {
 	m_graphics = _graphics;
 	m_input = _input;
-	ml = new user_interface::Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
+	ml = new Actor{120,120,400,350,{0xff, 0xff, 0x00, 0xff}};
 	user_interface::addActor(ml);
-	mb = new user_interface::Actor{700,100,300,250,{0x00, 0xff, 0x00, 0xff}};
+	mb = new Actor{700,100,300,250,{0x00, 0xff, 0x00, 0xff}};
 	user_interface::addActor(mb);
-	mc = new user_interface::Actor{1100,100,250,200,{0x00, 0xff, 0x00, 0xff}};
+	mc = new Actor{1100,100,250,200,{0x00, 0xff, 0x00, 0xff}};
 	user_interface::addActor(mc);
 	mesh_core::data vert[24] = {
 		//front red
