@@ -349,9 +349,10 @@ void android_graphics_opengles::validate() {
 	glBindVertexArray(0);
 	//Null texture definition
 	glGenTextures(1, &nullTextureId);
-	glBindTexture(GL_TEXTURE_2D, &nullTextureId);
+	glBindTexture(GL_TEXTURE_2D, nullTextureId);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(unsigned char[]){0xffffffff});
+	uint32_t clr = 0xffffffff;
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(&clr));
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//texture
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
