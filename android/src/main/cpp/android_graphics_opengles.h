@@ -18,7 +18,7 @@ struct android_graphics_opengles : public android_graphics {
 	void set_texture_param(const int&, const int&) override;
 	void delete_texture(texture_core *) override;
 	
-	void flat_render(flat_vertex *, unsigned int) override;
+	void flat_render(flat_vertex *, unsigned int, texture_core*) override;
 	
 	mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) override;
 	void mesh_render(mesh_core**,const unsigned int&) override;

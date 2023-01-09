@@ -25,6 +25,8 @@ unsigned int *utemp = 0;
 char *msg = 0;
 float width, height;
 
+unsigned int nullTextureId;
+
 struct ui_batch {
 	bool dirty_projection;
 	int shader;
@@ -106,8 +108,9 @@ void android_graphics_opengles::delete_texture(texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len) {
+void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len, texture_core *tex) {
 	glDisable(GL_DEPTH_TEST);
+	glBindTexture(GL_TEXTURE_2D, (tex)?tex->id:nullTextureId);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
@@ -119,6 +122,7 @@ void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len) {
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	glUseProgram(0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 mesh_core *android_graphics_opengles::gen_mesh(mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	mesh_core *r = new mesh_core;
@@ -221,7 +225,9 @@ void android_graphics_opengles::validate() {
 			"\nuniform mat4 proj;"
 			"\nlayout(location = 0) in vec4 a_position;"
 			"\nlayout(location = 1) in vec4 a_color;"
+			"\nlayout(location = 2) in vec4 a_texCoord;"
 			"\nout vec4 v_color;"
+			"\nout vec2 v_texCoord;"
 			"\nvoid main() {"
 			"\n    v_color = a_color;"
 			"\n    gl_Position = proj * a_position;"
@@ -239,9 +245,11 @@ void android_graphics_opengles::validate() {
 			"\n#endif"
 			"\nprecision MED float;"
 			"\nin vec4 v_color;"
+			"\nin vec2 v_texCoord;"
+			"\nuniform sampler2D tex;"
 			"\nlayout(location = 0) out vec4 fragColor;"
 			"\nvoid main() {"
-			"\n    fragColor = v_color;"
+			"\n    fragColor = v_color*texture2D(tex,v_texCoord);"
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -271,6 +279,8 @@ void android_graphics_opengles::validate() {
 		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(flat_vertex), (void*)0);
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(flat_vertex), (void*)(2 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(flat_vertex), (void*)(2 * sizeof(float) + 4 * sizeof(unsigned char)));
 		glBindVertexArray(0);
 	}
 	//world draw
@@ -337,6 +347,12 @@ void android_graphics_opengles::validate() {
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
 	}
 	glBindVertexArray(0);
+	//Null texture definition
+	glGenTextures(1, &nullTextureId);
+	glBindTexture(GL_TEXTURE_2D, &nullTextureId);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(unsigned char[]){0xffffffff});
+	glBindTexture(GL_TEXTURE_2D, 0);
 	//texture
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);
@@ -362,6 +378,9 @@ void android_graphics_opengles::invalidate() {
 		glDeleteVertexArrays(1, &(*i)->vao);
 		glDeleteBuffers(2, &(*i)->vbo);
 	}
+	//null texture undef
+	glDeleteTextures(1, &nullTextureId);
+	nullTextureId = 0;
 	//texture
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glDeleteTextures(1, &(*i)->id);

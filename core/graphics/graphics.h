@@ -16,6 +16,7 @@ struct texture_core {
 struct flat_vertex {
 	float x, y;
 	unsigned char r, g, b, a;
+	float texX, texY;
 };
 //mesh core
 struct mesh_core {
@@ -48,7 +49,7 @@ struct graphics {
 	virtual void set_texture_param(const int&, const int&) = 0;
 	virtual void delete_texture(texture_core*) = 0;
 	
-	virtual void flat_render(flat_vertex *, unsigned int) = 0;
+	virtual void flat_render(flat_vertex*, unsigned int, texture_core*) = 0;
 	
 	virtual mesh_core *gen_mesh(mesh_core::data*,unsigned int, unsigned short*,unsigned int) = 0;
 	virtual void mesh_render(mesh_core**,const unsigned int&) = 0;
