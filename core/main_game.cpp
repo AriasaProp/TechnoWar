@@ -67,6 +67,8 @@ void Main::create(graphics *_graphics, input *_input) {
 void Main::resume() {
 }
 void Main::render(float delta) {
+	(void)delta;
+	m_input->process_event();
 	m_graphics->clear(1|2|4);
 	
 	srand(time(NULL));

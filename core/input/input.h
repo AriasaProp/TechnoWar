@@ -24,6 +24,8 @@ public:
   virtual float getAzimuth() = 0;
   virtual float getPitch() = 0;
   virtual float getRoll() = 0;
+  
+  virtual void process_event() = 0;
 };
 
 

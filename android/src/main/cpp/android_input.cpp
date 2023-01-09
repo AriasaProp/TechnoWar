@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <unordered_set>
 
 #define MAX_TOUCH_POINTERS_COUNT 30
 
@@ -10,9 +11,19 @@ struct touch_pointer {
 	float xs, ys;
 	float x, y;
 };
+struct key_event {
+	int keyCode;
+	enum event {
+		KEY_UP,
+		KEY_DOWN
+	} type;
+}
 float *m_accelerometer;
 float *m_gyroscope;
 touch_pointer *input_pointer_cache;
+std::unordered_set<int> key_pressed;
+std::unordered_set<int> just_key_pressed;
+std::unordered_set<key_event*> key_events;
 ASensorEvent *s_event;
 ASensorManager* sensorManager;
 const ASensor* accelerometerSensor;
@@ -31,7 +42,6 @@ android_input::android_input(ALooper *_looper) {
   gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
 	sensorEventQueue = ASensorManager_createEventQueue(sensorManager, _looper, 3 , NULL, nullptr);
 }
-input::~input(){}
 android_input::~android_input() {
 	detach_sensor();
 	set_input_queue(NULL);
@@ -39,6 +49,7 @@ android_input::~android_input() {
 	delete[] m_gyroscope;
 	delete[] input_pointer_cache;
 	delete[] s_event;
+	key_pressed.clear();
 }
 float	android_input::getAccelerometerX() { return m_accelerometer[0]; }
 float android_input::getAccelerometerY() { return m_accelerometer[1]; }
@@ -53,20 +64,19 @@ int android_input::getDeltaY(unsigned int p = 0) {	return input_pointer_cache[p]
 bool android_input::justTouched() {	return false; }
 bool android_input::isTouched(unsigned int p = 0) { return input_pointer_cache[p].active; }
 float android_input::getPressure(unsigned int p = 0) {
+	(void) p;
 	return false;
 }
 bool android_input::isButtonPressed(int button) {
+	(void) button;
 	return false;
 }
 bool android_input::isButtonJustPressed(int button) {
+	(void) button;
 	return false;
 }
-bool android_input::isKeyPressed(int key) {
-	return false;
-}
-bool android_input::isKeyJustPressed(int key) {
-	return false;
-}
+bool android_input::isKeyPressed(int key) {return key_pressed.find(key) != key_pressed.end(); }
+bool android_input::isKeyJustPressed(int key) {return just_key_pressed.find(key) != just_key_pressed.end(); }
 float android_input::getAzimuth() {
 	return 0;
 }
@@ -76,7 +86,28 @@ float android_input::getPitch() {
 float android_input::getRoll() {
 	return 0;
 }
-bool input_enabled = false;
+  
+void process_event() {
+	if(just_key_pressed.size() > 0) {
+		just_key_pressed.clear();
+	}
+	for (key_event *k : key_events) {
+		switch(k->type) {
+			case key_event::event::KEY_UP: {
+			}
+				break;
+			case key_event::event::KEY_DOWN:{
+				std::unordered_set<int>::iterator key = just_key_pressed.find(keyCode);
+				if(key != just_key_pressed.end()) {
+					just_key_pressed.insert(key);
+				}
+			}
+				break;
+		}
+		delete k;
+	}
+	key_events.clear();
+}
 AInputQueue *inputQueue = NULL;
 void android_input::set_input_queue(AInputQueue *i) {
 	if (inputQueue)
@@ -92,6 +123,29 @@ void android_input::process_input() {
   if (AInputQueue_preDispatchEvent(inputQueue, i_event) != 0) return;
   int32_t handled = 0;
 	switch (AInputEvent_getType(i_event)) {
+		case AINPUT_EVENT_TYPE_KEY:
+			int32_t keyCode = AKeyEvent_getKeyCode(i_event);
+			switch (AKeyEvent_getAction(i_event)) {
+				case AKEY_EVENT_ACTION_DOWN: {
+					std::unordered_set<int>::iterator key = key_pressed.find(keyCode);
+					if(key != key_pressed.end()) {
+						key_pressed.insert(keyCode);
+					}
+					key_events(new key_event{keyCode,key_event::event::KEY_DOWN});
+				}
+					break;
+				case AKEY_EVENT_ACTION_UP: {
+					std::unordered_set<int>::iterator key = key_pressed.find(keyCode);
+					if(key != key_pressed.end()) {
+						key_pressed.erase(key);
+					}
+					key_events(new key_event{keyCode,key_event::event::KEY_UP});
+				}
+					break;
+				case AKEY_EVENT_ACTION_MULTIPLE:
+					break;
+			}
+			break;
 		case AINPUT_EVENT_TYPE_MOTION:
 			const int32_t motion = AMotionEvent_getAction(i_event);
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {

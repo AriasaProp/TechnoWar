@@ -31,6 +31,8 @@ public:
   float getPitch() override;
   float getRoll() override;
   
+  void process_event() override;
+  
   void set_input_queue(AInputQueue *);
   void process_input();
   void attach_sensor();
