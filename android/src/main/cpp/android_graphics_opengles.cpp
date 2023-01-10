@@ -116,7 +116,7 @@ void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len, te
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
 	}
-	glUniformi1(ubatch->u_texture, 0);
+	glUniform1i(ubatch->u_texture, 0);
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(flat_vertex), (void*)v);
