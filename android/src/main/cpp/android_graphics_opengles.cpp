@@ -198,7 +198,6 @@ void android_graphics_opengles::resize_viewport(const int w, const int h) {
 	ubatch->dirty_projection = true;
 }
 void android_graphics_opengles::validate() {
-	//glClearColor(1.f, .0f, .1f, 1.f);
 	if (valid) return;
 	//validating gles resources
 	glDepthRangef(0.0f, 1.0f);
@@ -349,7 +348,6 @@ void android_graphics_opengles::validate() {
 }
 void android_graphics_opengles::invalidate() {
 	//invalidating gles resources
-	glClearColor(1.f, .2f, .5f, 1.f);
 	if (!valid) return;
 	//world draw
 	glDeleteProgram(ws->shader);
