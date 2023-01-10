@@ -116,6 +116,7 @@ void android_graphics_opengles::flat_render(flat_vertex *v, unsigned int len, te
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
 	}
+	glUniformi1(ubatch->u_texture, 0);
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(flat_vertex), (void*)v);
@@ -250,7 +251,7 @@ void android_graphics_opengles::validate() {
 			"\nuniform sampler2D tex;"
 			"\nlayout(location = 0) out vec4 fragColor;"
 			"\nvoid main() {"
-			"\n    fragColor = v_color * texture2D(tex,v_texCoord);"
+			"\n    fragColor = v_color * texture(tex,v_texCoord);"
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -282,7 +283,7 @@ void android_graphics_opengles::validate() {
 		glEnableVertexAttribArray(1);
 		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(flat_vertex), (void*)(2 * sizeof(float)));
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(flat_vertex), (void*)(2 * sizeof(float) + 4 * sizeof(unsigned char)));
+		glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(flat_vertex), (void*)(2 * sizeof(float) + 4 * sizeof(unsigned char)));
 		glBindVertexArray(0);
 	}
 	//world draw
