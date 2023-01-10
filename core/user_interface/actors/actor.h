@@ -8,7 +8,6 @@ struct Actor {
 	float x,y,width,height;
 	uint32_t color;
 	texture_core* tex = nullptr;
-	
 };
 
 #endif //Included_Actor

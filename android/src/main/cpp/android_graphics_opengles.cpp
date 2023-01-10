@@ -30,7 +30,7 @@ unsigned int nullTextureId;
 struct ui_batch {
 	bool dirty_projection;
 	int shader;
-	int u_projection;
+	int u_projection, u_texture;
 	unsigned int vao, vbo, ibo;
 	float ui_projection[16];
 } *ubatch = nullptr;
@@ -222,14 +222,15 @@ void android_graphics_opengles::validate() {
 			"\n#else"
 			"\n    #define HIGH mediump"
 			"\n#endif"
-			"\nuniform mat4 proj;"
 			"\nlayout(location = 0) in vec4 a_position;"
 			"\nlayout(location = 1) in vec4 a_color;"
-			"\nlayout(location = 2) in vec4 a_texCoord;"
+			"\nlayout(location = 2) in vec2 a_texCoord;"
+			"\nuniform mat4 proj;"
 			"\nout vec4 v_color;"
 			"\nout vec2 v_texCoord;"
 			"\nvoid main() {"
 			"\n    v_color = a_color;"
+			"\n    v_texCoord = a_texCoord;"
 			"\n    gl_Position = proj * a_position;"
 			"\n}\0";
 		glShaderSource(utemp[0], 1, &vt, 0);
@@ -249,7 +250,7 @@ void android_graphics_opengles::validate() {
 			"\nuniform sampler2D tex;"
 			"\nlayout(location = 0) out vec4 fragColor;"
 			"\nvoid main() {"
-			"\n    fragColor = v_color*texture2D(tex,v_texCoord);"
+			"\n    fragColor = v_color * texture2D(tex,v_texCoord);"
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
@@ -258,6 +259,7 @@ void android_graphics_opengles::validate() {
 		glDeleteShader(utemp[0]);
 		glDeleteShader(utemp[1]);
 		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "proj");
+		ubatch->u_texture = glGetUniformLocation(ubatch->shader, "tex");
 		glGenVertexArrays(1, &ubatch->vao);
 		glGenBuffers(2, &ubatch->vbo);
 		glBindVertexArray(ubatch->vao);
@@ -353,7 +355,6 @@ void android_graphics_opengles::validate() {
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	uint32_t clr = 0xffffffff;
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(&clr));
-	glBindTexture(GL_TEXTURE_2D, 0);
 	//texture
 	for (std::unordered_set<texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glGenTextures(1, &(*i)->id);

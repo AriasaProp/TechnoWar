@@ -21,6 +21,7 @@ void Main::create(graphics *_graphics, input *_input) {
 	ml.width = 400;
 	ml.height = 350;
 	ml.color = 0xffff00ff;
+	ml.tex = m_graphics->gen_texture(2,2,(uint32_t[]){0xffffffff,0x000055ff,0xff0000ff,0x550000ff})
 	user_interface::addActor(&ml);
 	mb.x = 700;
 	mb.y = 100;
@@ -114,5 +115,6 @@ void Main::pause() {
 }
 void Main::destroy() {
 	m_graphics->delete_mesh(mp);
+	delete ml.tex;
 	user_interface::clearActor();
 }
