@@ -251,7 +251,7 @@ void android_graphics_opengles::validate() {
 			"\nuniform sampler2D tex;"
 			"\nlayout(location = 0) out vec4 fragColor;"
 			"\nvoid main() {"
-			"\n    fragColor = v_color * texture(tex,v_texCoord);"
+			"\n    fragColor = v_color * texture2D(tex,v_texCoord);"
 			"\n}\0";
 		glShaderSource(utemp[1], 1, &ft, 0);
 		glCompileShader(utemp[1]);
