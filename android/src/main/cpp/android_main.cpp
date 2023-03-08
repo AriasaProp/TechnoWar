@@ -60,11 +60,11 @@ struct saved_state {
     int32_t x;
     int32_t y;
 };
-enum {
-	TERM_EGL_SURFACE = 1,
-	TERM_EGL_CONTEXT = 2,
-	TERM_EGL_DISPLAY = 4
-};
+
+#define TERM_EGL_SURFACE 1
+#define TERM_EGL_CONTEXT 2
+#define TERM_EGL_DISPLAY 4
+
 struct engine {
   bool resize, resume, running, pause, destroyed;
   saved_state state;
