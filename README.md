@@ -2,31 +2,26 @@
 
 ![Ariasa Project](logo.png)
 
-Short project description.
+This is 3D Game Application for cross platform with currently no context. I am still make the game launcher.
 
-## Project Status
+## Progress
 
-This project is currently [in progress / on hold / completed]. 
-
-## Table of Contents
-
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Installation
-
-Describe how to install the project and its dependencies.
-
-## Usage
-
-Provide instructions on how to use the project.
+| Platform |    Android    | iOS | Windows | Linux | MacOS |
+|----------|---------------|-----|---------|-------|-------|
+| Launcher |       v       |     |         |       |       |
+| Core     |       v       |     |         |       |       |
+| Graphics | OpenGL ES 3+  |     |         |       |       |
+| Input    | Touchscreen   |     |         |       |       |
+| Asset    |               |     |         |       |       |
+| Net      |               |     |         |       |       |
+|          |               |     |         |       |       |
 
 ## Contributing
 
-State if you are open to contributions and what your requirements are for accepting them.
+Please create a new branch if you would like to contribute so that I can test it first.
+I am still a beginner in creating this project, so any feedback would be greatly appreciated.
+I apologize for any untidy design in the project.
 
 ## License
 
-This project is licensed under the [Name of License](link-to-license).
+This project has maded by myself from Android Native template.
