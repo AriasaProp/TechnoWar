@@ -76,7 +76,7 @@ void Main::resume() {
 }
 void Main::render(float delta) {
 	(void)delta;
-	m_input->process_event();
+	engine::process_event();
 	engine::clear(1|2|4);
 	
 	srand(time(NULL));
@@ -87,20 +87,20 @@ void Main::render(float delta) {
 	);
 	engine::mesh_render(&mp, 1);
 	memcpy(&ml.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(0)/engine::getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(0)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::getX(0)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)engine::getY(0)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mb.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(1)/engine::getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(1)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::getX(1)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)engine::getY(1)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(2)/engine::getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(2)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::getX(2)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)engine::getY(2)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
