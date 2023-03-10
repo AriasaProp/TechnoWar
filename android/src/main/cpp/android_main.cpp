@@ -12,6 +12,7 @@
 #include <pthread.h>
 #include <poll.h>
 #include <sched.h>
+#include <string>
 
 #include <EGL/egl.h>
 #include <android/configuration.h>
@@ -24,7 +25,7 @@
 #include "main_game.h"
 
 namespace core_set {
-	void define_core_set();
+	void define_core_set(ALooper*);
 	//graphics Android
 	void validate();
 	void resize_viewport(const int,const int);
@@ -1086,7 +1087,7 @@ namespace core_set {
 		sensor_enabled = false;
 	}
 	
-	void define_core_set() {
+	void define_core_set(ALooper *looper) {
 		//input
 		_sensor.emplace("accelerometer", new float[3]{});
 		_sensor.emplace("gyroscope", new float[3]{});
