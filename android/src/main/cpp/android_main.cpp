@@ -26,6 +26,7 @@ namespace core_set {
 	void define_core_set(ALooper *);
 	//graphics Android
 	void validate();
+	void resize_viewport(const int,const int);
 	void invalidate();
 	//input Android
 	void set_input_queue(AInputQueue *);

@@ -37,42 +37,40 @@ namespace engine {
 			0,0,0,1
 		};
 	};
+	
+	// grafik
+	extern float (*getWidth)();
+	extern float (*getHeight)();
+	extern void (*clear)(const unsigned int&);
+	extern void (*clearcolor)(const float&, const float&, const float&, const float&);
+	extern texture_core *(*gen_texture)(const int&, const int&, unsigned char*);
+	extern void (*bind_texture)(texture_core*);
+	extern void (*set_texture_param)(const int&, const int&);
+	extern void (*delete_texture)(texture_core*);
+	extern void (*flat_render)(flat_vertex*, unsigned int);
+	extern mesh_core *(*gen_mesh)(mesh_core::data*, unsigned int, unsigned short*, unsigned int);
+	extern void (*mesh_render)(mesh_core**, const unsigned int&);
+	extern void (*delete_mesh)(mesh_core*);
+	// input
+	extern float (*getAccelerometerX)();
+	extern float (*getAccelerometerY)();
+	extern float (*getAccelerometerZ)();
+	extern float (*getGyroscopeX)();
+	extern float (*getGyroscopeY)();
+	extern float (*getGyroscopeZ)();
+	extern int (*getX)(unsigned int);
+	extern int (*getDeltaX)(unsigned int);
+	extern int (*getY)(unsigned int);
+	extern int (*getDeltaY)(unsigned int);
+	extern bool (*justTouched)();
+	extern bool (*isTouched)(unsigned int);
+	extern float (*getPressure)(unsigned int);
+	extern bool (*isButtonPressed)(int button);
+	extern bool (*isButtonJustPressed)(int button);
+	extern bool (*isKeyPressed)(int key);
+	extern bool (*isKeyJustPressed)(int key);
+	extern void (*process_event)();
 
-	extern {
-	  float (*getWidth)();
-	  float (*getHeight)();
-	  void (*clear)(const unsigned int&);
-	  void (*clearcolor)(const float&, const float&, const float&, const float&);
-	  texture_core *(*gen_texture)(const int&, const int&, unsigned char*);
-	  void (*bind_texture)(texture_core*);
-	  void (*set_texture_param)(const int&, const int&);
-	  void (*delete_texture)(texture_core*);
-	  void (*flat_render)(flat_vertex*, unsigned int);
-	  mesh_core *(*gen_mesh)(mesh_core::data*, unsigned int, unsigned short*, unsigned int);
-	  void (*mesh_render)(mesh_core**, const unsigned int&);
-	  void (*delete_mesh)(mesh_core*);
-	}
-	//input
-	extern {
-  	float (*getAccelerometerX)();
-  	float (*getAccelerometerY)();
-  	float (*getAccelerometerZ)();
-  	float (*getGyroscopeX)();
-  	float (*getGyroscopeY)();
-  	float (*getGyroscopeZ)();
-  	int (*getX)(unsigned int);
-  	int (*getDeltaX)(unsigned int);
-  	int (*getY)(unsigned int);
-  	int (*getDeltaY)(unsigned int);
-  	bool (*justTouched)();
-  	bool (*isTouched)(unsigned int);
-  	float (*getPressure)(unsigned int);
-  	bool (*isButtonPressed)(int button);
-  	bool (*isButtonJustPressed)(int button);
-  	bool (*isKeyPressed)(int key);
-  	bool (*isKeyJustPressed)(int key);
-  	void (*process_event)();
-	}
 }
 
 #endif //_Included_Engine

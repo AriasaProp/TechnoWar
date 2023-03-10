@@ -32,9 +32,5 @@ namespace engine {
 	bool (*isButtonJustPressed)(int button) = 0;
 	bool (*isKeyPressed)(int key) = 0;
 	bool (*isKeyJustPressed)(int key) = 0;
-	float (*getAzimuth)() = 0;
-	float (*getPitch)() = 0;
-	float (*getRoll)() = 0;
-
 	void (*process_event)() = 0;
 }
