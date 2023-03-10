@@ -1,7 +1,6 @@
 #ifndef Included_User_Interface
 #define Included_User_Interface 1
 
-#include "../graphics/graphics.h"
 #include "actors/actor.h"
 
 namespace user_interface {
@@ -21,7 +20,7 @@ namespace user_interface {
 	
 	void addActor(Actor*);
 	void removeActor(Actor*);
-	void draw(graphics*);
+	void draw();
 	void clearActor();
 }
 

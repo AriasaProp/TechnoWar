@@ -1,4 +1,5 @@
 #include "main_game.h"
+#include "engine.h"
 
 #include "user_interface/user_interface.h"
 #include "math/matrix4.h"
@@ -7,15 +8,10 @@
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-graphics *m_graphics = nullptr;
-input *m_input = nullptr;
-
-mesh_core *mp;
+engine::mesh_core *mp;
 Actor ml, mb, mc;
 
-void Main::create(graphics *_graphics, input *_input) {
-	m_graphics = _graphics;
-	m_input = _input;
+void Main::create() {
 	ml.x = 120;
 	ml.y = 120;
 	ml.width = 400;
@@ -34,7 +30,7 @@ void Main::create(graphics *_graphics, input *_input) {
 	mc.height = 200;
 	mc.color = 0x00ff00ff;
 	user_interface::addActor(&mc);
-	mesh_core::data vert[24] = {
+	engine::mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -74,14 +70,14 @@ void Main::create(graphics *_graphics, input *_input) {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	mp = m_graphics->gen_mesh(vert, 24, indices, 36);
+	mp = engine::gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
 }
 void Main::render(float delta) {
 	(void)delta;
 	m_input->process_event();
-	m_graphics->clear(1|2|4);
+	engine::clear(1|2|4);
 	
 	srand(time(NULL));
 	matrix4::rotate(mp->trans,
@@ -89,30 +85,30 @@ void Main::render(float delta) {
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	m_graphics->mesh_render(&mp, 1);
+	engine::mesh_render(&mp, 1);
 	memcpy(&ml.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(0)/m_graphics->getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(0)/m_graphics->getHeight())),
+		(unsigned char)(0xff * ((float)m_input->getX(0)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(0)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mb.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(1)/m_graphics->getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(1)/m_graphics->getHeight())),
+		(unsigned char)(0xff * ((float)m_input->getX(1)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(1)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)m_input->getX(2)/m_graphics->getWidth())),
-		(unsigned char)(0xff * ((float)m_input->getY(2)/m_graphics->getHeight())),
+		(unsigned char)(0xff * ((float)m_input->getX(2)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)m_input->getY(2)/engine::getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
-	user_interface::draw(m_graphics);
+	user_interface::draw();
 }
 void Main::pause() {
 }
 void Main::destroy() {
-	m_graphics->delete_mesh(mp);
+	engine::delete_mesh(mp);
 	user_interface::clearActor();
 }
