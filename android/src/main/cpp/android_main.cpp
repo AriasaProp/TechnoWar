@@ -7,6 +7,7 @@
 #include <cassert>
 #include <unistd.h>
 #include <unordered_set>
+#include <unordered_map>
 #include <sys/resource.h>
 #include <pthread.h>
 #include <poll.h>
@@ -23,13 +24,13 @@
 #include "main_game.h"
 
 namespace core_set {
-	void define_core_set(ALooper *);
+	void define_core_set();
 	//graphics Android
 	void validate();
 	void resize_viewport(const int,const int);
 	void invalidate();
 	//input Android
-	void set_input_queue(AInputQueue *);
+	void set_input_queue(ALooper*, AInputQueue*);
 	void process_input();
 	void attach_sensor();
 	void process_sensor();
@@ -107,119 +108,119 @@ struct m_egl {
     	display = EGL_NO_DISPLAY;
     }
 	}
-};
-static Main *m_Main = nullptr;
-static void engine_draw(m_egl *eng) {
-  if (!eng->window || !eng->running) return;
-  if (!eng->display || !eng->context || !eng->surface) {
-  	if (!eng->display) {
-    	eng->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    	eglInitialize(eng->display, nullptr, nullptr);
-    	eng->eConfig = nullptr;
-  	}
-  	if (!eng->eConfig) {
-		  EGLint temp;
-		  const EGLint configAttr[] = {
-		    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-		    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-		    EGL_ALPHA_SIZE, 0,
-		    EGL_NONE
-		  };
-		  eglChooseConfig(eng->display, configAttr, nullptr,0, &temp);
-		  assert(temp);
-		  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-		  assert(configs);
-		  eglChooseConfig(eng->display, configAttr, configs, temp, &temp);
-		  assert(temp);
-		  eng->eConfig = configs[0];
-		  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
-		    EGLConfig& cfg = configs[i];
-		    eglGetConfigAttrib(eng->display, cfg, EGL_BUFFER_SIZE, &temp);
-		    l = temp;
-		    eglGetConfigAttrib(eng->display, cfg, EGL_DEPTH_SIZE, &temp);
-		    l += temp;
-		    eglGetConfigAttrib(eng->display, cfg, EGL_STENCIL_SIZE, &temp);
-		    l += temp;
-		    if (l > k) {
-		      k = l;
-		      eng->eConfig = cfg;
-		    }
-		  }
-  	}
-  	bool newCtx = false;
-  	if (!eng->context) {
-  		newCtx = true;
-  		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  		eng->context = eglCreateContext(eng->display, eng->eConfig, nullptr, ctxAttr);
-  	}
-  	if (!eng->surface) {
-			eng->surface = eglCreateWindowSurface(eng->display, eng->eConfig, eng->window, nullptr);
-  	}
-  	eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
-    int32_t width, height;
-  	eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &width);
-  	eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &height);
-  	
-  	if (!m_Main) {
-  		m_Main = new Main;
-  		m_Main->create();
-  		eng->resume = false;
-  	}
-  	if (newCtx) {
-			core_set::validate();
-  	}
-		core_set::resize_viewport(width, height);
-		eng->resize = false;
-  }
-	if (eng->resize) {
-		eng->resize = false;
-		eglMakeCurrent(eng->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglMakeCurrent(eng->display, eng->surface, eng->surface, eng->context);
-    int32_t width, height;
-		eglQuerySurface(eng->display, eng->surface, EGL_WIDTH, &width);
-		eglQuerySurface(eng->display, eng->surface, EGL_HEIGHT, &height);
-		core_set::resize_viewport(width, height);
-	}
-  if (eng->resume) {
-  	m_Main->resume();
-		eng->resume = false;
-  }
-  eng->state.angle += .01f;
-  if (eng->state.angle > 1) {
-      eng->state.angle = 0;
-  }
-  m_Main->render(1.f/60.f);
-  if (eng->pause) {
-  	m_Main->pause();
-		eng->pause = false;
-  }
-  if (eng->destroyed) {
-  	m_Main->destroy();
-  	delete(m_Main);
-  	m_Main = nullptr;
-  }
-	if (!eglSwapBuffers(eng->display, eng->surface)) {
-		switch (eglGetError()) {
-  		case EGL_BAD_SURFACE:
-  		case EGL_BAD_NATIVE_WINDOW:
-  		case EGL_BAD_CURRENT_SURFACE:
-  			eng->egl_terminate(TERM_EGL_SURFACE);
-  			break;
-  		case EGL_BAD_CONTEXT:
-  		case EGL_CONTEXT_LOST:
-  			eng->egl_terminate(TERM_EGL_CONTEXT);
-  			break;
-  		case EGL_NOT_INITIALIZED:
-  		case EGL_BAD_DISPLAY:
-  			eng->egl_terminate(TERM_EGL_DISPLAY);
-  			break;
-  		default:
-				break;
+	Main *m_Main = nullptr;
+	void engine_draw() {
+	  if (!window || !running) return;
+	  if (!display || !context || !surface) {
+	  	if (!display) {
+	    	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	    	eglInitialize(display, nullptr, nullptr);
+	    	eConfig = nullptr;
+	  	}
+	  	if (!eConfig) {
+			  EGLint temp;
+			  const EGLint configAttr[] = {
+			    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+			    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+			    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+			    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+			    EGL_ALPHA_SIZE, 0,
+			    EGL_NONE
+			  };
+			  eglChooseConfig(display, configAttr, nullptr,0, &temp);
+			  assert(temp);
+			  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
+			  assert(configs);
+			  eglChooseConfig(display, configAttr, configs, temp, &temp);
+			  assert(temp);
+			  eConfig = configs[0];
+			  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
+			    EGLConfig& cfg = configs[i];
+			    eglGetConfigAttrib(display, cfg, EGL_BUFFER_SIZE, &temp);
+			    l = temp;
+			    eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &temp);
+			    l += temp;
+			    eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &temp);
+			    l += temp;
+			    if (l > k) {
+			      k = l;
+			      eConfig = cfg;
+			    }
+			  }
+	  	}
+	  	bool newCtx = false;
+	  	if (!context) {
+	  		newCtx = true;
+	  		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+	  		context = eglCreateContext(display, eConfig, nullptr, ctxAttr);
+	  	}
+	  	if (!surface) {
+				surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
+	  	}
+	  	eglMakeCurrent(display, surface, surface, context);
+	    int32_t width, height;
+	  	eglQuerySurface(display, surface, EGL_WIDTH, &width);
+	  	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
+	  	
+	  	if (newCtx) {
+				core_set::validate();
+	  	}
+	  	if (!m_Main) {
+	  		m_Main = new Main;
+	  		m_Main->create();
+	  		resume = false;
+	  	}
+			core_set::resize_viewport(width, height);
+			resize = false;
+	  }
+		if (resize) {
+			resize = false;
+			eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			eglMakeCurrent(display, surface, surface, context);
+	    int32_t width, height;
+			eglQuerySurface(display, surface, EGL_WIDTH, &width);
+			eglQuerySurface(display, surface, EGL_HEIGHT, &height);
+			core_set::resize_viewport(width, height);
+		}
+	  if (resume) {
+	  	m_Main->resume();
+			resume = false;
+	  }
+	  state.angle += .01f;
+	  if (state.angle > 1) {
+	      state.angle = 0;
+	  }
+	  m_Main->render(1.f/60.f);
+	  if (pause) {
+	  	m_Main->pause();
+			pause = false;
+	  }
+	  if (destroyed) {
+	  	m_Main->destroy();
+	  	delete(m_Main);
+	  	m_Main = nullptr;
+	  }
+		if (!eglSwapBuffers(display, surface)) {
+			switch (eglGetError()) {
+	  		case EGL_BAD_SURFACE:
+	  		case EGL_BAD_NATIVE_WINDOW:
+	  		case EGL_BAD_CURRENT_SURFACE:
+	  			egl_terminate(TERM_EGL_SURFACE);
+	  			break;
+	  		case EGL_BAD_CONTEXT:
+	  		case EGL_CONTEXT_LOST:
+	  			egl_terminate(TERM_EGL_CONTEXT);
+	  			break;
+	  		case EGL_NOT_INITIALIZED:
+	  		case EGL_BAD_DISPLAY:
+	  			egl_terminate(TERM_EGL_DISPLAY);
+	  			break;
+	  		default:
+					break;
+			}
 		}
 	}
-}
+};
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
@@ -273,7 +274,7 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_INPUT_INIT:
-		        	core_set::set_input_queue(app->inputQueue);
+		        	core_set::set_input_queue(app->looper, app->inputQueue);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
@@ -281,7 +282,7 @@ static void* android_app_entry(void* param) {
 				      break;
 			      case APP_CMD_INPUT_TERM:
 			      	if (app->inputQueue != NULL) {
-			        	core_set::set_input_queue(NULL);
+			        	core_set::set_input_queue(app->looper, NULL);
 				        app->inputQueue = NULL;
 			      	}
 					    pthread_mutex_lock(&app->mutex);
@@ -325,7 +326,7 @@ static void* android_app_entry(void* param) {
 			        break;
 			      case APP_CMD_PAUSE:
 				  		eng->pause = true;
-				  		engine_draw(eng);
+				  		eng->engine_draw();
 				      eng->running = false;
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -334,7 +335,7 @@ static void* android_app_entry(void* param) {
 				      break;
 			      case APP_CMD_DESTROY:
 				  		eng->destroyed = true;
-				  		engine_draw(eng);
+				  		eng->engine_draw();
 				  		eng->egl_terminate(TERM_EGL_DISPLAY);
 			        break;
 			      default:
@@ -343,11 +344,12 @@ static void* android_app_entry(void* param) {
 			  	}
 			  	break;
 			  default:
-					engine_draw(eng);
+					eng->engine_draw();
 			  	break;
 	    }
 	  }
 	  core_set::undefine_core_set();
+	  delete eng;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
@@ -894,6 +896,7 @@ namespace core_set {
 		} type;
 	};
 	std::unordered_set<key_event*> key_events;
+	std::unordered_map<std::string, float*> _sensor;
 	float *m_accelerometer;
 	float *m_gyroscope;
 	std::unordered_set<int> key_pressed;
@@ -903,14 +906,8 @@ namespace core_set {
 	const ASensor* accelerometerSensor;
 	const ASensor* gyroscopeSensor;
 	ASensorEventQueue* sensorEventQueue;
-	ALooper *m_looper;
 	
-	float	getAccelerometerX() { return m_accelerometer[0]; }
-	float getAccelerometerY() { return m_accelerometer[1]; }
-	float getAccelerometerZ() { return m_accelerometer[2];}
-	float getGyroscopeX() {	return m_gyroscope[0]; }
-	float getGyroscopeY() {	return m_gyroscope[1]; }
-	float getGyroscopeZ() {	return m_gyroscope[2]; }
+	float	*getSensorValue(const char *sensor_name) {	return _sensor[sensor_name]; }
 	int getX(unsigned int p = 0) {	return input_pointer_cache[p].x; }
 	int getDeltaX(unsigned int p = 0) {	return input_pointer_cache[p].x - input_pointer_cache[p].xs; }
 	int getY(unsigned int p = 0) {	return input_pointer_cache[p].y; }
@@ -953,12 +950,12 @@ namespace core_set {
 		key_events.clear();
 	}
 	AInputQueue *inputQueue = NULL;
-	void set_input_queue(AInputQueue *i) {
+	void set_input_queue(ALooper *looper, AInputQueue *i) {
 		if (inputQueue)
 			AInputQueue_detachLooper(inputQueue);
 		inputQueue = i;
 		if (inputQueue)
-			AInputQueue_attachLooper(inputQueue, m_looper, 2, NULL, nullptr);
+			AInputQueue_attachLooper(inputQueue, looper, 2, NULL, nullptr);
 	}
 	AInputEvent* i_event;
 	void process_input() {
@@ -1057,19 +1054,22 @@ namespace core_set {
 	void process_sensor() {
 		if (!sensor_enabled) return;
 		unsigned int i, j;
+		float *sensor_temp;
 		while ((i = ASensorEventQueue_getEvents(sensorEventQueue,s_event, 2)) > 0) {
 			for (j = 0; j < i; j++) {
 				ASensorEvent &e = s_event[j];
 				switch (e.type) {
 					case ASENSOR_TYPE_ACCELEROMETER:
-						m_accelerometer[0] = e.acceleration.x/2.f + 0.5f;
-						m_accelerometer[1] = e.acceleration.y/2.f + 0.5f;
-						m_accelerometer[2] = e.acceleration.z/2.f + 0.5f;
+						sensor_temp = _sensor["accelerometer"];
+						sensor_temp[0] = e.acceleration.x/2.f + 0.5f;
+						sensor_temp[1] = e.acceleration.y/2.f + 0.5f;
+						sensor_temp[2] = e.acceleration.z/2.f + 0.5f;
 						break;
 					case ASENSOR_TYPE_GYROSCOPE:
-						m_gyroscope[0] = e.acceleration.x/2.f + 0.5f;
-						m_gyroscope[1] = e.acceleration.y/2.f + 0.5f;
-						m_gyroscope[2] = e.acceleration.z/2.f + 0.5f;
+						sensor_temp = _sensor["gyroscope"];
+						sensor_temp[0] = e.acceleration.x/2.f + 0.5f;
+						sensor_temp[1] = e.acceleration.y/2.f + 0.5f;
+						sensor_temp[2] = e.acceleration.z/2.f + 0.5f;
 						break;
 					default:
 						break;
@@ -1079,18 +1079,17 @@ namespace core_set {
 	}
 	void detach_sensor() {
 		if (!sensor_enabled) return;
-		memset(m_accelerometer, 0, 3*sizeof(float));
-		memset(m_gyroscope, 0, 3*sizeof(float));
+		for (auto i = _sensor.begin(); i != _sensor.end(); i++)
+			memset(i.second, 0, 3*sizeof(float));
 	  ASensorEventQueue_disableSensor(sensorEventQueue, accelerometerSensor);
 	  ASensorEventQueue_disableSensor(sensorEventQueue, gyroscopeSensor);
 		sensor_enabled = false;
 	}
 	
-	void define_core_set(ALooper *looper) {
+	void define_core_set() {
 		//input
-		m_looper = looper;
-		m_accelerometer = new float[3]{};
-		m_gyroscope = new float[3]{};
+		_sensor.emplace("accelerometer", new float[3]{});
+		_sensor.emplace("gyroscope", new float[3]{});
 		input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
 		s_event = new ASensorEvent[2];
 	  sensorManager = ASensorManager_getInstance();
@@ -1101,7 +1100,6 @@ namespace core_set {
 		//graphics
 		temp = new int[2];
 		utemp = new unsigned int[2];
-		msg = new char[MAX_GL_MSG];
 		ubatch = new ui_batch;
 		memset(ubatch,0,sizeof(ui_batch));
 		ws = new world_btch;
@@ -1121,12 +1119,7 @@ namespace core_set {
 	  engine::mesh_render = mesh_render;
 	  engine::delete_mesh = delete_mesh;
 	  //input
-	  engine::getAccelerometerX = getAccelerometerX;
-	  engine::getAccelerometerY = getAccelerometerY;
-	  engine::getAccelerometerZ = getAccelerometerZ;
-	  engine::getGyroscopeX = getGyroscopeX;
-	  engine::getGyroscopeY = getGyroscopeY;
-	  engine::getGyroscopeZ = getGyroscopeZ;
+	  engine::getSensorValue = getSensorValue;
 	  engine::getX = getX;
 	  engine::getDeltaX = getDeltaX;
 	  engine::getY = getY;
@@ -1150,12 +1143,12 @@ namespace core_set {
 		delete ws;
 		delete[] temp;
 		delete[] utemp;
-		delete[] msg;
 		//input
 		detach_sensor();
-		set_input_queue(NULL);
-		delete[] m_accelerometer;
-		delete[] m_gyroscope;
+		set_input_queue(NULL, NULL);
+		for (auto i = _sensor.begin(); i != _sensor.end(); i++)
+			delete[] i.second;
+		_sensor.clear();
 		delete[] input_pointer_cache;
 		delete[] s_event;
 		key_pressed.clear();

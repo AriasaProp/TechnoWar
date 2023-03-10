@@ -15,12 +15,7 @@ namespace engine {
   void (*mesh_render)(mesh_core**, const unsigned int&) = 0;
   void (*delete_mesh)(mesh_core*) = 0;
   //input
-	float (*getAccelerometerX)() = 0;
-	float (*getAccelerometerY)() = 0;
-	float (*getAccelerometerZ)() = 0;
-	float (*getGyroscopeX)() = 0;
-	float (*getGyroscopeY)() = 0;
-	float (*getGyroscopeZ)() = 0;
+	float *(*getSensorValue)(const char*) = 0;
 	int (*getX)(unsigned int) = 0;
 	int (*getDeltaX)(unsigned int) = 0;
 	int (*getY)(unsigned int) = 0;

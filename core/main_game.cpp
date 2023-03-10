@@ -99,8 +99,8 @@ void Main::render(float delta) {
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::getX(2)/engine::getWidth())),
 		(unsigned char)(0xff * ((float)engine::getY(2)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::getX(2)/engine::getWidth())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));

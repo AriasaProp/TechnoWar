@@ -52,12 +52,7 @@ namespace engine {
 	extern void (*mesh_render)(mesh_core**, const unsigned int&);
 	extern void (*delete_mesh)(mesh_core*);
 	// input
-	extern float (*getAccelerometerX)();
-	extern float (*getAccelerometerY)();
-	extern float (*getAccelerometerZ)();
-	extern float (*getGyroscopeX)();
-	extern float (*getGyroscopeY)();
-	extern float (*getGyroscopeZ)();
+	extern float *(*getSensorValue)(const char*)
 	extern int (*getX)(unsigned int);
 	extern int (*getDeltaX)(unsigned int);
 	extern int (*getY)(unsigned int);
