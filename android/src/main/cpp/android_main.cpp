@@ -170,7 +170,7 @@ static void engine_draw(m_egl *eng) {
   	if (newCtx) {
 			core_set::validate();
   	}
-		setsresize_viewport(width, height);
+		core_set::resize_viewport(width, height);
 		eng->resize = false;
   }
 	if (eng->resize) {
@@ -1088,7 +1088,7 @@ namespace core_set {
 	
 	void define_core_set(ALooper *looper) {
 		//input
-		m_looper = _looper;
+		m_looper = looper;
 		m_accelerometer = new float[3]{};
 		m_gyroscope = new float[3]{};
 		input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
@@ -1096,7 +1096,7 @@ namespace core_set {
 	  sensorManager = ASensorManager_getInstance();
 	  accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
 	  gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
-		sensorEventQueue = ASensorManager_createEventQueue(sensorManager, _looper, 3 , NULL, nullptr);
+		sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, 3 , NULL, nullptr);
 		
 		//graphics
 		temp = new int[2];
