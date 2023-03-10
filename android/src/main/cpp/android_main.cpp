@@ -1081,7 +1081,7 @@ namespace core_set {
 	void detach_sensor() {
 		if (!sensor_enabled) return;
 		for (auto i = _sensor.begin(); i != _sensor.end(); i++)
-			memset(i.second, 0, 3*sizeof(float));
+			memset(i->second, 0, 3*sizeof(float));
 	  ASensorEventQueue_disableSensor(sensorEventQueue, accelerometerSensor);
 	  ASensorEventQueue_disableSensor(sensorEventQueue, gyroscopeSensor);
 		sensor_enabled = false;
@@ -1148,7 +1148,7 @@ namespace core_set {
 		detach_sensor();
 		set_input_queue(NULL, NULL);
 		for (auto i = _sensor.begin(); i != _sensor.end(); i++)
-			delete[] i.second;
+			delete[] i->second;
 		_sensor.clear();
 		delete[] input_pointer_cache;
 		delete[] s_event;
