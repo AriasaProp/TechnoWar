@@ -6,7 +6,7 @@
 #include <EGL/egl.h>
 #include <unordered_set>
 
-struct opengles_graphics: public android_graphics 
+struct opengles_graphics: public android_graphics {
 private:
 	ANativeWindow *window;
 	EGLDisplay display;
