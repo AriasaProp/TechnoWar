@@ -60,5 +60,8 @@ public:
   mesh_core* gen_mesh(mesh_core::data*, unsigned int, unsigned short*, unsigned int) override;
   void mesh_render(mesh_core**, const unsigned int&) override;
   void delete_mesh(mesh_core*) override;
+  
+  opengles_graphics();
+  ~opengles_graphics();
 };
 #endif //_Included_OPENGLES_Graphics
