@@ -22,7 +22,7 @@ struct android_input: public engine::input_core {
 	bool isButtonJustPressed(int) override;
 	bool isKeyPressed(int) override;
 	bool isKeyJustPressed(int) override;
-	void process_event() override
+	void process_event() override;
 	
 	void set_input_queue(ALooper*, AInputQueue*);
 	void process_input();
