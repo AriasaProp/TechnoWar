@@ -68,13 +68,13 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-	  android_graphics *eng = new opengles_graphics;
+	  android_graphics *g = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
 	  if (app->savedState) {
-	      eng->state = *(saved_state*)app->savedState;
+	      g->state = *(saved_state*)app->savedState;
 	  }
-	  while (!eng->destroyed) {
-	    switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, nullptr, nullptr)) {
+	  while (!g->destroyed) {
+	    switch (ALooper_pollAll(g->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
 	      	inpt->process_input();
 	      	break;
@@ -86,7 +86,7 @@ static void* android_app_entry(void* param) {
 			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
 					switch (cmd) {
 				    case APP_CMD_RESUME:
-				    	eng->onResume();
+				    	g->onResume();
 			        pthread_mutex_lock(&app->mutex);
 						  if (app->savedState != NULL) {
 					      free(app->savedState);
@@ -96,14 +96,14 @@ static void* android_app_entry(void* param) {
 						  pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_INIT_WINDOW:
-			      	eng->onWindowInit(app->window);
+			      	g->onWindowInit(app->window);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 				    case APP_CMD_WINDOW_RESIZED:
-				    	eng->needResize();
+				    	g->needResize();
 				    	break;
 				    case APP_CMD_GAINED_FOCUS:
 				    	inpt->attach_sensor();
@@ -137,7 +137,7 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_TERM_WINDOW:
-			      	eng->onWindowTerm();
+			      	g->onWindowTerm();
 			        app->window = NULL;
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -156,7 +156,7 @@ static void* android_app_entry(void* param) {
 						  }
 			  			pthread_mutex_unlock(&app->mutex);
 				      app->savedState = malloc(sizeof(saved_state));
-				      *((saved_state*)app->savedState) = eng->state;
+				      *((saved_state*)app->savedState) = g->state;
 				      app->savedStateSize = sizeof(saved_state);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -164,14 +164,14 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_PAUSE:
-			      	eng->onPause();
+			      	g->onPause();
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_DESTROY:
-				  		eng->onDestroy();
+				  		g->onDestroy();
 			        break;
 			      default:
 			      	// ?
@@ -179,11 +179,11 @@ static void* android_app_entry(void* param) {
 			  	}
 			  	break;
 			  default:
-					eng->render();
+					g->render();
 			  	break;
 	    }
 	  }
-	  delete eng;
+	  delete g;
 	  delete inpt;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {

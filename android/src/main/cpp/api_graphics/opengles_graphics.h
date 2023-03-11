@@ -2,6 +2,7 @@
 #define _Included_OPENGLES_Graphics
 
 #include "android_graphics.h"
+#include "../main_game.h"
 #include <unordered_set>
 
 struct ui_batch {
@@ -24,9 +25,9 @@ private:
 	std::unordered_set<engine::texture_core*> managedTexture;
 	std::unordered_set<engine::mesh_core*> managedMesh;
 	bool valid = false;
-	int *temp override;
-	unsigned int *utemp override;
-	char *msg override;
+	int *temp;
+	unsigned int *utemp;
+	char *msg;
 	float width, height;
 	ui_batch *ubatch;
 	world_btch *ws;
