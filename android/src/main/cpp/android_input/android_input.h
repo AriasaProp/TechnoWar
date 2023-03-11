@@ -9,7 +9,7 @@
 
 //define input engine extern
 #define MAX_TOUCH_POINTERS_COUNT 30
-struct android_input: public input_core {
+struct android_input: public engine::input_core {
 	float	*getSensorValue(const char *) override;
 	int getX(unsigned int) override;
 	int getDeltaX(unsigned int) override;

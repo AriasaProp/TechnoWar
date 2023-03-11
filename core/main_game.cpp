@@ -8,7 +8,7 @@
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-engine::mesh_core *mp;
+engine::graph->mesh_core *mp;
 Actor ml, mb, mc;
 
 void Main::create() {
@@ -30,7 +30,7 @@ void Main::create() {
 	mc.height = 200;
 	mc.color = 0x00ff00ff;
 	user_interface::addActor(&mc);
-	engine::mesh_core::data vert[24] = {
+	engine::graph->mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -70,14 +70,14 @@ void Main::create() {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	mp = engine::gen_mesh(vert, 24, indices, 36);
+	mp = engine::graph->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
 }
 void Main::render(float delta) {
 	(void)delta;
-	engine::process_event();
-	engine::clear(1|2|4);
+	engine::inpt->process_event();
+	engine::graph->clear(1|2|4);
 	
 	srand(time(NULL));
 	matrix4::rotate(mp->trans,
@@ -85,22 +85,22 @@ void Main::render(float delta) {
 		M_PI / std::fmax(float(rand()%1000), 240.0f),
 		M_PI / std::fmax(float(rand()%1000), 240.0f)
 	);
-	engine::mesh_render(&mp, 1);
+	engine::graph->mesh_render(&mp, 1);
 	memcpy(&ml.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::getX(0)/engine::getWidth())),
-		(unsigned char)(0xff * ((float)engine::getY(0)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(0)/engine::inpt->getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(0)/engine::inpt->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mb.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::getX(1)/engine::getWidth())),
-		(unsigned char)(0xff * ((float)engine::getY(1)/engine::getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(1)/engine::inpt->getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(1)/engine::inpt->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::getY(2)/engine::getHeight())),
-		(unsigned char)(0xff * ((float)engine::getX(2)/engine::getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(2)/engine::inpt->getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(2)/engine::inpt->getWidth())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
@@ -109,6 +109,6 @@ void Main::render(float delta) {
 void Main::pause() {
 }
 void Main::destroy() {
-	engine::delete_mesh(mp);
+	engine::graph->delete_mesh(mp);
 	user_interface::clearActor();
 }

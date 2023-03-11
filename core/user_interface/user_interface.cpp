@@ -20,8 +20,8 @@ void user_interface::draw() {
 	if (!actors) return;
 	const size_t len = actors->size();
 	if (len == 0) return;
-	engine::flat_vertex *tmp_v = new engine::flat_vertex[len*4];
-	engine::flat_vertex fv;
+	engine::graph->flat_vertex *tmp_v = new engine::graph->flat_vertex[len*4];
+	engine::graph->flat_vertex fv;
 	size_t i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
 	while((i < len) && (t != actors->end())) {
@@ -29,18 +29,18 @@ void user_interface::draw() {
 		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
-		memcpy(&tmp_v[i*4], &fv, sizeof(engine::flat_vertex));
+		memcpy(&tmp_v[i*4], &fv, sizeof(engine::graph->flat_vertex));
 		fv.y += act->height;
-		memcpy(&tmp_v[i*4+1], &fv, sizeof(engine::flat_vertex));
+		memcpy(&tmp_v[i*4+1], &fv, sizeof(engine::graph->flat_vertex));
 		fv.x += act->width;
 		fv.y = act->y;
-		memcpy(&tmp_v[i*4+2], &fv, sizeof(engine::flat_vertex));
+		memcpy(&tmp_v[i*4+2], &fv, sizeof(engine::graph->flat_vertex));
 		fv.y += act->height;
-		memcpy(&tmp_v[i*4+3], &fv, sizeof(engine::flat_vertex));
+		memcpy(&tmp_v[i*4+3], &fv, sizeof(engine::graph->flat_vertex));
 		i++, t++;
 	}
 	/*
-	engine::flat_vertex tmp_v[12] = {
+	engine::graph->flat_vertex tmp_v[12] = {
 		{120, 120, 0xff, 0x00, 0x00, 0xff},
 		{120, 295, 0xff, 0x00, 0x00, 0xff},
 		{320, 120, 0xff, 0x00, 0x00, 0xff},
@@ -57,7 +57,7 @@ void user_interface::draw() {
 		{1225, 200, 0x00, 0xff, 0xff, 0xff}
 	};
 	*/
-	engine::flat_render(tmp_v, len);
+	engine::graph->flat_render(tmp_v, len);
 	delete[] tmp_v;
 }
 void user_interface::clearActor() {
