@@ -5,6 +5,10 @@
 #include <android/native_activity.h>
 #include "../engine.h"
 
+#define TERM_EGL_SURFACE 1
+#define TERM_EGL_CONTEXT 2
+#define TERM_EGL_DISPLAY 4
+
 struct saved_state {
     float angle;
     int32_t x;

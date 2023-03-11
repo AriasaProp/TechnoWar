@@ -77,10 +77,6 @@ enum {
     APP_CMD_DESTROY,
 };
 
-#define TERM_EGL_SURFACE 1
-#define TERM_EGL_CONTEXT 2
-#define TERM_EGL_DISPLAY 4
-
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
