@@ -87,20 +87,20 @@ void Main::render(float delta) {
 	);
 	engine::graph->mesh_render(&mp, 1);
 	memcpy(&ml.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::inpt->getX(0)/engine::inpt->getWidth())),
-		(unsigned char)(0xff * ((float)engine::inpt->getY(0)/engine::inpt->getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(0)/engine::graph->getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(0)/engine::graph->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mb.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::inpt->getX(1)/engine::inpt->getWidth())),
-		(unsigned char)(0xff * ((float)engine::inpt->getY(1)/engine::inpt->getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(1)/engine::graph->getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(1)/engine::graph->getHeight())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
 	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::inpt->getY(2)/engine::inpt->getHeight())),
-		(unsigned char)(0xff * ((float)engine::inpt->getX(2)/engine::inpt->getWidth())),
+		(unsigned char)(0xff * ((float)engine::inpt->getY(2)/engine::graph->getHeight())),
+		(unsigned char)(0xff * ((float)engine::inpt->getX(2)/engine::graph->getWidth())),
 		0x00,
 		0xff
 	}, 4*sizeof(unsigned char));
