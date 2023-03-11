@@ -70,7 +70,7 @@ void Main::create() {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	engine::graph->clearcolor(1,0 0,1);
+	engine::graph->clearcolor(1f,0, 0,1);
 	mp = engine::graph->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
@@ -78,7 +78,7 @@ void Main::resume() {
 void Main::render(float delta) {
 	(void)delta;
 	engine::inpt->process_event();
-	engine::graph->clear(1|2|4);
+	engine::graph->clear(7);
 	
 	srand(time(NULL));
 	matrix4::rotate(mp->trans,
