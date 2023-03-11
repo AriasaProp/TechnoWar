@@ -30,8 +30,8 @@ struct android_input: public engine::input_core {
 	void process_sensor();
 	void detach_sensor();
 	
-	void android_input(ALooper*);
-	void ~android_input();
+	android_input(ALooper*);
+	~android_input();
 };
 
 
