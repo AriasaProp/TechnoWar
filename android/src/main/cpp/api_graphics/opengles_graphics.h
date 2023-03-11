@@ -6,7 +6,6 @@
 struct opengles_graphics: public android_graphics {
 private:
 	ANativeWindow *window;
-	bool resize, resume, running, pause, destroyed;
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;

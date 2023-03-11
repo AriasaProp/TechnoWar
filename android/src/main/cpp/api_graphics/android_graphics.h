@@ -12,6 +12,7 @@ struct saved_state {
 };
 
 struct android_graphics {
+	bool resize, resume, running, pause, destroyed;
 	saved_state state;
 	virtual void onResume() = 0;
 	virtual void onWindowInit(ANativeWindow*) = 0;

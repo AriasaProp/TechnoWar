@@ -6,7 +6,6 @@
 struct vulkan_graphics: public android_graphics {
 private:
 	ANativeWindow *window;
-	bool resize, resume, running, pause, destroyed;
 public:
 	void onResume() override;
 	void onWindowInit(ANativeWindow*) override;
