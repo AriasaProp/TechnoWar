@@ -52,14 +52,14 @@ public:
   float getHeight() override;
   void clear(const unsigned int&) override;
   void clearcolor(const float&, const float&, const float&, const float&) override;
-  texture_core* gen_texture(const int&, const int&, unsigned char*) override;
-  void bind_texture(texture_core*) override;
+  engine::texture_core* gen_texture(const int&, const int&, unsigned char*) override;
+  void bind_texture(engine::texture_core*) override;
   void set_texture_param(const int&, const int&) override;
-  void delete_texture(texture_core*) override;
-  void flat_render(flat_vertex*, unsigned int) override;
-  mesh_core* gen_mesh(mesh_core::data*, unsigned int, unsigned short*, unsigned int) override;
-  void mesh_render(mesh_core**, const unsigned int&) override;
-  void delete_mesh(mesh_core*) override;
+  void delete_texture(engine::texture_core*) override;
+  void flat_render(engine::flat_vertex*, unsigned int) override;
+  engine::mesh_core* gen_mesh(engine::mesh_core::data*, unsigned int, unsigned short*, unsigned int) override;
+  void mesh_render(engine::mesh_core**, const unsigned int&) override;
+  void delete_mesh(engine::mesh_core*) override;
   
   opengles_graphics();
   ~opengles_graphics();
