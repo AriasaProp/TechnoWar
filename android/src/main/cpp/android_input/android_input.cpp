@@ -216,7 +216,6 @@ android_input::android_input(ALooper *looper) {
 
 }
 android_input::~android_input() {
-	//input
 	detach_sensor();
 	set_input_queue(NULL, NULL);
 	for (auto i = _sensor.begin(); i != _sensor.end(); i++)
@@ -226,5 +225,4 @@ android_input::~android_input() {
 	delete[] s_event;
 	key_pressed.clear();
 	engine::inpt = nullptr;
-	
 }
