@@ -87,124 +87,123 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-	  {
-		  android_graphics eng = opengles_graphics();
-		  core_set::define_core_set(app->looper);
-		  if (app->savedState) {
-		      eng.state = *(saved_state*)app->savedState;
-		  }
-		  while (!eng.destroyed) {
-		    switch (ALooper_pollAll(eng.running ? 0 : -1, nullptr, nullptr, nullptr)) {
-		      case 2: //input queue
-		      	core_set::process_input();
-		      	break;
-		      case 3: //sensor queue
-		      	core_set::process_sensor();
-		      	break;
-		    	case 1: //android activity queue
-						int8_t cmd;
-				    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
-						switch (cmd) {
-					    case APP_CMD_RESUME:
-					    	eng.onResume();
-				        pthread_mutex_lock(&app->mutex);
-							  if (app->savedState != NULL) {
-						      free(app->savedState);
-						      app->savedState = NULL;
-						      app->savedStateSize = 0;
-							  }
-							  pthread_mutex_unlock(&app->mutex);
-				        break;
-				      case APP_CMD_INIT_WINDOW:
-				      	eng.onWindowInit(app->window);
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-				        break;
-					    case APP_CMD_WINDOW_RESIZED:
-					    	eng.needResize();
-					    	break;
-					    case APP_CMD_GAINED_FOCUS:
-					    	core_set::attach_sensor();
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-					      break;
-				      case APP_CMD_INPUT_INIT:
-			        	core_set::set_input_queue(app->looper, app->inputQueue);
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-					      break;
-				      case APP_CMD_INPUT_TERM:
-				      	if (app->inputQueue != NULL) {
-				        	core_set::set_input_queue(app->looper, NULL);
-					        app->inputQueue = NULL;
-				      	}
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-				        break;
-					    case APP_CMD_LOST_FOCUS:
-					    	core_set::detach_sensor();
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-					      break;
-				      case APP_CMD_TERM_WINDOW:
-				      	eng.onWindowTerm();
-				        app->window = NULL;
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-				        break;
-				      case APP_CMD_CONFIG_CHANGED:
-				        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-				        break;
-				      case APP_CMD_SAVE_STATE:
-				        pthread_mutex_lock(&app->mutex);
-							  if (app->savedState != NULL) {
-						      free(app->savedState);
-						      app->savedState = NULL;
-						      app->savedStateSize = 0;
-							  }
-				  			pthread_mutex_unlock(&app->mutex);
-					      app->savedState = malloc(sizeof(saved_state));
-					      *((saved_state*)app->savedState) = eng.state;
-					      app->savedStateSize = sizeof(saved_state);
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-				        break;
-				      case APP_CMD_PAUSE:
-				      	eng.onPause();
-						    pthread_mutex_lock(&app->mutex);
-						    app->appCmdState = cmd;
-						    pthread_cond_broadcast(&app->cond);
-						    pthread_mutex_unlock(&app->mutex);
-					      break;
-				      case APP_CMD_DESTROY:
-					  		eng.onDestroy();
-				        break;
-				      default:
-				      	// ?
-				      	break;
-				  	}
-				  	break;
-				  default:
-						eng.render();
-				  	break;
-		    }
-		  }
-		  core_set::undefine_core_set();
+	  android_graphics *eng = new opengles_graphics;
+	  core_set::define_core_set(app->looper);
+	  if (app->savedState) {
+	      eng->state = *(saved_state*)app->savedState;
 	  }
+	  while (!eng->destroyed) {
+	    switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, nullptr, nullptr)) {
+	      case 2: //input queue
+	      	core_set::process_input();
+	      	break;
+	      case 3: //sensor queue
+	      	core_set::process_sensor();
+	      	break;
+	    	case 1: //android activity queue
+					int8_t cmd;
+			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
+					switch (cmd) {
+				    case APP_CMD_RESUME:
+				    	eng->onResume();
+			        pthread_mutex_lock(&app->mutex);
+						  if (app->savedState != NULL) {
+					      free(app->savedState);
+					      app->savedState = NULL;
+					      app->savedStateSize = 0;
+						  }
+						  pthread_mutex_unlock(&app->mutex);
+			        break;
+			      case APP_CMD_INIT_WINDOW:
+			      	eng->onWindowInit(app->window);
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+			        break;
+				    case APP_CMD_WINDOW_RESIZED:
+				    	eng->needResize();
+				    	break;
+				    case APP_CMD_GAINED_FOCUS:
+				    	core_set::attach_sensor();
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+				      break;
+			      case APP_CMD_INPUT_INIT:
+		        	core_set::set_input_queue(app->looper, app->inputQueue);
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+				      break;
+			      case APP_CMD_INPUT_TERM:
+			      	if (app->inputQueue != NULL) {
+			        	core_set::set_input_queue(app->looper, NULL);
+				        app->inputQueue = NULL;
+			      	}
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+			        break;
+				    case APP_CMD_LOST_FOCUS:
+				    	core_set::detach_sensor();
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+				      break;
+			      case APP_CMD_TERM_WINDOW:
+			      	eng->onWindowTerm();
+			        app->window = NULL;
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+			        break;
+			      case APP_CMD_CONFIG_CHANGED:
+			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+			        break;
+			      case APP_CMD_SAVE_STATE:
+			        pthread_mutex_lock(&app->mutex);
+						  if (app->savedState != NULL) {
+					      free(app->savedState);
+					      app->savedState = NULL;
+					      app->savedStateSize = 0;
+						  }
+			  			pthread_mutex_unlock(&app->mutex);
+				      app->savedState = malloc(sizeof(saved_state));
+				      *((saved_state*)app->savedState) = eng->state;
+				      app->savedStateSize = sizeof(saved_state);
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+			        break;
+			      case APP_CMD_PAUSE:
+			      	eng->onPause();
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+				      break;
+			      case APP_CMD_DESTROY:
+				  		eng->onDestroy();
+			        break;
+			      default:
+			      	// ?
+			      	break;
+			  	}
+			  	break;
+			  default:
+					eng->render();
+			  	break;
+	    }
+	  }
+	  core_set::undefine_core_set();
+	  delete eng;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
