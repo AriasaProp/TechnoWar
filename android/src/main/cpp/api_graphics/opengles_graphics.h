@@ -22,8 +22,6 @@ public:
 	void onWindowTerm() override;
 	void onPause() override;
 	void onDestroy() override;
-	~opengles_graphics() override;
-	opengles_graphics();
 	//core
 	float getWidth() override;
   float getHeight() override;
