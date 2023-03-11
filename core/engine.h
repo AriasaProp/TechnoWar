@@ -6,8 +6,9 @@
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
+
+
 namespace engine {
-	//graphics
 	//texture core
 	struct texture_core {
 		unsigned int id;
@@ -37,35 +38,37 @@ namespace engine {
 			0,0,0,1
 		};
 	};
-	
-	// grafik
-	extern float (*getWidth)();
-	extern float (*getHeight)();
-	extern void (*clear)(const unsigned int&);
-	extern void (*clearcolor)(const float&, const float&, const float&, const float&);
-	extern texture_core *(*gen_texture)(const int&, const int&, unsigned char*);
-	extern void (*bind_texture)(texture_core*);
-	extern void (*set_texture_param)(const int&, const int&);
-	extern void (*delete_texture)(texture_core*);
-	extern void (*flat_render)(flat_vertex*, unsigned int);
-	extern mesh_core *(*gen_mesh)(mesh_core::data*, unsigned int, unsigned short*, unsigned int);
-	extern void (*mesh_render)(mesh_core**, const unsigned int&);
-	extern void (*delete_mesh)(mesh_core*);
-	// input
-	extern float *(*getSensorValue)(const char*);
-	extern int (*getX)(unsigned int);
-	extern int (*getDeltaX)(unsigned int);
-	extern int (*getY)(unsigned int);
-	extern int (*getDeltaY)(unsigned int);
-	extern bool (*justTouched)();
-	extern bool (*isTouched)(unsigned int);
-	extern float (*getPressure)(unsigned int);
-	extern bool (*isButtonPressed)(int button);
-	extern bool (*isButtonJustPressed)(int button);
-	extern bool (*isKeyPressed)(int key);
-	extern bool (*isKeyJustPressed)(int key);
-	extern void (*process_event)();
-
+	struct graphics_core {
+	  virtual float getWidth() = 0;
+	  virtual float getHeight() = 0;
+	  virtual void clear(const unsigned int&) = 0;
+	  virtual void clearcolor(const float&, const float&, const float&, const float&) = 0;
+	  virtual texture_core* gen_texture(const int&, const int&, unsigned char*) = 0;
+	  virtual void bind_texture(texture_core*) = 0;
+	  virtual void set_texture_param(const int&, const int&) = 0;
+	  virtual void delete_texture(texture_core*) = 0;
+	  virtual void flat_render(flat_vertex*, unsigned int) = 0;
+	  virtual mesh_core* gen_mesh(mesh_core::data*, unsigned int, unsigned short*, unsigned int) = 0;
+	  virtual void mesh_render(mesh_core**, const unsigned int&) = 0;
+	  virtual void delete_mesh(mesh_core*) = 0;
+	};
+	struct input_core {
+	  virtual float* getSensorValue(const char*) = 0;
+	  virtual int getX(unsigned int) = 0;
+	  virtual int getDeltaX(unsigned int) = 0;
+	  virtual int getY(unsigned int) = 0;
+	  virtual int getDeltaY(unsigned int) = 0;
+	  virtual bool justTouched() = 0;
+	  virtual bool isTouched(unsigned int) = 0;
+	  virtual float getPressure(unsigned int) = 0;
+	  virtual bool isButtonPressed(int button) = 0;
+	  virtual bool isButtonJustPressed(int button) = 0;
+	  virtual bool isKeyPressed(int key) = 0;
+	  virtual bool isKeyJustPressed(int key) = 0;
+	  virtual void process_event() = 0;
+	};
+	extern graphics_core *graph;
+	extern input_core *inpt;
 }
 
 #endif //_Included_Engine

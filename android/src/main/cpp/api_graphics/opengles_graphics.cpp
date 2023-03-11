@@ -1,6 +1,18 @@
 #include "opengles_graphics.h"
+// make opengles lastest possible version
+// minimum API version is 21
+#if __ANDROID_API__ >= 24
+#include <GLES3/gl32.h>
+#elif __ANDROID_API__ >= 21
+#include <GLES3/gl31.h>
+#else
+#include <GLES3/gl3.h>
+#endif
 
 Main *m_Main = nullptr;
+void validate();
+void resize_viewport(const int,const int);
+void invalidate();
 
 void opengles_graphics::onResume() {
 	resume = true;
@@ -66,14 +78,14 @@ void opengles_graphics::render() {
   	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
   	
   	if (newCtx) {
-			core_set::validate();
+			validate();
   	}
   	if (!m_Main) {
   		m_Main = new Main;
   		m_Main->create();
   		resume = false;
   	}
-		core_set::resize_viewport(width, height);
+		resize_viewport(width, height);
 		resize = false;
   }
 	if (resize) {
@@ -83,7 +95,7 @@ void opengles_graphics::render() {
     int32_t width, height;
 		eglQuerySurface(display, surface, EGL_WIDTH, &width);
 		eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-		core_set::resize_viewport(width, height);
+		resize_viewport(width, height);
 	}
   if (resume) {
   	m_Main->resume();
@@ -132,7 +144,7 @@ void opengles_graphics::render() {
     	surface = EGL_NO_SURFACE;
     }
 		if (context && (EGLTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-    	core_set::invalidate();
+    	invalidate();
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;
     }
@@ -160,6 +172,332 @@ void opengles_graphics::onDestroy() {
 	destroyed = true;
 	render();
 }
-opengles_graphics::~opengles_graphics() {
-	
+
+#define MAX_UI_DRAW 100
+
+float opengles_graphics::getWidth() { return width; }
+float opengles_graphics::getHeight() { return height; }
+void opengles_graphics::clear(const unsigned int &m) {
+	*utemp = 0;
+	if (m&1)
+		*utemp |= GL_COLOR_BUFFER_BIT;
+	if (m&2)
+		*utemp |= GL_DEPTH_BUFFER_BIT;
+	if (m&4)
+		*utemp |= GL_STENCIL_BUFFER_BIT;
+	glClear(*utemp);
 }
+void opengles_graphics::clearcolor(const float &r, const float &g, const float &b, const float &a) {
+	glClearColor(r, g, b, a);
+}
+engine::texture_core *opengles_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
+	engine::texture_core *t = new engine::texture_core;
+	glGenTextures(1, &t->id);
+	t->width = width;
+	t->height = height;
+	memcpy(t->data, data, width*height*sizeof(unsigned char));
+	glBindTexture(GL_TEXTURE_2D, t->id);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	managedTexture.insert(t);
+	return t;
+}
+void opengles_graphics::bind_texture(engine::texture_core *t) {
+	glBindTexture(GL_TEXTURE_2D, t?t->id:0);
+}
+void opengles_graphics::set_texture_param(const int &param, const int &val) {
+	glTexParameteri(GL_TEXTURE_2D, param, val);
+}
+void opengles_graphics::delete_texture(engine::texture_core *t) {
+	std::unordered_set<engine::texture_core*>::iterator it = managedTexture.find(t);
+	if (it == managedTexture.end()) return;
+	managedTexture.erase(it);
+	glDeleteTextures(1, &t->id);
+	delete[] t->data;
+	delete t;
+}
+void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
+	glDisable(GL_DEPTH_TEST);
+	glUseProgram(ubatch->shader);
+	if (ubatch->dirty_projection) {
+		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
+		ubatch->dirty_projection = false;
+	}
+	glBindVertexArray(ubatch->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
+	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
+	engine::mesh_core *r = new engine::mesh_core;
+	r->vertex_len = v_len;
+	r->vertex = new engine::mesh_core::data[v_len];
+	memcpy(r->vertex, v, v_len*sizeof(engine::mesh_core::data));
+	r->index_len = i_len;
+	r->index = new unsigned short[i_len];
+	memcpy(r->index, i, i_len*sizeof(unsigned short));
+	glGenVertexArrays(1, &r->vao);
+	glGenBuffers(2, &r->vbo);
+	glBindVertexArray(r->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
+	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(engine::mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
+	glBindVertexArray(0);
+	managedMesh.insert(r);
+	return r;
+}
+void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned int &count) {
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glEnable(GL_DEPTH_TEST);
+	glUseProgram(ws->shader);
+	if (ws->dirty_worldProj) {
+		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
+		ws->dirty_worldProj = false;
+	}
+	for (unsigned int i = 0; i < count; ++i) {
+		engine::mesh_core *m = *(meshes+i);
+		glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
+		glBindVertexArray(m->vao);
+		if (m->dirty_vertex) {
+			glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+			glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(engine::mesh_core::data), (void*)m->vertex);
+			m->dirty_vertex = false;
+		}
+		if (m->dirty_index) {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
+			m->dirty_index = false;
+		}
+		glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
+	}
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+void opengles_graphics::delete_mesh(engine::mesh_core *m) {
+	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
+	if (it == managedMesh.end()) return;
+	managedMesh.erase(it);
+	glDeleteVertexArrays(1, &m->vao);
+	glDeleteBuffers(2, &m->vbo);
+	delete[] m->vertex;
+	delete[] m->index;
+	delete m;
+}
+
+void resize_viewport(const int w, const int h) {
+	glViewport(0, 0, w, h);
+	width = (float)w, height = (float)h;
+	memset(ws->worldProj, 0, 16 * sizeof(float));
+	ws->worldProj[0] = 2.f/width;
+	ws->worldProj[5] = 2.f/height;
+	ws->worldProj[10] = 0.0005f;
+	ws->worldProj[15] = 1;
+	ws->dirty_worldProj = true;
+	memset(ubatch->ui_projection, 0, 16 * sizeof(float));
+	ubatch->ui_projection[0] = 2.f/width;
+	ubatch->ui_projection[5] = 2.f/height;
+	ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1.f;
+	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1.f;
+	ubatch->dirty_projection = true;
+}
+void validate() {
+	if (valid) return;
+	//validating gles resources
+	glDepthRangef(0.0f, 1.0f);
+	glClearDepthf(1.0f);
+	glDepthFunc(GL_LESS);
+	//flat draw
+	memset(ubatch,0,sizeof(ui_batch));
+	{
+		ubatch->shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		const char *vt = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nuniform mat4 proj;"
+			"\nlayout(location = 0) in vec4 a_position;"
+			"\nlayout(location = 1) in vec4 a_color;"
+			"\nout vec4 v_color;"
+			"\nvoid main() {"
+			"\n    v_color = a_color;"
+			"\n    gl_Position = proj * a_position;"
+			"\n}\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
+		glCompileShader(utemp[0]);
+		glAttachShader(ubatch->shader, utemp[0]);
+		const char *ft = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nprecision MED float;"
+			"\nin vec4 v_color;"
+			"\nlayout(location = 0) out vec4 fragColor;"
+			"\nvoid main() {"
+			"\n    fragColor = v_color;"
+			"\n}\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
+		glCompileShader(utemp[1]);
+		glAttachShader(ubatch->shader, utemp[1]);
+		glLinkProgram(ubatch->shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "proj");
+		glGenVertexArrays(1, &ubatch->vao);
+		glGenBuffers(2, &ubatch->vbo);
+		glBindVertexArray(ubatch->vao);
+		unsigned short indexs[MAX_UI_DRAW*6];
+		for (size_t i = 0; i < MAX_UI_DRAW; i++) {
+			const unsigned short j = i * 6, k = i * 4;
+			indexs[j] = k;
+			indexs[j+1] = k+1;
+			indexs[j+2] = k+2;
+			indexs[j+3] = k+3;
+			indexs[j+4] = k+2;
+			indexs[j+5] = k+1;
+		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
+		glBindVertexArray(0);
+	}
+	//world draw
+	memset(ws,0,sizeof(world_btch));
+	{
+		ws->shader = glCreateProgram();
+		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
+		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
+		const char *vt = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nuniform mat4 worldview_proj;"
+			"\nuniform mat4 trans_proj;"
+			"\nlayout(location = 0) in vec4 a_position;"
+			"\nlayout(location = 1) in vec4 a_color;"
+			"\nout vec4 v_color;"
+			"\nvoid main() {"
+			"\n    v_color = a_color;"
+			"\n    gl_Position = worldview_proj * trans_proj * a_position;"
+			"\n}\0";
+		glShaderSource(utemp[0], 1, &vt, 0);
+		glCompileShader(utemp[0]);
+		glAttachShader(ws->shader, utemp[0]);
+		const char *ft = "#version 300 es"
+			"\n#define LOW lowp"
+			"\n#define MED mediump"
+			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
+			"\n    #define HIGH highp"
+			"\n#else"
+			"\n    #define HIGH mediump"
+			"\n#endif"
+			"\nprecision MED float;"
+			"\nin vec4 v_color;"
+			"\nlayout(location = 0) out vec4 fragColor;"
+			"\nvoid main() {"
+			"\n    fragColor = v_color;"
+			"\n}\0";
+		glShaderSource(utemp[1], 1, &ft, 0);
+		glCompileShader(utemp[1]);
+		glAttachShader(ws->shader, utemp[1]);
+		glLinkProgram(ws->shader);
+		glDeleteShader(utemp[0]);
+		glDeleteShader(utemp[1]);
+		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
+		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
+	}
+	//mesh
+	for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+		glGenVertexArrays(1, &(*i)->vao);
+		glGenBuffers(2, &(*i)->vbo);
+		glBindVertexArray((*i)->vao);
+		glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
+		glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(engine::mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
+	}
+	glBindVertexArray(0);
+	//texture
+	for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+		glGenTextures(1, &(*i)->id);
+		glBindTexture(GL_TEXTURE_2D, (*i)->id);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
+	valid = true;
+}
+void invalidate() {
+	//invalidating gles resources
+	if (!valid) return;
+	//world draw
+	glDeleteProgram(ws->shader);
+	//flat draw
+	glDeleteProgram(ubatch->shader);
+	glDeleteVertexArrays(1, &ubatch->vao);
+	glDeleteBuffers(2, &ubatch->vbo);
+	//mesh
+	for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+		glDeleteVertexArrays(1, &(*i)->vao);
+		glDeleteBuffers(2, &(*i)->vbo);
+	}
+	//texture
+	for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+		glDeleteTextures(1, &(*i)->id);
+	}
+	valid = false;
+}
+
+opengles_graphics::opengles_graphics() {
+	temp = new int[2];
+	utemp = new unsigned int[2];
+	ubatch = new ui_batch;
+	memset(ubatch,0,sizeof(ui_batch));
+	ws = new world_btch;
+	memset(ws,0,sizeof(world_btch));
+	
+  engine::graph = this;
+}
+
+opengles_graphics::~opengles_graphics() {
+	invalidate();
+	managedTexture.clear();
+	managedMesh.clear();
+	delete ubatch;
+	delete ws;
+	delete[] temp;
+	delete[] utemp;
+  engine::graph = nullptr;
+}
+
