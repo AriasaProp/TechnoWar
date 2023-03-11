@@ -8,7 +8,7 @@
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
-engine::graph->mesh_core *mp;
+engine::mesh_core *mp;
 Actor ml, mb, mc;
 
 void Main::create() {
@@ -30,7 +30,7 @@ void Main::create() {
 	mc.height = 200;
 	mc.color = 0x00ff00ff;
 	user_interface::addActor(&mc);
-	engine::graph->mesh_core::data vert[24] = {
+	engine::mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
 		{ +350.0f, -350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
