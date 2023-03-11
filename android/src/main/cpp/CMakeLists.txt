@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10.0)
 
 project(ext LANGUAGES CXX)
 
+find_package(Vulkan REQUIRED)
+
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,7 +20,8 @@ add_subdirectory(${CORE_SRC} bin/core)
 
 include_directories(${Include_Dir})
 include_directories(${Include_subDir})
+include_directories(${Vulkan_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
-target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log)
+target_link_libraries(${PROJECT_NAME} core GLESv3 Vulkan::vulkan android EGL log)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 

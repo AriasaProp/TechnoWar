@@ -95,14 +95,14 @@ struct m_egl {
 	void egl_terminate(const unsigned int term) {
   	if (!term || !display) return;
 		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
+      eglDestroySurface(display, surface);
+    	surface = EGL_NO_SURFACE;
+    }
 		if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
     	core_set::invalidate();
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;
-    }
-    if (surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-      eglDestroySurface(display, surface);
-    	surface = EGL_NO_SURFACE;
     }
     if (term & TERM_EGL_DISPLAY) {
   		eglTerminate(display);
