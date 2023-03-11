@@ -3,39 +3,16 @@
 
 #include "android_graphics.h"
 #include "../main_game.h"
+#include <EGL/egl.h>
 #include <unordered_set>
 
-struct ui_batch {
-	bool dirty_projection;
-	int shader;
-	int u_projection;
-	unsigned int vao, vbo, ibo;
-	float ui_projection[16];
-};
-struct world_btch {
-	bool dirty_worldProj;
-	int shader;
-	int u_worldProj;
-	int u_transProj;
-	float worldProj[16];
-};
-
-struct opengles_graphics: public android_graphics {
+struct opengles_graphics: public android_graphics 
 private:
-	std::unordered_set<engine::texture_core*> managedTexture;
-	std::unordered_set<engine::mesh_core*> managedMesh;
-	bool valid = false;
-	int *temp;
-	unsigned int *utemp;
-	char *msg;
-	float width, height;
-	ui_batch *ubatch;
-	world_btch *ws;
 	ANativeWindow *window;
-  EGLDisplay display;
-  EGLSurface surface;
-  EGLContext context;
-  EGLConfig eConfig; 
+	EGLDisplay display;
+	EGLSurface surface;
+	EGLContext context;
+	EGLConfig eConfig;
 public:
 	//android
 	void onResume() override;

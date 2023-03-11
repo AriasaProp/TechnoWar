@@ -1,4 +1,22 @@
 #include "opengles_graphics.h"
+#include <cassert>
+
+
+struct ui_batch {
+	bool dirty_projection;
+	int shader;
+	int u_projection;
+	unsigned int vao, vbo, ibo;
+	float ui_projection[16];
+};
+struct world_btch {
+	bool dirty_worldProj;
+	int shader;
+	int u_worldProj;
+	int u_transProj;
+	float worldProj[16];
+};
+
 // make opengles lastest possible version
 // minimum API version is 21
 #if __ANDROID_API__ >= 24
@@ -174,6 +192,15 @@ void opengles_graphics::onDestroy() {
 }
 
 #define MAX_UI_DRAW 100
+std::unordered_set<engine::texture_core*> managedTexture;
+std::unordered_set<engine::mesh_core*> managedMesh;
+bool valid = false;
+int *temp;
+unsigned int *utemp;
+char *msg;
+float width, height;
+ui_batch *ubatch;
+world_btch *ws;
 
 float opengles_graphics::getWidth() { return width; }
 float opengles_graphics::getHeight() { return height; }
