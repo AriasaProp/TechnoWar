@@ -160,4 +160,6 @@ void opengles_graphics::Destroy() {
 	destroyed = true;
 	render();
 }
-
+opengles_graphics::~opengles_graphics() {
+	
+}

@@ -7,3 +7,4 @@ void vulkan_graphics::render() {}
 void vulkan_graphics::onWindowTerm() {}
 void vulkan_graphics::onPause() {}
 void vulkan_graphics::onDestroy() {}
+vulkan_graphics::~vulkan_graphics() {}

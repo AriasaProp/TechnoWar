@@ -14,6 +14,7 @@ public:
 	void onWindowTerm() override;
 	void onPause() override;
 	void onDestroy() override;
+	~vulkan_graphics() override;
 };
 
 #endif //_Included_VULKAN_Graphics

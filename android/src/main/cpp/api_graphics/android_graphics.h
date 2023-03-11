@@ -21,6 +21,7 @@ struct android_graphics {
 	virtual void onWindowTerm() = 0;
 	virtual void onPause() = 0;
 	virtual void onDestroy() = 0;
+	virtual ~android_graphics() {}
 };
 
 #endif //_Included_Android_Graphics

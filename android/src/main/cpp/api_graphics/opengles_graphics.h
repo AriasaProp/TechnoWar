@@ -18,5 +18,6 @@ public:
 	void onWindowTerm() override;
 	void onPause() override;
 	void onDestroy() override;
+	~opengles_graphics() override;
 };
 #endif //_Included_OPENGLES_Graphics
