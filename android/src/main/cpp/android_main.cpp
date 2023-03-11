@@ -23,6 +23,9 @@
 #include "log.h"
 #include "engine.h"
 #include "main_game.h"
+#include "api_graphics/android_graphics.h"
+#include "api_graphics/opengles_graphics.h"
+#include "api_graphics/vulkan_graphics.h"
 
 namespace core_set {
 	void define_core_set(ALooper*);
@@ -39,7 +42,6 @@ namespace core_set {
 	
 	void undefine_core_set();
 }
-
 
 struct android_app {
     bool destroyed;
@@ -74,283 +76,135 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
 
 #define TERM_EGL_SURFACE 1
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 
-struct m_egl {
-  bool resize, resume, running, pause, destroyed;
-  saved_state state;
-  ANativeWindow* window; //used in glThread
-  EGLDisplay display;
-  EGLSurface surface;
-  EGLContext context;
-  EGLConfig eConfig;
-	void egl_terminate(const unsigned int term) {
-  	if (!term || !display) return;
-		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (surface && (term & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-      eglDestroySurface(display, surface);
-    	surface = EGL_NO_SURFACE;
-    }
-		if (context && (term & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-    	core_set::invalidate();
-    	eglDestroyContext(display, context);
-    	context = EGL_NO_CONTEXT;
-    }
-    if (term & TERM_EGL_DISPLAY) {
-  		eglTerminate(display);
-    	display = EGL_NO_DISPLAY;
-    }
-	}
-	Main *m_Main = nullptr;
-	void engine_draw() {
-	  if (!window || !running) return;
-	  if (!display || !context || !surface) {
-	  	if (!display) {
-	    	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	    	eglInitialize(display, nullptr, nullptr);
-	    	eConfig = nullptr;
-	  	}
-	  	if (!eConfig) {
-			  EGLint temp;
-			  const EGLint configAttr[] = {
-			    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-			    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-			    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-			    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-			    EGL_ALPHA_SIZE, 0,
-			    EGL_NONE
-			  };
-			  eglChooseConfig(display, configAttr, nullptr,0, &temp);
-			  assert(temp);
-			  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-			  assert(configs);
-			  eglChooseConfig(display, configAttr, configs, temp, &temp);
-			  assert(temp);
-			  eConfig = configs[0];
-			  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
-			    EGLConfig& cfg = configs[i];
-			    eglGetConfigAttrib(display, cfg, EGL_BUFFER_SIZE, &temp);
-			    l = temp;
-			    eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &temp);
-			    l += temp;
-			    eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &temp);
-			    l += temp;
-			    if (l > k) {
-			      k = l;
-			      eConfig = cfg;
-			    }
-			  }
-	  	}
-	  	bool newCtx = false;
-	  	if (!context) {
-	  		newCtx = true;
-	  		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-	  		context = eglCreateContext(display, eConfig, nullptr, ctxAttr);
-	  	}
-	  	if (!surface) {
-				surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
-	  	}
-	  	eglMakeCurrent(display, surface, surface, context);
-	    int32_t width, height;
-	  	eglQuerySurface(display, surface, EGL_WIDTH, &width);
-	  	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-	  	
-	  	if (newCtx) {
-				core_set::validate();
-	  	}
-	  	if (!m_Main) {
-	  		m_Main = new Main;
-	  		m_Main->create();
-	  		resume = false;
-	  	}
-			core_set::resize_viewport(width, height);
-			resize = false;
-	  }
-		if (resize) {
-			resize = false;
-			eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-			eglMakeCurrent(display, surface, surface, context);
-	    int32_t width, height;
-			eglQuerySurface(display, surface, EGL_WIDTH, &width);
-			eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-			core_set::resize_viewport(width, height);
-		}
-	  if (resume) {
-	  	m_Main->resume();
-			resume = false;
-	  }
-	  state.angle += .01f;
-	  if (state.angle > 1) {
-	      state.angle = 0;
-	  }
-	  m_Main->render(1.f/60.f);
-	  if (pause) {
-	  	m_Main->pause();
-			pause = false;
-	  }
-	  if (destroyed) {
-	  	m_Main->destroy();
-	  	delete(m_Main);
-	  	m_Main = nullptr;
-	  }
-		if (!eglSwapBuffers(display, surface)) {
-			switch (eglGetError()) {
-	  		case EGL_BAD_SURFACE:
-	  		case EGL_BAD_NATIVE_WINDOW:
-	  		case EGL_BAD_CURRENT_SURFACE:
-	  			egl_terminate(TERM_EGL_SURFACE);
-	  			break;
-	  		case EGL_BAD_CONTEXT:
-	  		case EGL_CONTEXT_LOST:
-	  			egl_terminate(TERM_EGL_CONTEXT);
-	  			break;
-	  		case EGL_NOT_INITIALIZED:
-	  		case EGL_BAD_DISPLAY:
-	  			egl_terminate(TERM_EGL_DISPLAY);
-	  			break;
-	  		default:
-					break;
-			}
-		}
-	}
-};
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-	  m_egl *eng = new m_egl;
-	  memset(eng,0,sizeof(m_egl));
-	  core_set::define_core_set(app->looper);
-	  if (app->savedState) {
-	      eng->state = *(saved_state*)app->savedState;
+	  {
+		  android_graphics eng = opengles_graphics();
+		  core_set::define_core_set(app->looper);
+		  if (app->savedState) {
+		      eng.state = *(saved_state*)app->savedState;
+		  }
+		  while (!eng.destroyed) {
+		    switch (ALooper_pollAll(eng.running ? 0 : -1, nullptr, nullptr, nullptr)) {
+		      case 2: //input queue
+		      	core_set::process_input();
+		      	break;
+		      case 3: //sensor queue
+		      	core_set::process_sensor();
+		      	break;
+		    	case 1: //android activity queue
+						int8_t cmd;
+				    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
+						switch (cmd) {
+					    case APP_CMD_RESUME:
+					    	eng.onResume();
+				        pthread_mutex_lock(&app->mutex);
+							  if (app->savedState != NULL) {
+						      free(app->savedState);
+						      app->savedState = NULL;
+						      app->savedStateSize = 0;
+							  }
+							  pthread_mutex_unlock(&app->mutex);
+				        break;
+				      case APP_CMD_INIT_WINDOW:
+				      	eng.onWindowInit(app->window);
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+				        break;
+					    case APP_CMD_WINDOW_RESIZED:
+					    	eng.needResize();
+					    	break;
+					    case APP_CMD_GAINED_FOCUS:
+					    	core_set::attach_sensor();
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+					      break;
+				      case APP_CMD_INPUT_INIT:
+			        	core_set::set_input_queue(app->looper, app->inputQueue);
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+					      break;
+				      case APP_CMD_INPUT_TERM:
+				      	if (app->inputQueue != NULL) {
+				        	core_set::set_input_queue(app->looper, NULL);
+					        app->inputQueue = NULL;
+				      	}
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+				        break;
+					    case APP_CMD_LOST_FOCUS:
+					    	core_set::detach_sensor();
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+					      break;
+				      case APP_CMD_TERM_WINDOW:
+				      	eng.onWindowTerm();
+				        app->window = NULL;
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+				        break;
+				      case APP_CMD_CONFIG_CHANGED:
+				        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+				        break;
+				      case APP_CMD_SAVE_STATE:
+				        pthread_mutex_lock(&app->mutex);
+							  if (app->savedState != NULL) {
+						      free(app->savedState);
+						      app->savedState = NULL;
+						      app->savedStateSize = 0;
+							  }
+				  			pthread_mutex_unlock(&app->mutex);
+					      app->savedState = malloc(sizeof(saved_state));
+					      *((saved_state*)app->savedState) = eng.state;
+					      app->savedStateSize = sizeof(saved_state);
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+				        break;
+				      case APP_CMD_PAUSE:
+				      	eng.onPause();
+						    pthread_mutex_lock(&app->mutex);
+						    app->appCmdState = cmd;
+						    pthread_cond_broadcast(&app->cond);
+						    pthread_mutex_unlock(&app->mutex);
+					      break;
+				      case APP_CMD_DESTROY:
+					  		eng.onDestroy();
+				        break;
+				      default:
+				      	// ?
+				      	break;
+				  	}
+				  	break;
+				  default:
+						eng.render();
+				  	break;
+		    }
+		  }
+		  core_set::undefine_core_set();
 	  }
-	  while (!eng->destroyed) {
-	    switch (ALooper_pollAll(eng->running ? 0 : -1, nullptr, nullptr, nullptr)) {
-	      case 2: //input queue
-	      	core_set::process_input();
-	      	break;
-	      case 3: //sensor queue
-	      	core_set::process_sensor();
-	      	break;
-	    	case 1: //android activity queue
-					int8_t cmd;
-			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
-					switch (cmd) {
-				    case APP_CMD_RESUME:
-							eng->resume = true;
-				      eng->running = true;
-			        pthread_mutex_lock(&app->mutex);
-						  if (app->savedState != NULL) {
-					      free(app->savedState);
-					      app->savedState = NULL;
-					      app->savedStateSize = 0;
-						  }
-						  pthread_mutex_unlock(&app->mutex);
-			        break;
-			      case APP_CMD_INIT_WINDOW:
-			        eng->window = app->window;
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-			        break;
-				    case APP_CMD_WINDOW_RESIZED:
-				    	eng->resize = true;
-				    	break;
-				    case APP_CMD_GAINED_FOCUS:
-				    	core_set::attach_sensor();
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-				      break;
-			      case APP_CMD_INPUT_INIT:
-		        	core_set::set_input_queue(app->looper, app->inputQueue);
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-				      break;
-			      case APP_CMD_INPUT_TERM:
-			      	if (app->inputQueue != NULL) {
-			        	core_set::set_input_queue(app->looper, NULL);
-				        app->inputQueue = NULL;
-			      	}
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-			        break;
-				    case APP_CMD_LOST_FOCUS:
-				    	core_set::detach_sensor();
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-				      break;
-			      case APP_CMD_TERM_WINDOW:
-				  		eng->egl_terminate(TERM_EGL_SURFACE);
-			        app->window = eng->window = NULL;
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-			        break;
-			      case APP_CMD_CONFIG_CHANGED:
-			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-			        break;
-			      case APP_CMD_SAVE_STATE:
-			        pthread_mutex_lock(&app->mutex);
-						  if (app->savedState != NULL) {
-					      free(app->savedState);
-					      app->savedState = NULL;
-					      app->savedStateSize = 0;
-						  }
-			  			pthread_mutex_unlock(&app->mutex);
-				      app->savedState = malloc(sizeof(saved_state));
-				      *((saved_state*)app->savedState) = eng->state;
-				      app->savedStateSize = sizeof(saved_state);
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-			        break;
-			      case APP_CMD_PAUSE:
-				  		eng->pause = true;
-				  		eng->engine_draw();
-				      eng->running = false;
-					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
-					    pthread_cond_broadcast(&app->cond);
-					    pthread_mutex_unlock(&app->mutex);
-				      break;
-			      case APP_CMD_DESTROY:
-				  		eng->destroyed = true;
-				  		eng->engine_draw();
-				  		eng->egl_terminate(TERM_EGL_DISPLAY);
-			        break;
-			      default:
-			      	// ?
-			      	break;
-			  	}
-			  	break;
-			  default:
-					eng->engine_draw();
-			  	break;
-	    }
-	  }
-	  core_set::undefine_core_set();
-	  delete eng;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
