@@ -2,11 +2,11 @@
 
 Main *m_Main = nullptr;
 
-void opengles_graphics::Resume() {
+void opengles_graphics::onResume() {
 	resume = true;
 	running = true;
 }
-void opengles_graphics::WindowInit(ANativeWindow *w){
+void opengles_graphics::onWindowInit(ANativeWindow *w){
 	window = w;
 }
 void opengles_graphics::needResize() {
@@ -142,7 +142,7 @@ void opengles_graphics::render() {
     }
 	}
 }
-void opengles_graphics::WindowTerm(){
+void opengles_graphics::onWindowTerm(){
 	if (!display) return;
 	eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (surface) {
@@ -151,12 +151,12 @@ void opengles_graphics::WindowTerm(){
   }
 	window = NULL;
 }
-void opengles_graphics::Pause() {
+void opengles_graphics::onPause() {
 	pause = true;
 	render();
 	running = false;
 }
-void opengles_graphics::Destroy() {
+void opengles_graphics::onDestroy() {
 	destroyed = true;
 	render();
 }
