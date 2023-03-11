@@ -1,7 +1,5 @@
-#ifndef _Included_Android_Input
-#define _Included_Android_Input
-
 #include "../engine.h"
+#include "android_input.h"
 #include <unordered_set>
 #include <android/sensor.h>
 #include <android/looper.h>
