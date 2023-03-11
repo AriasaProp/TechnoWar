@@ -66,6 +66,7 @@ namespace engine {
 	  virtual bool isKeyPressed(int key) = 0;
 	  virtual bool isKeyJustPressed(int key) = 0;
 	  virtual void process_event() = 0;
+	  virtual ~input_core() {}
 	};
 	extern graphics_core *graph;
 	extern input_core *inpt;
