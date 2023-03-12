@@ -1,3 +1,3 @@
-#include "android_graphics.cpp"
+#include "android_graphics.hpp"
 
-android_graphics::~android_graphics(){};
+android_graphics::~android_graphics(){}
