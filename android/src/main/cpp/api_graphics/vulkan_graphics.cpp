@@ -1,6 +1,6 @@
-#include "opengles_graphics.hpp"
+#include "vulkan_graphics.h"
+/*
 #include <cassert>
-
 
 struct ui_batch {
 	bool dirty_projection;
@@ -17,32 +17,25 @@ struct world_btch {
 	float worldProj[16];
 };
 
-// make opengles lastest possible version
-// minimum API version is 21
-#if __ANDROID_API__ >= 24
-#include <GLES3/gl32.h>
-#elif __ANDROID_API__ >= 21
-#include <GLES3/gl31.h>
-#else
-#include <GLES3/gl3.h>
-#endif
+#include <vulkan/vulkan.hpp>
 
 Main *m_Main = nullptr;
+bool vulkan_valid = false;
 void validate();
 void resize_viewport(const int,const int);
 void invalidate();
 
-void opengles_graphics::onResume() {
+void vulkan_graphics::onResume() {
 	resume = true;
 	running = true;
 }
-void opengles_graphics::onWindowInit(ANativeWindow *w){
+void vulkan_graphics::onWindowInit(ANativeWindow *w){
 	window = w;
 }
-void opengles_graphics::needResize() {
+void vulkan_graphics::needResize() {
 	resize = true;
 }
-void opengles_graphics::render() {
+void vulkan_graphics::render() {
   if (!window || !running) return;
   if (!display || !context || !surface) {
   	if (!display) {
@@ -80,22 +73,19 @@ void opengles_graphics::render() {
 		      eConfig = cfg;
 		    }
 		  }
-  	}
-  	bool newCtx = false;
+  	} 
   	if (!context) {
-  		newCtx = true;
   		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   		context = eglCreateContext(display, eConfig, nullptr, ctxAttr);
   	}
-  	if (!surface) {
+  	if (!surface)
 			surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
-  	}
   	eglMakeCurrent(display, surface, surface, context);
     int32_t width, height;
   	eglQuerySurface(display, surface, EGL_WIDTH, &width);
   	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
   	
-  	if (newCtx) {
+  	if (vulkan_valid) {
 			validate();
   	}
   	if (!m_Main) {
@@ -172,7 +162,7 @@ void opengles_graphics::render() {
     }
 	}
 }
-void opengles_graphics::onWindowTerm(){
+void vulkan_graphics::onWindowTerm(){
 	if (!display) return;
 	eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (surface) {
@@ -181,12 +171,12 @@ void opengles_graphics::onWindowTerm(){
   }
 	window = NULL;
 }
-void opengles_graphics::onPause() {
+void vulkan_graphics::onPause() {
 	pause = true;
 	render();
 	running = false;
 }
-void opengles_graphics::onDestroy() {
+void vulkan_graphics::onDestroy() {
 	destroyed = true;
 	render();
 }
@@ -194,7 +184,6 @@ void opengles_graphics::onDestroy() {
 #define MAX_UI_DRAW 100
 std::unordered_set<engine::texture_core*> managedTexture;
 std::unordered_set<engine::mesh_core*> managedMesh;
-bool valid = false;
 int *temp;
 unsigned int *utemp;
 char *msg;
@@ -202,9 +191,9 @@ float width, height;
 ui_batch *ubatch;
 world_btch *ws;
 
-float opengles_graphics::getWidth() { return width; }
-float opengles_graphics::getHeight() { return height; }
-void opengles_graphics::clear(const unsigned int &m) {
+float vulkan_graphics::getWidth() { return width; }
+float vulkan_graphics::getHeight() { return height; }
+void vulkan_graphics::clear(const unsigned int &m) {
 	*utemp = 0;
 	if (m&1)
 		*utemp |= GL_COLOR_BUFFER_BIT;
@@ -214,10 +203,10 @@ void opengles_graphics::clear(const unsigned int &m) {
 		*utemp |= GL_STENCIL_BUFFER_BIT;
 	glClear(*utemp);
 }
-void opengles_graphics::clearcolor(const float &r, const float &g, const float &b, const float &a) {
+void vulkan_graphics::clearcolor(const float &r, const float &g, const float &b, const float &a) {
 	glClearColor(r, g, b, a);
 }
-engine::texture_core *opengles_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
+engine::texture_core *vulkan_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
 	engine::texture_core *t = new engine::texture_core;
 	glGenTextures(1, &t->id);
 	t->width = width;
@@ -230,13 +219,13 @@ engine::texture_core *opengles_graphics::gen_texture(const int &width, const int
 	managedTexture.insert(t);
 	return t;
 }
-void opengles_graphics::bind_texture(engine::texture_core *t) {
+void vulkan_graphics::bind_texture(engine::texture_core *t) {
 	glBindTexture(GL_TEXTURE_2D, t?t->id:0);
 }
-void opengles_graphics::set_texture_param(const int &param, const int &val) {
+void vulkan_graphics::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
 }
-void opengles_graphics::delete_texture(engine::texture_core *t) {
+void vulkan_graphics::delete_texture(engine::texture_core *t) {
 	std::unordered_set<engine::texture_core*>::iterator it = managedTexture.find(t);
 	if (it == managedTexture.end()) return;
 	managedTexture.erase(it);
@@ -244,7 +233,7 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
+void vulkan_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
@@ -258,7 +247,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
+engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	engine::mesh_core *r = new engine::mesh_core;
 	r->vertex_len = v_len;
 	r->vertex = new engine::mesh_core::data[v_len];
@@ -281,7 +270,7 @@ engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsign
 	managedMesh.insert(r);
 	return r;
 }
-void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned int &count) {
+void vulkan_graphics::mesh_render(engine::mesh_core **meshes,const unsigned int &count) {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
@@ -309,7 +298,7 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
-void opengles_graphics::delete_mesh(engine::mesh_core *m) {
+void vulkan_graphics::delete_mesh(engine::mesh_core *m) {
 	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
@@ -337,7 +326,7 @@ void resize_viewport(const int w, const int h) {
 	ubatch->dirty_projection = true;
 }
 void validate() {
-	if (valid) return;
+	if (vulkan_valid) return;
 	//validating gles resources
 	glDepthRangef(0.0f, 1.0f);
 	glClearDepthf(1.0f);
@@ -483,11 +472,11 @@ void validate() {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	valid = true;
+	vulkan_valid = true;
 }
 void invalidate() {
 	//invalidating gles resources
-	if (!valid) return;
+	if (!vulkan_valid) return;
 	//world draw
 	glDeleteProgram(ws->shader);
 	//flat draw
@@ -503,10 +492,10 @@ void invalidate() {
 	for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 		glDeleteTextures(1, &(*i)->id);
 	}
-	valid = false;
+	vulkan_valid = false;
 }
 
-opengles_graphics::opengles_graphics() {
+vulkan_graphics::vulkan_graphics() {
 	temp = new int[2];
 	utemp = new unsigned int[2];
 	ubatch = new ui_batch;
@@ -517,7 +506,7 @@ opengles_graphics::opengles_graphics() {
   engine::graph = this;
 }
 
-opengles_graphics::~opengles_graphics() {
+vulkan_graphics::~vulkan_graphics() {
 	invalidate();
 	managedTexture.clear();
 	managedMesh.clear();
@@ -528,3 +517,159 @@ opengles_graphics::~opengles_graphics() {
   engine::graph = nullptr;
 }
 
+bool initialize(android_app* app) {
+  // Load Android vulkan and retrieve vulkan API function pointers
+  if (!InitVulkan()) {
+    LOGE("Vulkan is unavailable, install vulkan and re-start");
+    return false;
+  }
+
+
+  VkApplicationInfo appInfo = {
+      .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+      .pNext = nullptr,
+      .pApplicationName = "tutorial01_load_vulkan",
+      .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+      .pEngineName = "tutorial",
+      .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+      .apiVersion = VK_MAKE_VERSION(1, 1, 0),
+  };
+
+
+  // prepare necessary extensions: Vulkan on Android need these to function
+  std::vector<const char *> instanceExt, deviceExt;
+  instanceExt.push_back("VK_KHR_surface");
+  instanceExt.push_back("VK_KHR_android_surface");
+  deviceExt.push_back("VK_KHR_swapchain");
+
+
+  // Create the Vulkan instance
+  VkInstanceCreateInfo instanceCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+      .pNext = nullptr,
+      .pApplicationInfo = &appInfo,
+      .enabledLayerCount = 0,
+      .ppEnabledLayerNames = nullptr,
+      .enabledExtensionCount = static_cast<uint32_t>(instanceExt.size()),
+      .ppEnabledExtensionNames = instanceExt.data(),
+  };
+  CALL_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &tutorialInstance));
+
+
+  // if we create a surface, we need the surface extension
+  VkAndroidSurfaceCreateInfoKHR createInfo{
+      .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
+      .pNext = nullptr,
+      .flags = 0,
+      .window = app->window};
+  CALL_VK(vkCreateAndroidSurfaceKHR(tutorialInstance, &createInfo, nullptr,
+                                    &tutorialSurface));
+
+
+  // Find one GPU to use:
+  // On Android, every GPU device is equal -- supporting
+  // graphics/compute/present
+  // for this sample, we use the very first GPU device found on the system
+  uint32_t gpuCount = 0;
+  CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, nullptr));
+  VkPhysicalDevice tmpGpus[gpuCount];
+  CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, tmpGpus));
+  tutorialGpu = tmpGpus[0];  // Pick up the first GPU Device
+
+
+  // check for vulkan info on this GPU device
+  VkPhysicalDeviceProperties gpuProperties;
+  vkGetPhysicalDeviceProperties(tutorialGpu, &gpuProperties);
+  LOGI("Vulkan Physical Device Name: %s", gpuProperties.deviceName);
+  LOGI("Vulkan Physical Device Info: apiVersion: %x \n\t driverVersion: %x",
+       gpuProperties.apiVersion, gpuProperties.driverVersion);
+  LOGI("API Version Supported: %d.%d.%d",
+       VK_VERSION_MAJOR(gpuProperties.apiVersion),
+       VK_VERSION_MINOR(gpuProperties.apiVersion),
+       VK_VERSION_PATCH(gpuProperties.apiVersion));
+
+
+  VkSurfaceCapabilitiesKHR surfaceCapabilities;
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(tutorialGpu, tutorialSurface,
+                                            &surfaceCapabilities);
+
+
+  LOGI("Vulkan Surface Capabilities:\n");
+  LOGI("\timage count: %u - %u\n", surfaceCapabilities.minImageCount,
+       surfaceCapabilities.maxImageCount);
+  LOGI("\tarray layers: %u\n", surfaceCapabilities.maxImageArrayLayers);
+  LOGI("\timage size (now): %dx%d\n", surfaceCapabilities.currentExtent.width,
+       surfaceCapabilities.currentExtent.height);
+  LOGI("\timage size (extent): %dx%d - %dx%d\n",
+       surfaceCapabilities.minImageExtent.width,
+       surfaceCapabilities.minImageExtent.height,
+       surfaceCapabilities.maxImageExtent.width,
+       surfaceCapabilities.maxImageExtent.height);
+  LOGI("\tusage: %x\n", surfaceCapabilities.supportedUsageFlags);
+  LOGI("\tcurrent transform: %u\n", surfaceCapabilities.currentTransform);
+  LOGI("\tallowed transforms: %x\n", surfaceCapabilities.supportedTransforms);
+  LOGI("\tcomposite alpha flags: %u\n", surfaceCapabilities.currentTransform);
+
+
+  // Find a GFX queue family
+  uint32_t queueFamilyCount;
+  vkGetPhysicalDeviceQueueFamilyProperties(tutorialGpu, &queueFamilyCount, nullptr);
+  assert(queueFamilyCount);
+  std::vector<VkQueueFamilyProperties>  queueFamilyProperties(queueFamilyCount);
+  vkGetPhysicalDeviceQueueFamilyProperties(tutorialGpu, &queueFamilyCount,
+                                           queueFamilyProperties.data());
+
+
+  uint32_t queueFamilyIndex;
+  for (queueFamilyIndex=0; queueFamilyIndex < queueFamilyCount;
+       queueFamilyIndex++) {
+    if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+      break;
+    }
+  }
+  assert(queueFamilyIndex < queueFamilyCount);
+
+
+  // Create a logical device from GPU we picked
+  float priorities[] = {
+      1.0f,
+  };
+  VkDeviceQueueCreateInfo queueCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .queueFamilyIndex = queueFamilyIndex,
+      .queueCount = 1,
+      .pQueuePriorities = priorities,
+  };
+
+
+  VkDeviceCreateInfo deviceCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .pNext = nullptr,
+      .queueCreateInfoCount = 1,
+      .pQueueCreateInfos = &queueCreateInfo,
+      .enabledLayerCount = 0,
+      .ppEnabledLayerNames = nullptr,
+      .enabledExtensionCount = static_cast<uint32_t>(deviceExt.size()),
+      .ppEnabledExtensionNames = deviceExt.data(),
+      .pEnabledFeatures = nullptr,
+  };
+
+
+  CALL_VK(
+      vkCreateDevice(tutorialGpu, &deviceCreateInfo, nullptr, &tutorialDevice));
+  initialized_ = true;
+  return 0;
+}
+
+
+void terminate(void) {
+  vkDestroySurfaceKHR(tutorialInstance, tutorialSurface, nullptr);
+  vkDestroyDevice(tutorialDevice, nullptr);
+  vkDestroyInstance(tutorialInstance, nullptr);
+
+
+  initialized_ = false;
+}
+*/

@@ -1,5 +1,5 @@
-#include "android_input.h"
-#include "../engine.h"
+#include "android_input.hpp"
+#include "../engine.hpp"
 
 #include <unordered_set>
 #include <unordered_map>

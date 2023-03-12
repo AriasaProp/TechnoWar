@@ -1,5 +1,5 @@
-#include "user_interface.h"
-#include "../engine.h"
+#include "user_interface.hpp"
+#include "../engine.hpp"
 #include <unordered_set>
 
 std::unordered_set<Actor*> *actors;

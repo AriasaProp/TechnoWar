@@ -1,8 +1,8 @@
-#include "main_game.h"
-#include "engine.h"
+#include "main_game.hpp"
+#include "engine.hpp"
 
-#include "user_interface/user_interface.h"
-#include "math/matrix4.h"
+#include "user_interface/user_interface.hpp"
+#include "math/matrix4.hpp"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>     /* srand, rand */

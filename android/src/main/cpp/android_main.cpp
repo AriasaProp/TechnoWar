@@ -20,13 +20,13 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
-#include "log.h"
-#include "engine.h"
-#include "main_game.h"
+#include "log.hpp"
+#include "engine.hpp"
+#include "main_game.hpp"
 
-#include "android_input/android_input.h"
-#include "api_graphics/android_graphics.h"
-#include "api_graphics/opengles_graphics.h"
+#include "android_input/android_input.hpp"
+#include "api_graphics/android_graphics.hpp"
+#include "api_graphics/opengles_graphics.hpp"
 
 struct android_app {
     bool destroyed;
