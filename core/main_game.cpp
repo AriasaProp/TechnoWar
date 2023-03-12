@@ -5,6 +5,7 @@
 #include "math/matrix4.hpp"
 #include <cstring>
 #include <cmath>
+#include <chrono>
 #include <cstdlib>     /* srand, rand */
 #include <time.h>       /* time */
 
@@ -75,16 +76,20 @@ Main::Main() {
 }
 void Main::resume() {
 }
-void Main::render(float delta) {
-	(void)delta;
+std::chrono::time_point start = NULL, end = NULL;
+float delta = 0;
+void Main::render() {
+	end = std::choro::high_resolution_clock::now();
+	if (!start)
+		delta = float(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()) / 1000000.f;
+	start = end;
 	engine::inpt->process_event();
 	engine::graph->clear(7);
 	
-	srand(time(NULL));
 	matrix4::rotate(mp->trans,
-		M_PI / std::fmax(float(rand()%1000), 240.0f),
-		M_PI / std::fmax(float(rand()%1000), 240.0f),
-		M_PI / std::fmax(float(rand()%1000), 240.0f)
+		M_PI / 12.f * (delta), //15° /s
+		M_PI / 6.f * (delta), //30° /s
+		M_PI / 3.0f * (delta) //60° /s
 	);
 	engine::graph->mesh_render(&mp, 1);
 	memcpy(&ml.color, (unsigned char[]){

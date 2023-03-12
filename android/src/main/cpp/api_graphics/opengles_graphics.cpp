@@ -254,7 +254,7 @@ void opengles_graphics::render() {
   if (state.angle > 1) {
       state.angle = 0;
   }
-  m_Main->render(1.f/60.f);
+  m_Main->render();
   if (pause) {
   	m_Main->pause();
 		pause = false;

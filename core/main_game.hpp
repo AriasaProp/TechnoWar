@@ -4,7 +4,7 @@
 struct Main {
 	Main();
 	void resume();
-	void render(float);
+	void render();
 	void pause();
 	~Main();
 };
