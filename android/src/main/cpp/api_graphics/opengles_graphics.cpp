@@ -73,9 +73,11 @@ void opengles_graphics::render() {
 		    }
 		  }
   	}
+  	bool newCntx = false;
   	if (!context) {
   		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
   		context = eglCreateContext(display, eConfig, nullptr, ctxAttr);
+  		newCntx = true;
   	}
   	if (!surface) {
 			surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
@@ -84,7 +86,7 @@ void opengles_graphics::render() {
   	eglQuerySurface(display, surface, EGL_WIDTH, &width);
   	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 		resize_viewport(width, height);
-  	if (!opengles_valid) {
+  	if (newCntx) {
 			//validating gles resources
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
@@ -230,11 +232,9 @@ void opengles_graphics::render() {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
-			opengles_valid = true;
 		}
   	if (!m_Main) {
   		m_Main = new Main;
-  		m_Main->create();
   		resume = false;
   	}
   } else if (resize) {
@@ -261,7 +261,6 @@ void opengles_graphics::render() {
   }
   unsigned int EGLTermReq = 0;
   if (destroyed) {
-  	m_Main->destroy();
   	delete(m_Main);
   	m_Main = nullptr;
   	EGLTermReq |= TERM_EGL_DISPLAY;
@@ -288,11 +287,14 @@ void opengles_graphics::render() {
 	if (EGLTermReq && display) {
 		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (surface && (EGLTermReq & 5)) {
+    	{
+    		//invalidate Framebuffer, RenderBuffer
+    	}
       eglDestroySurface(display, surface);
     	surface = EGL_NO_SURFACE;
     }
 		if (context && (EGLTermReq & 6)) {
-			if (opengles_valid) {
+			{
 				//invalidating gles resources
 				//world draw
 				glDeleteProgram(ws->shader);
@@ -309,7 +311,6 @@ void opengles_graphics::render() {
 				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 					glDeleteTextures(1, &(*i)->id);
 				}
-				opengles_valid = false;
 			}
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;

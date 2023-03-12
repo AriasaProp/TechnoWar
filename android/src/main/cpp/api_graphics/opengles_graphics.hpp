@@ -15,7 +15,6 @@ private:
 	EGLConfig eConfig;
 	std::unordered_set<engine::texture_core*> managedTexture;
 	std::unordered_set<engine::mesh_core*> managedMesh;
-	bool opengles_valid = false;
 	EGLint width, height;
 public:
 	//android

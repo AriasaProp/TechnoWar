@@ -2,11 +2,11 @@
 #define Included_MainListener 1
 
 struct Main {
-	void create();
+	Main();
 	void resume();
 	void render(float);
 	void pause();
-	void destroy();
+	~Main();
 };
 
 #endif // Included_MainListener

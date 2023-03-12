@@ -11,7 +11,7 @@
 engine::mesh_core *mp;
 Actor ml, mb, mc;
 
-void Main::create() {
+Main::Main() {
 	ml.x = 120;
 	ml.y = 120;
 	ml.width = 400;
@@ -70,7 +70,7 @@ void Main::create() {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	engine::graph->clearcolor(1.f,0.f, 0.f,1.f);
+	engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
 	mp = engine::graph->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
@@ -109,7 +109,7 @@ void Main::render(float delta) {
 }
 void Main::pause() {
 }
-void Main::destroy() {
+Main::~Main() {
 	engine::graph->delete_mesh(mp);
 	user_interface::clearActor();
 }
