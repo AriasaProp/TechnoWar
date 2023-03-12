@@ -93,7 +93,7 @@ void opengles_graphics::render() {
 			memset(ubatch,0,sizeof(ui_batch));
 			{
 				ubatch->shader = glCreateProgram();
-				vi = glCreateShader(GL_VERTEX_SHADER);
+				GLuint vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
