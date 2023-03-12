@@ -1,7 +1,7 @@
 #ifndef Included_User_Interface
 #define Included_User_Interface 1
 
-#include "actors/actor.h"
+#include "actors/actor.hpp"
 
 namespace user_interface {
 	struct Touchable {

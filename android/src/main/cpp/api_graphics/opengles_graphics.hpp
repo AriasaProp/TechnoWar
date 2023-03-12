@@ -1,8 +1,8 @@
 #ifndef _Included_OPENGLES_Graphics
 #define _Included_OPENGLES_Graphics
 
-#include "android_graphics.h"
-#include "../main_game.h"
+#include "android_graphics.hpp"
+#include "../main_game.hpp"
 #include <EGL/egl.h>
 #include <unordered_set>
 

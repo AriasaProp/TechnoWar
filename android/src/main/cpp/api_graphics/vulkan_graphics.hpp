@@ -1,8 +1,8 @@
 #ifndef _Included_vulkan_graphics
 #define _Included_vulkan_graphics
 
-#include "android_graphics.h"
-#include "../main_game.h"
+#include "android_graphics.hpp"
+#include "../main_game.hpp"
 #include <EGL/egl.h>
 #include <unordered_set>
 
