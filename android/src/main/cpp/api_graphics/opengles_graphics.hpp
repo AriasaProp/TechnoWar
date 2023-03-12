@@ -17,7 +17,7 @@ private:
 	std::unordered_set<engine::mesh_core*> managedMesh;
 	bool opengles_valid = false;
 	char *msg;
-	float width, height;
+	EGLint width, height;
 public:
 	//android
 	void onResume() override;

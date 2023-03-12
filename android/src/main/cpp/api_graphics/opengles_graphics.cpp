@@ -21,8 +21,8 @@ static inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_btch *ws;
 
-float opengles_graphics::getWidth() { return width; }
-float opengles_graphics::getHeight() { return height; }
+float opengles_graphics::getWidth() { return (float)width; }
+float opengles_graphics::getHeight() { return (float)height; }
 
 void opengles_graphics::onResume() {
 	resume = true;
@@ -81,7 +81,6 @@ void opengles_graphics::render() {
 			surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
   	}
   	eglMakeCurrent(display, surface, surface, context);
-    int32_t width, height;
   	eglQuerySurface(display, surface, EGL_WIDTH, &width);
   	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 		resize_viewport(width, height);
@@ -457,16 +456,15 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 
 static inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
-	width = (float)w, height = (float)h;
 	memset(ws->worldProj, 0, 16 * sizeof(float));
-	ws->worldProj[0] = 2.f/width;
-	ws->worldProj[5] = 2.f/height;
+	ws->worldProj[0] = 2.f/w;
+	ws->worldProj[5] = 2.f/h;
 	ws->worldProj[10] = 0.0005f;
 	ws->worldProj[15] = 1;
 	ws->dirty_worldProj = true;
 	memset(ubatch->ui_projection, 0, 16 * sizeof(float));
-	ubatch->ui_projection[0] = 2.f/width;
-	ubatch->ui_projection[5] = 2.f/height;
+	ubatch->ui_projection[0] = 2.f/w;
+	ubatch->ui_projection[5] = 2.f/h;
 	ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1.f;
 	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1.f;
 	ubatch->dirty_projection = true;
