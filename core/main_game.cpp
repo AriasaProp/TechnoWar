@@ -76,7 +76,7 @@ Main::Main() {
 }
 void Main::resume() {
 }
-std::chrono::time_point start = NULL, end = NULL;
+std::chrono::time_point<std::chrono::high_resolution_clock> start = NULL, end = NULL;
 float delta = 0;
 void Main::render() {
 	end = std::choro::high_resolution_clock::now();
