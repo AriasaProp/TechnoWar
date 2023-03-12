@@ -6,8 +6,6 @@
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
-
-
 namespace engine {
 	//texture core
 	struct texture_core {
@@ -23,8 +21,7 @@ namespace engine {
 	//mesh core
 	struct mesh_core {
 		bool dirty_vertex, dirty_index;
-		unsigned int vao;
-		unsigned int vbo, ibo;
+		unsigned int vao, vbo, ibo;
 		unsigned int vertex_len, index_len;
 		struct data {
 			float x, y, z;

@@ -13,6 +13,11 @@ private:
 	EGLSurface surface;
 	EGLContext context;
 	EGLConfig eConfig;
+	std::unordered_set<engine::texture_core*> managedTexture;
+	std::unordered_set<engine::mesh_core*> managedMesh;
+	bool opengles_valid = false;
+	char *msg;
+	float width, height;
 public:
 	//android
 	void onResume() override;
@@ -38,5 +43,6 @@ public:
   
   opengles_graphics();
   ~opengles_graphics();
+  
 };
 #endif //_Included_OPENGLES_Graphics
