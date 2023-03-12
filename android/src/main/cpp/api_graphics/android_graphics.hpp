@@ -3,7 +3,7 @@
 
 #include <EGL/egl.h> 
 #include <android/native_activity.h>
-#include "../engine.h"
+#include "../engine.hpp"
 
 #define TERM_EGL_SURFACE 1
 #define TERM_EGL_CONTEXT 2
