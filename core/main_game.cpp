@@ -71,7 +71,7 @@ Main::Main() {
 		16,17,19,17,18,19,//top
 		20,21,23,21,22,23//back
 	};
-	engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
+	//engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
 	mp = engine::graph->gen_mesh(vert, 24, indices, 36);
 }
 void Main::resume() {
