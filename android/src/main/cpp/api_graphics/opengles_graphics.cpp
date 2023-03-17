@@ -399,8 +399,8 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
-	glBindTexture(GL_TEXTURE_2D, nullTex->id);
-	glUniform1i(ubatch->u_tex, 0);
+	//glBindTexture(GL_TEXTURE_2D, nullTex->id);
+	//glUniform1i(ubatch->u_tex, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
@@ -410,7 +410,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
