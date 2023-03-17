@@ -172,7 +172,7 @@ void opengles_graphics::render() {
 				glEnableVertexAttribArray(1);
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
 				glEnableVertexAttribArray(2);
-				glVertexAttribPointer(2, 2, GL_FLOAT, true, sizeof(engine::flat_vertex), (void*)(sizeof(engine::flat_vertex) - (2 * sizeof(float))));
+				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)(sizeof(engine::flat_vertex) - (2 * sizeof(float))));
 				glBindVertexArray(0);
 			}
 			//world draw
