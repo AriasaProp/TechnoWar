@@ -125,6 +125,7 @@ void opengles_graphics::render() {
 					"\n    #define HIGH mediump"
 					"\n#endif"
 					"\nprecision MED float;"
+					"\nuniform sampler2D u_tex;"
 					"\nin vec4 v_color;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
