@@ -456,7 +456,7 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 static inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
 	memset(ubatch->ui_projection, 0, 16*sizeof(float));
-	memset(ubatch->worldProj, 0, 16*sizeof(float));
+	memset(ws->worldProj, 0, 16*sizeof(float));
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/w;
 	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/h;
 	
