@@ -18,24 +18,22 @@ void user_interface::draw() {
 	engine::flat_vertex tmp_v[len*4];
 	engine::flat_vertex *curv = tmp_v;
 	unsigned int i = 0;
-	std::unordered_set<Actor*>::iterator t = actors.begin();
-	while((i < len) && (t != actors.end())) {
+	for(std::unordered_set<Actor*>::iterator t = actors.begin(); t != actors.end(); t++) {
 		Actor *act = *t;
 		engine::flat_vertex fv;
 		memcpy(&fv.color, &act->color, 4 * sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
-		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
+		memcpy(curv++, &fv, sizeof(fv));
 		fv.y += act->height;
-		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
+		memcpy(curv++, &fv, sizeof(fv));
 		fv.x += act->width;
 		fv.y = act->y;
-		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
+		memcpy(curv++, &fv, sizeof(fv));
 		fv.y += act->height;
-		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
-		i++, t++;
+		memcpy(curv++, &fv, sizeof(fv));
 	}
-	engine::graph->flat_render(tmp_v, len);
+	engine::graph->flat_render(tmp_v, len*4);
 }
 void user_interface::clearActor() {
 	actors.clear();
