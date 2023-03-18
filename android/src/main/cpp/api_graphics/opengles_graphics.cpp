@@ -7,7 +7,7 @@
 
 struct ui_batch {
 	bool dirty_projection;
-	GLint shader, u_projection, u_tex;
+	GLint shader, u_projection;
 	GLuint vao, vbo, ibo;
 	float ui_projection[16];
 };
@@ -90,7 +90,6 @@ void opengles_graphics::render() {
 		resize_viewport(width, height);
   	if (newCntx) {
 			//validating gles resources
-			glActiveTexture(GL_TEXTURE0);
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
@@ -114,13 +113,10 @@ void opengles_graphics::render() {
 					"\nuniform mat4 u_proj;"
 					"\nlayout(location = 0) in vec4 a_position;"
 					"\nlayout(location = 1) in vec4 a_color;"
-					//"\nlayout(location = 2) in vec2 a_tex;"
 					"\nout vec4 v_color;"
-					//"\nout vec2 v_tex;"
 					"\n"
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
-					//"\n    v_tex = a_tex;"
 					"\n    gl_Position = proj * a_position;"
 					"\n}\0";
 				glShaderSource(vi, 1, &vt, 0);
@@ -136,10 +132,7 @@ void opengles_graphics::render() {
 					"\n    #define HIGH mediump"
 					"\n#endif"
 					"\nprecision MED float;"
-					"\nuniform sampler2D u_tex;"
 					"\nin vec4 v_color;"
-					//"\nin vec2 v_tex;"
-					"\n"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color;"
@@ -151,7 +144,6 @@ void opengles_graphics::render() {
 				glDeleteShader(vi);
 				glDeleteShader(fi);
 				ubatch->u_projection = glGetUniformLocation(ubatch->shader, "u_proj");
-				ubatch->u_tex = glGetUniformLocation(ubatch->shader, "u_tex");
 				glGenVertexArrays(1, &ubatch->vao);
 				glGenBuffers(2, &ubatch->vbo);
 				glBindVertexArray(ubatch->vao);
@@ -397,10 +389,7 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 }
 void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
-	if (!ubatch->shader) return;
 	glUseProgram(ubatch->shader);
-	glBindTexture(GL_TEXTURE_2D, nullTex->id);
-	glUniform1i(ubatch->u_tex, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
@@ -410,7 +399,6 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
