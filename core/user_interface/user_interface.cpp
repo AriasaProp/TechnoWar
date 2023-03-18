@@ -20,7 +20,7 @@ void user_interface::draw() {
 	if (!actors) return;
 	const size_t len = actors->size();
 	if (len == 0) return;
-	engine::flat_vertex *tmp_v = new engine::flat_vertex[len*4];
+	engine::flat_vertex *tmp_v = new engine::flat_vertex[len*4], *curv = tmp_v;
 	engine::flat_vertex fv;
 	size_t i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
@@ -29,41 +29,22 @@ void user_interface::draw() {
 		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
-		
-		//fv.xCoord = 0;
-		//fv.yCoord = 0;
-		memcpy(&tmp_v[i*4], &fv, sizeof(engine::flat_vertex));
+		fv.xCoord = 0;
+		fv.yCoord = 0;
+		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.y += act->height;
-		//fv.yCoord = 1;
-		memcpy(&tmp_v[i*4+1], &fv, sizeof(engine::flat_vertex));
+		fv.yCoord = 1;
+		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.x += act->width;
 		fv.y = act->y;
-		//fv.xCoord = 1;
-		//fv.yCoord = 0;
-		memcpy(&tmp_v[i*4+2], &fv, sizeof(engine::flat_vertex));
+		fv.xCoord = 1;
+		fv.yCoord = 0;
+		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.y += act->height;
-		//fv.yCoord = 1;
-		memcpy(&tmp_v[i*4+3], &fv, sizeof(engine::flat_vertex));
+		fv.yCoord = 1;
+		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		i++, t++;
 	}
-	/*
-	engine::flat_vertex tmp_v[12] = {
-		{120, 120, 0xff, 0x00, 0x00, 0xff},
-		{120, 295, 0xff, 0x00, 0x00, 0xff},
-		{320, 120, 0xff, 0x00, 0x00, 0xff},
-		{320, 295, 0xff, 0x00, 0x00, 0x00},
-		
-		{700, 100, 0x00, 0xff, 0x00, 0xff},
-		{700, 225, 0x00, 0xff, 0x00, 0xff},
-		{850, 100, 0x00, 0xff, 0x00, 0xff},
-		{850, 225, 0x00, 0xff, 0x00, 0xff},
-		
-		{1100, 100, 0x00, 0xff, 0xff, 0xff},
-		{1100, 200, 0x00, 0xff, 0xff, 0xff},
-		{1225, 100, 0x00, 0xff, 0xff, 0xff},
-		{1225, 200, 0x00, 0xff, 0xff, 0xff}
-	};
-	*/
 	engine::graph->flat_render(tmp_v, len);
 	delete[] tmp_v;
 }
