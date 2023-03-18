@@ -17,7 +17,6 @@ namespace engine {
 	struct flat_vertex {
 		float x, y;
 		unsigned char r, g, b, a;
-		//float u, v;
 	};
 	//mesh core
 	struct mesh_core {

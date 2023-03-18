@@ -29,19 +29,13 @@ void user_interface::draw() {
 		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
-		//fv.u = 0;
-		//fv.v = 0;
 		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.y += act->height;
-		//fv.v = 1;
 		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.x += act->width;
 		fv.y = act->y;
-		//fv.u = 1;
-		//fv.v = 0;
 		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		fv.y += act->height;
-		//fv.v = 1;
 		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
 		i++, t++;
 	}

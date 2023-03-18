@@ -21,7 +21,6 @@ Main *m_Main = nullptr;
 static inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_btch *ws;
-engine::texture_core *nullTex = nullptr;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -93,10 +92,6 @@ void opengles_graphics::render() {
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
-			nullTex = gen_texture(2,2,(unsigned char[]){
-				0xff,0xff,0xff,0xff, 0x00,0x00,0x00,0xff,
-				0xff,0xff,0xff,0xff, 0x00,0x00,0x00,0xff
-			});
 			//flat draw
 			memset(ubatch,0,sizeof(ui_batch));
 			{
@@ -114,11 +109,10 @@ void opengles_graphics::render() {
 					"\nlayout(location = 0) in vec4 a_position;"
 					"\nlayout(location = 1) in vec4 a_color;"
 					"\nout vec4 v_color;"
-					"\n"
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
 					"\n    gl_Position = proj * a_position;"
-					"\n}\0";
+					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
 				glAttachShader(ubatch->shader, vi);
@@ -136,7 +130,7 @@ void opengles_graphics::render() {
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color;"
-					"\n}\0";
+					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
 				glAttachShader(ubatch->shader, fi);
@@ -160,10 +154,8 @@ void opengles_graphics::render() {
 				glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
-				//glEnableVertexAttribArray(2);
 				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, r));
-				//glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
 				glBindVertexArray(0);
 			}
 			//world draw
@@ -187,7 +179,7 @@ void opengles_graphics::render() {
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
 					"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-					"\n}\0";
+					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
 				glAttachShader(ws->shader, vi);
@@ -205,7 +197,7 @@ void opengles_graphics::render() {
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color;"
-					"\n}\0";
+					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
 				glAttachShader(ws->shader, fi);
@@ -302,8 +294,6 @@ void opengles_graphics::render() {
 		if (context && (EGLTermReq & 6)) {
 			{
 				//invalidating gles resources
-				delete_texture(nullTex);
-				nullTex = nullptr;
 				//world draw
 				glDeleteProgram(ws->shader);
 				//flat draw
