@@ -22,11 +22,11 @@ void user_interface::draw() {
 	if (len == 0) return;
 	engine::flat_vertex tmp_v[len*4];
 	engine::flat_vertex *curv = tmp_v;
-	engine::flat_vertex fv;
 	size_t i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
 	while((i < len) && (t != actors->end())) {
 		Actor *act = *t;
+		engine::flat_vertex fv;
 		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
