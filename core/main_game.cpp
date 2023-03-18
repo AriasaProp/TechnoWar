@@ -17,7 +17,7 @@ Main::Main() {
 	ml.y = 120;
 	ml.width = 400;
 	ml.height = 350;
-	ml.color = {0xff,0xff,0x00,0xff};
+	ml.color = (unsigned char[]){0xff,0xff,0x00,0xff};
 	user_interface::addActor(&ml);
 	engine::mesh_core::data vert[24] = {
 		//front red
@@ -64,16 +64,12 @@ Main::Main() {
 }
 void Main::resume() {
 }
-std::chrono::time_point<std::chrono::high_resolution_clock> start = 0, end;
+std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now(), end;
 float delta = 0;
 void Main::render() {
-	if (start) {
-		end = std::chrono::high_resolution_clock::now();
-		delta = float(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()) / 1000000.f;
-		start = end;
-	} else {
-		start = std::chrono::high_resolution_clock::now();
-	}
+	end = std::chrono::high_resolution_clock::now();
+	delta = float(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()) / 1000000.f;
+	start = end;
 	engine::inpt->process_event();
 	engine::graph->clear(7);
 	
