@@ -10,27 +10,15 @@
 #include <ctime>       /* time */
 
 engine::mesh_core *mp;
-Actor ml, mb, mc;
+Actor ml;
 
 Main::Main() {
 	ml.x = 120;
 	ml.y = 120;
 	ml.width = 400;
 	ml.height = 350;
-	ml.color = 0xffff00ff;
+	ml.color = {0xff,0xff,0x00,0xff};
 	user_interface::addActor(&ml);
-	mb.x = 700;
-	mb.y = 100;
-	mb.width = 300;
-	mb.height = 250;
-	mb.color = 0x00ff00ff;
-	user_interface::addActor(&mb);
-	mc.x = 1100;
-	mc.y = 100;
-	mc.width = 250;
-	mc.height = 200;
-	mc.color = 0x00ff00ff;
-	user_interface::addActor(&mc);
 	engine::mesh_core::data vert[24] = {
 		//front red
 		{ +350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff },
@@ -76,12 +64,16 @@ Main::Main() {
 }
 void Main::resume() {
 }
-std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now(), end;
+std::chrono::time_point<std::chrono::high_resolution_clock> start = 0, end;
 float delta = 0;
 void Main::render() {
-	end = std::chrono::high_resolution_clock::now();
-	delta = float(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()) / 1000000.f;
-	start = end;
+	if (start) {
+		end = std::chrono::high_resolution_clock::now();
+		delta = float(std::chrono::duration_cast<std::chrono::microseconds>(end-start).count()) / 1000000.f;
+		start = end;
+	} else {
+		start = std::chrono::high_resolution_clock::now();
+	}
 	engine::inpt->process_event();
 	engine::graph->clear(7);
 	
@@ -94,21 +86,8 @@ void Main::render() {
 	memcpy(&ml.color, (unsigned char[]){
 		(unsigned char)(0xff * ((float)engine::inpt->getX(0)/engine::graph->getWidth())),
 		(unsigned char)(0xff * ((float)engine::inpt->getY(0)/engine::graph->getHeight())),
-		0x00,
-		0xff
-	}, 4*sizeof(unsigned char));
-	memcpy(&mb.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::inpt->getX(1)/engine::graph->getWidth())),
-		(unsigned char)(0xff * ((float)engine::inpt->getY(1)/engine::graph->getHeight())),
-		0x00,
-		0xff
-	}, 4*sizeof(unsigned char));
-	memcpy(&mc.color, (unsigned char[]){
-		(unsigned char)(0xff * ((float)engine::inpt->getY(2)/engine::graph->getHeight())),
-		(unsigned char)(0xff * ((float)engine::inpt->getX(2)/engine::graph->getWidth())),
-		0x00,
-		0xff
-	}, 4*sizeof(unsigned char));
+		0x00
+	}, 3*sizeof(unsigned char));
 	user_interface::draw();
 }
 void Main::pause() {

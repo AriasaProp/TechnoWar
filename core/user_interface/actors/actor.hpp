@@ -5,7 +5,7 @@
 
 struct Actor {
 	float x,y,width,height;
-	uint32_t color;
+	unsigned char color[4];
 };
 
 #endif //Included_Actor
