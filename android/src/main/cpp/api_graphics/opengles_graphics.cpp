@@ -114,13 +114,13 @@ void opengles_graphics::render() {
 					"\nuniform mat4 u_proj;"
 					"\nlayout(location = 0) in vec4 a_position;"
 					"\nlayout(location = 1) in vec4 a_color;"
-					"\nlayout(location = 2) in vec2 a_tex;"
+					//"\nlayout(location = 2) in vec2 a_tex;"
 					"\nout vec4 v_color;"
-					"\nout vec2 v_tex;"
+					//"\nout vec2 v_tex;"
 					"\n"
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
-					"\n    v_tex = a_tex;"
+					//"\n    v_tex = a_tex;"
 					"\n    gl_Position = proj * a_position;"
 					"\n}\0";
 				glShaderSource(vi, 1, &vt, 0);
@@ -138,11 +138,11 @@ void opengles_graphics::render() {
 					"\nprecision MED float;"
 					"\nuniform sampler2D u_tex;"
 					"\nin vec4 v_color;"
-					"\nin vec2 v_tex;"
+					//"\nin vec2 v_tex;"
 					"\n"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
-					"\n    fragColor = texture(u_tex, v_tex) * v_color;"
+					"\n    fragColor = v_color;"
 					"\n}\0";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
@@ -168,10 +168,10 @@ void opengles_graphics::render() {
 				glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
-				glEnableVertexAttribArray(2);
+				//glEnableVertexAttribArray(2);
 				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, r));
-				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
+				//glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
 				glBindVertexArray(0);
 			}
 			//world draw

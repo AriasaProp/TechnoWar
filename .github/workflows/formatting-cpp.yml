@@ -1,0 +1,18 @@
+name: Formating Clang Code
+
+on:
+  push:
+    paths:
+      - 'cpp-formatting.txt'
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run:| 
+          sudo apt-get install -y clang-format
+          clang-format -i **/*.cpp **/*.hpp
+          git add .
+          git commit -m "reformating cpp"
+          git push
