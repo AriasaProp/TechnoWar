@@ -167,10 +167,10 @@ void opengles_graphics::render() {
 				glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 				glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glEnableVertexAttribArray(0);
-				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)0);
 				glEnableVertexAttribArray(1);
-				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
 				glEnableVertexAttribArray(2);
+				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)0);
+				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
 				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)(sizeof(engine::flat_vertex) - (2 * sizeof(float))));
 				glBindVertexArray(0);
 			}
@@ -397,6 +397,7 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 }
 void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
+	if (!ubatch->shader) return;
 	glUseProgram(ubatch->shader);
 	glBindTexture(GL_TEXTURE_2D, nullTex->id);
 	glUniform1i(ubatch->u_tex, 0);
