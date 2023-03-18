@@ -388,7 +388,6 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	glUseProgram(0);
-	glClearColor(1,1,1,1);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	engine::mesh_core *r = new engine::mesh_core;
@@ -465,12 +464,15 @@ opengles_graphics::opengles_graphics() {
 	ws = new world_batch;
 	memset(ubatch,0,sizeof(ui_batch));
 	memset(ws,0,sizeof(world_batch));
+	memset(ubatch->ui_projection, 0, 16*sizeof(float));
 	ubatch->ui_projection[10] = 1;
-	ubatch->ui_projection[12] = -1;
-	ubatch->ui_projection[13] = -1;
+	//ubatch->ui_projection[12] = -1;
+	//ubatch->ui_projection[13] = -1;
 	ubatch->ui_projection[15] = 1;
 	ws->worldProj[15] = 1;
-	ws->worldProj[10] = 0.0005f;
+	ws->worldProj[10] = 0.00001f;
+	ubatch->dirty_projection = true;
+	ws->dirty_worldProj = true;
   engine::graph = this;
 }
 
