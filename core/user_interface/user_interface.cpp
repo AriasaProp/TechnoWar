@@ -2,32 +2,27 @@
 #include "../engine.hpp"
 #include <unordered_set>
 
-std::unordered_set<Actor*> *actors;
+std::unordered_set<Actor*> actors;
 
 void user_interface::addActor(Actor *a) {
-	if (!actors)
-		actors = new std::unordered_set<Actor*>({a});
-	
 	actors->insert(a);
 }
 void user_interface::removeActor(Actor *a) {
-	if (!actors) return;
 	std::unordered_set<Actor*>::iterator v = actors->find(a);
 	if (v == actors->end()) return;
 	actors->erase(v);
 }
 void user_interface::draw() {
-	if (!actors) return;
-	const size_t len = actors->size();
+	const unsigned int len = actors->size();
 	if (len == 0) return;
 	engine::flat_vertex tmp_v[len*4];
 	engine::flat_vertex *curv = tmp_v;
-	size_t i = 0;
+	unsigned int i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
 	while((i < len) && (t != actors->end())) {
 		Actor *act = *t;
 		engine::flat_vertex fv;
-		memcpy(&fv.r, &act->color, 4*sizeof(unsigned char));
+		memcpy(&fv.color, &act->color, 4 * sizeof(unsigned char));
 		fv.x = act->x;
 		fv.y = act->y;
 		memcpy(curv++, &fv, sizeof(engine::flat_vertex));
@@ -43,10 +38,7 @@ void user_interface::draw() {
 	engine::graph->flat_render(tmp_v, len);
 }
 void user_interface::clearActor() {
-	if (!actors) return;
 	actors->clear();
-	delete actors;
-	actors = nullptr;
 }
 /*
 void user_interface::keyDown(int keyCode) {

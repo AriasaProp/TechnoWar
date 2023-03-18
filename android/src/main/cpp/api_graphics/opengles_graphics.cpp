@@ -3,7 +3,6 @@
 #include <cstddef>
 // make opengles lastest possible version
 #include <GLES3/gl32.h> //API 24
-#define MAX_UI_DRAW 100
 
 struct ui_batch {
 	bool dirty_projection;
@@ -150,11 +149,11 @@ void opengles_graphics::render() {
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
 				glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-				glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
+				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
+				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, color));
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
-				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
-				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, r));
 				glBindVertexArray(0);
 			}
 			//world draw

@@ -1,8 +1,7 @@
 #ifndef _Included_Engine
 #define _Included_Engine
-	
-//maximum 2dbatch render 1000
-#define MAX_TEXTURE_UI 100
+//maximum ui draws
+#define MAX_UI_DRAW 100
 //maximum output log message in char
 #define MAX_GL_MSG 1024
 
@@ -16,7 +15,7 @@ namespace engine {
 	//ui_core
 	struct flat_vertex {
 		float x, y;
-		unsigned char r, g, b, a;
+		unsigned char color[4];
 	};
 	//mesh core
 	struct mesh_core {
