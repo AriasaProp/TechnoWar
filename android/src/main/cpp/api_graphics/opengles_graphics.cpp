@@ -9,22 +9,12 @@ struct ui_batch {
 	bool dirty_projection;
 	GLint shader, u_projection;
 	GLuint vao, vbo, ibo;
-	float ui_projection[16] {
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,-1,-1,1
-	};
+	float ui_projection[16];
 };
 struct world_btch {
 	bool dirty_worldProj;
 	GLint shader, u_worldProj, u_transProj;
-	float worldProj[16] {
-		1,0,0,0,
-		0,1,0,0,
-		0,0,0.0005f,0,
-		0,0,0,1
-	};
+	float worldProj[16];
 };
 
 Main *m_Main = nullptr;
@@ -465,8 +455,14 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 
 static inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
+	memset(ubatch->ui_projection, 0, 16*sizeof(float));
+	memset(ubatch->worldProj, 0, 16*sizeof(float));
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/w;
 	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/h;
+	
+	ubatch->ui_projection[10] = ubatch->ui_projection[15] = ws->worldProj[15] = 1;
+	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1;
+	ws->worldProj[10] = 0.0005f;
 	ubatch->dirty_projection = true;
 	ws->dirty_worldProj = true;
 }
