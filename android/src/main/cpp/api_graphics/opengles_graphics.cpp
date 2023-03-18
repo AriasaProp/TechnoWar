@@ -1,5 +1,6 @@
 #include "opengles_graphics.hpp"
 #include <cassert>
+#include <cstddef>
 // make opengles lastest possible version
 #include <GLES3/gl32.h> //API 24
 #define MAX_UI_DRAW 100
@@ -113,12 +114,13 @@ void opengles_graphics::render() {
 					"\nuniform mat4 u_proj;"
 					"\nlayout(location = 0) in vec4 a_position;"
 					"\nlayout(location = 1) in vec4 a_color;"
-					"\nlayout(location = 2) in vec2 a_texCoord;"
+					"\nlayout(location = 2) in vec2 a_tex;"
 					"\nout vec4 v_color;"
-					"\nout vec2 v_texCoord;"
+					"\nout vec2 v_tex;"
+					"\n"
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
-					"\n    v_texCoord = a_texCoord;"
+					"\n    v_tex = a_tex;"
 					"\n    gl_Position = proj * a_position;"
 					"\n}\0";
 				glShaderSource(vi, 1, &vt, 0);
@@ -136,10 +138,11 @@ void opengles_graphics::render() {
 					"\nprecision MED float;"
 					"\nuniform sampler2D u_tex;"
 					"\nin vec4 v_color;"
-					"\nin vec2 v_texCoord;"
+					"\nin vec2 v_tex;"
+					"\n"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
-					"\n    fragColor = v_color;"
+					"\n    fragColor = texture(u_tex, v_tex) * v_color;"
 					"\n}\0";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
@@ -153,14 +156,11 @@ void opengles_graphics::render() {
 				glGenBuffers(2, &ubatch->vbo);
 				glBindVertexArray(ubatch->vao);
 				unsigned short indexs[MAX_UI_DRAW*6];
-				for (size_t i = 0; i < MAX_UI_DRAW; i++) {
-					const unsigned short j = i * 6, k = i * 4;
-					indexs[j] = k;
-					indexs[j+1] = k+1;
-					indexs[j+2] = k+2;
-					indexs[j+3] = k+3;
-					indexs[j+4] = k+2;
-					indexs[j+5] = k+1;
+				for (unsigned short i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
+					indexs[j] = k++;
+					indexs[j+1] = indexs[j+5] = k++;
+					indexs[j+2] = indexs[j+4] = k++;
+					indexs[j+3] = k++;
 				}
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
@@ -169,9 +169,9 @@ void opengles_graphics::render() {
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
 				glEnableVertexAttribArray(2);
-				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)0);
-				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
-				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)(sizeof(engine::flat_vertex) - (2 * sizeof(float))));
+				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
+				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, r));
+				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
 				glBindVertexArray(0);
 			}
 			//world draw
