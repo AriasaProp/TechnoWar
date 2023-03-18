@@ -7,7 +7,7 @@
 #include <cmath>
 #include <chrono>
 #include <cstdlib>     /* srand, rand */
-#include <time.h>       /* time */
+#include <ctime>       /* time */
 
 engine::mesh_core *mp;
 Actor ml, mb, mc;

@@ -20,7 +20,8 @@ void user_interface::draw() {
 	if (!actors) return;
 	const size_t len = actors->size();
 	if (len == 0) return;
-	engine::flat_vertex *tmp_v = new engine::flat_vertex[len*4], *curv = tmp_v;
+	engine::flat_vertex tmp_v[len*4];
+	engine::flat_vertex *curv = tmp_v;
 	engine::flat_vertex fv;
 	size_t i = 0;
 	std::unordered_set<Actor*>::iterator t = actors->begin();
@@ -40,7 +41,6 @@ void user_interface::draw() {
 		i++, t++;
 	}
 	engine::graph->flat_render(tmp_v, len);
-	delete[] tmp_v;
 }
 void user_interface::clearActor() {
 	if (!actors) return;
