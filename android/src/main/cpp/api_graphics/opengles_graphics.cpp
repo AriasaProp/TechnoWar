@@ -11,7 +11,7 @@ struct ui_batch {
 	GLuint vao, vbo, ibo;
 	float ui_projection[16];
 };
-struct world_btch {
+struct world_batch {
 	bool dirty_worldProj;
 	GLint shader, u_worldProj, u_transProj;
 	float worldProj[16];
@@ -20,7 +20,7 @@ struct world_btch {
 Main *m_Main = nullptr;
 static inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
-world_btch *ws;
+world_batch *ws;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -388,6 +388,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
 	glBindVertexArray(0);
 	glUseProgram(0);
+	glClearColor(1,1,1,1);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
 	engine::mesh_core *r = new engine::mesh_core;
@@ -461,13 +462,12 @@ static inline void resize_viewport(const int w, const int h) {
 
 opengles_graphics::opengles_graphics() {
 	ubatch = new ui_batch;
-	ws = new world_btch;
+	ws = new world_batch;
 	memset(ubatch,0,sizeof(ui_batch));
-	memset(ws,0,sizeof(world_btch));
+	memset(ws,0,sizeof(world_batch));
 	ubatch->ui_projection[10] = 1;
 	ubatch->ui_projection[12] = -1;
 	ubatch->ui_projection[13] = -1;
-	ubatch->ui_projection[14] = 0;
 	ubatch->ui_projection[15] = 1;
 	ws->worldProj[15] = 1;
 	ws->worldProj[10] = 0.0005f;
