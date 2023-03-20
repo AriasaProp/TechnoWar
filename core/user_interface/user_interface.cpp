@@ -14,25 +14,28 @@ void user_interface::removeActor(Actor *a) {
 }
 void user_interface::draw() {
 	const unsigned int len = actors.size();
-	if (len == 0) return;
+	if (!len) return;
 	engine::flat_vertex tmp_v[len*4];
 	engine::flat_vertex *curv = tmp_v;
-	for(std::unordered_set<Actor*>::iterator t = actors.begin(); t != actors.end(); t++) {
-		Actor *act = *t;
-		engine::flat_vertex fv;
-		memcpy(&fv.color, &act->color, 4 * sizeof(unsigned char));
-		fv.x = act->x;
-		fv.y = act->y;
-		memcpy(curv++, &fv, sizeof(fv));
-		fv.y += act->height;
-		memcpy(curv++, &fv, sizeof(fv));
-		fv.x += act->width;
-		fv.y = act->y;
-		memcpy(curv++, &fv, sizeof(fv));
-		fv.y += act->height;
-		memcpy(curv++, &fv, sizeof(fv));
+	for (const Actor* &act : actors) {
+		curv->x = act->x;
+		curv->y = act->y;
+		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv++;
+		curv->x = act->x;
+		curv->y = act->y+act->height;
+		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv++;
+		curv->x = act->x+act->width;
+		curv->y = act->y;
+		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv++;
+		curv->x = act->x+act->width;
+		curv->y = act->y+act->height;
+		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv++;
 	}
-	engine::graph->flat_render(tmp_v, len*4);
+	engine::graph->flat_render(tmp_v, len);
 }
 void user_interface::clearActor() {
 	actors.clear();

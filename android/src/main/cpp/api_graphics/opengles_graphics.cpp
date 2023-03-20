@@ -91,10 +91,12 @@ void opengles_graphics::render() {
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
+			GLuint vi, fi;
 			//flat draw
+			
 			{
 				ubatch->shader = glCreateProgram();
-				GLuint vi = glCreateShader(GL_VERTEX_SHADER);
+				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
@@ -114,7 +116,7 @@ void opengles_graphics::render() {
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
 				glAttachShader(ubatch->shader, vi);
-				GLuint fi = glCreateShader(GL_FRAGMENT_SHADER);
+				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
@@ -159,7 +161,7 @@ void opengles_graphics::render() {
 			//world draw
 			{
 				ws->shader = glCreateProgram();
-				GLuint vi = glCreateShader(GL_VERTEX_SHADER);
+				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
@@ -180,7 +182,7 @@ void opengles_graphics::render() {
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
 				glAttachShader(ws->shader, vi);
-				GLuint fi = glCreateShader(GL_FRAGMENT_SHADER);
+				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
@@ -212,7 +214,7 @@ void opengles_graphics::render() {
 				glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
 				glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(engine::mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
 				glEnableVertexAttribArray(0);
-				glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
+				glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 				glEnableVertexAttribArray(1);
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
@@ -384,7 +386,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
-	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
+	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
 	glUseProgram(0);
 }
@@ -402,7 +404,7 @@ engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsign
 	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(engine::mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
@@ -434,7 +436,7 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 			m->dirty_index = false;
 		}
-		glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
+		glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, NULL);
 	}
 	glBindVertexArray(0);
 	glUseProgram(0);
