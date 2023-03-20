@@ -93,11 +93,10 @@ void opengles_graphics::render() {
 			glDepthFunc(GL_LESS);
 			GLuint vi, fi;
 			//flat draw
-			
 			{
 				ubatch->shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
-				const char *vt = "#version 300 es"
+				const char *vt = "#version 320 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -117,7 +116,7 @@ void opengles_graphics::render() {
 				glCompileShader(vi);
 				glAttachShader(ubatch->shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
-				const char *ft = "#version 300 es"
+				const char *ft = "#version 320 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -454,8 +453,8 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 
 static inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
-	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/w;
-	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/h;
+	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/float(w);
+	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/float(h);
 	ubatch->dirty_projection = true;
 	ws->dirty_worldProj = true;
 }
@@ -472,8 +471,6 @@ opengles_graphics::opengles_graphics() {
 	ubatch->ui_projection[15] = 1;
 	ws->worldProj[15] = 1;
 	ws->worldProj[10] = 0.00001f;
-	ubatch->dirty_projection = true;
-	ws->dirty_worldProj = true;
   engine::graph = this;
 }
 
