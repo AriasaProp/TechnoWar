@@ -17,7 +17,7 @@ void user_interface::draw() {
 	if (!len) return;
 	engine::flat_vertex tmp_v[len*4];
 	engine::flat_vertex *curv = tmp_v;
-	for (const Actor* &act : actors) {
+	for (Actor *const &act : actors) {
 		curv->x = act->x;
 		curv->y = act->y;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
