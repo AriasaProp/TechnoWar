@@ -96,7 +96,7 @@ void opengles_graphics::render() {
 			{
 				ubatch->shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
-				const char *vt = "#version 320 es"
+				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -161,7 +161,7 @@ void opengles_graphics::render() {
 			{
 				ws->shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
-				const char *vt = "#version 320 es"
+				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"

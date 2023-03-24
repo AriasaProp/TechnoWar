@@ -1,6 +1,5 @@
 #include "engine.hpp"
 
-namespace engine {
-	graphics_core *graph;
-	input_core *inpt;
-}
+engine::graphics_core *graph;
+engine::input_core *inpt;
+
