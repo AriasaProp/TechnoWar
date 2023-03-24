@@ -27,9 +27,12 @@ namespace engine {
 			unsigned char r, g, b, a;
 		} *vertex = nullptr;
 		unsigned short *index = nullptr;
-		float trans[16];
-		mesh_core();
-		~mesh_core();
+		float trans[16] {
+			1,0,0,0,
+			0,1,0,0,
+			0,0,1,0,
+			0,0,0,1
+		};
 	};
 	struct graphics_core {
 	  virtual float getWidth() = 0;
