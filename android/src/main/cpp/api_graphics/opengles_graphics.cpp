@@ -116,7 +116,7 @@ void opengles_graphics::render() {
 				glCompileShader(vi);
 				glAttachShader(ubatch->shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
-				const char *ft = "#version 320 es"
+				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
