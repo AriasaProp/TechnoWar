@@ -43,7 +43,7 @@ namespace engine {
 	  virtual void bind_texture(texture_core*) = 0;
 	  virtual void set_texture_param(const int&, const int&) = 0;
 	  virtual void delete_texture(texture_core*) = 0;
-	  virtual void flat_render(flat_vertex*, unsigned int) = 0;
+	  virtual void flat_render(flat_vertex*, const unsigned int) = 0;
 	  virtual mesh_core* gen_mesh(mesh_core::data*, unsigned int, unsigned short*, unsigned int) = 0;
 	  virtual void mesh_render(mesh_core**, const unsigned int&) = 0;
 	  virtual void delete_mesh(mesh_core*) = 0;

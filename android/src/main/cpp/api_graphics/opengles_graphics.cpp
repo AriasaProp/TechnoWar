@@ -17,7 +17,7 @@ struct world_batch {
 };
 
 Main *m_Main = nullptr;
-static inline void resize_viewport(const int,const int);
+inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_batch *ws;
 
@@ -161,7 +161,7 @@ void opengles_graphics::render() {
 			{
 				ws->shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
-				const char *vt = "#version 300 es"
+				const char *vt = "#version 320 es"
 					"\n#define LOW lowp"
 					"\n#define MED mediump"
 					"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -375,7 +375,7 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void opengles_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
+void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	if (ubatch->dirty_projection) {
@@ -451,7 +451,7 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	delete m;
 }
 
-static inline void resize_viewport(const int w, const int h) {
+inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/float(w);
 	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/float(h);
