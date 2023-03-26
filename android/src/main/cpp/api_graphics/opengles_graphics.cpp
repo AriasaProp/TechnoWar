@@ -110,7 +110,7 @@ void opengles_graphics::render() {
 					"\nout vec4 v_color;"
 					"\nvoid main() {"
 					"\n    v_color = a_color;"
-					"\n    gl_Position = proj * a_position;"
+					"\n    gl_Position = u_proj * a_position;"
 					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
