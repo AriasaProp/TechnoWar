@@ -150,7 +150,7 @@ void opengles_graphics::render() {
 					//"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
-					"\n    fragColor = v_color;"
+					"\n    fragColor = v_color * vec4(v_texCoord, 1.0, 1.0);"
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
