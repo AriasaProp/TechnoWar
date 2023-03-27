@@ -146,7 +146,7 @@ void opengles_graphics::render() {
 					"\n#endif"
 					"\nprecision MED float;"
 					"\nin vec4 v_color;"
-					"\nin vec4 v_texCoord;"
+					"\nin vec2 v_texCoord;"
 					//"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"

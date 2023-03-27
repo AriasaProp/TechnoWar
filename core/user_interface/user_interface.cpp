@@ -20,9 +20,9 @@ void user_interface::draw() {
 	for (Actor *const &act : actors) {
 		curv->x = act->x;
 		curv->y = act->y;
+		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
 		curv->u = 0;
 		curv->v = 0;
-		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
 		curv++;
 		curv->x = act->x;
 		curv->y = act->y+act->height;
