@@ -96,12 +96,12 @@ void opengles_graphics::render() {
 	  		unsigned char data[16]{
 	  			0xff, 0xff, 0xff, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
-	  			0xff, 0xff, 0xff, 0xff,
-	  			0x11, 0x11, 0x11, 0xff
+	  			0x11, 0x11, 0x11, 0xff,
+	  			0xff, 0xff, 0xff, 0xff
 	  		};
 				glBindTexture(GL_TEXTURE_2D, tex_test);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 				glBindTexture(GL_TEXTURE_2D, 0);
