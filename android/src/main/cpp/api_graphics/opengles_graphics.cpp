@@ -8,7 +8,7 @@ struct ui_batch {
 	bool dirty_projection;
 	GLint shader;
 	GLint u_projection;
-	//GLint u_texture;
+	GLint u_texture;
 	GLuint vao, vbo, ibo;
 	float ui_projection[16];
 };
