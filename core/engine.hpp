@@ -16,6 +16,7 @@ struct texture_core {
 struct flat_vertex {
   float x, y;
   unsigned char color[4];
+  float u,v;
 };
 // mesh core
 struct mesh_core {

@@ -20,19 +20,27 @@ void user_interface::draw() {
 	for (Actor *const &act : actors) {
 		curv->x = act->x;
 		curv->y = act->y;
+		curv->u = 0;
+		curv->v = 0;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
 		curv++;
 		curv->x = act->x;
 		curv->y = act->y+act->height;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv->u = 0;
+		curv->v = 1;
 		curv++;
 		curv->x = act->x+act->width;
 		curv->y = act->y;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv->u = 1;
+		curv->v = 0;
 		curv++;
 		curv->x = act->x+act->width;
 		curv->y = act->y+act->height;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
+		curv->u = 1;
+		curv->v = 1;
 		curv++;
 	}
 	engine::graph->flat_render(tmp_v, len);
