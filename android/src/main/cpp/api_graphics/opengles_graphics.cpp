@@ -100,6 +100,8 @@ void opengles_graphics::render() {
 	  			0x11, 0x11, 0x11, 0xff
 	  		};
 				glBindTexture(GL_TEXTURE_2D, tex_test);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 				glBindTexture(GL_TEXTURE_2D, 0);
@@ -145,9 +147,9 @@ void opengles_graphics::render() {
 					"\n    #define HIGH mediump"
 					"\n#endif"
 					"\nprecision MED float;"
+					"\nuniform sampler2D u_tex;"
 					"\nin vec4 v_color;"
 					"\nin vec2 v_texCoord;"
-					"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color * texture(u_tex, v_texCoord);"
@@ -250,6 +252,8 @@ void opengles_graphics::render() {
 				glGenTextures(1, &(*i)->id);
 				glBindTexture(GL_TEXTURE_2D, (*i)->id);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -383,6 +387,8 @@ engine::texture_core *opengles_graphics::gen_texture(const int &width, const int
 	t->height = height;
 	memcpy(t->data, data, width*height*sizeof(unsigned char));
 	glBindTexture(GL_TEXTURE_2D, t->id);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(GL_TEXTURE_2D, 0);
