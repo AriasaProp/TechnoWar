@@ -6,7 +6,9 @@
 
 struct ui_batch {
 	bool dirty_projection;
-	GLint shader, u_projection, u_texture;
+	GLint shader;
+	GLint u_projection;
+	//GLint u_texture;
 	GLuint vao, vbo, ibo;
 	float ui_projection[16];
 };
@@ -91,7 +93,7 @@ void opengles_graphics::render() {
   		//made root for null texture test
   		{
 	  		glGenTextures(1, &test_Null);
-	  		unsigned char data[16] {
+	  		unsigned char data[16] = {
 	  			0xff, 0xff, 0xff, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0xff, 0xff, 0xff, 0xff,
@@ -141,7 +143,7 @@ void opengles_graphics::render() {
 					"\n#endif"
 					"\nprecision MED float;"
 					"\nin vec4 v_color;"
-					"\nuniform sampler2D u_tex;"
+					//"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color;"
@@ -153,7 +155,7 @@ void opengles_graphics::render() {
 				glDeleteShader(vi);
 				glDeleteShader(fi);
 				ubatch->u_projection = glGetUniformLocation(ubatch->shader, "u_proj");
-				ubatch->u_texture = glGetUniformLocation(ubatch->shader, "u_tex");
+				//ubatch->u_texture = glGetUniformLocation(ubatch->shader, "u_tex");
 				glGenVertexArrays(1, &ubatch->vao);
 				glGenBuffers(2, &ubatch->vbo);
 				glBindVertexArray(ubatch->vao);
@@ -400,7 +402,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int l
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, test_Null);
-	glUniform1i(ubatch->u_texture, 0);
+	//glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
