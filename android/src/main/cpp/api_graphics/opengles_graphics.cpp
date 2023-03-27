@@ -22,7 +22,7 @@ Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_batch *ws;
-GLuint test_Null;
+//GLuint test_Null;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -91,6 +91,7 @@ void opengles_graphics::render() {
 		resize_viewport(width, height);
   	if (newCntx) {
   		//made root for null texture test
+  		/*
   		{
 	  		glGenTextures(1, &test_Null);
 	  		unsigned char data[16] = {
@@ -104,6 +105,7 @@ void opengles_graphics::render() {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 				glBindTexture(GL_TEXTURE_2D, 0);
   		}
+  		*/
 			//validating gles resources
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
@@ -328,7 +330,7 @@ void opengles_graphics::render() {
 				}
 				
 				//reset null texture
-				glDeleteTextures(1, &test_Null);
+				//glDeleteTextures(1, &test_Null);
 			}
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;
@@ -400,8 +402,8 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, test_Null);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, test_Null);
 	//glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
@@ -412,7 +414,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int l
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	//glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
