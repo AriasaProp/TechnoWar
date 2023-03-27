@@ -151,7 +151,6 @@ void opengles_graphics::render() {
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
 					"\n    fragColor = v_color;"
-					"\n    fragColor.rg *= v_texCoord;"
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
@@ -172,9 +171,9 @@ void opengles_graphics::render() {
 					indexs[j+3] = k++;
 				}
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
-				glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
+				glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
 				glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-				glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
+				glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, color));
 				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
