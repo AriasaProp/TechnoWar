@@ -20,7 +20,7 @@ Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_batch *ws;
-int test_Null;
+GLuint test_Null;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
