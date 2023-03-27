@@ -93,7 +93,7 @@ void opengles_graphics::render() {
   		//made root for null texture test
   		{
 	  		glGenTextures(1, &tex_test);
-	  		unsigned char *data = new unsigned char[16]{
+	  		unsigned char data[16]{
 	  			0xff, 0xff, 0xff, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0xff, 0xff, 0xff, 0xff,
@@ -101,8 +101,7 @@ void opengles_graphics::render() {
 	  		};
 				glBindTexture(GL_TEXTURE_2D, tex_test);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
-				delete[] data;
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 				glBindTexture(GL_TEXTURE_2D, 0);
   		}
 			//validating gles resources
