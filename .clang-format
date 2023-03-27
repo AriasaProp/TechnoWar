@@ -1,7 +1,6 @@
 BasedOnStyle: LLVM
 IndentWidth: 2
 TabWidth: 2
-UseTab: Never
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false

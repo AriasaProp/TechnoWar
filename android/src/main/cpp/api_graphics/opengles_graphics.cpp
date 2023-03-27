@@ -20,6 +20,7 @@ Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_batch *ws;
+int test_Null;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -87,6 +88,20 @@ void opengles_graphics::render() {
   	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
 		resize_viewport(width, height);
   	if (newCntx) {
+  		//made root for null texture test
+  		{
+	  		glGenTextures(1, &test_Null);
+	  		unsigned char data[16] {
+	  			0xff, 0xff, 0xff, 0xff,
+	  			0x11, 0x11, 0x11, 0xff,
+	  			0xff, 0xff, 0xff, 0xff,
+	  			0x11, 0x11, 0x11, 0xff
+	  		};
+				glBindTexture(GL_TEXTURE_2D, test_Null);
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
+				glBindTexture(GL_TEXTURE_2D, 0);
+  		}
 			//validating gles resources
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
@@ -307,6 +322,9 @@ void opengles_graphics::render() {
 				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
 					glDeleteTextures(1, &(*i)->id);
 				}
+				
+				//reset null texture
+				glDeleteTextures(1, &test_Null);
 			}
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;

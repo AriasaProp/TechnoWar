@@ -78,7 +78,9 @@ void Main::render() {
                   M_PI / 3.0f * (delta)  // 60° /s
   );
   engine::graph->mesh_render(&mp, 1);
-  memcpy(&ml.color, (unsigned char[]){(unsigned char)(0xff * ((float)engine::inpt->getX(0) / engine::graph->getWidth())), (unsigned char)(0xff * ((float)engine::inpt->getY(0) / engine::graph->getHeight())), 0x00}, 3 * sizeof(unsigned char));
+  
+  //memcpy(&ml.color, (unsigned char[]){(unsigned char)(0xff * ((float)engine::inpt->getX(0) / engine::graph->getWidth())), (unsigned char)(0xff * ((float)engine::inpt->getY(0) / engine::graph->getHeight())), 0x00}, 3 * sizeof(unsigned char));
+  
   user_interface::draw();
 }
 void Main::pause() {
