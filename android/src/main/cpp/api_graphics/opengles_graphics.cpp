@@ -147,10 +147,10 @@ void opengles_graphics::render() {
 					"\nprecision MED float;"
 					"\nin vec4 v_color;"
 					"\nin vec2 v_texCoord;"
-					//"\nuniform sampler2D u_tex;"
+					"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
-					"\n    fragColor = v_color * vec4(v_texCoord, 1.0, 1.0);"
+					"\n    fragColor = v_color * texture(u_tex, v_texCoord);"
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
@@ -159,7 +159,7 @@ void opengles_graphics::render() {
 				glDeleteShader(vi);
 				glDeleteShader(fi);
 				ubatch->u_projection = glGetUniformLocation(ubatch->shader, "u_proj");
-				//ubatch->u_texture = glGetUniformLocation(ubatch->shader, "u_tex");
+				ubatch->u_texture = glGetUniformLocation(ubatch->shader, "u_tex");
 				glGenVertexArrays(1, &ubatch->vao);
 				glGenBuffers(2, &ubatch->vbo);
 				glBindVertexArray(ubatch->vao);
@@ -406,9 +406,9 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, test_Null);
-	//glUniform1i(ubatch->u_texture, 0);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex_test);
+	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
 		ubatch->dirty_projection = false;
@@ -418,7 +418,7 @@ void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int l
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
-	//glBindTexture(GL_TEXTURE_2D, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glUseProgram(0);
 }
 engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
