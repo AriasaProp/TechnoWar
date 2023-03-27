@@ -144,7 +144,7 @@ void opengles_graphics::render() {
 					"\nuniform sampler2D u_tex;"
 					"\nlayout(location = 0) out vec4 fragColor;"
 					"\nvoid main() {"
-					"\n    fragColor = texture(u_tex, vec2(1.0,1.0)) * v_color;"
+					"\n    fragColor = v_color;"
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
