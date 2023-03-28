@@ -18,7 +18,7 @@ void user_interface::draw() {
 	engine::flat_vertex *tmp_v = new engine::flat_vertex[len * 4];
 	engine::flat_vertex *curv = tmp_v;
 	std::unordered_set<Actor*>::iterator it = actors.begin();
-	engine::texture_core *cur_tex = it->img.getCore();
+	engine::texture_core *cur_tex = (*it)->img.getCore();
 	unsigned int i = 0;
 	while (it != actors.end()) {
 		const Actor *const &act = *it;
