@@ -25,7 +25,7 @@ struct a_asset: public engine::asset_core {
 		return AAsset_getRemainingLength(asset) == 0;
 	}
 	~a_asset() {
-		AAssetManager_close(asset);
+		AAsset_close(asset);
 	}
 };
 
