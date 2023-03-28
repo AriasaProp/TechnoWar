@@ -14,7 +14,7 @@ struct a_asset: public engine::asset_core {
 	}
 	unsigned int read(void *buff, unsigned int size) override {
 		if (!asset) return 0;
-		AAsset_read(asset, buff, size);
+		return AAsset_read(asset, buff, size);
 	}
 	void seek(int n) override {
 		if (!asset) return;
