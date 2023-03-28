@@ -10,7 +10,7 @@ AAssetManager *assetmanager;
 struct a_asset: public engine::asset_core {
 	AAsset *asset = nullptr;
 	a_asset(const char *filename) {
-    asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAM);
+    asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING);
 	}
 	unsigned int read(void *buff, unsigned int size) override {
 		if (!asset) return 0;
@@ -29,10 +29,10 @@ struct a_asset: public engine::asset_core {
 	}
 };
 
-engine::asset_core *open_asset(const char *filename) {
+engine::asset_core *android_asset::open_asset(const char *filename) {
 	return new a_asset(filename);
 }
-void close_asset(engine::asset_core *a) {
+void android_asset::close_asset(engine::asset_core *a) {
 	delete(static_cast<a_asset*>(a));
 }
 
