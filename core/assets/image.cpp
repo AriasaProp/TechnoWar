@@ -21,10 +21,10 @@ image::image(const char *filename) {
 		},
 		[](void *user) -> bool {
 			return static_cast<engine::asset_core*>(user)->eof();
-		},
+		}
 	};
 	int width, height;
-	unsigned char *data = stbi_load_from_callbacks(io, ac, &width, &height, nullptr, STBI_rgb_alpha);
+	unsigned char *data = stbi_load_from_callbacks(io, &ac, &width, &height, nullptr, STBI_rgb_alpha);
 	engine::asset->close_asset(ac);
 	core = engine::graph->gen_texture(width, height, data);
 	stbi_image_free(data);
@@ -35,5 +35,3 @@ engine::texture_core *image::getCore() {
 image::~image() {
 	engine::graph->delete_texture(core);
 }
-
-#endif //Included_Image
