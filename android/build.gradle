@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    def cmakeVersion = System.getenv("CMAKE_VERSION")
     signingConfigs {
         mainSign {
             storeFile file('sign.keystore')
@@ -32,7 +31,7 @@ android {
     }
     externalNativeBuild {
     		cmake {
-    				version cmakeVersion
+    				version "3.26.1"
     				path "src/main/cpp/CMakeLists.txt"
     		}
     }

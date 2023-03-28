@@ -23,10 +23,7 @@ jobs:
       with:
         gradle-version: 8.0.1
     - name: Build Gradle
-      run: |
-        cmake_version=$(apt-cache policy cmake | grep 'Candidate:' | awk '{print $2}' | sort -V | tail -1)
-        export CMAKE_VERSION=$cmake_version
-        gradle :android:build
+      run: gradle :android:build
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
