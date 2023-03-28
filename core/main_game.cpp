@@ -13,7 +13,11 @@ engine::mesh_core *mp;
 engine::flat_vertex *fV;
 
 Main::Main() {
-	image ig("test1.jpg");
+	try {
+		image ig("test1.jpg");
+	} catch (...) {
+		engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
+	}
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -53,7 +57,6 @@ Main::Main() {
       16, 17, 19, 17, 18, 19, // top
       20, 21, 23, 21, 22, 23  // back
   };
-  // engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
   mp = engine::graph->gen_mesh(vert, 24, indices, 36);
   
   fV = new engine::flat_vertex[4] {

@@ -16,13 +16,13 @@ enum {
 };
 
 struct stbi_io_callbacks {
-   int (*read)(void *user,char *data,int size);   // fill 'data' with 'size' bytes.  return number of bytes actually read
-   void (*skip)(void *user,int n);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
-   bool (*eof)(void *user);                       // returns nonzero if we are at end of file/data
+   unsigned int (*read)(void *,char *,int);   // fill 'data' with 'size' bytes.  return number of bytes actually read
+   void (*skip)(void *,int);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+   bool (*eof)(void *);                       // returns nonzero if we are at end of file/data
 };
 
 extern unsigned char *stbi_load_from_memory (unsigned char const *buffer, int len , int *x, int *y, int *channels_in_file, int desired_channels);
-extern unsigned char *stbi_load_from_callbacks(stbi_io_callbacks *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+extern unsigned char *stbi_load_from_callbacks(const stbi_io_callbacks *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
 extern unsigned char *stbi_load (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
