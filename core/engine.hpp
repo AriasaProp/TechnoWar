@@ -74,7 +74,6 @@ struct asset_core {
 struct assets_core {
 	virtual asset_core *open_asset(const char *) = 0;
 	virtual void close_asset(asset_core *) = 0;
-	virtual texture_core *texture_from_asset(const char *) = 0;
 };
 extern graphics_core *graph;
 extern input_core *inpt;

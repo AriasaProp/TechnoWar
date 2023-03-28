@@ -1,12 +1,15 @@
 #ifndef Included_Android_Asset
 #define Included_Android_Asset
 
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
 #include "../engine.hpp"
 
 struct android_asset: public engine::asset_core {
 	android_asset(AAssetManager*);
 	~android_asset();
-	engine::texture_core *texture_from_asset(const char *) override;
+	engine::asset_core *open_asset(const char *) override;
+	void close_asset(engine::asset_core *) override;
 };
 
 #endif //Included_Android_Asset

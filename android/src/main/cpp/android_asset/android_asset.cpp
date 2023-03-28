@@ -5,7 +5,7 @@
 #include <android/asset_manager_jni.h>
 #include <cstdio>
 
-AAssetManager assetmanager;
+AAssetManager *assetmanager;
 
 struct a_asset: public engine::asset_core {
 	AAsset *asset = nullptr;
@@ -29,10 +29,10 @@ struct a_asset: public engine::asset_core {
 	}
 };
 
-asset_core *open_asset(const char *filename) {
+engine::asset_core *open_asset(const char *filename) {
 	return new a_asset(filename);
 }
-void close_asset(asset_core *a) {
+void close_asset(engine::asset_core *a) {
 	delete(static_cast<a_asset*>(a));
 }
 
