@@ -2,6 +2,7 @@
 #include "engine.hpp"
 
 #include "math/matrix4.hpp"
+#include "assets/image.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -12,6 +13,7 @@ engine::mesh_core *mp;
 engine::flat_vertex *fV;
 
 Main::Main() {
+	image ig("test1.jpg");
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
