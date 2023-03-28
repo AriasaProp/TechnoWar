@@ -2,7 +2,6 @@
 #include "engine.hpp"
 
 #include "math/matrix4.hpp"
-#include "user_interface/user_interface.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -10,16 +9,9 @@
 #include <ctime> /* time */
 
 engine::mesh_core *mp;
-Actor ml;
+engine::flat_vertex *fV;
 
 Main::Main() {
-  ml.x = 120;
-  ml.y = 120;
-  ml.width = 400;
-  ml.height = 350;
-  memcpy(ml.color, (unsigned char[]){0xff, 0xff, 0x00, 0xff}, 4 * sizeof(unsigned char));
-  ml.img = image();
-  user_interface::addActor(&ml);
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -61,6 +53,13 @@ Main::Main() {
   };
   // engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
   mp = engine::graph->gen_mesh(vert, 24, indices, 36);
+  
+  fV = new engine::flat_vertex[4] {
+  	{120.f,120.f,(unsigned char[]){0xff,0xf0,0x01,0xff},0,0},
+  	{120.f,520.f,(unsigned char[]){0xff,0xf0,0x01,0xff},0,1},
+  	{520.f,120.f,(unsigned char[]){0xff,0xf0,0x01,0xff},1,0},
+  	{520.f,520.f,(unsigned char[]){0xff,0xf0,0x01,0xff},1,1}
+  };
 }
 void Main::resume() {
 }
@@ -79,14 +78,12 @@ void Main::render() {
                   M_PI / 3.0f * (delta)  // 60° /s
   );
   engine::graph->mesh_render(&mp, 1);
-
-  // memcpy(&ml.color, (unsigned char[]){(unsigned char)(0xff * ((float)engine::inpt->getX(0) / engine::graph->getWidth())), (unsigned char)(0xff * ((float)engine::inpt->getY(0) / engine::graph->getHeight())), 0x00}, 3 * sizeof(unsigned char));
-
-  user_interface::draw();
+  
+  engine::graph->flat_render(nullptr, fV, 1);
 }
 void Main::pause() {
 }
 Main::~Main() {
   engine::graph->delete_mesh(mp);
-  user_interface::clearActor();
+  delete fV;
 }
