@@ -9,7 +9,7 @@ private:
 public:
 	image();//null
 	image(const char*);//from file
-	engine::texture_core *getCore();
+	engine::texture_core *getCore() const;
 	~image();
 };
 

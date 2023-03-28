@@ -29,7 +29,7 @@ image::image(const char *filename) {
 	core = engine::graph->gen_texture(width, height, data);
 	stbi_image_free(data);
 }
-engine::texture_core *image::getCore() {
+engine::texture_core *image::getCore() const {
 	return core;
 }
 image::~image() {
