@@ -70,10 +70,12 @@ struct asset_core {
 	virtual unsigned int read(void *, unsigned int) = 0;
 	virtual void seek(int) = 0;
 	virtual bool eof() = 0;
+	~asset_core() {}
 };
 struct assets_core {
 	virtual asset_core *open_asset(const char *) = 0;
 	virtual void close_asset(asset_core *) = 0;
+	~assets_core() {}
 };
 extern graphics_core *graph;
 extern input_core *inpt;
