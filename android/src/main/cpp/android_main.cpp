@@ -186,6 +186,7 @@ static void* android_app_entry(void* param) {
 	    }
 	  }
 	  delete g;
+	  delete aasset;
 	  delete inpt;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
