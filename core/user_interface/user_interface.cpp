@@ -61,31 +61,3 @@ void user_interface::draw() {
 void user_interface::clearActor() {
 	actors.clear();
 }
-/*
-void user_interface::keyDown(int keyCode) {
-	
-}
-void user_interface::keyUp(int keyCode) {
-	
-}
-void user_interface::keyTyped(char key) {
-	
-}
-void user_interface::touchDown(float x,float y,int ptr,int button) {
-	
-}
-void user_interface::touchDragged(float y,float x,int ptr) {
-	
-}
-void user_interface::touchUp(float x,float y,int ptr,int button) {
-	
-}
-void user_interface::mouseMoved(float x,float y) {
-	
-}
-void user_interface::scrolled(float amout) {
-	
-}
-*/
-
-

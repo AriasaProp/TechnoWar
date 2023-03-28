@@ -410,11 +410,10 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
+void opengles_graphics::flat_render(engine::texture_core *, engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
-	(void)tex;
 	glBindTexture(GL_TEXTURE_2D, nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
