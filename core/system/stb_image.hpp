@@ -22,7 +22,7 @@ struct stbi_io_callbacks {
 };
 
 extern unsigned char *stbi_load_from_memory (unsigned char const *buffer, int len , int *x, int *y, int *channels_in_file, int desired_channels);
-extern unsigned char *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+extern unsigned char *stbi_load_from_callbacks(stbi_io_callbacks *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
 extern unsigned char *stbi_load (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
