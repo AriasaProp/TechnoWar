@@ -34,7 +34,7 @@ public:
   void bind_texture(engine::texture_core*) override;
   void set_texture_param(const int&, const int&) override;
   void delete_texture(engine::texture_core*) override;
-  void flat_render(engine::flat_vertex*, unsigned int) override;
+  void flat_render(engine::texture_core*, engine::flat_vertex*, unsigned int) override;
   engine::mesh_core* gen_mesh(engine::mesh_core::data*, unsigned int, unsigned short*, unsigned int) override;
   void mesh_render(engine::mesh_core**, const unsigned int&) override;
   void delete_mesh(engine::mesh_core*) override;
