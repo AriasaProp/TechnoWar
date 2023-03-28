@@ -24,7 +24,7 @@ image::image(const char *filename) {
 		}
 	};
 	int width, height;
-	unsigned char *data = stbi_load_from_callbacks(io, &ac, &width, &height, nullptr, STBI_rgb_alpha);
+	unsigned char *data = stbi_load_from_callbacks(&io, ac, &width, &height, nullptr, STBI_rgb_alpha);
 	engine::asset->close_asset(ac);
 	core = engine::graph->gen_texture(width, height, data);
 	stbi_image_free(data);
