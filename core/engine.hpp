@@ -8,8 +8,8 @@
 namespace engine {
 // texture core
 struct texture_core {
-	//virtual unsigned int getId() = 0;
-	//virtual unsigned char *getData(unsigned int *outW, unsigned int *outH) = 0; //this should delete after used
+  // virtual unsigned int getId() = 0;
+  // virtual unsigned char *getData(unsigned int *outW, unsigned int *outH) = 0; //this should delete after used
   unsigned int id;
   unsigned int width, height;
   unsigned char *data;
@@ -18,7 +18,7 @@ struct texture_core {
 struct flat_vertex {
   float x, y;
   unsigned char color[4];
-  float u,v;
+  float u, v;
 };
 // mesh core
 struct mesh_core {
@@ -64,18 +64,21 @@ struct input_core {
   virtual bool isKeyPressed(int key) = 0;
   virtual bool isKeyJustPressed(int key) = 0;
   virtual void process_event() = 0;
-  virtual ~input_core() {}
+  virtual ~input_core() {
+  }
 };
 struct asset_core {
-	virtual unsigned int read(void *, unsigned int) = 0;
-	virtual void seek(int) = 0;
-	virtual bool eof() = 0;
-	virtual ~asset_core() {}
+  virtual unsigned int read(void *, unsigned int) = 0;
+  virtual void seek(int) = 0;
+  virtual bool eof() = 0;
+  virtual ~asset_core() {
+  }
 };
 struct assets_core {
-	virtual asset_core *open_asset(const char *) = 0;
-	virtual void close_asset(asset_core *) = 0;
-	virtual ~assets_core() {}
+  virtual asset_core *open_asset(const char *) = 0;
+  virtual void close_asset(asset_core *) = 0;
+  virtual ~assets_core() {
+  }
 };
 extern graphics_core *graph;
 extern input_core *inpt;
