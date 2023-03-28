@@ -1,10 +1,26 @@
 BasedOnStyle: LLVM
 IndentWidth: 2
 TabWidth: 2
+# make namespace content indent 1 level
+NamespaceIndentation: Inner
+# make short code
 AllowShortIfStatementsOnASingleLine: true
-AllowShortLoopsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: false
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+# line of code hasn't limit
 ColumnLimit: 0
+# make opening brace doesn't writed after new line
 BraceWrapping:
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
   AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+# empty line will not repeated
 MaxEmptyLinesToKeep: 1

@@ -18,7 +18,7 @@ Main::Main() {
   ml.width = 400;
   ml.height = 350;
   memcpy(ml.color, (unsigned char[]){0xff, 0xff, 0x00, 0xff}, 4 * sizeof(unsigned char));
-  ml.img = image("test.jpeg");
+  ml.img = image();
   user_interface::addActor(&ml);
   engine::mesh_core::data vert[24] = {
       // front red
