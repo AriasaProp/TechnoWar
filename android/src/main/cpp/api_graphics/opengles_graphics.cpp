@@ -414,7 +414,8 @@ void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vert
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex?tex->id:nullTextureId);
+	(void)tex;
+	glBindTexture(GL_TEXTURE_2D, nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
