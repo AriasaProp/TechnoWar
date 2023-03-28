@@ -12,7 +12,7 @@ image::image() {
 }
 image::image(const char *filename) {
 	engine::asset_core *ac = engine::asset->open_asset(filename);
-	const stbi_io_callbacks io {
+	stbi_io_callbacks io {
 		[](void *user, char *data, int size) -> int {
 			return static_cast<engine::asset_core*>(user)->read(data, size);
 		},
