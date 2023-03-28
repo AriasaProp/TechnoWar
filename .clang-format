@@ -5,4 +5,6 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 ColumnLimit: 0
+BraceWrapping:
+  AfterFunction: false
 MaxEmptyLinesToKeep: 1

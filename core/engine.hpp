@@ -8,6 +8,8 @@
 namespace engine {
 // texture core
 struct texture_core {
+	//virtual unsigned int getId() = 0;
+	//virtual unsigned char *getData(unsigned int *outW, unsigned int *outH) = 0; //this should delete after used
   unsigned int id;
   unsigned int width, height;
   unsigned char *data;
@@ -43,7 +45,7 @@ struct graphics_core {
   virtual void bind_texture(texture_core *) = 0;
   virtual void set_texture_param(const int &, const int &) = 0;
   virtual void delete_texture(texture_core *) = 0;
-  virtual void flat_render(flat_vertex *, const unsigned int) = 0;
+  virtual void flat_render(texture_core *, flat_vertex *, const unsigned int) = 0;
   virtual mesh_core *gen_mesh(mesh_core::data *, unsigned int, unsigned short *, unsigned int) = 0;
   virtual void mesh_render(mesh_core **, const unsigned int &) = 0;
   virtual void delete_mesh(mesh_core *) = 0;
@@ -62,11 +64,21 @@ struct input_core {
   virtual bool isKeyPressed(int key) = 0;
   virtual bool isKeyJustPressed(int key) = 0;
   virtual void process_event() = 0;
-  virtual ~input_core() {
-  }
+  virtual ~input_core() {}
+};
+struct asset_core {
+	virtual unsigned int read(void *, unsigned int) = 0;
+	virtual void seek(int) = 0;
+	virtual bool eof() = 0;
+};
+struct assets_core {
+	virtual asset_core *open_asset(const char *) = 0;
+	virtual void close_asset(asset_core *) = 0;
+	virtual texture_core *texture_from_asset(const char *) = 0;
 };
 extern graphics_core *graph;
 extern input_core *inpt;
+extern assets_core *asset;
 } // namespace engine
 
 #endif //_Included_Engine

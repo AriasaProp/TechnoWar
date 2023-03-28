@@ -22,7 +22,8 @@ Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
 ui_batch *ubatch;
 world_batch *ws;
-GLuint tex_test;
+//this is used for null texture needed
+GLuint nullTextureId;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -92,14 +93,14 @@ void opengles_graphics::render() {
   	if (newCntx) {
   		//made root for null texture test
   		{
-	  		glGenTextures(1, &tex_test);
+	  		glGenTextures(1, &nullTextureId);
 	  		unsigned char data[16]{
 	  			0xff, 0xff, 0xff, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0xff, 0xff, 0xff, 0xff
 	  		};
-				glBindTexture(GL_TEXTURE_2D, tex_test);
+				glBindTexture(GL_TEXTURE_2D, nullTextureId);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -252,8 +253,8 @@ void opengles_graphics::render() {
 				glGenTextures(1, &(*i)->id);
 				glBindTexture(GL_TEXTURE_2D, (*i)->id);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -338,7 +339,7 @@ void opengles_graphics::render() {
 				}
 				
 				//reset null texture
-				glDeleteTextures(1, &tex_test);
+				glDeleteTextures(1, &nullTextureId);
 			}
     	eglDestroyContext(display, context);
     	context = EGL_NO_CONTEXT;
@@ -387,8 +388,8 @@ engine::texture_core *opengles_graphics::gen_texture(const int &width, const int
 	t->height = height;
 	memcpy(t->data, data, width*height*sizeof(unsigned char));
 	glBindTexture(GL_TEXTURE_2D, t->id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -409,11 +410,11 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	delete[] t->data;
 	delete t;
 }
-void opengles_graphics::flat_render(engine::flat_vertex *v, const unsigned int len) {
+void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex_test);
+	glBindTexture(GL_TEXTURE_2D, tex?tex->id:nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);

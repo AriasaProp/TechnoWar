@@ -17,7 +17,17 @@ void user_interface::draw() {
 	if (!len) return;
 	engine::flat_vertex *tmp_v = new engine::flat_vertex[len * 4];
 	engine::flat_vertex *curv = tmp_v;
-	for (Actor *const &act : actors) {
+	std::unordered_set<Actor*>::iterator it = actors.begin();
+	const engine::texture_core *cur_tex = it->img.getCore();
+	unsigned int i = 0;
+	while (it != actors.end()) {
+		const Actor *const &act = *it;
+		if (cur_tex != act->img.getCore()) {
+			engine::graph->flat_render(cur_tex, tmp_v, i);
+			i = 0;
+			curv = tmp_v;
+			cur_tex = act->img.getCore();
+		}
 		curv->x = act->x;
 		curv->y = act->y;
 		memcpy(curv->color, act->color, 4 * sizeof(unsigned char));
@@ -42,8 +52,10 @@ void user_interface::draw() {
 		curv->u = 1;
 		curv->v = 1;
 		curv++;
+		it++;
+		i++;
 	}
-	engine::graph->flat_render(tmp_v, len);
+	engine::graph->flat_render(cur_tex, tmp_v, i);
 	delete[] tmp_v;
 }
 void user_interface::clearActor() {
