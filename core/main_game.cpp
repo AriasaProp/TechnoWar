@@ -17,14 +17,15 @@ Main::Main() {
   {
     stbi_io_callbacks clbk{
         [](void *d, char *buff, unsigned int len) -> int {
-          return ((engine::asset_core *)d)->read(buff, len);
+          return engine::asset->seek_read((engine::asset_core *)d, buff, len);
         },
         [](void *d, int l) -> void {
-          ((engine::asset_core *)d)->seek(l);
+          engine::asset->seek_asset((engine::asset_core *)d, l);
         },
         [](void *d) -> bool {
-          return ((engine::asset_core *)d)->eof();
-        }};
+          return engine::asset->eof_asset((engine::asset_core *)d);
+        }
+    };
     int w, h, chnl;
     engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
     try {
@@ -76,7 +77,6 @@ Main::Main() {
       20, 21, 23, 21, 22, 23  // back
   };
   mp = engine::graph->gen_mesh(vert, 24, indices, 36);
-
   fV = new engine::flat_vertex[4]{
       {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
       {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},

@@ -68,17 +68,15 @@ struct input_core {
   }
 };
 struct asset_core {
-  virtual unsigned int read(void *, unsigned int) = 0;
-  virtual void seek(int) = 0;
-  virtual bool eof() = 0;
-  virtual ~asset_core() {
-  }
+	virtual ~asset_core() {}
 };
 struct assets_core {
   virtual asset_core *open_asset(const char *) = 0;
+  virtual unsigned int read_asset(asset_core*, void*, unsigned int) = 0;
+  virtual void seek_asset(asset_core*, int) = 0;
+  virtual bool eof_asset(asset_core*) = 0;
   virtual void close_asset(asset_core *) = 0;
-  virtual ~assets_core() {
-  }
+  virtual ~assets_core() {}
 };
 extern graphics_core *graph;
 extern input_core *inpt;

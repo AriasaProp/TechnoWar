@@ -8,29 +8,25 @@
 AAssetManager *assetmanager;
 
 struct a_asset: public engine::asset_core {
-	AAsset *asset = nullptr;
-	a_asset(const char *filename) {
-    asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING);
-	}
-	unsigned int read(void *buff, unsigned int size) override {
-		if (!asset) return 0;
-		return AAsset_read(asset, buff, size);
-	}
-	void seek(int n) override {
-		if (!asset) return;
-  	AAsset_seek(asset, n, SEEK_CUR);
-	}
-	bool eof() override {
-		if (!asset) return true;
-		return AAsset_getRemainingLength(asset) == 0;
-	}
-	~a_asset() {
-		AAsset_close(asset);
-	}
+	AAsset *asset;
+	a_asset(AAsset *a): asset(a) {}
+	~a_asset() { AAsset_close(asset); }
 };
 
 engine::asset_core *android_asset::open_asset(const char *filename) {
-	return new a_asset(filename);
+	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
+}
+unsigned int read_asset(engine::asset_core *a, void *buff, unsigned int len)  {
+	if (!a) return 0;
+	return AAsset_read(static_cast<a_asset*>(a)->asset, buff, len);
+}
+void seek_asset(engine::asset_core *a, int n)  {
+	if (!a) return;
+	AAsset_seek(static_cast<a_asset*>(a)->asset, n, SEEK_CUR);
+}
+bool eof_asset(engine::asset_core *a)  {
+	if (!a) return true;
+	return AAsset_getRemainingLength(static_cast<a_asset*>(a)->asset) == 0;
 }
 void android_asset::close_asset(engine::asset_core *a) {
 	delete(static_cast<a_asset*>(a));
