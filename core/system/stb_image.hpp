@@ -16,7 +16,7 @@ enum {
 };
 
 struct stbi_io_callbacks {
-   unsigned int (*read)(void *,char *,int);   // fill 'data' with 'size' bytes.  return number of bytes actually read
+   unsigned int (*read)(void *,char *,unsigned int);   // fill 'data' with 'size' bytes.  return number of bytes actually read
    void (*skip)(void *,int);                 // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
    bool (*eof)(void *);                       // returns nonzero if we are at end of file/data
 };
