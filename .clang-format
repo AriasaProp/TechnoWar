@@ -7,20 +7,24 @@ NamespaceIndentation: Inner
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: true
+AlignOperands: false
 # line of code hasn't limit
 ColumnLimit: 0
 # make opening brace doesn't writed after new line
 BraceWrapping:
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterObjCDeclaration: false
-  AfterStruct: false
-  AfterUnion: false
-  AfterExternBlock: false
-  BeforeCatch: false
-  BeforeElse: false
+  AfterClass: true
+  AfterControlStatement: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterWhile: true
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
 # empty line will not repeated
 MaxEmptyLinesToKeep: 1
