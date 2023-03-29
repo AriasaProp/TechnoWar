@@ -6,6 +6,9 @@
 #include "../engine.hpp"
 
 struct android_asset: public engine::assets_core {
+private:
+	AAssetManager *assetmanager;
+public:
 	android_asset(AAssetManager*);
 	~android_asset();
 	engine::asset_core *open_asset(const char *) override;

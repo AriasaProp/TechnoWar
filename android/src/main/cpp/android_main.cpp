@@ -29,6 +29,8 @@
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
+android_asset *aaset;
+
 struct android_app {
     bool destroyed;
     int appCmdState;
@@ -71,7 +73,6 @@ static void* android_app_entry(void* param) {
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
 	  android_graphics *g = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
-	  android_asset *aasset = new android_asset(app->activity->assetManager);
 	  if (app->savedState) {
 	      g->state = *(saved_state*)app->savedState;
 	  }
@@ -186,7 +187,6 @@ static void* android_app_entry(void* param) {
 	    }
 	  }
 	  delete g;
-	  delete aasset;
 	  delete inpt;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
@@ -223,6 +223,7 @@ static void onDestroy(ANativeActivity* activity) {
     pthread_cond_destroy(&app->cond);
     pthread_mutex_destroy(&app->mutex);
     delete app;
+	  delete aasset;
     activity->instance = nullptr;
 }
 static void onStart(ANativeActivity* activity) {
@@ -354,6 +355,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     android_app* app = new android_app;
     activity->instance = app;
     memset(app, 0, sizeof(android_app));
+	  aasset = new android_asset(activity->assetManager);
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);

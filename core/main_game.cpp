@@ -30,6 +30,15 @@ Main::Main() {
     engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
     try {
       unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, &chnl, STBI_rgb_alpha);
+      if (!tempDf) {
+      	tempDf = (unsigned char *)malloc(16*sizeof(unsigned char));
+      	memcpy(tempDf,(unsigned char[]){
+      		0xff,0x00,0x00,0xff,
+      		0xff,0x00,0x00,0xff,
+      		0xf1,0xa7,0x40,0xff,
+      		0xff,0x00,0x00,0xff,
+      	}, 16*sizeof(unsigned char));
+      }
       tc = engine::graph->gen_texture(w, h, tempDf);
       stbi_image_free(tempDf);
     } catch (const char *) {

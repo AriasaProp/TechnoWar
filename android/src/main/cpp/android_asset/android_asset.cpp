@@ -5,14 +5,11 @@
 #include <android/asset_manager_jni.h>
 #include <cstdio>
 
-AAssetManager *assetmanager;
-
 struct a_asset: public engine::asset_core {
 	AAsset *asset;
 	a_asset(AAsset *a): asset(a) {}
 	~a_asset() { AAsset_close(asset); }
 };
-
 engine::asset_core *android_asset::open_asset(const char *filename) {
 	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
 }
@@ -31,12 +28,9 @@ bool android_asset::eof_asset(engine::asset_core *a)  {
 void android_asset::close_asset(engine::asset_core *a) {
 	delete(static_cast<a_asset*>(a));
 }
-
-android_asset::android_asset(AAssetManager *mngr) {
-	assetmanager = mngr;
+android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;
 }
 android_asset::~android_asset() {
-	
 	engine::asset = nullptr;
 }
