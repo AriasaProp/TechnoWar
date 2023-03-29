@@ -40,20 +40,20 @@
 
 #include <stdarg.h>
 #include <stddef.h> // ptrdiff_t on osx
-#include <stdlib.h>
-#include <string.h>
-#include <limits.h>
+#include <cstring>
+#include <cstdlib>
+#include <climits>
 
 #if !defined(STBI_NO_LINEAR) || !defined(STBI_NO_HDR)
-#include <math.h>  // ldexp, pow
+#include <cmath>  // ldexp, pow
 #endif
 
 #ifndef STBI_NO_STDIO
-#include <stdio.h>
+#include <cstdio>
 #endif
 
 #ifndef STBI_ASSERT
-#include <assert.h>
+#include <cassert>
 #define STBI_ASSERT(x) assert(x)
 #endif
 
@@ -61,17 +61,6 @@
 #define STBI_EXTERN extern "C"
 #else
 #define STBI_EXTERN extern
-#endif
-
-
-#ifndef _MSC_VER
-   #ifdef __cplusplus
-   #define stbi_inline inline
-   #else
-   #define stbi_inline
-   #endif
-#else
-   #define stbi_inline __forceinline
 #endif
 
 #ifndef STBI_NO_THREAD_LOCALS
@@ -92,13 +81,13 @@
    #endif
 #endif
 
-#if defined(_MSC_VER) || defined(__SYMBIAN32__)
+#if (defined(_MSC_VER) && _MSC_VER < 1600) || defined(__SYMBIAN32__)
 typedef unsigned short stbi__uint16;
 typedef   signed short stbi__int16;
 typedef unsigned int   stbi__uint32;
 typedef   signed int   stbi__int32;
 #else
-#include <stdint.h>
+#include <cstdint>
 typedef uint16_t stbi__uint16;
 typedef int16_t  stbi__int16;
 typedef uint32_t stbi__uint32;
@@ -110,37 +99,18 @@ typedef unsigned char validate_uint32[sizeof(stbi__uint32)==4 ? 1 : -1];
 
 #ifdef _MSC_VER
 #define STBI_NOTUSED(v)  (void)(v)
+//lrotl
+#define stbi_inline __forceinline
 #else
 #define STBI_NOTUSED(v)  (void)sizeof(v)
+#define _lrotl(x,y)  (((x) << (y)) | ((x) >> (-(y) & 31)))
+#define stbi_inline inline
 #endif
 
-#ifdef _MSC_VER
-#define STBI_HAS_LROTL
-#endif
-
-#ifdef STBI_HAS_LROTL
-   #define stbi_lrot(x,y)  _lrotl(x,y)
-#else
-   #define stbi_lrot(x,y)  (((x) << (y)) | ((x) >> (-(y) & 31)))
-#endif
-
-#if defined(STBI_MALLOC) && defined(STBI_FREE) && (defined(STBI_REALLOC) || defined(STBI_REALLOC_SIZED))
-// ok
-#elif !defined(STBI_MALLOC) && !defined(STBI_FREE) && !defined(STBI_REALLOC) && !defined(STBI_REALLOC_SIZED)
-// ok
-#else
-#error "Must define all or none of STBI_MALLOC, STBI_FREE, and STBI_REALLOC (or STBI_REALLOC_SIZED)."
-#endif
-
-#ifndef STBI_MALLOC
-#define STBI_MALLOC(sz)           malloc(sz)
-#define STBI_REALLOC(p,newsz)     realloc(p,newsz)
-#define STBI_FREE(p)              free(p)
-#endif
-
-#ifndef STBI_REALLOC_SIZED
+#define STBI_MALLOC(sz) malloc(sz)
+#define STBI_REALLOC(p,newsz) realloc(p,newsz)
+#define STBI_FREE(p) free(p)
 #define STBI_REALLOC_SIZED(p,oldsz,newsz) STBI_REALLOC(p,newsz)
-#endif
 
 // x86/x64 detection
 #if defined(__x86_64__) || defined(_M_X64)
@@ -256,8 +226,7 @@ static int stbi__sse2_available(void)
 
 // stbi__context structure is our basic context used by all images, so it
 // contains all the IO context, plus some basic image information
-typedef struct
-{
+struct stbi__context {
    stbi__uint32 img_x, img_y;
    int img_n, img_out_n;
 
@@ -271,7 +240,7 @@ typedef struct
 
    unsigned char *img_buffer, *img_buffer_end;
    unsigned char *img_buffer_original, *img_buffer_original_end;
-} stbi__context;
+};
 
 
 static void stbi__refill_buffer(stbi__context *s);
@@ -342,12 +311,11 @@ enum
    STBI_ORDER_BGR
 };
 
-typedef struct
-{
+struct stbi__result_info {
    int bits_per_channel;
    int num_channels;
    int channel_order;
-} stbi__result_info;
+};
 
 #ifndef STBI_NO_JPEG
 static int      stbi__jpeg_test(stbi__context *s);
@@ -1379,8 +1347,7 @@ static unsigned char *stbi__hdr_to_ldr(float   *data, int x, int y, int comp)
 // huffman decoding acceleration
 #define FAST_BITS   9  // larger handles more cases; smaller stomps less cache
 
-typedef struct
-{
+struct stbi__huffman {
    unsigned char  fast[1 << FAST_BITS];
    // weirdly, repacking this into AoS is a 10% speed loss, instead of a win
    stbi__uint16 code[256];
@@ -1388,10 +1355,9 @@ typedef struct
    unsigned char  size[257];
    unsigned int maxcode[18];
    int    delta[17];   // old 'firstsymbol' - old 'firstcode'
-} stbi__huffman;
+};
 
-typedef struct
-{
+struct stbi__jpeg {
    stbi__context *s;
    stbi__huffman huff_dc[4];
    stbi__huffman huff_ac[4];
@@ -1442,7 +1408,7 @@ typedef struct
    void (*idct_block_kernel)(unsigned char *out, int out_stride, short data[64]);
    void (*YCbCr_to_RGB_kernel)(unsigned char *out, const unsigned char *y, const unsigned char *pcb, const unsigned char *pcr, int count, int step);
    unsigned char *(*resample_row_hv_2_kernel)(unsigned char *out, unsigned char *in_near, unsigned char *in_far, int w, int hs);
-} stbi__jpeg;
+};
 
 static int stbi__build_huffman(stbi__huffman *h, int *count)
 {
@@ -1602,7 +1568,7 @@ stbi_inline static int stbi__extend_receive(stbi__jpeg *j, int n)
    if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s intead of continuing
 
    sgn = j->code_buffer >> 31; // sign bit always in MSB; 0 if MSB clear (positive), 1 if MSB set (negative)
-   k = stbi_lrot(j->code_buffer, n);
+   k = _lrotl(j->code_buffer, n);
    j->code_buffer = k & ~stbi__bmask[n];
    k &= stbi__bmask[n];
    j->code_bits -= n;
@@ -1615,7 +1581,7 @@ stbi_inline static int stbi__jpeg_get_bits(stbi__jpeg *j, int n)
    unsigned int k;
    if (j->code_bits < n) stbi__grow_buffer_unsafe(j);
    if (j->code_bits < n) return 0; // ran out of bits from stream, return 0s intead of continuing
-   k = stbi_lrot(j->code_buffer, n);
+   k = _lrotl(j->code_buffer, n);
    j->code_buffer = k & ~stbi__bmask[n];
    k &= stbi__bmask[n];
    j->code_bits -= n;
@@ -3289,15 +3255,14 @@ static void stbi__cleanup_jpeg(stbi__jpeg *j)
    stbi__free_jpeg_components(j, j->s->img_n, 0);
 }
 
-typedef struct
-{
+struct stbi__resample {
    resample_row_func resample;
    unsigned char *line0,*line1;
    int hs,vs;   // expansion factor in each axis
    int w_lores; // horizontal pixels pre-expansion
    int ystep;   // how far through vertical expansion we are
    int ypos;    // which pre-expansion row we're on
-} stbi__resample;
+};
 
 // fast 0..255 * 0..255 => 0..255 rounded multiplication
 static unsigned char stbi__blinn_8x8(unsigned char x, unsigned char y)
@@ -3538,15 +3503,14 @@ static int stbi__jpeg_info(stbi__context *s, int *x, int *y, int *comp)
 
 // zlib-style huffman encoding
 // (jpegs packs from left, zlib from right, so can't share code)
-typedef struct
-{
+struct stbi__zhuffman {
    stbi__uint16 fast[1 << STBI__ZFAST_BITS];
    stbi__uint16 firstcode[16];
    int maxcode[17];
    stbi__uint16 firstsymbol[16];
    unsigned char  size[STBI__ZNSYMS];
    stbi__uint16 value[STBI__ZNSYMS];
-} stbi__zhuffman;
+};
 
 stbi_inline static int stbi__bitreverse16(int n)
 {
@@ -3618,8 +3582,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const unsigned char *sizelist
 //    we require PNG read all the IDATs and combine them into a single
 //    memory buffer
 
-typedef struct
-{
+struct stbi__zbuf {
    unsigned char *zbuffer, *zbuffer_end;
    int num_bits;
    stbi__uint32 code_buffer;
@@ -3630,7 +3593,7 @@ typedef struct
    int   z_expandable;
 
    stbi__zhuffman z_length, z_distance;
-} stbi__zbuf;
+};
 
 stbi_inline static int stbi__zeof(stbi__zbuf *z)
 {
@@ -4028,11 +3991,10 @@ STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char
 //      - uses stb_zlib, a PD zlib implementation with fast huffman decoding
 
 #ifndef STBI_NO_PNG
-typedef struct
-{
+struct stbi__pngchunk{
    stbi__uint32 length;
    stbi__uint32 type;
-} stbi__pngchunk;
+};
 
 static stbi__pngchunk stbi__get_chunk_header(stbi__context *s)
 {
@@ -4051,12 +4013,11 @@ static int stbi__check_png_header(stbi__context *s)
    return 1;
 }
 
-typedef struct
-{
+struct stbi__png {
    stbi__context *s;
    unsigned char *idata, *expanded, *out;
    int depth;
-} stbi__png;
+};
 
 
 enum {
@@ -4857,12 +4818,11 @@ static int stbi__shiftsigned(unsigned int v, int shift, int bits)
    return (int) ((unsigned) v * mul_table[bits]) >> shift_table[bits];
 }
 
-typedef struct
-{
+struct stbi__bmp_data {
    int bpp, offset, hsz;
    unsigned int mr,mg,mb,ma, all_a;
    int extra_read;
-} stbi__bmp_data;
+};
 
 static int stbi__bmp_set_mask_defaults(stbi__bmp_data *info, int compress)
 {
@@ -5804,10 +5764,9 @@ static int stbi__pic_test_core(stbi__context *s)
    return 1;
 }
 
-typedef struct
-{
+struct stbi__pic_packet {
    unsigned char size,type,channel;
-} stbi__pic_packet;
+};
 
 static unsigned char *stbi__readval(stbi__context *s, int channel, unsigned char *dest)
 {
@@ -5995,15 +5954,13 @@ static int stbi__pic_test(stbi__context *s)
 // GIF loader -- public domain by Jean-Marc Lienher -- simplified/shrunk by stb
 
 #ifndef STBI_NO_GIF
-typedef struct
-{
+struct stbi__gif_lzw {
    stbi__int16 prefix;
    unsigned char first;
    unsigned char suffix;
-} stbi__gif_lzw;
+};
 
-typedef struct
-{
+struct stbi__gif {
    int w,h;
    unsigned char *out;                 // output buffer (always 4 components)
    unsigned char *background;          // The current "background" as far as a gif is concerned
@@ -6020,7 +5977,7 @@ typedef struct
    int cur_x, cur_y;
    int line_size;
    int delay;
-} stbi__gif;
+};
 
 static int stbi__gif_test_raw(stbi__context *s)
 {

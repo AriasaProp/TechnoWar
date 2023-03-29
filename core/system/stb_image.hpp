@@ -2,7 +2,7 @@
 #define STBI_INCLUDE_STB_IMAGE_H
 
 #ifndef STBI_NO_STDIO
-#include <stdio.h>
+#include <cstdio>
 #endif // STBI_NO_STDIO
 
 #define STBI_VERSION 1
@@ -16,7 +16,7 @@ enum
    STBI_rgb_alpha  = 4
 };
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
