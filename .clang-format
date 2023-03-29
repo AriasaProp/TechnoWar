@@ -12,14 +12,13 @@ AlignOperands: false
 ColumnLimit: 0
 # make opening brace doesn't writed after new line
 BraceWrapping:
-  AfterClass: true
-  AfterControlStatement: true
+  AfterClass: false
+  AfterControlStatement: false
   AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
   AfterStruct: true
   AfterUnion: true
-  AfterWhile: true
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
