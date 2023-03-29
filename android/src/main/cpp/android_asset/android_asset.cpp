@@ -16,15 +16,15 @@ struct a_asset: public engine::asset_core {
 engine::asset_core *android_asset::open_asset(const char *filename) {
 	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
 }
-unsigned int read_asset(engine::asset_core *a, void *buff, unsigned int len)  {
+unsigned int android_asset::read_asset(engine::asset_core *a, void *buff, unsigned int len)  {
 	if (!a) return 0;
 	return AAsset_read(static_cast<a_asset*>(a)->asset, buff, len);
 }
-void seek_asset(engine::asset_core *a, int n)  {
+void android_asset::seek_asset(engine::asset_core *a, int n)  {
 	if (!a) return;
 	AAsset_seek(static_cast<a_asset*>(a)->asset, n, SEEK_CUR);
 }
-bool eof_asset(engine::asset_core *a)  {
+bool android_asset::eof_asset(engine::asset_core *a)  {
 	if (!a) return true;
 	return AAsset_getRemainingLength(static_cast<a_asset*>(a)->asset) == 0;
 }
