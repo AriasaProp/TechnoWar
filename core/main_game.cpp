@@ -29,7 +29,7 @@ Main::Main() {
     int w, h, chnl;
     engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
     try {
-      unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, &chnl, STBI_rgb_alpha);
+      unsigned char *tempDf;// = stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, &chnl, STBI_rgb_alpha);
       if (!tempDf) {
       	tempDf = (unsigned char *)malloc(16*sizeof(unsigned char));
       	memcpy(tempDf,(unsigned char[]){
