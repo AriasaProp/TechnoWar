@@ -14,29 +14,28 @@ engine::flat_vertex *fV;
 engine::texture_core *tc;
 
 Main::Main() {
-	{
-		stbi_io_callbacks clbk {
-			[](void *d,char *buff, unsigned int len) -> int {
-				return ((engine::asset_core*)d)->read(buff, len);
-			},
-			[](void *d,int l) -> void {
-				((engine::asset_core*)d)->seek(l);
-			},
-			[](void *d) -> bool {
-				return ((engine::asset_core*)d)->eof();
-			}
-		};
-		int w, h, chnl;
-		engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
-		try {
-			unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void*)a_, &w, &h, &chnl, STBI_rgb_alpha);
-			tc = engine::graph->gen_texture(w,h,tempDf);
-			stbi_image_free(tempDf);
-		} catch (const char *) {
-			engine::graph->clearcolor(1,1,1,1);
-		}
-		engine::asset->close_asset(a_);
-	}
+  {
+    stbi_io_callbacks clbk{
+        [](void *d, char *buff, unsigned int len) -> int {
+          return ((engine::asset_core *)d)->read(buff, len);
+        },
+        [](void *d, int l) -> void {
+          ((engine::asset_core *)d)->seek(l);
+        },
+        [](void *d) -> bool {
+          return ((engine::asset_core *)d)->eof();
+        }};
+    int w, h, chnl;
+    engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
+    try {
+      unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, &chnl, STBI_rgb_alpha);
+      tc = engine::graph->gen_texture(w, h, tempDf);
+      stbi_image_free(tempDf);
+    } catch (const char *) {
+      engine::graph->clearcolor(1, 1, 1, 1);
+    }
+    engine::asset->close_asset(a_);
+  }
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -77,13 +76,12 @@ Main::Main() {
       20, 21, 23, 21, 22, 23  // back
   };
   mp = engine::graph->gen_mesh(vert, 24, indices, 36);
-  
-  fV = new engine::flat_vertex[4] {
-  	{120.f,120.f,{0xff,0xf0,0x01,0xff},0,0},
-  	{120.f,520.f,{0xff,0xf0,0x01,0xff},0,1},
-  	{520.f,120.f,{0xff,0xf0,0x01,0xff},1,0},
-  	{520.f,520.f,{0xff,0xf0,0x01,0xff},1,1}
-  };
+
+  fV = new engine::flat_vertex[4]{
+      {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
+      {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
+      {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0},
+      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1}};
 }
 void Main::resume() {
 }
@@ -102,7 +100,7 @@ void Main::render() {
                   M_PI / 3.0f * (delta)  // 60° /s
   );
   engine::graph->mesh_render(&mp, 1);
-  
+
   engine::graph->flat_render(tc, fV, 1);
 }
 void Main::pause() {
@@ -111,6 +109,6 @@ Main::~Main() {
   engine::graph->delete_mesh(mp);
   delete fV;
   {
-  	engine::graph->delete_texture(tc);
+    engine::graph->delete_texture(tc);
   }
 }
