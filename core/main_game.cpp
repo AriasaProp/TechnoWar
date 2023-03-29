@@ -14,7 +14,7 @@ engine::flat_vertex *fV;
 
 Main::Main() {
 	try {
-		image ig("test1.jpg");
+		image ig;
 	} catch (...) {
 		engine::graph->clearcolor(1.f,0.f, 1.f,1.f);
 	}
