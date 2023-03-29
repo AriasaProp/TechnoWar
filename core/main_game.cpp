@@ -35,7 +35,7 @@ Main::Main() {
 		}
 		unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void*)a_, &w, &h, &chnl, STBI_rgb_alpha);
 		tc = engine::graph->gen_texture(w,h,tempDf);
-		engine::graph->close_asset(a_);
+		engine::asset->close_asset(a_);
 	}
   engine::mesh_core::data vert[24] = {
       // front red
