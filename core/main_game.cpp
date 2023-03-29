@@ -29,12 +29,12 @@ Main::Main() {
 		int w, h, chnl;
 		engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
 		try {
-			
+			unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void*)a_, &w, &h, &chnl, STBI_rgb_alpha);
+			tc = engine::graph->gen_texture(w,h,tempDf);
+			stbi_image_free(tempDf);
 		} catch (const char *) {
 			engine::graph->clearcolor(1,1,1,1);
 		}
-		unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void*)a_, &w, &h, &chnl, STBI_rgb_alpha);
-		tc = engine::graph->gen_texture(w,h,tempDf);
 		engine::asset->close_asset(a_);
 	}
   engine::mesh_core::data vert[24] = {
@@ -103,11 +103,14 @@ void Main::render() {
   );
   engine::graph->mesh_render(&mp, 1);
   
-  engine::graph->flat_render(nullptr, fV, 1);
+  engine::graph->flat_render(tc, fV, 1);
 }
 void Main::pause() {
 }
 Main::~Main() {
   engine::graph->delete_mesh(mp);
   delete fV;
+  {
+  	engine::graph->delete_texture(tc);
+  }
 }
