@@ -2,7 +2,7 @@
 #include "engine.hpp"
 
 #include "math/matrix4.hpp"
-//#include "assets/image.hpp"
+#include "system/stb_image.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -11,8 +11,32 @@
 
 engine::mesh_core *mp;
 engine::flat_vertex *fV;
+engine::texture_core *tc;
 
 Main::Main() {
+	{
+		stbi_io_callbacks clbk {
+			[](void *d,char *buff,unsigned int len) -> unsigned int {
+				return ((engine::asset_core*)d)->read(buff, len);
+			},
+			[](void *d,int l) -> void {
+				((engine::asset_core*)d)->seek(l);
+			},
+			[](void *d) -> bool {
+				return ((engine::asset_core*)d)->eof();
+			}
+		};
+		int w, h, chnl;
+		engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
+		try {
+			
+		} catch (const char *) {
+			engine::graph->clearcolor(1,1,1,1);
+		}
+		unsigned char *tempDf = stbi_load_from_callbacks(&clbk, (void*)a_, &w, &h, &chnl, STBI_rgb_alpha);
+		tc = engine::graph->gen_texture(w,h,tempDf);
+		engine::graph->close_asset(a_);
+	}
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
