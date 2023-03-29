@@ -29,7 +29,7 @@
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
-android_asset *aaset;
+android_asset *aasset;
 
 struct android_app {
     bool destroyed;
