@@ -17,7 +17,7 @@ Main::Main() {
   {
     stbi_io_callbacks clbk{
         [](void *d, char *buff, unsigned int len) -> int {
-          return engine::asset->seek_read((engine::asset_core *)d, buff, len);
+          return engine::asset->read_asset((engine::asset_core *)d, buff, len);
         },
         [](void *d, int l) -> void {
           engine::asset->seek_asset((engine::asset_core *)d, l);
