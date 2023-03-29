@@ -212,7 +212,7 @@ static void stbi__start_callbacks(stbi__context *s, stbi_io_callbacks *c, void *
 #ifndef STBI_NO_STDIO
 
 static stbi_io_callbacks stbi__stdio_callbacks =  {
-	[](void *user, char *data, unsigned int size) -> unsigned int {
+	[](void *user, char *data, unsigned int size) -> int {
 		return fread(data,1,size,(FILE*) user);
 	},
 	[](void *user, int n) -> void {

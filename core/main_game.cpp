@@ -16,7 +16,7 @@ engine::texture_core *tc;
 Main::Main() {
 	{
 		stbi_io_callbacks clbk {
-			[](void *d,char *buff,unsigned int len) -> unsigned int {
+			[](void *d,char *buff, unsigned int len) -> int {
 				return ((engine::asset_core*)d)->read(buff, len);
 			},
 			[](void *d,int l) -> void {
