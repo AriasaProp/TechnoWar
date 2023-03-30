@@ -31,7 +31,7 @@ struct opengles_texture: public engine::texture_core {
 	unsigned int height() override {
 		return h;
 	}
-	unsigned char *const data() override {
+	unsigned char * data() override {
 		return d;
 	}
 	~opengles_texture() {

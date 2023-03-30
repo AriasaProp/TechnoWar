@@ -10,7 +10,7 @@ namespace engine {
 struct texture_core {
   virtual unsigned int width() = 0;
   virtual unsigned int height() = 0;
-  virtual unsigned char *const data() = 0;
+  virtual unsigned char *data() = 0;
   virtual ~texture_core() {};
 };
 // ui_core
