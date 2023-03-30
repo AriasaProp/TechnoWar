@@ -19,11 +19,11 @@ Main::Main() {
 			[](void *a, char *b, unsigned int l) -> int {
 				return engine::asset->read_asset((engine::asset_core*)a, b, l);
 			},
-			[](void *a, unsigned int l) -> void {
+			[](void *a, int l) -> void {
 				engine::asset->seek_asset((engine::asset_core*)a, l);
 			},
 			[](void *a) -> bool {
-				engine::asset->eof_asset((engine::asset_core*)a);
+				return engine::asset->eof_asset((engine::asset_core*)a);
 			}
 		};
 		int x, y;
