@@ -37,7 +37,7 @@ struct opengles_texture: public engine::texture_core {
 	~opengles_texture() {
 		delete[] d;
 	}
-}
+};
 
 Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
@@ -271,7 +271,7 @@ void opengles_graphics::render() {
 			glBindVertexArray(0);
 			//texture
 			for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
-				opengles_texture* &itex = static_cast<opengles_texture*>(*i);
+				opengles_texture *itex = static_cast<opengles_texture*>(*i);
 				glGenTextures(1, &itex->id);
 				glBindTexture(GL_TEXTURE_2D, itex->id);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
