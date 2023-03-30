@@ -14,12 +14,31 @@ engine::flat_vertex *fV;
 engine::texture_core *myTex;
 
 Main::Main() {
-	myTex = engine::graph->gen_texture(2,2, (unsigned char[]){
-		0x0f,0xff,0xff,0xff,
-		0xff,0xff,0x0f,0xff,
-		0xff,0x0f,0xff,0xff,
-		0x0f,0xff,0x0f,0xff
-	});
+	{
+		stbi_io_callbacks clbk {
+			[](void *a, char *b, unsigned int l) -> int {
+				return engine::asset->read_asset((engine::asset_core*)a, b, l);
+			},
+			[](void *a, unsigned int l) -> void {
+				engine::asset->seek_asset((engine::asset_core*)a, l);
+			},
+			[](void *a) -> bool {
+				engine::asset->eof_asset((engine::asset_core*)a);
+			}
+		};
+		int x, y;
+		engine::asset_core *_a = engine::asset->open_asset("test.jpeg");
+		unsigned char *tD = stbi_load_from_callbacks(&clbk, _a, &x, &y, nullptr, STBI_rgb_alpha);
+
+		myTex = engine::graph->gen_texture(x,y, tD/*
+		(unsigned char[]){
+			0x0f,0xff,0xff,0xff,
+			0xff,0xff,0x0f,0xff,
+			0xff,0x0f,0xff,0xff,
+			0x0f,0xff,0x0f,0xff
+		}*/);
+		stbi_image_free(tD);
+	}
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
