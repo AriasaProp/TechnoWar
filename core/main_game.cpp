@@ -2,7 +2,7 @@
 #include "engine.hpp"
 
 #include "math/matrix4.hpp"
-#include "system/stb_image.hpp"
+#include "assets/stb_image.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -29,14 +29,7 @@ Main::Main() {
 		int x, y;
 		engine::asset_core *_a = engine::asset->open_asset("test.jpeg");
 		unsigned char *tD = stbi_load_from_callbacks(&clbk, _a, &x, &y, nullptr, STBI_rgb_alpha);
-
-		myTex = engine::graph->gen_texture(x,y, tD/*
-		(unsigned char[]){
-			0x0f,0xff,0xff,0xff,
-			0xff,0xff,0x0f,0xff,
-			0xff,0x0f,0xff,0xff,
-			0x0f,0xff,0x0f,0xff
-		}*/);
+		myTex = engine::graph->gen_texture(x,y,tD);
 		stbi_image_free(tD);
 	}
   engine::mesh_core::data vert[24] = {
@@ -80,10 +73,10 @@ Main::Main() {
   };
   mp = engine::graph->gen_mesh(vert, 24, indices, 36);
   fV = new engine::flat_vertex[4]{
-      {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
-      {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
-      {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0},
-      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1}};
+      {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
+      {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
+      {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
+      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
 }
 void Main::resume() {
 }
