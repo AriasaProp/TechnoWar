@@ -28,7 +28,7 @@ Main::Main() {
     };
     */
     int w = 2, h = 2;
-    engine::asset_core *a_ = engine::asset->open_asset("test.jpeg");
+    engine::asset_core *a_ = engine::asset->open_asset("test2.psd");
     try {
       // stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, nullptr, STBI_rgb_alpha);
       unsigned char *tempDf = (unsigned char *)malloc(16*sizeof(unsigned char));

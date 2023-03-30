@@ -11,7 +11,7 @@ struct a_asset: public engine::asset_core {
 	~a_asset() { AAsset_close(asset); }
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
-	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
+	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
 }
 unsigned int android_asset::read_asset(engine::asset_core *a, void *buff, unsigned int len)  {
 	if (!a) return 0;
