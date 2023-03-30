@@ -11,40 +11,8 @@
 
 engine::mesh_core *mp;
 engine::flat_vertex *fV;
-engine::texture_core *tc;
 
 Main::Main() {
-  {
-    /*stbi_io_callbacks clbk{
-        [](void *d, char *buff, unsigned int len) -> int {
-          return engine::asset->read_asset((engine::asset_core *)d, buff, len);
-        },
-        [](void *d, int l) -> void {
-          engine::asset->seek_asset((engine::asset_core *)d, l);
-        },
-        [](void *d) -> bool {
-          return engine::asset->eof_asset((engine::asset_core *)d);
-        }
-    };
-    */
-    int w = 2, h = 2;
-    //engine::asset_core *a_ = engine::asset->open_asset("test2.psd");
-    try {
-      // stbi_load_from_callbacks(&clbk, (void *)a_, &w, &h, nullptr, STBI_rgb_alpha);
-      unsigned char *tempDf = (unsigned char *)malloc(16*sizeof(unsigned char));
-    	memcpy(tempDf,(unsigned char[]){
-    		0x0f,0x00,0xb0,0xff,
-    		0xff,0x00,0x00,0xff,
-    		0xf1,0xa7,0x40,0xff,
-    		0xff,0x00,0x00,0xff
-    	}, 16*sizeof(unsigned char));
-      tc = engine::graph->gen_texture(w, h, tempDf);
-      stbi_image_free(tempDf);
-    } catch (const char *) {
-      engine::graph->clearcolor(1, 1, 1, 1);
-    }
-    //engine::asset->close_asset(a_);
-  }
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -109,14 +77,11 @@ void Main::render() {
   );
   engine::graph->mesh_render(&mp, 1);
 
-  engine::graph->flat_render(tc, fV, 1);
+  engine::graph->flat_render(nullptr, fV, 1);
 }
 void Main::pause() {
 }
 Main::~Main() {
   engine::graph->delete_mesh(mp);
   delete fV;
-  {
-    engine::graph->delete_texture(tc);
-  }
 }
