@@ -277,7 +277,7 @@ void opengles_graphics::render() {
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, itex->w, itex->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)itex->data);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, itex->w, itex->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)itex->d);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -432,7 +432,7 @@ void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vert
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex?static_cast<opengles_texture*>(t)->id:nullTextureId);
+	glBindTexture(GL_TEXTURE_2D, tex?static_cast<opengles_texture*>(tex)->id:nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
