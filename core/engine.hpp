@@ -8,11 +8,10 @@
 namespace engine {
 // texture core
 struct texture_core {
-  // virtual unsigned int getId() = 0;
-  // virtual unsigned char *getData(unsigned int *outW, unsigned int *outH) = 0; //this should delete after used
-  unsigned int id;
-  unsigned int width, height;
-  unsigned char *data;
+  virtual unsigned int width() = 0;
+  virtual unsigned int height() = 0;
+  virtual unsigned char *const data() = 0;
+  virtual ~texture_core() {};
 };
 // ui_core
 struct flat_vertex {

@@ -17,6 +17,27 @@ struct world_batch {
 	GLint shader, u_worldProj, u_transProj;
 	float worldProj[16];
 };
+struct opengles_texture: public engine::texture_core {
+	GLint id;
+	unsigned int w,h;
+	unsigned char *d;
+	opengles_texture(GLint i, unsigned int _w, unsigned int _h, void *dt): id(i),w(_w),h(_h) {
+		d = new unsigned char[w*h*sizeof(unsigned char)];
+		memcpy(d, dt, w*h*sizeof(unsigned char));
+	}
+	unsigned int width() override {
+		return w;
+	}
+	unsigned int height() override {
+		return h;
+	}
+	unsigned char *const data() override {
+		return d;
+	}
+	~opengles_texture() {
+		delete[] d;
+	}
+}
 
 Main *m_Main = nullptr;
 inline void resize_viewport(const int,const int);
@@ -250,12 +271,13 @@ void opengles_graphics::render() {
 			glBindVertexArray(0);
 			//texture
 			for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
-				glGenTextures(1, &(*i)->id);
-				glBindTexture(GL_TEXTURE_2D, (*i)->id);
+				opengles_texture* &itex = static_cast<opengles_texture*>(*i);
+				glGenTextures(1, &itex->id);
+				glBindTexture(GL_TEXTURE_2D, itex->id);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, itex->w, itex->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)itex->data);
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -335,7 +357,7 @@ void opengles_graphics::render() {
 				}
 				//texture
 				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
-					glDeleteTextures(1, &(*i)->id);
+					glDeleteTextures(1, &(static_cast<opengles_texture*>(*i))->id);
 				}
 				
 				//reset null texture
@@ -382,11 +404,8 @@ void opengles_graphics::clearcolor(const float &r, const float &g, const float &
 	glClearColor(r, g, b, a);
 }
 engine::texture_core *opengles_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
-	engine::texture_core *t = new engine::texture_core;
+	opengles_texture *t = new opengles_texture(0, width, height, data);
 	glGenTextures(1, &t->id);
-	t->width = width;
-	t->height = height;
-	memcpy(t->data, data, width*height*sizeof(unsigned char));
 	glBindTexture(GL_TEXTURE_2D, t->id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -397,7 +416,7 @@ engine::texture_core *opengles_graphics::gen_texture(const int &width, const int
 	return t;
 }
 void opengles_graphics::bind_texture(engine::texture_core *t) {
-	glBindTexture(GL_TEXTURE_2D, t?t->id:0);
+	glBindTexture(GL_TEXTURE_2D, t?static_cast<opengles_texture*>(t)->id:0);
 }
 void opengles_graphics::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
@@ -406,15 +425,14 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	std::unordered_set<engine::texture_core*>::iterator it = managedTexture.find(t);
 	if (it == managedTexture.end()) return;
 	managedTexture.erase(it);
-	glDeleteTextures(1, &t->id);
-	delete[] t->data;
+	glDeleteTextures(1, &(static_cast<opengles_texture*>(t)->id));
 	delete t;
 }
 void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
 	glUseProgram(ubatch->shader);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex?tex->id:nullTextureId);
+	glBindTexture(GL_TEXTURE_2D, tex?static_cast<opengles_texture*>(t)->id:nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
 	if (ubatch->dirty_projection) {
 		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);

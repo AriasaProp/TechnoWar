@@ -11,8 +11,15 @@
 
 engine::mesh_core *mp;
 engine::flat_vertex *fV;
+engine::texture_core *myTex;
 
 Main::Main() {
+	myTex = engine::graph->gen_texture(2,2, (unsigned char[]){
+		0x0f,0xff,0xff,0xff,
+		0xff,0xff,0x0f,0xff,
+		0xff,0x0f,0xff,0xff,
+		0x0f,0xff,0x0f,0xff
+	});
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -77,11 +84,12 @@ void Main::render() {
   );
   engine::graph->mesh_render(&mp, 1);
 
-  engine::graph->flat_render(nullptr, fV, 1);
+  engine::graph->flat_render(myTex, fV, 1);
 }
 void Main::pause() {
 }
 Main::~Main() {
   engine::graph->delete_mesh(mp);
+  engine::graph->delete_texture(myTex);
   delete fV;
 }
