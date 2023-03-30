@@ -1,6 +1,5 @@
 #include "android_asset.hpp"
 
-#include "system/stb_image.hpp"
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include <cstdio>
