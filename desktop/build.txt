@@ -1,0 +1,2 @@
+format: true
+platform: windows

@@ -1,0 +1,47 @@
+name: Build & Publish Desktop Artifacts
+
+on: workflow_dispatch
+
+jobs:
+  pre-build:
+    runs-on: ubuntu-latest
+    outputs:
+      platform: ${{ steps.property.outputs.platform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Read Build Property
+      id: property
+      run: |
+        if grep -Fq 'platform: windows' desktop/build.txt; then
+          echo "::set-output name=platform::windows-latest"
+        else if grep -Fq 'platform: ubuntu' desktop/build.txt; then
+          echo "::set-output name=platform::ubuntu-latest"
+        else if grep -Fq 'platform: macOS' desktop/build.txt; then
+          echo "::set-output name=platform::macOS-latest"
+        else
+          echo "::set-output name=platform::windows"
+        fi
+        if grep -Fq 'format: true' desktop/build.txt; then
+          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
+          git config --global user.name "AriasaProp"
+          sudo apt-get install -y clang-format
+          clang-format -i **/*.cpp **/*.hpp
+          git add .
+          git commit -m "reformating cpp"
+          git push
+        fi
+  build:
+    needs: pre-build
+    runs-on: ${{ needs.pre-build.outputs.platform }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build CMAKE
+      run: |
+        sudo apt-get -y install cmake
+        cmake -B build -S .
+        cmake --build build
+    - name: Publish Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: buildEXE
+        path: ${{github.workspace}}/build/DesktopApp.exe
