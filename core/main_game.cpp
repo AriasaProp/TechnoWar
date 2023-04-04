@@ -1,8 +1,8 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-#include "assets/stb_image.hpp"
 #include "math/matrix4.hpp"
+#include "assets/stb_image.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -14,23 +14,24 @@ engine::flat_vertex *fV;
 engine::texture_core *myTex;
 
 Main::Main() {
-  {
-    stbi_io_callbacks clbk{
-        [](void *a, char *b, unsigned int l) -> int {
-          return engine::asset->read_asset((engine::asset_core *)a, b, l);
-        },
-        [](void *a, int l) -> void {
-          engine::asset->seek_asset((engine::asset_core *)a, l);
-        },
-        [](void *a) -> bool {
-          return engine::asset->eof_asset((engine::asset_core *)a);
-        }};
-    int x, y;
-    engine::asset_core *_a = engine::asset->open_asset("test.jpeg");
-    unsigned char *tD = stbi_load_from_callbacks(&clbk, _a, &x, &y, nullptr, STBI_rgb_alpha);
-    myTex = engine::graph->gen_texture(x, y, tD);
-    stbi_image_free(tD);
-  }
+	{
+		stbi_io_callbacks clbk {
+			[](void *a, char *b, unsigned int l) -> int {
+				return engine::asset->read_asset((engine::asset_core*)a, b, l);
+			},
+			[](void *a, int l) -> void {
+				engine::asset->seek_asset((engine::asset_core*)a, l);
+			},
+			[](void *a) -> bool {
+				return engine::asset->eof_asset((engine::asset_core*)a);
+			}
+		};
+		int x, y;
+		engine::asset_core *_a = engine::asset->open_asset("test.jpeg");
+		unsigned char *tD = stbi_load_from_callbacks(&clbk, _a, &x, &y, nullptr, STBI_rgb_alpha);
+		myTex = engine::graph->gen_texture(x,y,tD);
+		stbi_image_free(tD);
+	}
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
