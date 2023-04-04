@@ -11,7 +11,7 @@ struct texture_core {
   virtual unsigned int width() = 0;
   virtual unsigned int height() = 0;
   virtual unsigned char *data() = 0;
-  virtual ~texture_core() {};
+  virtual ~texture_core(){};
 };
 // ui_core
 struct flat_vertex {
@@ -66,13 +66,13 @@ struct input_core {
   virtual ~input_core() {}
 };
 struct asset_core {
-	virtual ~asset_core() {}
+  virtual ~asset_core() {}
 };
 struct assets_core {
   virtual asset_core *open_asset(const char *) = 0;
-  virtual unsigned int read_asset(asset_core*, void*, unsigned int) = 0;
-  virtual void seek_asset(asset_core*, int) = 0;
-  virtual bool eof_asset(asset_core*) = 0;
+  virtual unsigned int read_asset(asset_core *, void *, unsigned int) = 0;
+  virtual void seek_asset(asset_core *, int) = 0;
+  virtual bool eof_asset(asset_core *) = 0;
   virtual void close_asset(asset_core *) = 0;
   virtual ~assets_core() {}
 };
