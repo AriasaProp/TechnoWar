@@ -1,675 +1,772 @@
 #include "vulkan_graphics.hpp"
-/*
-#include <cassert>
 
-struct ui_batch {
-	bool dirty_projection;
-	int shader;
-	int u_projection;
-	unsigned int vao, vbo, ibo;
-	float ui_projection[16];
-};
-struct world_btch {
-	bool dirty_worldProj;
-	int shader;
-	int u_worldProj;
-	int u_transProj;
-	float worldProj[16];
-};
+#define VK_USE_PLATFORM_ANDROID_KHR 1
+#include "vulkan/vulkan.hpp"
 
-#include <vulkan/vulkan.hpp>
+// Vulkan call wrapper
+#define CALL_VK(func)                                                 \
+  if (VK_SUCCESS != (func)) {                                         \
+    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
+                        "Vulkan error. File[%s], line[%d]", __FILE__, \
+                        __LINE__);                                    \
+    assert(false);                                                    \
+  }
 
-Main *m_Main = nullptr;
-bool vulkan_valid = false;
-void validate();
-void resize_viewport(const int,const int);
-void invalidate();
+// Global Variables ...
+VulkanDeviceInfo device;
+VulkanSwapchainInfo swapchain;
+VulkanBufferInfo buffers;
+VulkanGfxPipelineInfo gfxPipeline;
+VulkanRenderInfo render;
+
+void CreateFrameBuffers(VkRenderPass& renderPass, VkImageView depthView = VK_NULL_HANDLE) {
+  // query display attachment to swapchain
+  uint32_t SwapchainImagesCount = 0;
+  CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
+  swapchain.displayImages_.resize(SwapchainImagesCount);
+  CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, swapchain.displayImages_.data()));
+
+  // create image view for each swapchain image
+  swapchain.displayViews_.resize(SwapchainImagesCount);
+  for (uint32_t i = 0; i < SwapchainImagesCount; i++) {
+    VkImageViewCreateInfo viewCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .image = swapchain.displayImages_[i],
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = swapchain.displayFormat_,
+        .components =
+            {
+                .r = VK_COMPONENT_SWIZZLE_R,
+                .g = VK_COMPONENT_SWIZZLE_G,
+                .b = VK_COMPONENT_SWIZZLE_B,
+                .a = VK_COMPONENT_SWIZZLE_A,
+            },
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
+    CALL_VK(vkCreateImageView(device.device_, &viewCreateInfo, nullptr,
+                              &swapchain.displayViews_[i]));
+  }
+  // create a framebuffer from each swapchain image
+  swapchain.framebuffers_.resize(swapchain.swapchainLength_);
+  for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
+    VkImageView attachments[2] = {
+        swapchain.displayViews_[i], depthView,
+    };
+    VkFramebufferCreateInfo fbCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .renderPass = renderPass,
+        .attachmentCount = 1,  // 2 if using depth
+        .pAttachments = attachments,
+        .width = static_cast<uint32_t>(swapchain.displaySize_.width),
+        .height = static_cast<uint32_t>(swapchain.displaySize_.height),
+       .layers = 1,
+    };
+    fbCreateInfo.attachmentCount = (depthView == VK_NULL_HANDLE ? 1 : 2);
+
+    CALL_VK(vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
+  }
+}
+// A helper function
+bool MapMemoryTypeToIndex(uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex) {
+  VkPhysicalDeviceMemoryProperties memoryProperties;
+  vkGetPhysicalDeviceMemoryProperties(device.gpuDevice_, &memoryProperties);
+  // Search memtypes to find first index with those properties
+  for (uint32_t i = 0; i < 32; i++) {
+    if ((typeBits & 1) == 1) {
+      // Type is available, does it match user properties?
+      if ((memoryProperties.memoryTypes[i].propertyFlags & requirements_mask) ==
+          requirements_mask) {
+        *typeIndex = i;
+        return true;
+      }
+    }
+    typeBits >>= 1;
+  }
+  return false;
+}
 
 void vulkan_graphics::onResume() {
-	resume = true;
-	running = true;
+  // To do
 }
-void vulkan_graphics::onWindowInit(ANativeWindow *w){
-	window = w;
+bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
+  // Create vulkan device
+  {
+    std::vector<const char*> instance_extensions;
+    std::vector<const char*> device_extensions;
+  
+    instance_extensions.push_back("VK_KHR_surface");
+    instance_extensions.push_back("VK_KHR_android_surface");
+    device_extensions.push_back("VK_KHR_swapchain");
+    
+    //create Vulkan Application info just for vulkan create vulkan instance
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = "tutorial05_triangle_window",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "tutorial",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = VK_MAKE_VERSION(1, 1, 0),
+    };
+    //create instance info
+    VkInstanceCreateInfo instanceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .pApplicationInfo = &appInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
+        .ppEnabledExtensionNames = instance_extensions.data(),
+    };
+    CALL_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_));
+    VkAndroidSurfaceCreateInfoKHR createInfo{
+        .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .window = window
+    };
+    CALL_VK(vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_));
+    uint32_t gpuCount = 0;
+    CALL_VK(vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr));
+    VkPhysicalDevice tmpGpus[gpuCount];
+    CALL_VK(vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus));
+    device.gpuDevice_ = tmpGpus[0];  // Pick up the first GPU Device
+  
+    // Find a GFX queue family
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, nullptr);
+    assert(queueFamilyCount);
+    std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
+  
+    uint32_t queueFamilyIndex;
+    for (queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount;
+         queueFamilyIndex++) {
+      if (queueFamilyProperties[queueFamilyIndex].queueFlags &
+          VK_QUEUE_GRAPHICS_BIT) {
+        break;
+      }
+    }
+    assert(queueFamilyIndex < queueFamilyCount);
+    device.queueFamilyIndex_ = queueFamilyIndex;
+  
+    // Create a logical device (vulkan device)
+    float priorities[] = {
+        1.0f,
+    };
+    VkDeviceQueueCreateInfo queueCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queueFamilyIndex,
+        .queueCount = 1,
+        .pQueuePriorities = priorities,
+    };
+    VkDeviceCreateInfo deviceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueCreateInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(device_extensions.size()),
+        .ppEnabledExtensionNames = device_extensions.data(),
+        .pEnabledFeatures = nullptr,
+    };
+    CALL_VK(vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_));
+    vkGetDeviceQueue(device.device_, device.queueFamilyIndex_, 0, &device.queue_);
+  }
+  {
+    //create swapchain
+    memset(&swapchain, 0, sizeof(swapchain));
+  
+    // **********************************************************
+    // Get the surface capabilities because:
+    //   - It contains the minimal and max length of the chain, we will need it
+    //   - It's necessary to query the supported surface format (R8G8B8A8 for
+    //   instance ...)
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_,
+                                              &surfaceCapabilities);
+    // Query the list of supported surface format and choose one we like
+    uint32_t formatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
+                                         &formatCount, nullptr);
+    VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
+                                         &formatCount, formats);
+  
+    uint32_t chosenFormat;
+    for (chosenFormat = 0; chosenFormat < formatCount; chosenFormat++) {
+      if (formats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) break;
+    }
+    assert(chosenFormat < formatCount);
+  
+    swapchain.displaySize_ = surfaceCapabilities.currentExtent;
+    swapchain.displayFormat_ = formats[chosenFormat].format;
+  
+    VkSurfaceCapabilitiesKHR surfaceCap;
+    CALL_VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap));
+    assert(surfaceCap.supportedCompositeAlpha | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR);
+    VkSwapchainCreateInfoKHR swapchainCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .surface = device.surface_,
+        .minImageCount = surfaceCapabilities.minImageCount,
+        .imageFormat = formats[chosenFormat].format,
+        .imageColorSpace = formats[chosenFormat].colorSpace,
+        .imageExtent = surfaceCapabilities.currentExtent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 1,
+        .pQueueFamilyIndices = &device.queueFamilyIndex_,
+        .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+        .presentMode = VK_PRESENT_MODE_FIFO_KHR,
+        .clipped = VK_FALSE,
+        .oldSwapchain = VK_NULL_HANDLE,
+    };
+    CALL_VK(vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_));
+    // Get the length of the created swap chain
+    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr));
+    delete[] formats;
+  }
+
+  // -----------------------------------------------------------------
+  // Create render pass
+  VkAttachmentDescription attachmentDescriptions{
+      .format = swapchain.displayFormat_,
+      .samples = VK_SAMPLE_COUNT_1_BIT,
+      .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+      .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+      .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+      .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+  };
+
+  VkAttachmentReference colourReference = {
+      .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+
+  VkSubpassDescription subpassDescription{
+      .flags = 0,
+      .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+      .inputAttachmentCount = 0,
+      .pInputAttachments = nullptr,
+      .colorAttachmentCount = 1,
+      .pColorAttachments = &colourReference,
+      .pResolveAttachments = nullptr,
+      .pDepthStencilAttachment = nullptr,
+      .preserveAttachmentCount = 0,
+      .pPreserveAttachments = nullptr,
+  };
+  VkRenderPassCreateInfo renderPassCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+      .pNext = nullptr,
+      .attachmentCount = 1,
+      .pAttachments = &attachmentDescriptions,
+      .subpassCount = 1,
+      .pSubpasses = &subpassDescription,
+      .dependencyCount = 0,
+      .pDependencies = nullptr,
+  };
+  CALL_VK(vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_));
+
+  // -----------------------------------------------------------------
+  // Create 2 frame buffers.
+  CreateFrameBuffers(render.renderPass_);
+
+  
+  // Create our vertex buffer
+  {
+    // -----------------------------------------------
+    // Create the triangle vertex buffer
+  
+    // Vertex positions
+    const float vertexData[] = {
+        -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    };
+  
+    // Create a vertex buffer
+    VkBufferCreateInfo createBufferInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = sizeof(vertexData),
+        .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 1,
+        .pQueueFamilyIndices = &device.queueFamilyIndex_,
+    };
+  
+    CALL_VK(vkCreateBuffer(device.device_, &createBufferInfo, nullptr, &buffers.vertexBuf_));
+  
+    VkMemoryRequirements memReq;
+    vkGetBufferMemoryRequirements(device.device_, buffers.vertexBuf_, &memReq);
+  
+    VkMemoryAllocateInfo allocInfo{
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = memReq.size,
+        .memoryTypeIndex = 0,  // Memory type assigned in the next step
+    };
+  
+    // Assign the proper memory type for that buffer
+    MapMemoryTypeToIndex(memReq.memoryTypeBits,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
+  
+    // Allocate memory for the buffer
+    VkDeviceMemory deviceMemory;
+    CALL_VK(vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory));
+  
+    void* data;
+    CALL_VK(vkMapMemory(device.device_, deviceMemory, 0, allocInfo.allocationSize,0, &data));
+    memcpy(data, vertexData, sizeof(vertexData));
+    vkUnmapMemory(device.device_, deviceMemory);
+  
+    CALL_VK(vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
+    return true;
+  }
+
+  // Create graphics pipeline
+  {
+    memset(&gfxPipeline, 0, sizeof(gfxPipeline));
+    // Create pipeline layout (empty)
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .setLayoutCount = 0,
+        .pSetLayouts = nullptr,
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    };
+    CALL_VK(vkCreatePipelineLayout(device.device_, &pipelineLayoutCreateInfo, nullptr, &gfxPipeline.layout_));
+    VkResult result;
+    const char *vertexSrc =
+      "#version 400\n"
+      "#extension GL_ARB_separate_shader_objects : enable\n"
+      "#extension GL_ARB_shading_language_420pack : enable\n"
+      "layout (location = 0) in vec4 pos;\n"
+      "void main() {\n"
+      "   gl_Position = pos;\n"
+      "}";
+    VkShaderModuleCreateInfo shaderModuleCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+      .codeSize = strlen(vertexSrc),
+      .pCode = (const uint32_t*)vertexSrc,
+    };
+    VkShaderModule vertexShader;
+    result = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, &vertexShader);
+    assert(result == VK_SUCCESS);
+    const char *fragmentSrc =
+      "#version 400\n"
+      "#extension GL_ARB_separate_shader_objects : enable\n"
+      "#extension GL_ARB_shading_language_420pack : enable\n"
+      "layout (location = 0) out vec4 uFragColor;\n"
+      "void main() {\n"
+      "   uFragColor = vec4(0.91, 0.26,  0.21, 1.0);\n"
+      "}";
+    shaderModuleCreateInfo.codeSize = strlen(fragmentSrc);
+    shaderModuleCreateInfo.pCode =  (const uint32_t*)fragmentSrc;
+    VkShaderModule fragmentShader;
+    VkResult result = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, &fragmentShader);
+    assert(result == VK_SUCCESS);
+    // Specify vertex and fragment shader stages
+    VkPipelineShaderStageCreateInfo shaderStages[2]{
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_VERTEX_BIT,
+            .module = vertexShader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
+            .module = fragmentShader,
+            .pName = "main",
+            .pSpecializationInfo = nullptr,
+        }};
+  
+    VkViewport viewports{
+        .x = 0,
+        .y = 0,
+        .width = (float)swapchain.displaySize_.width,
+        .height = (float)swapchain.displaySize_.height,
+        .minDepth = 0.0f,
+        .maxDepth = 1.0f,
+    };
+  
+    VkRect2D scissor = {
+        .offset { .x = 0, .y = 0,},
+        .extent = swapchain.displaySize_,
+    };
+    // Specify viewport info
+    VkPipelineViewportStateCreateInfo viewportInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .viewportCount = 1,
+        .pViewports = &viewports,
+        .scissorCount = 1,
+        .pScissors = &scissor,
+    };
+  
+    // Specify multisample info
+    VkSampleMask sampleMask = ~0u;
+    VkPipelineMultisampleStateCreateInfo multisampleInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable = VK_FALSE,
+        .minSampleShading = 0,
+        .pSampleMask = &sampleMask,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable = VK_FALSE,
+    };
+  
+    // Specify color blend state
+    VkPipelineColorBlendAttachmentState attachmentStates{
+        .blendEnable = VK_FALSE,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .logicOpEnable = VK_FALSE,
+        .logicOp = VK_LOGIC_OP_COPY,
+        .attachmentCount = 1,
+        .pAttachments = &attachmentStates,
+    };
+  
+    // Specify rasterizer info
+    VkPipelineRasterizationStateCreateInfo rasterInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .depthClampEnable = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_NONE,
+        .frontFace = VK_FRONT_FACE_CLOCKWISE,
+        .depthBiasEnable = VK_FALSE,
+        .lineWidth = 1,
+    };
+  
+    // Specify input assembler state
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = VK_FALSE,
+    };
+  
+    // Specify vertex input state
+    VkVertexInputBindingDescription vertex_input_bindings{
+        .binding = 0,
+        .stride = 3 * sizeof(float),
+        .inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+    };
+    VkVertexInputAttributeDescription vertex_input_attributes[1]{{
+        .location = 0,
+        .binding = 0,
+        .format = VK_FORMAT_R32G32B32_SFLOAT,
+        .offset = 0,
+    }};
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions = &vertex_input_bindings,
+        .vertexAttributeDescriptionCount = 1,
+        .pVertexAttributeDescriptions = vertex_input_attributes,
+    };
+  
+    // Create the pipeline cache
+    VkPipelineCacheCreateInfo pipelineCacheInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,  // reserved, must be 0
+        .initialDataSize = 0,
+        .pInitialData = nullptr,
+    };
+  
+    CALL_VK(vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr,
+                                  &gfxPipeline.cache_));
+  
+    // Create the pipeline
+    VkGraphicsPipelineCreateInfo pipelineCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stageCount = 2,
+        .pStages = shaderStages,
+        .pVertexInputState = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssemblyInfo,
+        .pTessellationState = nullptr,
+        .pViewportState = &viewportInfo,
+        .pRasterizationState = &rasterInfo,
+        .pMultisampleState = &multisampleInfo,
+        .pDepthStencilState = nullptr,
+        .pColorBlendState = &colorBlendInfo,
+        .pDynamicState = nullptr,
+        .layout = gfxPipeline.layout_,
+        .renderPass = render.renderPass_,
+        .subpass = 0,
+        .basePipelineHandle = VK_NULL_HANDLE,
+        .basePipelineIndex = 0,
+    };
+  
+    VkResult pipelineResult = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
+  
+    // We don't need the shaders anymore, we can release their memory
+    vkDestroyShaderModule(device.device_, vertexShader, nullptr);
+    vkDestroyShaderModule(device.device_, fragmentShader, nullptr);
+  
+    //return pipelineResult;
+  }
+  // -----------------------------------------------
+  // Create a pool of command buffers to allocate command buffer from
+  VkCommandPoolCreateInfo cmdPoolCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+      .queueFamilyIndex = device.queueFamilyIndex_,
+  };
+  CALL_VK(vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr,
+                              &render.cmdPool_));
+
+  // Record a command buffer that just clear the screen
+  // 1 command buffer draw in 1 framebuffer
+  // In our case we need 2 command as we have 2 framebuffer
+  render.cmdBufferLen_ = swapchain.swapchainLength_;
+  render.cmdBuffer_ = new VkCommandBuffer[swapchain.swapchainLength_];
+  VkCommandBufferAllocateInfo cmdBufferCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+      .pNext = nullptr,
+      .commandPool = render.cmdPool_,
+      .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+      .commandBufferCount = render.cmdBufferLen_,
+  };
+  CALL_VK(vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo,
+                                   render.cmdBuffer_));
+
+  for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_;
+       bufferIndex++) {
+    // We start by creating and declare the "beginning" our command buffer
+    VkCommandBufferBeginInfo cmdBufferBeginInfo{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pInheritanceInfo = nullptr,
+    };
+    CALL_VK(vkBeginCommandBuffer(render.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
+    {
+      VkImageMemoryBarrier imageMemoryBarrier = {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+          .pNext = NULL,
+          .srcAccessMask = 0,
+          .dstAccessMask = 0,
+          .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+          .newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+          .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+          .image = swapchain.displayImages_[bufferIndex],
+          .subresourceRange = {
+                  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                  .baseMipLevel = 0,
+                  .levelCount = 1,
+                  .baseArrayLayer = 0,
+                  .layerCount = 1,
+              },
+      };
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      vkCmdPipelineBarrier(render.cmdBuffer_[bufferIndex], VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
+    }
+    // Now we start a renderpass. Any draw command has to be recorded in a
+    // renderpass
+    VkClearValue clearVals{ .color { .float32 {0.0f, 0.34f, 0.90f, 1.0f}}};
+    VkRenderPassBeginInfo renderPassBeginInfo{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .pNext = nullptr,
+        .renderPass = render.renderPass_,
+        .framebuffer = swapchain.framebuffers_[bufferIndex],
+        .renderArea = {.offset { .x = 0, .y = 0,},
+                       .extent = swapchain.displaySize_},
+        .clearValueCount = 1,
+        .pClearValues = &clearVals};
+    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+    // Bind what is necessary to the command buffer
+    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex],
+                      VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(render.cmdBuffer_[bufferIndex], 0, 1,
+                           &buffers.vertexBuf_, &offset);
+
+    // Draw Triangle
+    vkCmdDraw(render.cmdBuffer_[bufferIndex], 3, 1, 0, 0);
+
+    vkCmdEndRenderPass(render.cmdBuffer_[bufferIndex]);
+
+    CALL_VK(vkEndCommandBuffer(render.cmdBuffer_[bufferIndex]));
+  }
+
+  // We need to create a fence to be able, in the main loop, to wait for our
+  // draw command(s) to finish before swapping the framebuffers
+  VkFenceCreateInfo fenceCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+  };
+  CALL_VK(vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render.fence_));
+
+  // We need to create a semaphore to be able to wait, in the main loop, for our
+  // framebuffer to be available for us before drawing.
+  VkSemaphoreCreateInfo semaphoreCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
+  };
+  CALL_VK(vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
+
+  device.initialized_ = true;
+  return true;
 }
 void vulkan_graphics::needResize() {
-	resize = true;
+  // To do
 }
 void vulkan_graphics::render() {
-  if (!window || !running) return;
-  if (!display || !context || !surface) {
-  	if (!display) {
-    	display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    	eglInitialize(display, nullptr, nullptr);
-    	eConfig = nullptr;
-  	}
-  	if (!eConfig) {
-		  EGLint temp;
-		  const EGLint configAttr[] = {
-		    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-		    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-		    EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-		    EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-		    EGL_ALPHA_SIZE, 0,
-		    EGL_NONE
-		  };
-		  eglChooseConfig(display, configAttr, nullptr,0, &temp);
-		  assert(temp);
-		  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-		  assert(configs);
-		  eglChooseConfig(display, configAttr, configs, temp, &temp);
-		  assert(temp);
-		  eConfig = configs[0];
-		  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
-		    EGLConfig& cfg = configs[i];
-		    eglGetConfigAttrib(display, cfg, EGL_BUFFER_SIZE, &temp);
-		    l = temp;
-		    eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &temp);
-		    l += temp;
-		    eglGetConfigAttrib(display, cfg, EGL_STENCIL_SIZE, &temp);
-		    l += temp;
-		    if (l > k) {
-		      k = l;
-		      eConfig = cfg;
-		    }
-		  }
-  	} 
-  	if (!context) {
-  		const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-  		context = eglCreateContext(display, eConfig, nullptr, ctxAttr);
-  	}
-  	if (!surface)
-			surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
-  	eglMakeCurrent(display, surface, surface, context);
-    int32_t width, height;
-  	eglQuerySurface(display, surface, EGL_WIDTH, &width);
-  	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-  	
-  	if (vulkan_valid) {
-			validate();
-  	}
-  	if (!m_Main) {
-  		m_Main = new Main;
-  		m_Main->create();
-  		resume = false;
-  	}
-		resize_viewport(width, height);
-		resize = false;
-  }
-	if (resize) {
-		resize = false;
-		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-		eglMakeCurrent(display, surface, surface, context);
-    int32_t width, height;
-		eglQuerySurface(display, surface, EGL_WIDTH, &width);
-		eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-		resize_viewport(width, height);
-	}
-  if (resume) {
-  	m_Main->resume();
-		resume = false;
-  }
-  state.angle += .01f;
-  if (state.angle > 1) {
-      state.angle = 0;
-  }
-  m_Main->render(1.f/60.f);
-  if (pause) {
-  	m_Main->pause();
-		pause = false;
-  }
-  unsigned int EGLTermReq = 0;
-  if (destroyed) {
-  	m_Main->destroy();
-  	delete(m_Main);
-  	m_Main = nullptr;
-  	EGLTermReq |= TERM_EGL_DISPLAY;
-  }
-	if (!eglSwapBuffers(display, surface)) {
-		switch (eglGetError()) {
-  		case EGL_BAD_SURFACE:
-  		case EGL_BAD_NATIVE_WINDOW:
-  		case EGL_BAD_CURRENT_SURFACE:
-  			EGLTermReq |= TERM_EGL_SURFACE;
-  			break;
-  		case EGL_BAD_CONTEXT:
-  		case EGL_CONTEXT_LOST:
-  			EGLTermReq |= TERM_EGL_CONTEXT;
-  			break;
-  		case EGL_NOT_INITIALIZED:
-  		case EGL_BAD_DISPLAY:
-  			EGLTermReq |= TERM_EGL_DISPLAY;
-  			break;
-  		default:
-				break;
-		}
-	}
-	if (EGLTermReq) {
-		if (!EGLTermReq || !display) return;
-		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (surface && (EGLTermReq & (TERM_EGL_SURFACE|TERM_EGL_DISPLAY))) {
-      eglDestroySurface(display, surface);
-    	surface = EGL_NO_SURFACE;
-    }
-		if (context && (EGLTermReq & (TERM_EGL_CONTEXT|TERM_EGL_DISPLAY))) {
-    	invalidate();
-    	eglDestroyContext(display, context);
-    	context = EGL_NO_CONTEXT;
-    }
-    if (EGLTermReq & TERM_EGL_DISPLAY) {
-  		eglTerminate(display);
-    	display = EGL_NO_DISPLAY;
-    }
-	}
+  if (!device.initialized_) return;
+  uint32_t nextIndex;
+  // Get the framebuffer index we should draw in
+  CALL_VK(vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
+  CALL_VK(vkResetFences(device.device_, 1, &render.fence_));
+
+  VkPipelineStageFlags waitStageMask =
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+                              .pNext = nullptr,
+                              .waitSemaphoreCount = 1,
+                              .pWaitSemaphores = &render.semaphore_,
+                              .pWaitDstStageMask = &waitStageMask,
+                              .commandBufferCount = 1,
+                              .pCommandBuffers = &render.cmdBuffer_[nextIndex],
+                              .signalSemaphoreCount = 0,
+                              .pSignalSemaphores = nullptr};
+  CALL_VK(vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
+  CALL_VK(vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+
+
+  VkResult result;
+  VkPresentInfoKHR presentInfo{
+      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .pNext = nullptr,
+      .waitSemaphoreCount = 0,
+      .pWaitSemaphores = nullptr,
+      .swapchainCount = 1,
+      .pSwapchains = &swapchain.swapchain_,
+      .pImageIndices = &nextIndex,
+      .pResults = &result,
+  };
+  vkQueuePresentKHR(device.queue_, &presentInfo);
 }
-void vulkan_graphics::onWindowTerm(){
-	if (!display) return;
-	eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  if (surface) {
-    eglDestroySurface(display, surface);
-  	surface = EGL_NO_SURFACE;
+void vulkan_graphics::onWindowTerm() {
+  vkFreeCommandBuffers(device.device_, render.cmdPool_, render.cmdBufferLen_,render.cmdBuffer_);
+  delete[] render.cmdBuffer_;
+
+  vkDestroyCommandPool(device.device_, render.cmdPool_, nullptr);
+  vkDestroyRenderPass(device.device_, render.renderPass_, nullptr);
+  
+  {
+    //delete swapchain
+    for (int i = 0; i < swapchain.swapchainLength_; i++) {
+      vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
+      vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
+    }
+    vkDestroySwapchainKHR(device.device_, swapchain.swapchain_, nullptr);
   }
-	window = NULL;
+  
+  {
+    //delete graphics pipeline
+    if (gfxPipeline.pipeline_ == VK_NULL_HANDLE) return;
+    vkDestroyPipeline(device.device_, gfxPipeline.pipeline_, nullptr);
+    vkDestroyPipelineCache(device.device_, gfxPipeline.cache_, nullptr);
+    vkDestroyPipelineLayout(device.device_, gfxPipeline.layout_, nullptr);
+  }
+
+  //delete buffers
+  vkDestroyBuffer(device.device_, buffers.vertexBuf_, nullptr);
+
+  vkDestroyDevice(device.device_, nullptr);
+  vkDestroyInstance(device.instance_, nullptr);
+
+  device.initialized_ = false;
 }
+
 void vulkan_graphics::onPause() {
-	pause = true;
-	render();
-	running = false;
+  // To do
 }
 void vulkan_graphics::onDestroy() {
-	destroyed = true;
-	render();
+  // To do
 }
 
-#define MAX_UI_DRAW 100
-std::unordered_set<engine::texture_core*> managedTexture;
-std::unordered_set<engine::mesh_core*> managedMesh;
-int *temp;
-unsigned int *utemp;
-char *msg;
-float width, height;
-ui_batch *ubatch;
-world_btch *ws;
-
-float vulkan_graphics::getWidth() { return width; }
-float vulkan_graphics::getHeight() { return height; }
-void vulkan_graphics::clear(const unsigned int &m) {
-	*utemp = 0;
-	if (m&1)
-		*utemp |= GL_COLOR_BUFFER_BIT;
-	if (m&2)
-		*utemp |= GL_DEPTH_BUFFER_BIT;
-	if (m&4)
-		*utemp |= GL_STENCIL_BUFFER_BIT;
-	glClear(*utemp);
+float vulkan_graphics::getWidth() { return 1224.0; }
+float vulkan_graphics::getHeight() { return 800.0; }
+void vulkan_graphics::clear(const unsigned int &) {
+  // To do
 }
-void vulkan_graphics::clearcolor(const float &r, const float &g, const float &b, const float &a) {
-	glClearColor(r, g, b, a);
+void vulkan_graphics::clearcolor(const float &, const float &, const float &, const float &) {
+  // To do
 }
-engine::texture_core *vulkan_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
-	engine::texture_core *t = new engine::texture_core;
-	glGenTextures(1, &t->id);
-	t->width = width;
-	t->height = height;
-	memcpy(t->data, data, width*height*sizeof(unsigned char));
-	glBindTexture(GL_TEXTURE_2D, t->id);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	managedTexture.insert(t);
-	return t;
+engine::texture_core *vulkan_graphics::gen_texture(const int &, const int &, unsigned char *){
+  // To do
 }
-void vulkan_graphics::bind_texture(engine::texture_core *t) {
-	glBindTexture(GL_TEXTURE_2D, t?t->id:0);
+void vulkan_graphics::bind_texture(engine::texture_core *) {
+  // To do
 }
-void vulkan_graphics::set_texture_param(const int &param, const int &val) {
-	glTexParameteri(GL_TEXTURE_2D, param, val);
+void vulkan_graphics::set_texture_param(const int &, const int &) {
+  // To do
 }
-void vulkan_graphics::delete_texture(engine::texture_core *t) {
-	std::unordered_set<engine::texture_core*>::iterator it = managedTexture.find(t);
-	if (it == managedTexture.end()) return;
-	managedTexture.erase(it);
-	glDeleteTextures(1, &t->id);
-	delete[] t->data;
-	delete t;
+void vulkan_graphics::delete_texture(engine::texture_core *) {
+  // To do
 }
-void vulkan_graphics::flat_render(engine::flat_vertex *v, unsigned int len) {
-	glDisable(GL_DEPTH_TEST);
-	glUseProgram(ubatch->shader);
-	if (ubatch->dirty_projection) {
-		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
-		ubatch->dirty_projection = false;
-	}
-	glBindVertexArray(ubatch->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
-	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, (void*)0);
-	glBindVertexArray(0);
-	glUseProgram(0);
+void vulkan_graphics::flat_render(engine::flat_vertex *, unsigned int) {
+  // To do
 }
-engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *v,unsigned int v_len,unsigned short *i, unsigned int i_len) {
-	engine::mesh_core *r = new engine::mesh_core;
-	r->vertex_len = v_len;
-	r->vertex = new engine::mesh_core::data[v_len];
-	memcpy(r->vertex, v, v_len*sizeof(engine::mesh_core::data));
-	r->index_len = i_len;
-	r->index = new unsigned short[i_len];
-	memcpy(r->index, i, i_len*sizeof(unsigned short));
-	glGenVertexArrays(1, &r->vao);
-	glGenBuffers(2, &r->vbo);
-	glBindVertexArray(r->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
-	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(engine::mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
-	glBindVertexArray(0);
-	managedMesh.insert(r);
-	return r;
+engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *,unsigned int,unsigned short *, unsigned int){
+  // To do
 }
-void vulkan_graphics::mesh_render(engine::mesh_core **meshes,const unsigned int &count) {
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
-	glEnable(GL_DEPTH_TEST);
-	glUseProgram(ws->shader);
-	if (ws->dirty_worldProj) {
-		glUniformMatrix4fv(ws->u_worldProj, 1, false, ws->worldProj);
-		ws->dirty_worldProj = false;
-	}
-	for (unsigned int i = 0; i < count; ++i) {
-		engine::mesh_core *m = *(meshes+i);
-		glUniformMatrix4fv(ws->u_transProj, 1, false, m->trans);
-		glBindVertexArray(m->vao);
-		if (m->dirty_vertex) {
-			glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
-			glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(engine::mesh_core::data), (void*)m->vertex);
-			m->dirty_vertex = false;
-		}
-		if (m->dirty_index) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
-			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
-			m->dirty_index = false;
-		}
-		glDrawElements(GL_TRIANGLES, m->index_len, GL_UNSIGNED_SHORT, (void*)0);
-	}
-	glBindVertexArray(0);
-	glUseProgram(0);
+void vulkan_graphics::mesh_render(engine::mesh_core **,const unsigned int &) {
+  // To do
 }
-void vulkan_graphics::delete_mesh(engine::mesh_core *m) {
-	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
-	if (it == managedMesh.end()) return;
-	managedMesh.erase(it);
-	glDeleteVertexArrays(1, &m->vao);
-	glDeleteBuffers(2, &m->vbo);
-	delete[] m->vertex;
-	delete[] m->index;
-	delete m;
-}
-
-void resize_viewport(const int w, const int h) {
-	glViewport(0, 0, w, h);
-	width = (float)w, height = (float)h;
-	memset(ws->worldProj, 0, 16 * sizeof(float));
-	ws->worldProj[0] = 2.f/width;
-	ws->worldProj[5] = 2.f/height;
-	ws->worldProj[10] = 0.0005f;
-	ws->worldProj[15] = 1;
-	ws->dirty_worldProj = true;
-	memset(ubatch->ui_projection, 0, 16 * sizeof(float));
-	ubatch->ui_projection[0] = 2.f/width;
-	ubatch->ui_projection[5] = 2.f/height;
-	ubatch->ui_projection[10] = ubatch->ui_projection[15] = 1.f;
-	ubatch->ui_projection[12] = ubatch->ui_projection[13] = -1.f;
-	ubatch->dirty_projection = true;
-}
-void validate() {
-	if (vulkan_valid) return;
-	//validating gles resources
-	glDepthRangef(0.0f, 1.0f);
-	glClearDepthf(1.0f);
-	glDepthFunc(GL_LESS);
-	//flat draw
-	memset(ubatch,0,sizeof(ui_batch));
-	{
-		ubatch->shader = glCreateProgram();
-		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		const char *vt = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nuniform mat4 proj;"
-			"\nlayout(location = 0) in vec4 a_position;"
-			"\nlayout(location = 1) in vec4 a_color;"
-			"\nout vec4 v_color;"
-			"\nvoid main() {"
-			"\n    v_color = a_color;"
-			"\n    gl_Position = proj * a_position;"
-			"\n}\0";
-		glShaderSource(utemp[0], 1, &vt, 0);
-		glCompileShader(utemp[0]);
-		glAttachShader(ubatch->shader, utemp[0]);
-		const char *ft = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nprecision MED float;"
-			"\nin vec4 v_color;"
-			"\nlayout(location = 0) out vec4 fragColor;"
-			"\nvoid main() {"
-			"\n    fragColor = v_color;"
-			"\n}\0";
-		glShaderSource(utemp[1], 1, &ft, 0);
-		glCompileShader(utemp[1]);
-		glAttachShader(ubatch->shader, utemp[1]);
-		glLinkProgram(ubatch->shader);
-		glDeleteShader(utemp[0]);
-		glDeleteShader(utemp[1]);
-		ubatch->u_projection = glGetUniformLocation(ubatch->shader, "proj");
-		glGenVertexArrays(1, &ubatch->vao);
-		glGenBuffers(2, &ubatch->vbo);
-		glBindVertexArray(ubatch->vao);
-		unsigned short indexs[MAX_UI_DRAW*6];
-		for (size_t i = 0; i < MAX_UI_DRAW; i++) {
-			const unsigned short j = i * 6, k = i * 4;
-			indexs[j] = k;
-			indexs[j+1] = k+1;
-			indexs[j+2] = k+2;
-			indexs[j+3] = k+3;
-			indexs[j+4] = k+2;
-			indexs[j+5] = k+1;
-		}
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW*6*sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
-		glBufferData(GL_ARRAY_BUFFER, MAX_TEXTURE_UI*4*sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)(2 * sizeof(float)));
-		glBindVertexArray(0);
-	}
-	//world draw
-	memset(ws,0,sizeof(world_btch));
-	{
-		ws->shader = glCreateProgram();
-		utemp[0] = glCreateShader(GL_VERTEX_SHADER);
-		utemp[1] = glCreateShader(GL_FRAGMENT_SHADER);
-		const char *vt = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nuniform mat4 worldview_proj;"
-			"\nuniform mat4 trans_proj;"
-			"\nlayout(location = 0) in vec4 a_position;"
-			"\nlayout(location = 1) in vec4 a_color;"
-			"\nout vec4 v_color;"
-			"\nvoid main() {"
-			"\n    v_color = a_color;"
-			"\n    gl_Position = worldview_proj * trans_proj * a_position;"
-			"\n}\0";
-		glShaderSource(utemp[0], 1, &vt, 0);
-		glCompileShader(utemp[0]);
-		glAttachShader(ws->shader, utemp[0]);
-		const char *ft = "#version 300 es"
-			"\n#define LOW lowp"
-			"\n#define MED mediump"
-			"\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-			"\n    #define HIGH highp"
-			"\n#else"
-			"\n    #define HIGH mediump"
-			"\n#endif"
-			"\nprecision MED float;"
-			"\nin vec4 v_color;"
-			"\nlayout(location = 0) out vec4 fragColor;"
-			"\nvoid main() {"
-			"\n    fragColor = v_color;"
-			"\n}\0";
-		glShaderSource(utemp[1], 1, &ft, 0);
-		glCompileShader(utemp[1]);
-		glAttachShader(ws->shader, utemp[1]);
-		glLinkProgram(ws->shader);
-		glDeleteShader(utemp[0]);
-		glDeleteShader(utemp[1]);
-		ws->u_worldProj = glGetUniformLocation(ws->shader, "worldview_proj");
-		ws->u_transProj = glGetUniformLocation(ws->shader, "trans_proj");
-	}
-	//mesh
-	for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-		glGenVertexArrays(1, &(*i)->vao);
-		glGenBuffers(2, &(*i)->vbo);
-		glBindVertexArray((*i)->vao);
-		glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
-		glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(engine::mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), (void*)0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
-	}
-	glBindVertexArray(0);
-	//texture
-	for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
-		glGenTextures(1, &(*i)->id);
-		glBindTexture(GL_TEXTURE_2D, (*i)->id);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (*i)->width, (*i)->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)(*i)->data);
-	}
-	glBindTexture(GL_TEXTURE_2D, 0);
-	vulkan_valid = true;
-}
-void invalidate() {
-	//invalidating gles resources
-	if (!vulkan_valid) return;
-	//world draw
-	glDeleteProgram(ws->shader);
-	//flat draw
-	glDeleteProgram(ubatch->shader);
-	glDeleteVertexArrays(1, &ubatch->vao);
-	glDeleteBuffers(2, &ubatch->vbo);
-	//mesh
-	for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-		glDeleteVertexArrays(1, &(*i)->vao);
-		glDeleteBuffers(2, &(*i)->vbo);
-	}
-	//texture
-	for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
-		glDeleteTextures(1, &(*i)->id);
-	}
-	vulkan_valid = false;
+void vulkan_graphics::delete_mesh(engine::mesh_core *) {
+	// To DO: 
 }
 
 vulkan_graphics::vulkan_graphics() {
-	temp = new int[2];
-	utemp = new unsigned int[2];
-	ubatch = new ui_batch;
-	memset(ubatch,0,sizeof(ui_batch));
-	ws = new world_btch;
-	memset(ws,0,sizeof(world_btch));
-	
+
   engine::graph = this;
 }
 
 vulkan_graphics::~vulkan_graphics() {
-	invalidate();
-	managedTexture.clear();
-	managedMesh.clear();
-	delete ubatch;
-	delete ws;
-	delete[] temp;
-	delete[] utemp;
   engine::graph = nullptr;
 }
 
-bool initialize(android_app* app) {
-  // Load Android vulkan and retrieve vulkan API function pointers
-  if (!InitVulkan()) {
-    LOGE("Vulkan is unavailable, install vulkan and re-start");
-    return false;
-  }
 
-
-  VkApplicationInfo appInfo = {
-      .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-      .pNext = nullptr,
-      .pApplicationName = "tutorial01_load_vulkan",
-      .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-      .pEngineName = "tutorial",
-      .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-      .apiVersion = VK_MAKE_VERSION(1, 1, 0),
-  };
-
-
-  // prepare necessary extensions: Vulkan on Android need these to function
-  std::vector<const char *> instanceExt, deviceExt;
-  instanceExt.push_back("VK_KHR_surface");
-  instanceExt.push_back("VK_KHR_android_surface");
-  deviceExt.push_back("VK_KHR_swapchain");
-
-
-  // Create the Vulkan instance
-  VkInstanceCreateInfo instanceCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
-      .pApplicationInfo = &appInfo,
-      .enabledLayerCount = 0,
-      .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(instanceExt.size()),
-      .ppEnabledExtensionNames = instanceExt.data(),
-  };
-  CALL_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &tutorialInstance));
-
-
-  // if we create a surface, we need the surface extension
-  VkAndroidSurfaceCreateInfoKHR createInfo{
-      .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
-      .pNext = nullptr,
-      .flags = 0,
-      .window = app->window};
-  CALL_VK(vkCreateAndroidSurfaceKHR(tutorialInstance, &createInfo, nullptr,
-                                    &tutorialSurface));
-
-
-  // Find one GPU to use:
-  // On Android, every GPU device is equal -- supporting
-  // graphics/compute/present
-  // for this sample, we use the very first GPU device found on the system
-  uint32_t gpuCount = 0;
-  CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, nullptr));
-  VkPhysicalDevice tmpGpus[gpuCount];
-  CALL_VK(vkEnumeratePhysicalDevices(tutorialInstance, &gpuCount, tmpGpus));
-  tutorialGpu = tmpGpus[0];  // Pick up the first GPU Device
-
-
-  // check for vulkan info on this GPU device
-  VkPhysicalDeviceProperties gpuProperties;
-  vkGetPhysicalDeviceProperties(tutorialGpu, &gpuProperties);
-  LOGI("Vulkan Physical Device Name: %s", gpuProperties.deviceName);
-  LOGI("Vulkan Physical Device Info: apiVersion: %x \n\t driverVersion: %x",
-       gpuProperties.apiVersion, gpuProperties.driverVersion);
-  LOGI("API Version Supported: %d.%d.%d",
-       VK_VERSION_MAJOR(gpuProperties.apiVersion),
-       VK_VERSION_MINOR(gpuProperties.apiVersion),
-       VK_VERSION_PATCH(gpuProperties.apiVersion));
-
-
-  VkSurfaceCapabilitiesKHR surfaceCapabilities;
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(tutorialGpu, tutorialSurface,
-                                            &surfaceCapabilities);
-
-
-  LOGI("Vulkan Surface Capabilities:\n");
-  LOGI("\timage count: %u - %u\n", surfaceCapabilities.minImageCount,
-       surfaceCapabilities.maxImageCount);
-  LOGI("\tarray layers: %u\n", surfaceCapabilities.maxImageArrayLayers);
-  LOGI("\timage size (now): %dx%d\n", surfaceCapabilities.currentExtent.width,
-       surfaceCapabilities.currentExtent.height);
-  LOGI("\timage size (extent): %dx%d - %dx%d\n",
-       surfaceCapabilities.minImageExtent.width,
-       surfaceCapabilities.minImageExtent.height,
-       surfaceCapabilities.maxImageExtent.width,
-       surfaceCapabilities.maxImageExtent.height);
-  LOGI("\tusage: %x\n", surfaceCapabilities.supportedUsageFlags);
-  LOGI("\tcurrent transform: %u\n", surfaceCapabilities.currentTransform);
-  LOGI("\tallowed transforms: %x\n", surfaceCapabilities.supportedTransforms);
-  LOGI("\tcomposite alpha flags: %u\n", surfaceCapabilities.currentTransform);
-
-
-  // Find a GFX queue family
-  uint32_t queueFamilyCount;
-  vkGetPhysicalDeviceQueueFamilyProperties(tutorialGpu, &queueFamilyCount, nullptr);
-  assert(queueFamilyCount);
-  std::vector<VkQueueFamilyProperties>  queueFamilyProperties(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(tutorialGpu, &queueFamilyCount,
-                                           queueFamilyProperties.data());
-
-
-  uint32_t queueFamilyIndex;
-  for (queueFamilyIndex=0; queueFamilyIndex < queueFamilyCount;
-       queueFamilyIndex++) {
-    if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-      break;
-    }
-  }
-  assert(queueFamilyIndex < queueFamilyCount);
-
-
-  // Create a logical device from GPU we picked
-  float priorities[] = {
-      1.0f,
-  };
-  VkDeviceQueueCreateInfo queueCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .queueFamilyIndex = queueFamilyIndex,
-      .queueCount = 1,
-      .pQueuePriorities = priorities,
-  };
-
-
-  VkDeviceCreateInfo deviceCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .pNext = nullptr,
-      .queueCreateInfoCount = 1,
-      .pQueueCreateInfos = &queueCreateInfo,
-      .enabledLayerCount = 0,
-      .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(deviceExt.size()),
-      .ppEnabledExtensionNames = deviceExt.data(),
-      .pEnabledFeatures = nullptr,
-  };
-
-
-  CALL_VK(
-      vkCreateDevice(tutorialGpu, &deviceCreateInfo, nullptr, &tutorialDevice));
-  initialized_ = true;
-  return 0;
-}
-
-
-void terminate(void) {
-  vkDestroySurfaceKHR(tutorialInstance, tutorialSurface, nullptr);
-  vkDestroyDevice(tutorialDevice, nullptr);
-  vkDestroyInstance(tutorialInstance, nullptr);
-
-
-  initialized_ = false;
-}
-*/

@@ -7,12 +7,6 @@
 #include <unordered_set>
 
 struct vulkan_graphics: public android_graphics {
-private:
-	ANativeWindow *window;
-	EGLDisplay display;
-	EGLSurface surface;
-	EGLContext context;
-	EGLConfig eConfig;
 public:
 	//android
 	void onResume() override;
