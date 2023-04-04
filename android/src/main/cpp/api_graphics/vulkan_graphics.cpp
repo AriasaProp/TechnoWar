@@ -19,82 +19,6 @@ VulkanBufferInfo buffers;
 VulkanGfxPipelineInfo gfxPipeline;
 VulkanRenderInfo render;
 
-void CreateFrameBuffers(VkRenderPass& renderPass, VkImageView depthView = VK_NULL_HANDLE) {
-  // query display attachment to swapchain
-  uint32_t SwapchainImagesCount = 0;
-  CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
-  swapchain.displayImages_.resize(SwapchainImagesCount);
-  CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, swapchain.displayImages_.data()));
-
-  // create image view for each swapchain image
-  swapchain.displayViews_.resize(SwapchainImagesCount);
-  for (uint32_t i = 0; i < SwapchainImagesCount; i++) {
-    VkImageViewCreateInfo viewCreateInfo = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0,
-        .image = swapchain.displayImages_[i],
-        .viewType = VK_IMAGE_VIEW_TYPE_2D,
-        .format = swapchain.displayFormat_,
-        .components =
-            {
-                .r = VK_COMPONENT_SWIZZLE_R,
-                .g = VK_COMPONENT_SWIZZLE_G,
-                .b = VK_COMPONENT_SWIZZLE_B,
-                .a = VK_COMPONENT_SWIZZLE_A,
-            },
-        .subresourceRange =
-            {
-                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
-    };
-    CALL_VK(vkCreateImageView(device.device_, &viewCreateInfo, nullptr,
-                              &swapchain.displayViews_[i]));
-  }
-  // create a framebuffer from each swapchain image
-  swapchain.framebuffers_.resize(swapchain.swapchainLength_);
-  for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
-    VkImageView attachments[2] = {
-        swapchain.displayViews_[i], depthView,
-    };
-    VkFramebufferCreateInfo fbCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .pNext = nullptr,
-        .renderPass = renderPass,
-        .attachmentCount = 1,  // 2 if using depth
-        .pAttachments = attachments,
-        .width = static_cast<uint32_t>(swapchain.displaySize_.width),
-        .height = static_cast<uint32_t>(swapchain.displaySize_.height),
-       .layers = 1,
-    };
-    fbCreateInfo.attachmentCount = (depthView == VK_NULL_HANDLE ? 1 : 2);
-
-    CALL_VK(vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
-  }
-}
-// A helper function
-bool MapMemoryTypeToIndex(uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex) {
-  VkPhysicalDeviceMemoryProperties memoryProperties;
-  vkGetPhysicalDeviceMemoryProperties(device.gpuDevice_, &memoryProperties);
-  // Search memtypes to find first index with those properties
-  for (uint32_t i = 0; i < 32; i++) {
-    if ((typeBits & 1) == 1) {
-      // Type is available, does it match user properties?
-      if ((memoryProperties.memoryTypes[i].propertyFlags & requirements_mask) ==
-          requirements_mask) {
-        *typeIndex = i;
-        return true;
-      }
-    }
-    typeBits >>= 1;
-  }
-  return false;
-}
-
 void vulkan_graphics::onResume() {
   // To do
 }
@@ -161,16 +85,13 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     device.queueFamilyIndex_ = queueFamilyIndex;
   
     // Create a logical device (vulkan device)
-    float priorities[] = {
-        1.0f,
-    };
     VkDeviceQueueCreateInfo queueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .queueFamilyIndex = queueFamilyIndex,
         .queueCount = 1,
-        .pQueuePriorities = priorities,
+        .pQueuePriorities = (float[]){1.0f}, 
     };
     VkDeviceCreateInfo deviceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -283,11 +204,61 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
   };
   CALL_VK(vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_));
 
-  // -----------------------------------------------------------------
   // Create 2 frame buffers.
-  CreateFrameBuffers(render.renderPass_);
-
+  {
+    // query display attachment to swapchain
+    uint32_t SwapchainImagesCount = 0;
+    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
+    swapchain.displayImages_.resize(SwapchainImagesCount);
+    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, swapchain.displayImages_.data()));
   
+    // create image view for each swapchain image
+    swapchain.displayViews_.resize(SwapchainImagesCount);
+    for (uint32_t i = 0; i < SwapchainImagesCount; i++) {
+      VkImageViewCreateInfo viewCreateInfo = {
+          .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+          .pNext = nullptr,
+          .flags = 0,
+          .image = swapchain.displayImages_[i],
+          .viewType = VK_IMAGE_VIEW_TYPE_2D,
+          .format = swapchain.displayFormat_,
+          .components =
+              {
+                  .r = VK_COMPONENT_SWIZZLE_R,
+                  .g = VK_COMPONENT_SWIZZLE_G,
+                  .b = VK_COMPONENT_SWIZZLE_B,
+                  .a = VK_COMPONENT_SWIZZLE_A,
+              },
+          .subresourceRange =
+              {
+                  .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                  .baseMipLevel = 0,
+                  .levelCount = 1,
+                  .baseArrayLayer = 0,
+                  .layerCount = 1,
+              },
+      };
+      CALL_VK(vkCreateImageView(device.device_, &viewCreateInfo, nullptr, &swapchain.displayViews_[i]));
+    }
+    // create a framebuffer from each swapchain image
+    swapchain.framebuffers_.resize(swapchain.swapchainLength_);
+    for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
+      VkImageView attachments[2] = {
+          swapchain.displayViews_[i], VK_NULL_HANDLE,
+      };
+      VkFramebufferCreateInfo fbCreateInfo{
+          .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+          .pNext = nullptr,
+          .renderPass = render.renderPass_,
+          .attachmentCount = 1,  // 2 if using depth
+          .pAttachments = attachments,
+          .width = static_cast<uint32_t>(swapchain.displaySize_.width),
+          .height = static_cast<uint32_t>(swapchain.displaySize_.height),
+         .layers = 1,
+      };
+      CALL_VK(vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
+    }
+  }
   // Create our vertex buffer
   {
     // -----------------------------------------------
@@ -323,8 +294,24 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     };
   
     // Assign the proper memory type for that buffer
-    MapMemoryTypeToIndex(memReq.memoryTypeBits,VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
-  
+    {
+      uint32_t typeBits = memReq.memoryTypeBits;
+      VkFlags requirements_mask = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+      VkPhysicalDeviceMemoryProperties memoryProperties;
+      vkGetPhysicalDeviceMemoryProperties(device.gpuDevice_, &memoryProperties);
+      // Search memtypes to find first index with those properties
+      for (uint32_t i = 0; i < 32; i++) {
+        if (typeBits & 1) {
+          // Type is available, does it match user properties?
+          if ((memoryProperties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
+            allocInfo.memoryTypeIndex = i;
+            return break;
+          }
+        }
+        typeBits >>= 1;
+      }
+    }
+
     // Allocate memory for the buffer
     VkDeviceMemory deviceMemory;
     CALL_VK(vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory));
@@ -337,7 +324,6 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     CALL_VK(vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
     return true;
   }
-
   // Create graphics pipeline
   {
     memset(&gfxPipeline, 0, sizeof(gfxPipeline));
@@ -727,8 +713,8 @@ void vulkan_graphics::onDestroy() {
   // To do
 }
 
-float vulkan_graphics::getWidth() { return 1224.0; }
-float vulkan_graphics::getHeight() { return 800.0; }
+float vulkan_graphics::getWidth() { return 1440.0; }
+float vulkan_graphics::getHeight() { return 720.0; }
 void vulkan_graphics::clear(const unsigned int &) {
   // To do
 }
@@ -761,7 +747,6 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 
 vulkan_graphics::vulkan_graphics() {
-
   engine::graph = this;
 }
 
