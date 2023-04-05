@@ -152,15 +152,12 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     //   - It's necessary to query the supported surface format (R8G8B8A8 for
     //   instance ...)
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_,
-                                              &surfaceCapabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCapabilities);
     // Query the list of supported surface format and choose one we like
     uint32_t formatCount = 0;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
-                                         &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, nullptr);
     VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
-                                         &formatCount, formats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, formats);
   
     uint32_t chosenFormat;
     for (chosenFormat = 0; chosenFormat < formatCount; chosenFormat++) {
@@ -716,7 +713,7 @@ void vulkan_graphics::onWindowTerm() {
   
   {
     //delete swapchain
-    for (int i = 0; i < swapchain.swapchainLength_; i++) {
+    for (size_t i = 0; i < swapchain.swapchainLength_; i++) {
       vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
       vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
     }
@@ -772,6 +769,7 @@ void vulkan_graphics::flat_render(engine::texture_core*, engine::flat_vertex *, 
 }
 engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *,unsigned int,unsigned short *, unsigned int){
   // To do
+  return nullptr;
 }
 void vulkan_graphics::mesh_render(engine::mesh_core **,const unsigned int &) {
   // To do
