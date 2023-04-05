@@ -3,8 +3,6 @@
 
 #include "android_graphics.hpp"
 #include "../main_game.hpp"
-#include <EGL/egl.h>
-#include <unordered_set>
 
 struct vulkan_graphics: public android_graphics {
 public:
