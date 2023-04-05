@@ -553,7 +553,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .basePipelineIndex = 0,
     };
   
-    VkResult pipelineResult = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
+    result = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
+    assert(result == VK_SUCCESS);
     // We don't need the shaders anymore, we can release their memory
     vkDestroyShaderModule(device.device_, vertexShader, nullptr);
     vkDestroyShaderModule(device.device_, fragmentShader, nullptr);
@@ -568,7 +569,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = device.queueFamilyIndex_,
   };
-  result = (vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render_info.cmdPool_));
+  result = vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render_info.cmdPool_);
   assert(result == VK_SUCCESS);
   // Record a command buffer that just clear the screen
   // 1 command buffer draw in 1 framebuffer
@@ -582,10 +583,10 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = render_info.cmdBufferLen_,
   };
-  result = (vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo, render_info.cmdBuffer_));
+  result = vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo, render_info.cmdBuffer_);
   assert(result == VK_SUCCESS);
 
-  for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
+  for (uint32_t bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
     // We start by creating and declare the "beginning" our command buffer
     VkCommandBufferBeginInfo cmdBufferBeginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -593,7 +594,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .flags = 0,
         .pInheritanceInfo = nullptr,
     };
-    result = (vkBeginCommandBuffer(render_info.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
+    result = vkBeginCommandBuffer(render_info.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo);
     assert(result == VK_SUCCESS);
     {
       VkImageMemoryBarrier imageMemoryBarrier = {
@@ -753,8 +754,9 @@ void vulkan_graphics::clear(const unsigned int &) {
 void vulkan_graphics::clearcolor(const float &, const float &, const float &, const float &) {
   // To do
 }
-engine::texture_core *vulkan_graphics::gen_texture(const int &, const int &, unsigned char *){
+engine::texture_core *vulkan_graphics::gen_texture(const int &, const int &, unsigned char *) {
   // To do
+  return nullptr;
 }
 void vulkan_graphics::bind_texture(engine::texture_core *) {
   // To do
@@ -765,7 +767,7 @@ void vulkan_graphics::set_texture_param(const int &, const int &) {
 void vulkan_graphics::delete_texture(engine::texture_core *) {
   // To do
 }
-void vulkan_graphics::flat_render(engine::flat_vertex *, unsigned int) {
+void vulkan_graphics::flat_render(engine::texture_core*, engine::flat_vertex *, unsigned int) {
   // To do
 }
 engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *,unsigned int,unsigned short *, unsigned int){
