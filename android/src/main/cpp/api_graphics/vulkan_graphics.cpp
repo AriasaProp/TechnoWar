@@ -46,7 +46,7 @@ VulkanDeviceInfo device;
 VulkanSwapchainInfo swapchain;
 VulkanBufferInfo buffers;
 VulkanGfxPipelineInfo gfxPipeline;
-VulkanRenderInfo render;
+VulkanRenderInfo render_info;
 
 VkResult result;
 
@@ -200,7 +200,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     assert(result == VK_SUCCESS);
     delete[] formats;
   }
-  // Create render pass
+  // Create render_info pass
   VkAttachmentDescription attachmentDescriptions{
       .format = swapchain.displayFormat_,
       .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -238,7 +238,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .dependencyCount = 0,
       .pDependencies = nullptr,
   };
-  result = vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_);
+  result = vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render_info.renderPass_);
   assert(result == VK_SUCCESS);
   // Create 2 frame buffers.
   {
@@ -287,7 +287,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       VkFramebufferCreateInfo fbCreateInfo{
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext = nullptr,
-        .renderPass = render.renderPass_,
+        .renderPass = render_info.renderPass_,
         .attachmentCount = 1,  // 2 if using depth
         .pAttachments = attachments,
         .width = static_cast<uint32_t>(swapchain.displaySize_.width),
@@ -547,7 +547,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pColorBlendState = &colorBlendInfo,
         .pDynamicState = nullptr,
         .layout = gfxPipeline.layout_,
-        .renderPass = render.renderPass_,
+        .renderPass = render_info.renderPass_,
         .subpass = 0,
         .basePipelineHandle = VK_NULL_HANDLE,
         .basePipelineIndex = 0,
@@ -568,21 +568,21 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = device.queueFamilyIndex_,
   };
-  result = (vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render.cmdPool_));
+  result = (vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render_info.cmdPool_));
   assert(result == VK_SUCCESS);
   // Record a command buffer that just clear the screen
   // 1 command buffer draw in 1 framebuffer
   // In our case we need 2 command as we have 2 framebuffer
-  render.cmdBufferLen_ = swapchain.swapchainLength_;
-  render.cmdBuffer_ = new VkCommandBuffer[swapchain.swapchainLength_];
+  render_info.cmdBufferLen_ = swapchain.swapchainLength_;
+  render_info.cmdBuffer_ = new VkCommandBuffer[swapchain.swapchainLength_];
   VkCommandBufferAllocateInfo cmdBufferCreateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
       .pNext = nullptr,
-      .commandPool = render.cmdPool_,
+      .commandPool = render_info.cmdPool_,
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-      .commandBufferCount = render.cmdBufferLen_,
+      .commandBufferCount = render_info.cmdBufferLen_,
   };
-  result = (vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo, render.cmdBuffer_));
+  result = (vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo, render_info.cmdBuffer_));
   assert(result == VK_SUCCESS);
 
   for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
@@ -593,7 +593,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .flags = 0,
         .pInheritanceInfo = nullptr,
     };
-    result = (vkBeginCommandBuffer(render.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
+    result = (vkBeginCommandBuffer(render_info.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
     assert(result == VK_SUCCESS);
     {
       VkImageMemoryBarrier imageMemoryBarrier = {
@@ -615,7 +615,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
               },
       };
       imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-      vkCmdPipelineBarrier(render.cmdBuffer_[bufferIndex], VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
+      vkCmdPipelineBarrier(render_info.cmdBuffer_[bufferIndex], VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
     }
     // Now we start a renderpass. Any draw command has to be recorded in a
     // renderpass
@@ -623,24 +623,24 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     VkRenderPassBeginInfo renderPassBeginInfo{
         .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = nullptr,
-        .renderPass = render.renderPass_,
+        .renderPass = render_info.renderPass_,
         .framebuffer = swapchain.framebuffers_[bufferIndex],
         .renderArea = {.offset { .x = 0, .y = 0,}, .extent = swapchain.displaySize_},
         .clearValueCount = 1,
         .pClearValues = &clearVals};
-    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(render_info.cmdBuffer_[bufferIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Bind what is necessary to the command buffer
-    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
+    vkCmdBindPipeline(render_info.cmdBuffer_[bufferIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(render.cmdBuffer_[bufferIndex], 0, 1,
+    vkCmdBindVertexBuffers(render_info.cmdBuffer_[bufferIndex], 0, 1,
                            &buffers.vertexBuf_, &offset);
 
     // Draw Triangle
-    vkCmdDraw(render.cmdBuffer_[bufferIndex], 3, 1, 0, 0);
+    vkCmdDraw(render_info.cmdBuffer_[bufferIndex], 3, 1, 0, 0);
 
-    vkCmdEndRenderPass(render.cmdBuffer_[bufferIndex]);
+    vkCmdEndRenderPass(render_info.cmdBuffer_[bufferIndex]);
 
-    result = (vkEndCommandBuffer(render.cmdBuffer_[bufferIndex]));
+    result = (vkEndCommandBuffer(render_info.cmdBuffer_[bufferIndex]));
     assert(result == VK_SUCCESS);
   }
 
@@ -651,7 +651,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .pNext = nullptr,
       .flags = 0,
   };
-  result = (vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render.fence_));
+  result = (vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render_info.fence_));
   assert(result == VK_SUCCESS);
 
   // We need to create a semaphore to be able to wait, in the main loop, for our
@@ -661,7 +661,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .pNext = nullptr,
       .flags = 0,
   };
-  result = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
+  result = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render_info.semaphore_));
   assert(result == VK_SUCCESS);
 
   initialized_ = true;
@@ -673,25 +673,25 @@ void vulkan_graphics::render() {
   if (!initialized_) return;
   uint32_t nextIndex;
   // Get the framebuffer index we should draw in
-  result = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
+  result = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render_info.semaphore_, VK_NULL_HANDLE, &nextIndex));
   assert(result == VK_SUCCESS);
-  result = (vkResetFences(device.device_, 1, &render.fence_));
+  result = (vkResetFences(device.device_, 1, &render_info.fence_));
   assert(result == VK_SUCCESS);
   VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info {
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
     .pNext = nullptr,
     .waitSemaphoreCount = 1,
-    .pWaitSemaphores = &render.semaphore_,
+    .pWaitSemaphores = &render_info.semaphore_,
     .pWaitDstStageMask = &waitStageMask,
     .commandBufferCount = 1,
-    .pCommandBuffers = &render.cmdBuffer_[nextIndex],
+    .pCommandBuffers = &render_info.cmdBuffer_[nextIndex],
     .signalSemaphoreCount = 0,
     .pSignalSemaphores = nullptr
   };
-  result = (vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
+  result = (vkQueueSubmit(device.queue_, 1, &submit_info, render_info.fence_));
   assert(result == VK_SUCCESS);
-  result = (vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+  result = (vkWaitForFences(device.device_, 1, &render_info.fence_, VK_TRUE, 100000000));
   assert(result == VK_SUCCESS);
 
   VkPresentInfoKHR presentInfo{
@@ -707,11 +707,11 @@ void vulkan_graphics::render() {
   vkQueuePresentKHR(device.queue_, &presentInfo);
 }
 void vulkan_graphics::onWindowTerm() {
-  vkFreeCommandBuffers(device.device_, render.cmdPool_, render.cmdBufferLen_,render.cmdBuffer_);
-  delete[] render.cmdBuffer_;
+  vkFreeCommandBuffers(device.device_, render_info.cmdPool_, render_info.cmdBufferLen_,render_info.cmdBuffer_);
+  delete[] render_info.cmdBuffer_;
 
-  vkDestroyCommandPool(device.device_, render.cmdPool_, nullptr);
-  vkDestroyRenderPass(device.device_, render.renderPass_, nullptr);
+  vkDestroyCommandPool(device.device_, render_info.cmdPool_, nullptr);
+  vkDestroyRenderPass(device.device_, render_info.renderPass_, nullptr);
   
   {
     //delete swapchain
