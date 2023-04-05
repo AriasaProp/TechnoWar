@@ -1,16 +1,11 @@
 #include "vulkan_graphics.hpp"
 
+#include <vulkan/vulkan.h>
 #define VK_USE_PLATFORM_ANDROID_KHR 1
 #include "vulkan/vulkan.hpp"
 
 // Vulkan call wrapper
-#define CALL_VK(func)                                                 \
-  if (VK_SUCCESS != (func)) {                                         \
-    __android_log_print(ANDROID_LOG_ERROR, "Tutorial ",               \
-                        "Vulkan error. File[%s], line[%d]", __FILE__, \
-                        __LINE__);                                    \
-    assert(false);                                                    \
-  }
+#define CALL_VK(func) assert(VK_SUCCESS != (func))
 
 // Global Variables ...
 VulkanDeviceInfo device;
