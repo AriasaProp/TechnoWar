@@ -7,23 +7,20 @@
 //#include "vulkan/vulkan.hpp"
 
 // Global Variables ...
+bool initialized_;
 struct VulkanDeviceInfo {
-  bool initialized_;
   VkInstance instance_;
   VkPhysicalDevice gpuDevice_;
   VkDevice device_;
   uint32_t queueFamilyIndex_;
-
   VkSurfaceKHR surface_;
   VkQueue queue_;
 };
 struct VulkanSwapchainInfo {
   VkSwapchainKHR swapchain_;
   uint32_t swapchainLength_;
-
   VkExtent2D displaySize_;
   VkFormat displayFormat_;
-
   // array of frame buffers and views
   std::vector<VkImage> displayImages_;
   std::vector<VkImageView> displayViews_;
@@ -46,11 +43,11 @@ struct VulkanRenderInfo {
   VkFence fence_;
 };
 
-static VulkanDeviceInfo device;
-static VulkanSwapchainInfo swapchain;
-static VulkanBufferInfo buffers;
-static VulkanGfxPipelineInfo gfxPipeline;
-static VulkanRenderInfo render;
+VulkanDeviceInfo device;
+VulkanSwapchainInfo swapchain;
+VulkanBufferInfo buffers;
+VulkanGfxPipelineInfo gfxPipeline;
+VulkanRenderInfo render;
 
 VkResult result;
 
@@ -204,8 +201,6 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     assert(result == VK_SUCCESS);
     delete[] formats;
   }
-
-  // -----------------------------------------------------------------
   // Create render pass
   VkAttachmentDescription attachmentDescriptions{
       .format = swapchain.displayFormat_,
@@ -217,9 +212,10 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
       .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
   };
-
   VkAttachmentReference colourReference = {
-      .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+    .attachment = 0,
+    .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+  };
 
   VkSubpassDescription subpassDescription{
       .flags = 0,
@@ -290,29 +286,25 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
           swapchain.displayViews_[i], VK_NULL_HANDLE,
       };
       VkFramebufferCreateInfo fbCreateInfo{
-          .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-          .pNext = nullptr,
-          .renderPass = render.renderPass_,
-          .attachmentCount = 1,  // 2 if using depth
-          .pAttachments = attachments,
-          .width = static_cast<uint32_t>(swapchain.displaySize_.width),
-          .height = static_cast<uint32_t>(swapchain.displaySize_.height),
-         .layers = 1,
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .renderPass = render.renderPass_,
+        .attachmentCount = 1,  // 2 if using depth
+        .pAttachments = attachments,
+        .width = static_cast<uint32_t>(swapchain.displaySize_.width),
+        .height = static_cast<uint32_t>(swapchain.displaySize_.height),
+        .layers = 1,
       };
       result = (vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
       assert(result == VK_SUCCESS);
     }
   }
-  // Create our vertex buffer
   {
-    // -----------------------------------------------
     // Create the triangle vertex buffer
-  
     // Vertex positions
     const float vertexData[] = {
         -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
     };
-  
     // Create a vertex buffer
     VkBufferCreateInfo createBufferInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
@@ -384,8 +376,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pPushConstantRanges = nullptr,
     };
     result = (vkCreatePipelineLayout(device.device_, &pipelineLayoutCreateInfo, nullptr, &gfxPipeline.layout_));
-    const char *vertexSrc =
-      "#version 400\n"
+    const char *vertexSrc = "#version 400\n"
       "#extension GL_ARB_separate_shader_objects : enable\n"
       "#extension GL_ARB_shading_language_420pack : enable\n"
       "layout (location = 0) in vec4 pos;\n"
@@ -402,8 +393,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     VkShaderModule vertexShader;
     result = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, &vertexShader);
     assert(result == VK_SUCCESS);
-    const char *fragmentSrc =
-      "#version 400\n"
+    const char *fragmentSrc = "#version 400\n"
       "#extension GL_ARB_separate_shader_objects : enable\n"
       "#extension GL_ARB_shading_language_420pack : enable\n"
       "layout (location = 0) out vec4 uFragColor;\n"
@@ -434,7 +424,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
             .module = fragmentShader,
             .pName = "main",
             .pSpecializationInfo = nullptr,
-        }};
+        }
+    };
   
     VkViewport viewports{
         .x = 0,
@@ -674,20 +665,19 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   result = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
   assert(result == VK_SUCCESS);
 
-  device.initialized_ = true;
+  initialized_ = true;
 }
 void vulkan_graphics::needResize() {
   // To do
 }
 void vulkan_graphics::render() {
-  if (!device.initialized_) return;
+  if (!initialized_) return;
   uint32_t nextIndex;
   // Get the framebuffer index we should draw in
   result = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
   assert(result == VK_SUCCESS);
   result = (vkResetFences(device.device_, 1, &render.fence_));
   assert(result == VK_SUCCESS);
-
   VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info {
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -696,7 +686,7 @@ void vulkan_graphics::render() {
     .pWaitSemaphores = &render.semaphore_,
     .pWaitDstStageMask = &waitStageMask,
     .commandBufferCount = 1,
-    pCommandBuffers = &render.cmdBuffer_[nextIndex],
+    .pCommandBuffers = &render.cmdBuffer_[nextIndex],
     .signalSemaphoreCount = 0,
     .pSignalSemaphores = nullptr
   };
@@ -747,7 +737,7 @@ void vulkan_graphics::onWindowTerm() {
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
 
-  device.initialized_ = false;
+  initialized_ = false;
 }
 
 void vulkan_graphics::onPause() {
@@ -756,9 +746,8 @@ void vulkan_graphics::onPause() {
 void vulkan_graphics::onDestroy() {
   // To do
 }
-
-float vulkan_graphics::getWidth() { return 1440.0; }
-float vulkan_graphics::getHeight() { return 720.0; }
+float vulkan_graphics::getWidth() { return float(swapchain.displaySize_.width); }
+float vulkan_graphics::getHeight() { return float(swapchain.displaySize_.height); }
 void vulkan_graphics::clear(const unsigned int &) {
   // To do
 }
@@ -791,6 +780,7 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 
 vulkan_graphics::vulkan_graphics() {
+  initialized_ = false;
   engine::graph = this;
 }
 
