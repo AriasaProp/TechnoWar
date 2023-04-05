@@ -1,8 +1,8 @@
 #include "vulkan_graphics.hpp"
 
-#include <vulkan/vulkan.h>
 #define VK_USE_PLATFORM_ANDROID_KHR 1
-#include "vulkan/vulkan.hpp"
+#include <vulkan/vulkan.h>
+#//include "vulkan/vulkan.hpp"
 
 // Vulkan call wrapper
 #define CALL_VK(func) assert(VK_SUCCESS != (func))
