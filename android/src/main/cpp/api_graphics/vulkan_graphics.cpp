@@ -6,12 +6,6 @@
 #include <cassert>
 #//include "vulkan/vulkan.hpp"
 
-// Vulkan call wrapper
-#define CALL_VK(func) assert((func) == VK_SUCCESS)
-
-// Global Variables ...
-
-
 // Global Variables ...
 struct VulkanDeviceInfo {
   bool initialized_;
@@ -51,6 +45,7 @@ struct VulkanRenderInfo {
   VkSemaphore semaphore_;
   VkFence fence_;
 } render;
+VkResult result;
 
 void vulkan_graphics::onResume() {
   // To do
@@ -85,18 +80,22 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
         .ppEnabledExtensionNames = instance_extensions.data(),
     };
-    CALL_VK(vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_));
+    result = vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_);
+    assert(result == VK_SUCCESS);
     VkAndroidSurfaceCreateInfoKHR createInfo{
         .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
         .window = window
     };
-    CALL_VK(vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_));
+    result = vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_);
+    assert(result == VK_SUCCESS);
     uint32_t gpuCount = 0;
-    CALL_VK(vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr));
+    result = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr);
+    assert(result == VK_SUCCESS);
     VkPhysicalDevice tmpGpus[gpuCount];
-    CALL_VK(vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus));
+    result = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus);
+    assert(result == VK_SUCCESS);
     device.gpuDevice_ = tmpGpus[0];  // Pick up the first GPU Device
   
     // Find a GFX queue family
@@ -136,7 +135,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .ppEnabledExtensionNames = device_extensions.data(),
         .pEnabledFeatures = nullptr,
     };
-    CALL_VK(vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_));
+    result = vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_);
+    assert(result == VK_SUCCESS);
     vkGetDeviceQueue(device.device_, device.queueFamilyIndex_, 0, &device.queue_);
   }
   {
@@ -167,9 +167,9 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   
     swapchain.displaySize_ = surfaceCapabilities.currentExtent;
     swapchain.displayFormat_ = formats[chosenFormat].format;
-  
     VkSurfaceCapabilitiesKHR surfaceCap;
-    CALL_VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap));
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap);
+    assert(result == VK_SUCCESS);
     assert(surfaceCap.supportedCompositeAlpha | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR);
     VkSwapchainCreateInfoKHR swapchainCreateInfo{
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -190,9 +190,11 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .clipped = VK_FALSE,
         .oldSwapchain = VK_NULL_HANDLE,
     };
-    CALL_VK(vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_));
+    result = (vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_));
+    assert(result == VK_SUCCESS);
     // Get the length of the created swap chain
-    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr));
+    result = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr));
+    assert(result == VK_SUCCESS);
     delete[] formats;
   }
 
@@ -234,16 +236,17 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .dependencyCount = 0,
       .pDependencies = nullptr,
   };
-  CALL_VK(vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_));
-
+  result = (vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_));
+  assert(result == VK_SUCCESS);
   // Create 2 frame buffers.
   {
     // query display attachment to swapchain
     uint32_t SwapchainImagesCount = 0;
-    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
+    result = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
+    assert(result == VK_SUCCESS);
     swapchain.displayImages_.resize(SwapchainImagesCount);
-    CALL_VK(vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, swapchain.displayImages_.data()));
-  
+    result = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, swapchain.displayImages_.data()));
+    assert(result == VK_SUCCESS);
     // create image view for each swapchain image
     swapchain.displayViews_.resize(SwapchainImagesCount);
     for (uint32_t i = 0; i < SwapchainImagesCount; i++) {
@@ -270,7 +273,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
                   .layerCount = 1,
               },
       };
-      CALL_VK(vkCreateImageView(device.device_, &viewCreateInfo, nullptr, &swapchain.displayViews_[i]));
+      result = (vkCreateImageView(device.device_, &viewCreateInfo, nullptr, &swapchain.displayViews_[i]));
+      assert(result == VK_SUCCESS);
     }
     // create a framebuffer from each swapchain image
     swapchain.framebuffers_.resize(swapchain.swapchainLength_);
@@ -288,7 +292,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
           .height = static_cast<uint32_t>(swapchain.displaySize_.height),
          .layers = 1,
       };
-      CALL_VK(vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
+      result = (vkCreateFramebuffer(device.device_, &fbCreateInfo, nullptr, &swapchain.framebuffers_[i]));
+      assert(result == VK_SUCCESS);
     }
   }
   // Create our vertex buffer
@@ -313,7 +318,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pQueueFamilyIndices = &device.queueFamilyIndex_,
     };
   
-    CALL_VK(vkCreateBuffer(device.device_, &createBufferInfo, nullptr, &buffers.vertexBuf_));
+    result = (vkCreateBuffer(device.device_, &createBufferInfo, nullptr, &buffers.vertexBuf_));
+    assert(result == VK_SUCCESS);
   
     VkMemoryRequirements memReq;
     vkGetBufferMemoryRequirements(device.device_, buffers.vertexBuf_, &memReq);
@@ -346,14 +352,17 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
 
     // Allocate memory for the buffer
     VkDeviceMemory deviceMemory;
-    CALL_VK(vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory));
+    result = (vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory));
+    assert(result == VK_SUCCESS);
   
     void* data;
-    CALL_VK(vkMapMemory(device.device_, deviceMemory, 0, allocInfo.allocationSize,0, &data));
+    result = (vkMapMemory(device.device_, deviceMemory, 0, allocInfo.allocationSize,0, &data));
+    assert(result == VK_SUCCESS);
     memcpy(data, vertexData, sizeof(vertexData));
     vkUnmapMemory(device.device_, deviceMemory);
   
-    CALL_VK(vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
+    result = (vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
+    assert(result == VK_SUCCESS);
   }
   // Create graphics pipeline
   {
@@ -367,8 +376,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pushConstantRangeCount = 0,
         .pPushConstantRanges = nullptr,
     };
-    CALL_VK(vkCreatePipelineLayout(device.device_, &pipelineLayoutCreateInfo, nullptr, &gfxPipeline.layout_));
-    VkResult result;
+    result = (vkCreatePipelineLayout(device.device_, &pipelineLayoutCreateInfo, nullptr, &gfxPipeline.layout_));
     const char *vertexSrc =
       "#version 400\n"
       "#extension GL_ARB_separate_shader_objects : enable\n"
@@ -523,8 +531,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pInitialData = nullptr,
     };
   
-    CALL_VK(vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr, &gfxPipeline.cache_));
-  
+    result = (vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr, &gfxPipeline.cache_));
+    assert(result == VK_SUCCESS);
     // Create the pipeline
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
@@ -563,8 +571,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = device.queueFamilyIndex_,
   };
-  CALL_VK(vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render.cmdPool_));
-
+  result = (vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render.cmdPool_));
+  assert(result == VK_SUCCESS);
   // Record a command buffer that just clear the screen
   // 1 command buffer draw in 1 framebuffer
   // In our case we need 2 command as we have 2 framebuffer
@@ -577,8 +585,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
       .commandBufferCount = render.cmdBufferLen_,
   };
-  CALL_VK(vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo,
-                                   render.cmdBuffer_));
+  result = (vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo, render.cmdBuffer_));
+  assert(result == VK_SUCCESS);
 
   for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
     // We start by creating and declare the "beginning" our command buffer
@@ -588,7 +596,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .flags = 0,
         .pInheritanceInfo = nullptr,
     };
-    CALL_VK(vkBeginCommandBuffer(render.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
+    result = (vkBeginCommandBuffer(render.cmdBuffer_[bufferIndex], &cmdBufferBeginInfo));
+    assert(result == VK_SUCCESS);
     {
       VkImageMemoryBarrier imageMemoryBarrier = {
           .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -637,7 +646,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
 
     vkCmdEndRenderPass(render.cmdBuffer_[bufferIndex]);
 
-    CALL_VK(vkEndCommandBuffer(render.cmdBuffer_[bufferIndex]));
+    result = (vkEndCommandBuffer(render.cmdBuffer_[bufferIndex]));
+    assert(result == VK_SUCCESS);
   }
 
   // We need to create a fence to be able, in the main loop, to wait for our
@@ -647,7 +657,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .pNext = nullptr,
       .flags = 0,
   };
-  CALL_VK(vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render.fence_));
+  result = (vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render.fence_));
+  assert(result == VK_SUCCESS);
 
   // We need to create a semaphore to be able to wait, in the main loop, for our
   // framebuffer to be available for us before drawing.
@@ -656,7 +667,8 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .pNext = nullptr,
       .flags = 0,
   };
-  CALL_VK(vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
+  result = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
+  assert(result == VK_SUCCESS);
 
   device.initialized_ = true;
 }
@@ -667,25 +679,28 @@ void vulkan_graphics::render() {
   if (!device.initialized_) return;
   uint32_t nextIndex;
   // Get the framebuffer index we should draw in
-  CALL_VK(vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
-  CALL_VK(vkResetFences(device.device_, 1, &render.fence_));
+  result = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
+  assert(result == VK_SUCCESS);
+  result = (vkResetFences(device.device_, 1, &render.fence_));
+  assert(result == VK_SUCCESS);
 
-  VkPipelineStageFlags waitStageMask =
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  VkSubmitInfo submit_info = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                              .pNext = nullptr,
-                              .waitSemaphoreCount = 1,
-                              .pWaitSemaphores = &render.semaphore_,
-                              .pWaitDstStageMask = &waitStageMask,
-                              .commandBufferCount = 1,
-                              .pCommandBuffers = &render.cmdBuffer_[nextIndex],
-                              .signalSemaphoreCount = 0,
-                              .pSignalSemaphores = nullptr};
-  CALL_VK(vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
-  CALL_VK(vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+  VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+  VkSubmitInfo submit_info {
+    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+    .pNext = nullptr,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = &render.semaphore_,
+    .pWaitDstStageMask = &waitStageMask,
+    .commandBufferCount = 1,
+    pCommandBuffers = &render.cmdBuffer_[nextIndex],
+    .signalSemaphoreCount = 0,
+    .pSignalSemaphores = nullptr
+  };
+  result = (vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
+  assert(result == VK_SUCCESS);
+  result = (vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+  assert(result == VK_SUCCESS);
 
-
-  VkResult result;
   VkPresentInfoKHR presentInfo{
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
       .pNext = nullptr,
