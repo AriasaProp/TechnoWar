@@ -28,6 +28,7 @@
 #include "android_asset/android_asset.hpp"
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
+#include "api_graphics/vulkan_graphics.hpp"
 
 android_asset *aasset;
 
