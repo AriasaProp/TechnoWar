@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
+#define VK_USE_PLATFORM_ANDROID_KHR 1
 #include <vulkan/vulkan.h>
 /*
 //{
@@ -427,7 +428,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
         .pNext = nullptr,
         .flags = 0,
-        .window = window
+        .window = window, 
     };
     result = vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_);
     assert(result == VK_SUCCESS);
@@ -446,11 +447,10 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
   
-    uint32_t queueFamilyIndex;
-    for (queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount; queueFamilyIndex++) {
-      if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-        break;
-      }
+    uint32_t queueFamilyIndex = 0;
+    while (queueFamilyIndex < queueFamilyCount) {
+      if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) break;
+      queueFamilyIndex++;
     }
     assert(queueFamilyIndex < queueFamilyCount);
     device.queueFamilyIndex_ = queueFamilyIndex;
@@ -483,12 +483,6 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   {
     //create swapchain
     memset(&swapchain, 0, sizeof(swapchain));
-  
-    // **********************************************************
-    // Get the surface capabilities because:
-    //   - It contains the minimal and max length of the chain, we will need it
-    //   - It's necessary to query the supported surface format (R8G8B8A8 for
-    //   instance ...)
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCapabilities);
     // Query the list of supported surface format and choose one we like
@@ -497,9 +491,10 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
     VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
     vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, formats);
   
-    uint32_t chosenFormat;
-    for (chosenFormat = 0; chosenFormat < formatCount; chosenFormat++) {
+    uint32_t chosenFormat = 0;
+    while (chosenFormat < formatCount) {
       if (formats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) break;
+      chosenFormat++;
     }
     assert(chosenFormat < formatCount);
   
