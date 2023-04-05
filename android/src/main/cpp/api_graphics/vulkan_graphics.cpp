@@ -779,6 +779,7 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 
 vulkan_graphics::vulkan_graphics() {
+  InitVulkan();
   initialized_ = false;
   engine::graph = this;
 }
