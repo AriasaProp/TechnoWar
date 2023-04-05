@@ -2,17 +2,54 @@
 
 #define VK_USE_PLATFORM_ANDROID_KHR 1
 #include <vulkan/vulkan.h>
+#include <vector>
 #//include "vulkan/vulkan.hpp"
 
 // Vulkan call wrapper
 #define CALL_VK(func) assert(VK_SUCCESS != (func))
 
 // Global Variables ...
-VulkanDeviceInfo device;
-VulkanSwapchainInfo swapchain;
-VulkanBufferInfo buffers;
-VulkanGfxPipelineInfo gfxPipeline;
-VulkanRenderInfo render;
+
+
+// Global Variables ...
+struct VulkanDeviceInfo {
+  bool initialized_;
+  VkInstance instance_;
+  VkPhysicalDevice gpuDevice_;
+  VkDevice device_;
+  uint32_t queueFamilyIndex_;
+
+  VkSurfaceKHR surface_;
+  VkQueue queue_;
+} device;
+struct VulkanSwapchainInfo {
+  VkSwapchainKHR swapchain_;
+  uint32_t swapchainLength_;
+
+  VkExtent2D displaySize_;
+  VkFormat displayFormat_;
+
+  // array of frame buffers and views
+  std::vector<VkImage> displayImages_;
+  std::vector<VkImageView> displayViews_;
+  std::vector<VkFramebuffer> framebuffers_;
+} swapchain;
+struct VulkanBufferInfo {
+  VkBuffer vertexBuf_;
+} buffers;
+struct VulkanGfxPipelineInfo {
+  VkPipelineLayout layout_;
+  VkPipelineCache cache_;
+  VkPipeline pipeline_;
+} gfxPipeline;
+struct VulkanRenderInfo {
+  VkRenderPass renderPass_;
+  VkCommandPool cmdPool_;
+  VkCommandBuffer* cmdBuffer_;
+  uint32_t cmdBufferLen_;
+  VkSemaphore semaphore_;
+  VkFence fence_;
+} render;
 
 void vulkan_graphics::onResume() {
   // To do
