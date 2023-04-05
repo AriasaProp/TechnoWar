@@ -7,7 +7,7 @@
 #//include "vulkan/vulkan.hpp"
 
 // Vulkan call wrapper
-#define CALL_VK(func) assert(VK_SUCCESS != (func))
+#define CALL_VK(func) assert((func) == VK_SUCCESS)
 
 // Global Variables ...
 
@@ -55,7 +55,7 @@ struct VulkanRenderInfo {
 void vulkan_graphics::onResume() {
   // To do
 }
-bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
+void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
   // Create vulkan device
   {
     std::vector<const char*> instance_extensions;
@@ -107,10 +107,8 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
   
     uint32_t queueFamilyIndex;
-    for (queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount;
-         queueFamilyIndex++) {
-      if (queueFamilyProperties[queueFamilyIndex].queueFlags &
-          VK_QUEUE_GRAPHICS_BIT) {
+    for (queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount; queueFamilyIndex++) {
+      if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
         break;
       }
     }
@@ -118,13 +116,14 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     device.queueFamilyIndex_ = queueFamilyIndex;
   
     // Create a logical device (vulkan device)
+    float queuePriorities[1]{1.0f};
     VkDeviceQueueCreateInfo queueCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
         .queueFamilyIndex = queueFamilyIndex,
         .queueCount = 1,
-        .pQueuePriorities = (float[]){1.0f}, 
+        .pQueuePriorities = queuePriorities, 
     };
     VkDeviceCreateInfo deviceCreateInfo{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -338,7 +337,7 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
           // Type is available, does it match user properties?
           if ((memoryProperties.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
             allocInfo.memoryTypeIndex = i;
-            return break;
+            break;
           }
         }
         typeBits >>= 1;
@@ -355,7 +354,6 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     vkUnmapMemory(device.device_, deviceMemory);
   
     CALL_VK(vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
-    return true;
   }
   // Create graphics pipeline
   {
@@ -568,8 +566,7 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = device.queueFamilyIndex_,
   };
-  CALL_VK(vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr,
-                              &render.cmdPool_));
+  CALL_VK(vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render.cmdPool_));
 
   // Record a command buffer that just clear the screen
   // 1 command buffer draw in 1 framebuffer
@@ -586,8 +583,7 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
   CALL_VK(vkAllocateCommandBuffers(device.device_, &cmdBufferCreateInfo,
                                    render.cmdBuffer_));
 
-  for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_;
-       bufferIndex++) {
+  for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
     // We start by creating and declare the "beginning" our command buffer
     VkCommandBufferBeginInfo cmdBufferBeginInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -666,7 +662,6 @@ bool vulkan_graphics::onWindowTerm(ANativeWindow *window) {
   CALL_VK(vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,&render.semaphore_));
 
   device.initialized_ = true;
-  return true;
 }
 void vulkan_graphics::needResize() {
   // To do
