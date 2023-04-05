@@ -55,7 +55,7 @@ struct VulkanRenderInfo {
 void vulkan_graphics::onResume() {
   // To do
 }
-void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
+void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   // Create vulkan device
   {
     std::vector<const char*> instance_extensions;
@@ -398,7 +398,7 @@ void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     shaderModuleCreateInfo.codeSize = strlen(fragmentSrc);
     shaderModuleCreateInfo.pCode =  (const uint32_t*)fragmentSrc;
     VkShaderModule fragmentShader;
-    VkResult result = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, &fragmentShader);
+    result = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, &fragmentShader);
     assert(result == VK_SUCCESS);
     // Specify vertex and fragment shader stages
     VkPipelineShaderStageCreateInfo shaderStages[2]{
@@ -460,8 +460,7 @@ void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     // Specify color blend state
     VkPipelineColorBlendAttachmentState attachmentStates{
         .blendEnable = VK_FALSE,
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
     VkPipelineColorBlendStateCreateInfo colorBlendInfo{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
@@ -524,8 +523,7 @@ void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
         .pInitialData = nullptr,
     };
   
-    CALL_VK(vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr,
-                                  &gfxPipeline.cache_));
+    CALL_VK(vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr, &gfxPipeline.cache_));
   
     // Create the pipeline
     VkGraphicsPipelineCreateInfo pipelineCreateInfo{
@@ -551,7 +549,6 @@ void vulkan_graphics::onWindowTerm(ANativeWindow *window) {
     };
   
     VkResult pipelineResult = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
-  
     // We don't need the shaders anymore, we can release their memory
     vkDestroyShaderModule(device.device_, vertexShader, nullptr);
     vkDestroyShaderModule(device.device_, fragmentShader, nullptr);
