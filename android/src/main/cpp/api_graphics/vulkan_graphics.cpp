@@ -3,9 +3,9 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
-
-//{
 #include <vulkan/vulkan.h>
+/*
+//{
 PFN_vkCreateInstance vkCreateInstance;
 PFN_vkDestroyInstance vkDestroyInstance;
 PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
@@ -342,7 +342,7 @@ static bool Initialize_Vulkan() {
     return true;
 }
 //}
-
+*/
 // Global Variables ...
 bool initialized_;
 struct VulkanDeviceInfo {
@@ -1117,7 +1117,7 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 
 vulkan_graphics::vulkan_graphics() {
-  assert(Initialize_Vulkan());
+  //assert(Initialize_Vulkan());
   initialized_ = false;
   engine::graph = this;
 }
