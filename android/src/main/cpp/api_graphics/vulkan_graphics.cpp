@@ -16,7 +16,7 @@ struct VulkanDeviceInfo {
 
   VkSurfaceKHR surface_;
   VkQueue queue_;
-} device;
+};
 struct VulkanSwapchainInfo {
   VkSwapchainKHR swapchain_;
   uint32_t swapchainLength_;
@@ -28,15 +28,15 @@ struct VulkanSwapchainInfo {
   std::vector<VkImage> displayImages_;
   std::vector<VkImageView> displayViews_;
   std::vector<VkFramebuffer> framebuffers_;
-} swapchain;
+};
 struct VulkanBufferInfo {
   VkBuffer vertexBuf_;
-} buffers;
+};
 struct VulkanGfxPipelineInfo {
   VkPipelineLayout layout_;
   VkPipelineCache cache_;
   VkPipeline pipeline_;
-} gfxPipeline;
+};
 struct VulkanRenderInfo {
   VkRenderPass renderPass_;
   VkCommandPool cmdPool_;
@@ -44,14 +44,14 @@ struct VulkanRenderInfo {
   uint32_t cmdBufferLen_;
   VkSemaphore semaphore_;
   VkFence fence_;
-} render;
-/*
-VulkanDeviceInfo device;
-VulkanSwapchainInfo swapchain;
-VulkanBufferInfo buffers;
-VulkanGfxPipelineInfo gfxPipeline;
-VulkanRenderInfo render;
-*/
+};
+
+static VulkanDeviceInfo device;
+static VulkanSwapchainInfo swapchain;
+static VulkanBufferInfo buffers;
+static VulkanGfxPipelineInfo gfxPipeline;
+static VulkanRenderInfo render;
+
 VkResult result;
 
 void vulkan_graphics::onResume() {
@@ -243,7 +243,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
       .dependencyCount = 0,
       .pDependencies = nullptr,
   };
-  result = (vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_));
+  result = vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_);
   assert(result == VK_SUCCESS);
   // Create 2 frame buffers.
   {
@@ -635,15 +635,12 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
         .pNext = nullptr,
         .renderPass = render.renderPass_,
         .framebuffer = swapchain.framebuffers_[bufferIndex],
-        .renderArea = {.offset { .x = 0, .y = 0,},
-                       .extent = swapchain.displaySize_},
+        .renderArea = {.offset { .x = 0, .y = 0,}, .extent = swapchain.displaySize_},
         .clearValueCount = 1,
         .pClearValues = &clearVals};
-    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo,
-                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Bind what is necessary to the command buffer
-    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex],
-                      VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
+    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(render.cmdBuffer_[bufferIndex], 0, 1,
                            &buffers.vertexBuf_, &offset);
