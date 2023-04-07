@@ -3,6 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
+#include <dlfcn.h>
 //loader vulkan
 //{
 #define VK_USE_PLATFORM_ANDROID_KHR 1
