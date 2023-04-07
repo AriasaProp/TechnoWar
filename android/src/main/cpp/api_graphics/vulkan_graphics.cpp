@@ -778,7 +778,7 @@ vulkan_graphics::vulkan_graphics() {
 }
 
 vulkan_graphics::~vulkan_graphics() {
-  termVulkan();
+  TermVulkan();
   engine::graph = nullptr;
 }
 
