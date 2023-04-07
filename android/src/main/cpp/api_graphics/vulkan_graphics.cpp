@@ -5,7 +5,10 @@
 #include <cassert>
 //loader vulkan
 //{
+#define VK_USE_PLATFORM_ANDROID_KHR 1
 #include <vulkan/vulkan.h>
+//{
+/*
 PFN_vkCreateInstance vkCreateInstance;
 PFN_vkDestroyInstance vkDestroyInstance;
 PFN_vkEnumeratePhysicalDevices vkEnumeratePhysicalDevices;
@@ -170,6 +173,8 @@ PFN_vkCreateDisplayPlaneSurfaceKHR vkCreateDisplayPlaneSurfaceKHR;
 PFN_vkCreateSharedSwapchainsKHR vkCreateSharedSwapchainsKHR;
 // VK_KHR_android_surface
 PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
+*/
+//}
 bool InitVulkan() {
     void *libvulkan = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
     if (!libvulkan) return false;
