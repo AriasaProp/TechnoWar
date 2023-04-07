@@ -5,7 +5,6 @@
 #include <cassert>
 //loader vulkan
 //{
-#define VK_USE_PLATFORM_ANDROID_KHR 1
 #include "vulkan_wrapper.h"
 // Global Variables ...
 bool initialized_;

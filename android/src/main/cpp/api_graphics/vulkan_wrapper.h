@@ -17,6 +17,7 @@
 #define VULKAN_WRAPPER_H
 
 #define VK_NO_PROTOTYPES 1
+#define VK_USE_PLATFORM_ANDROID_KHR 1
 #include <vulkan/vulkan.h>
 
 /* Initialize the Vulkan function pointer variables declared in this header.
@@ -214,10 +215,8 @@ extern PFN_vkCreateMirSurfaceKHR vkCreateMirSurfaceKHR;
 extern PFN_vkGetPhysicalDeviceMirPresentationSupportKHR vkGetPhysicalDeviceMirPresentationSupportKHR;
 #endif
 
-#ifdef VK_USE_PLATFORM_ANDROID_KHR
 // VK_KHR_android_surface
 extern PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
-#endif
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 // VK_KHR_win32_surface
