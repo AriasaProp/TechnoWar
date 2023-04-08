@@ -1,3 +1,4 @@
+/*
 #include "vulkan_wrapper.h"
 #include <dlfcn.h>
 void *libvulkan = nullptr;
@@ -382,4 +383,4 @@ PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR vkGetPhysicalDeviceWin32Prese
 PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
 PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
 PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
-
+*/

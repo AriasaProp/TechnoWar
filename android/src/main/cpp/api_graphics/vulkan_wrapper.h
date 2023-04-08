@@ -7,7 +7,6 @@
 
 bool InitVulkan();
 void TermVulkan();
-
 // VK_core
 extern PFN_vkCreateInstance vkCreateInstance;
 extern PFN_vkDestroyInstance vkDestroyInstance;

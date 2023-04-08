@@ -3,9 +3,9 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
+#include <vulkan/vulkan.h>
 //loader vulkan
-//{
-#include "vulkan_wrapper.h"
+//#include "vulkan_wrapper.h"
 // Global Variables ...
 bool initialized_;
 struct VulkanDeviceInfo {
@@ -771,13 +771,13 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 
 vulkan_graphics::vulkan_graphics() {
-  if(! InitVulkan()) throw "error load libvulkan.so";
+  //if(! InitVulkan()) throw "error load libvulkan.so";
   initialized_ = false;
   engine::graph = this;
 }
 
 vulkan_graphics::~vulkan_graphics() {
-  TermVulkan();
+  //TermVulkan();
   engine::graph = nullptr;
 }
 
