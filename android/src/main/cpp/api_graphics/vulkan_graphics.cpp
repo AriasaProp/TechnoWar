@@ -5,7 +5,7 @@
 #include <cassert>
 #include "vulkan_wrapper.hpp"
 
-void InitVulkan(ANativeWindow *window);
+void InitVulkan(ANativeWindow *);
 void DeleteVulkan();
 bool IsVulkanReady();
 void VulkanDrawFrame();
@@ -13,7 +13,7 @@ void VulkanDrawFrame();
 void vulkan_graphics::onResume() {
   // To do
 }
-void vulkan_graphics::onWindowInit(ANativeWindow *) {
+void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   InitVulkan(window);
 }
 void vulkan_graphics::needResize() {
@@ -324,8 +324,8 @@ void CreateSwapChain(void) {
   delete[] formats;
 }
 
-void DeleteSwapChain(void) {
-  for (int i = 0; i < swapchain.swapchainLength_; i++) {
+void DeleteSwapChain() {
+  for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
     vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
     vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
   }
@@ -471,8 +471,7 @@ void InitVulkan(ANativeWindow* window) {
   // In our case we need 2 command as we have 2 framebuffer
   render.cmdBufferLen_ = swapchain.swapchainLength_;
   render.cmdBuffer_ = new VkCommandBuffer[swapchain.swapchainLength_];
-  for (int bufferIndex = 0; bufferIndex < swapchain.swapchainLength_;
-       bufferIndex++) {
+  for (uint32_t bufferIndex = 0; bufferIndex < swapchain.swapchainLength_; bufferIndex++) {
     // We start by creating and declare the "beginning" our command buffer
     VkCommandBufferAllocateInfo cmdBufferCreateInfo{
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
