@@ -22,6 +22,6 @@ include_directories(${Include_Dir})
 include_directories(${Include_subDir})
 #include_directories(${Vulkan_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
-target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log)
+target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL vulkan log)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
