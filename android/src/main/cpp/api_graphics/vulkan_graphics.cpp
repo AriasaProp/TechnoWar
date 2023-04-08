@@ -8,7 +8,7 @@
 void vulkan_graphics::onResume() {
   // To do
 }
-void vulkan_graphics::onWindowInit(ANativeWindow *window) {
+void vulkan_graphics::onWindowInit(ANativeWindow *) {
   
 }
 void vulkan_graphics::needResize() {
@@ -62,7 +62,6 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 vulkan_graphics::vulkan_graphics() {
   if(!InitVulkan()) throw "error load libvulkan.so";
-  initialized_ = false;
   engine::graph = this;
 }
 
