@@ -72,11 +72,12 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
+    android_graphics *g;
 	  try {
-	    android_graphics *g = new vulkan_graphics;
+	    g = new vulkan_graphics;
 	  } catch (const char *c) {
 	    LOGE(c);
-	    android_graphics *g = new opengles_graphics;
+	    g = new opengles_graphics;
 	  }
 	  android_input *inpt = new android_input(app->looper);
 	  if (app->savedState) {
