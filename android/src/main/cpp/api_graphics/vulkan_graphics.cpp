@@ -113,7 +113,6 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window)  {
   result = vkCreateDevice(gpuDevice_, &deviceCreateInfo, nullptr, &device_);
   assert(VK_SUCCESS == result);
   initialized_ = true;
-  return 0;
 }
 void vulkan_graphics::needResize() {
   // To do
@@ -135,8 +134,8 @@ void vulkan_graphics::onPause() {
 void vulkan_graphics::onDestroy() {
   // To do
 }
-float vulkan_graphics::getWidth() { return float(swapchain.displaySize_.width); }
-float vulkan_graphics::getHeight() { return float(swapchain.displaySize_.height); }
+float vulkan_graphics::getWidth() { return 0;/* float(swapchain.displaySize_.width);*/ }
+float vulkan_graphics::getHeight() { return 0;/*float(swapchain.displaySize_.height);*/ }
 void vulkan_graphics::clear(const unsigned int &) {
   // To do
 }
