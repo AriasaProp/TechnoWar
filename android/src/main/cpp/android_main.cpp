@@ -76,7 +76,7 @@ static void* android_app_entry(void* param) {
 	  try {
 	    g = new vulkan_graphics;
 	  } catch (const char *c) {
-	    LOGE(c);
+	    LOGE("%s", c);
 	    g = new opengles_graphics;
 	  }
 	  android_input *inpt = new android_input(app->looper);
