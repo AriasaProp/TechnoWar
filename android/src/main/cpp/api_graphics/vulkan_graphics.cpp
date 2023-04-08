@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
-#include "vulkan_wrapper.h"
+#include "vulkan_wrapper.hpp"
 // Global Variables ...
 bool initialized_;
 VkInstance instance_;
