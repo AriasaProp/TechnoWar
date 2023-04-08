@@ -213,5 +213,4 @@ extern PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT;
 extern PFN_vkDebugReportMessageEXT vkDebugReportMessageEXT;
 #endif
 
-
 #endif // VULKAN_WRAPPER_H
