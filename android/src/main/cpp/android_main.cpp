@@ -73,8 +73,6 @@ static void* android_app_entry(void* param) {
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     android_graphics *g  = new vulkan_graphics;
-    delete g;
-    g = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
 	  if (app->savedState) {
 	      g->state = *(saved_state*)app->savedState;
