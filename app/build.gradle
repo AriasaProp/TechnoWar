@@ -34,7 +34,6 @@ android {
             arguments '-DANDROID_STL=c++_static',
     		}
     }
-    buildFeatures.prefab = true
     namespace 'com.android.example.vulkan.tutorials.six'
 }
 
