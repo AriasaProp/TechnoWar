@@ -29,10 +29,10 @@ android {
         }
     }
     externalNativeBuild {
-    		cmake {
-    				path "src/main/cpp/CMakeLists.txt"
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
             arguments '-DANDROID_STL=c++_static',
-    		}
+        }
     }
     namespace 'com.android.example.vulkan.tutorials.six'
 }
