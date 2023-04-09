@@ -1,4 +1,4 @@
-name: Build & Publish Android Artifacts
+name: Build & Publish Android Samples Artifacts
 
 on:
   push:
