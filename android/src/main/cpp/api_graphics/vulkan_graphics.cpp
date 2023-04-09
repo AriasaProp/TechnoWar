@@ -88,8 +88,7 @@ struct VulkanDeviceInfo {
   uint32_t queueFamilyIndex_;
   VkSurfaceKHR surface_;
   VkQueue queue_;
-};
-VulkanDeviceInfo device;
+} device;
 struct VulkanSwapchainInfo {
   VkSwapchainKHR swapchain_;
   uint32_t swapchainLength_;
@@ -99,8 +98,7 @@ struct VulkanSwapchainInfo {
   std::vector<VkImage> displayImages_;
   std::vector<VkImageView> displayViews_;
   std::vector<VkFramebuffer> framebuffers_;
-};
-VulkanSwapchainInfo swapchain;
+} swapchain;
 struct VulkanBufferInfo {
   VkBuffer vertexBuf_;
 } buffers;
@@ -119,9 +117,64 @@ struct VulkanRenderInfo {
   VkFence fence_;
 } render;
 
-void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-                    VkPipelineStageFlags srcStages,
-                    VkPipelineStageFlags destStages);
+void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkPipelineStageFlags srcStages, VkPipelineStageFlags destStages) {
+  VkImageMemoryBarrier imageMemoryBarrier {
+      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+      .pNext = NULL,
+      .srcAccessMask = 0,
+      .dstAccessMask = 0,
+      .oldLayout = oldImageLayout,
+      .newLayout = newImageLayout,
+      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+      .image = image,
+      .subresourceRange =
+          {
+              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+              .baseMipLevel = 0,
+              .levelCount = 1,
+              .baseArrayLayer = 0,
+              .layerCount = 1,
+          },
+  };
+
+  switch (oldImageLayout) {
+    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+      imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_PREINITIALIZED:
+      imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+      break;
+    default:
+      break;
+  }
+  switch (newImageLayout) {
+    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+      break;
+    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+      imageMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+      break;
+    default:
+      break;
+  }
+  vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
+}
 
 // Create vulkan device
 void CreateVulkanDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInfo) {
@@ -765,7 +818,6 @@ void InitVulkan(ANativeWindow* window) {
                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                    VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                    VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-
     // Now we start a renderpass. Any draw command has to be recorded in a
     // renderpass
     VkClearValue clearVals{ .color { .float32 {0.0f, 0.34f, 0.90f, 1.0f}}};
@@ -778,20 +830,15 @@ void InitVulkan(ANativeWindow* window) {
                        .extent = swapchain.displaySize_},
         .clearValueCount = 1,
         .pClearValues = &clearVals};
-    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo,
-                         VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBeginRenderPass(render.cmdBuffer_[bufferIndex], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     // Bind what is necessary to the command buffer
-    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex],
-                      VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
+    vkCmdBindPipeline(render.cmdBuffer_[bufferIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, gfxPipeline.pipeline_);
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(render.cmdBuffer_[bufferIndex], 0, 1,
-                           &buffers.vertexBuf_, &offset);
+    vkCmdBindVertexBuffers(render.cmdBuffer_[bufferIndex], 0, 1, &buffers.vertexBuf_, &offset);
 
     // Draw Triangle
     vkCmdDraw(render.cmdBuffer_[bufferIndex], 3, 1, 0, 0);
-
     vkCmdEndRenderPass(render.cmdBuffer_[bufferIndex]);
-
     result_ = (vkEndCommandBuffer(render.cmdBuffer_[bufferIndex]));
     assert(result_ == VK_SUCCESS);
   }
@@ -805,64 +852,51 @@ void InitVulkan(ANativeWindow* window) {
   };
   result_ = (vkCreateFence(device.device_, &fenceCreateInfo, nullptr, &render.fence_));
   assert(result_ == VK_SUCCESS);
-
-  // We need to create a semaphore to be able to wait, in the main loop, for our
-  // framebuffer to be available for us before drawing.
   VkSemaphoreCreateInfo semaphoreCreateInfo{
       .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
       .pNext = nullptr,
       .flags = 0,
   };
-  result_ = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr,
-                            &render.semaphore_));
-
+  result_ = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr, &render.semaphore_));
   assert(result_ == VK_SUCCESS);
   device.initialized_ = true;
 }
 
 // IsVulkanReady():
 //    native app poll to see if we are ready to draw...
-bool IsVulkanReady() { return device.initialized_; }
 
 void DeleteVulkan() {
-  vkFreeCommandBuffers(device.device_, render.cmdPool_, render.cmdBufferLen_,
-                       render.cmdBuffer_);
+  vkFreeCommandBuffers(device.device_, render.cmdPool_, render.cmdBufferLen_, render.cmdBuffer_);
   delete[] render.cmdBuffer_;
-
   vkDestroyCommandPool(device.device_, render.cmdPool_, nullptr);
   vkDestroyRenderPass(device.device_, render.renderPass_, nullptr);
   DeleteSwapChain();
   DeleteGraphicsPipeline();
   DeleteBuffers();
-
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
-
   device.initialized_ = false;
 }
 
 // Draw one frame
 void VulkanDrawFrame() {
+  if (!device.initialized_) return;
   uint32_t nextIndex;
-  // Get the framebuffer index we should draw in
-  result_ = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_,
-                                UINT64_MAX, render.semaphore_, VK_NULL_HANDLE,
-                                &nextIndex));
+  result_ = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
   assert(result_ == VK_SUCCESS);
   result_ = (vkResetFences(device.device_, 1, &render.fence_));
-
   assert(result_ == VK_SUCCESS);
   VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info {
     .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                              .pNext = nullptr,
-                              .waitSemaphoreCount = 1,
-                              .pWaitSemaphores = &render.semaphore_,
-                              .pWaitDstStageMask = &waitStageMask,
-                              .commandBufferCount = 1,
-                              .pCommandBuffers = &render.cmdBuffer_[nextIndex],
-                              .signalSemaphoreCount = 0,
-                              .pSignalSemaphores = nullptr};
+    .pNext = nullptr,
+    .waitSemaphoreCount = 1,
+    .pWaitSemaphores = &render.semaphore_,
+    .pWaitDstStageMask = &waitStageMask,
+    .commandBufferCount = 1,
+    .pCommandBuffers = &render.cmdBuffer_[nextIndex],
+    .signalSemaphoreCount = 0,
+    .pSignalSemaphores = nullptr};
   result_ = (vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
   assert(result_ == VK_SUCCESS);
   result_ = (vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
@@ -880,84 +914,6 @@ void VulkanDrawFrame() {
   };
   vkQueuePresentKHR(device.queue_, &presentInfo);
   assert(result_ == VK_SUCCESS);
-}
-
-/*
- * setImageLayout():
- *    Helper function to transition color buffer layout
- */
-void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image,
-                    VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
-                    VkPipelineStageFlags srcStages,
-                    VkPipelineStageFlags destStages) {
-  VkImageMemoryBarrier imageMemoryBarrier = {
-      .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-      .pNext = NULL,
-      .srcAccessMask = 0,
-      .dstAccessMask = 0,
-      .oldLayout = oldImageLayout,
-      .newLayout = newImageLayout,
-      .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-      .image = image,
-      .subresourceRange =
-          {
-              .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-              .baseMipLevel = 0,
-              .levelCount = 1,
-              .baseArrayLayer = 0,
-              .layerCount = 1,
-          },
-  };
-
-  switch (oldImageLayout) {
-    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-      imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-      imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_PREINITIALIZED:
-      imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-      break;
-
-    default:
-      break;
-  }
-
-  switch (newImageLayout) {
-    case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
-      imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
-      imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
-      imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-      imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-      break;
-
-    case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-      imageMemoryBarrier.dstAccessMask =
-          VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-      break;
-    case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
-      imageMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-      break;
-
-    default:
-      break;
-  }
-
-  vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1,
-                       &imageMemoryBarrier);
 }
 //}
 
