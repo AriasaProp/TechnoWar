@@ -1,12 +1,18 @@
 buildscript {
-    repositories {}
+    repositories {
+        google()
+        jcenter()
+    }
     dependencies {
         classpath 'com.android.tools.build:gradle:7.3.1'
     }
 }
 
 allprojects {
-    repositories {}
+    repositories {
+        google()
+        jcenter()
+    }
 }
 
 task clean(type: Delete) {
