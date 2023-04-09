@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - 'android/**'
-      - 'core/**'
 
 jobs:
   build:
