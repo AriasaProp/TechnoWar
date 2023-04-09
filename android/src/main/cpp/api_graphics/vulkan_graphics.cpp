@@ -481,7 +481,7 @@ VkResult CreateGraphicsPipeline() {
       "\nlayout (location = 0) out vec4 uFragColor;"
       "\nvoid main() {"
       "\n   uFragColor = vec4(0.91, 0.26,  0.21, 1.0);"
-      "\n}"
+      "\n}";
     loadShader(fragmentSrc, &fragmentShader);
   }
 
