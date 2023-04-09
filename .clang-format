@@ -8,6 +8,11 @@ AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: true
 AlignOperands: false
+# make simple line of code
+BinPackArguments: false
+BinPackParameters: false
+SpaceBeforeParens: ControlStatements, FlowControl
+SpacesInParentheses: false
 # line of code hasn't limit
 ColumnLimit: 0
 # make opening brace doesn't writed after new line
@@ -27,3 +32,4 @@ BraceWrapping:
   IndentBraces: false
 # empty line will not repeated
 MaxEmptyLinesToKeep: 1
+
