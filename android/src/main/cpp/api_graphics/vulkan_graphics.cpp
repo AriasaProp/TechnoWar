@@ -119,8 +119,7 @@ struct VulkanRenderInfo {
   VkFence fence_;
 } render;
 
-void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image,
-                    VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
                     VkPipelineStageFlags srcStages,
                     VkPipelineStageFlags destStages);
 

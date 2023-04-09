@@ -11,7 +11,7 @@ AlignOperands: false
 # make simple line of code
 BinPackArguments: false
 BinPackParameters: false
-SpaceBeforeParens: ControlStatements, FlowControl
+SpaceBeforeParens: Always
 SpacesInParentheses: false
 # line of code hasn't limit
 ColumnLimit: 0
