@@ -7,7 +7,6 @@
 
 void InitVulkan(ANativeWindow *);
 void DeleteVulkan();
-bool IsVulkanReady();
 void VulkanDrawFrame();
 
 void vulkan_graphics::onResume() {
@@ -20,9 +19,7 @@ void vulkan_graphics::needResize() {
   // To do
 }
 void vulkan_graphics::render() {
-  if(IsVulkanReady()) {
-    VulkanDrawFrame();
-  }
+  VulkanDrawFrame();
 }
 void vulkan_graphics::onWindowTerm() {
   DeleteVulkan();
