@@ -1,7 +1,7 @@
 #ifdef _WIN32 // note the underscore: without it, it's not msdn official!
 #include <windows.h>
-LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
+LRESULT CALLBACK WindowProc (HWND, UINT, WPARAM, LPARAM);
+int WINAPI wWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow) {
   (void)pCmdLine;      // nothing
   (void)hPrevInstance; // nothing
   // Register the window class.
@@ -13,18 +13,21 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
   wc.hInstance = hInstance;
   wc.lpszClassName = CLASS_NAME;
 
-  RegisterClass(&wc);
+  RegisterClass (&wc);
 
   // Create the window.
 
-  HWND hwnd = CreateWindowEx(
+  HWND hwnd = CreateWindowEx (
       0,                           // Optional window styles.
       CLASS_NAME,                  // Window class
       L"Learn to Program Windows", // Window text
       WS_OVERLAPPEDWINDOW,         // Window style
 
       // Size and position
-      CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+      CW_USEDEFAULT,
+      CW_USEDEFAULT,
+      CW_USEDEFAULT,
+      CW_USEDEFAULT,
 
       NULL,      // Parent window
       NULL,      // Menu
@@ -36,42 +39,42 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
     return 0;
   }
 
-  ShowWindow(hwnd, nCmdShow);
+  ShowWindow (hwnd, nCmdShow);
 
   // Run the message loop.
 
   MSG msg = {};
-  while (GetMessage(&msg, NULL, 0, 0) > 0) {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
+  while (GetMessage (&msg, NULL, 0, 0) > 0) {
+    TranslateMessage (&msg);
+    DispatchMessage (&msg);
   }
 
   return 0;
 }
 
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT CALLBACK WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   switch (uMsg) {
   case WM_DESTROY:
-    PostQuitMessage(0);
+    PostQuitMessage (0);
     return 0;
 
   case WM_PAINT: {
     PAINTSTRUCT ps;
-    HDC hdc = BeginPaint(hwnd, &ps);
+    HDC hdc = BeginPaint (hwnd, &ps);
 
     // All painting occurs here, between BeginPaint and EndPaint.
 
-    FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+    FillRect (hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
 
-    EndPaint(hwnd, &ps);
+    EndPaint (hwnd, &ps);
   }
     return 0;
   }
-  return DefWindowProc(hwnd, uMsg, wParam, lParam);
+  return DefWindowProc (hwnd, uMsg, wParam, lParam);
 }
 #elif __unix__ // all unices, not all compilers
 #include <iostream>
-int main() {
+int main () {
   int a = 7;
   a -= 3;
   std::cout << "Hello there! in Unix" << std::endl;
@@ -79,7 +82,7 @@ int main() {
 }
 #elif __linux__
 #include <iostream>
-int main() {
+int main () {
   int a = 7;
   a *= 9;
   std::cout << "Hello there! in Linux" << std::endl;
@@ -87,7 +90,7 @@ int main() {
 }
 #elif __APPLE__
 #include <iostream>
-int main() {
+int main () {
   int a = 7;
   a *= 2;
   std::cout << "Hello there! in Apple" << std::endl;
@@ -95,7 +98,7 @@ int main() {
 }
 #else
 #include <iostream>
-int main() {
+int main () {
   std::cout << "Hello there!" << std::endl;
   return 0;
 }
