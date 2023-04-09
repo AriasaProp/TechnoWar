@@ -19,7 +19,6 @@ android {
         versionName "1.1.0"
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
-        
         buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
     }
     
