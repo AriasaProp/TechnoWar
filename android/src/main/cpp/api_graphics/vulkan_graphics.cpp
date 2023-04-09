@@ -11,24 +11,41 @@ void VulkanDrawFrame();
 
 void vulkan_graphics::onResume() {
   // To do
+  resume = true;
 }
 void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   InitVulkan(window);
 }
 void vulkan_graphics::needResize() {
   // To do
+  resize = true;
 }
 void vulkan_graphics::render() {
-  VulkanDrawFrame();
+  if (resize) { resize = false; }
+  if (resume) { resume = false; running = true; }
+  if (running) {
+    VulkanDrawFrame();
+  }
+  if (pause) {
+    pause = false;
+    running = false;
+  }
+  if (destroyed) {
+    // To do 
+  }
 }
 void vulkan_graphics::onWindowTerm() {
   DeleteVulkan();
 }
 void vulkan_graphics::onPause() {
   // To do
+  pause = true;
+  render();
 }
 void vulkan_graphics::onDestroy() {
   // To do
+  destroyed = true;
+  render();
 }
 float vulkan_graphics::getWidth() { return 0;/* float(swapchain.displaySize_.width);*/ }
 float vulkan_graphics::getHeight() { return 0;/*float(swapchain.displaySize_.height);*/ }
@@ -422,16 +439,11 @@ bool MapMemoryTypeToIndex(uint32_t typeBits, VkFlags requirements_mask, uint32_t
 }
 
 // Create our vertex buffer
-bool CreateBuffers(void) {
-  // -----------------------------------------------
-  // Create the triangle vertex buffer
-
-  // Vertex positions
+void CreateBuffers() {
   const float vertexData[] = {
       -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
   };
-
-  // Create a vertex buffer
+  
   VkBufferCreateInfo createBufferInfo{
       .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
       .pNext = nullptr,
@@ -443,13 +455,10 @@ bool CreateBuffers(void) {
       .pQueueFamilyIndices = &device.queueFamilyIndex_,
   };
 
-  result_ = (vkCreateBuffer(device.device_, &createBufferInfo, nullptr,
-                         &buffers.vertexBuf_));
-
+  result_ = vkCreateBuffer(device.device_, &createBufferInfo, nullptr, &buffers.vertexBuf_);
   assert(result_ == VK_SUCCESS);
   VkMemoryRequirements memReq;
   vkGetBufferMemoryRequirements(device.device_, buffers.vertexBuf_, &memReq);
-
   VkMemoryAllocateInfo allocInfo{
       .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
       .pNext = nullptr,
@@ -458,31 +467,19 @@ bool CreateBuffers(void) {
   };
 
   // Assign the proper memory type for that buffer
-  MapMemoryTypeToIndex(memReq.memoryTypeBits,
-                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                       VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                       &allocInfo.memoryTypeIndex);
+  MapMemoryTypeToIndex(memReq.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);
 
   // Allocate memory for the buffer
   VkDeviceMemory deviceMemory;
-  result_ = (vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory));
-
+  result_ = vkAllocateMemory(device.device_, &allocInfo, nullptr, &deviceMemory);
   assert(result_ == VK_SUCCESS);
   void* data;
-  result_ = (vkMapMemory(device.device_, deviceMemory, 0, allocInfo.allocationSize,
-                      0, &data));
+  result_ = vkMapMemory(device.device_, deviceMemory, 0, allocInfo.allocationSize, 0, &data);
   assert(result_ == VK_SUCCESS);
   memcpy(data, vertexData, sizeof(vertexData));
   vkUnmapMemory(device.device_, deviceMemory);
-
-  result_ = (
-      vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0));
+  result_ = vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0);
   assert(result_ == VK_SUCCESS);
-  return true;
-}
-
-void DeleteBuffers(void) {
-  vkDestroyBuffer(device.device_, buffers.vertexBuf_, nullptr);
 }
 
 enum ShaderType { VERTEX_SHADER, FRAGMENT_SHADER };
@@ -718,9 +715,6 @@ void InitVulkan(ANativeWindow* window) {
   CreateVulkanDevice(window, &appInfo);
 
   CreateSwapChain();
-
-  // -----------------------------------------------------------------
-  // Create render pass
   VkAttachmentDescription attachmentDescriptions{
       .format = swapchain.displayFormat_,
       .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -732,8 +726,7 @@ void InitVulkan(ANativeWindow* window) {
       .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
   };
 
-  VkAttachmentReference colourReference = {
-      .attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+  VkAttachmentReference colourReference {.attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
   VkSubpassDescription subpassDescription{
       .flags = 0,
@@ -757,34 +750,20 @@ void InitVulkan(ANativeWindow* window) {
       .dependencyCount = 0,
       .pDependencies = nullptr,
   };
-  result_ = (vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr,
-                             &render.renderPass_));
-
+  result_ = vkCreateRenderPass(device.device_, &renderPassCreateInfo, nullptr, &render.renderPass_);
   assert(result_ == VK_SUCCESS);
-  // -----------------------------------------------------------------
-  // Create 2 frame buffers.
   CreateFrameBuffers(render.renderPass_);
-
   CreateBuffers();  // create vertex buffers
-
   // Create graphics pipeline
   CreateGraphicsPipeline();
-
-  // -----------------------------------------------
-  // Create a pool of command buffers to allocate command buffer from
   VkCommandPoolCreateInfo cmdPoolCreateInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
       .pNext = nullptr,
       .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
       .queueFamilyIndex = device.queueFamilyIndex_,
   };
-  result_ = (vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr,
-                              &render.cmdPool_));
-
+  result_ = vkCreateCommandPool(device.device_, &cmdPoolCreateInfo, nullptr, &render.cmdPool_);
   assert(result_ == VK_SUCCESS);
-  // Record a command buffer that just clear the screen
-  // 1 command buffer draw in 1 framebuffer
-  // In our case we need 2 command as we have 2 framebuffer
   render.cmdBufferLen_ = swapchain.swapchainLength_;
   render.cmdBuffer_ = new VkCommandBuffer[swapchain.swapchainLength_];
   VkCommandBufferAllocateInfo cmdBufferCreateInfo{
@@ -867,9 +846,12 @@ void DeleteVulkan() {
   delete[] render.cmdBuffer_;
   vkDestroyCommandPool(device.device_, render.cmdPool_, nullptr);
   vkDestroyRenderPass(device.device_, render.renderPass_, nullptr);
+  // Delete Buffers
+  vkDestroyBuffer(device.device_, buffers.vertexBuf_, nullptr);
+  
   DeleteSwapChain();
   DeleteGraphicsPipeline();
-  DeleteBuffers();
+  
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
   device.initialized_ = false;
@@ -879,9 +861,9 @@ void DeleteVulkan() {
 void VulkanDrawFrame() {
   if (!device.initialized_) return;
   uint32_t nextIndex;
-  result_ = (vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex));
+  result_ = vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex);
   assert(result_ == VK_SUCCESS);
-  result_ = (vkResetFences(device.device_, 1, &render.fence_));
+  result_ = vkResetFences(device.device_, 1, &render.fence_);
   assert(result_ == VK_SUCCESS);
   VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info {
@@ -893,10 +875,11 @@ void VulkanDrawFrame() {
     .commandBufferCount = 1,
     .pCommandBuffers = &render.cmdBuffer_[nextIndex],
     .signalSemaphoreCount = 0,
-    .pSignalSemaphores = nullptr};
-  result_ = (vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_));
+    .pSignalSemaphores = nullptr,
+  };
+  result_ = vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_);
   assert(result_ == VK_SUCCESS);
-  result_ = (vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000));
+  result_ = vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000);
   assert(result_ == VK_SUCCESS);
 
   VkPresentInfoKHR presentInfo{
