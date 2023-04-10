@@ -5,95 +5,8 @@
 #include <cassert>
 #include "vulkan_wrapper.hpp"
 
-void InitVulkan(ANativeWindow *);
-void DeleteVulkan();
-void VulkanDrawFrame();
-
-void vulkan_graphics::onResume() {
-  // To do
-  resume = true;
-}
-void vulkan_graphics::onWindowInit(ANativeWindow *window) {
-  InitVulkan(window);
-}
-void vulkan_graphics::needResize() {
-  // To do
-  resize = true;
-}
-void vulkan_graphics::render() {
-  if (resize) { resize = false; }
-  if (resume) { resume = false; running = true; }
-  if (running) {
-    VulkanDrawFrame();
-  }
-  if (pause) {
-    pause = false;
-    running = false;
-  }
-  if (destroyed) {
-    // To do 
-  }
-}
-void vulkan_graphics::onWindowTerm() {
-  DeleteVulkan();
-}
-void vulkan_graphics::onPause() {
-  // To do
-  pause = true;
-  render();
-}
-void vulkan_graphics::onDestroy() {
-  // To do
-  destroyed = true;
-  render();
-}
-float vulkan_graphics::getWidth() { return 0;/* float(swapchain.displaySize_.width);*/ }
-float vulkan_graphics::getHeight() { return 0;/*float(swapchain.displaySize_.height);*/ }
-void vulkan_graphics::clear(const unsigned int &) {
-  // To do
-}
-void vulkan_graphics::clearcolor(const float &, const float &, const float &, const float &) {
-  // To do
-}
-engine::texture_core *vulkan_graphics::gen_texture(const int &, const int &, unsigned char *) {
-  // To do
-  return nullptr;
-}
-void vulkan_graphics::bind_texture(engine::texture_core *) {
-  // To do
-}
-void vulkan_graphics::set_texture_param(const int &, const int &) {
-  // To do
-}
-void vulkan_graphics::delete_texture(engine::texture_core *) {
-  // To do
-}
-void vulkan_graphics::flat_render(engine::texture_core*, engine::flat_vertex *, unsigned int) {
-  // To do
-}
-engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *,unsigned int,unsigned short *, unsigned int){
-  // To do
-  return nullptr;
-}
-void vulkan_graphics::mesh_render(engine::mesh_core **,const unsigned int &) {
-  // To do
-}
-void vulkan_graphics::delete_mesh(engine::mesh_core *) {
-	// To DO: 
-}
-vulkan_graphics::vulkan_graphics() {
-  assert(InitVulkan());
-  engine::graph = this;
-}
-
-vulkan_graphics::~vulkan_graphics() {
-  TermVulkan();
-  engine::graph = nullptr;
-}
-
 //{
 VkResult result_;
-// Global Variables ...
 struct VulkanDeviceInfo {
   bool initialized_;
   VkInstance instance_;
@@ -121,7 +34,6 @@ struct VulkanGfxPipelineInfo {
   VkPipelineCache cache_;
   VkPipeline pipeline_;
 } gfxPipeline;
-
 struct VulkanRenderInfo {
   VkRenderPass renderPass_;
   VkCommandPool cmdPool_;
@@ -130,7 +42,6 @@ struct VulkanRenderInfo {
   VkSemaphore semaphore_;
   VkFence fence_;
 } render;
-
 void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkPipelineStageFlags srcStages, VkPipelineStageFlags destStages) {
   VkImageMemoryBarrier imageMemoryBarrier {
       .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
@@ -189,19 +100,12 @@ void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldI
   }
   vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
 }
-
-// Create vulkan device
 void CreateVulkanDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInfo) {
   std::vector<const char*> instance_extensions;
   std::vector<const char*> device_extensions;
-
   instance_extensions.push_back("VK_KHR_surface");
   instance_extensions.push_back("VK_KHR_android_surface");
-
   device_extensions.push_back("VK_KHR_swapchain");
-
-  // **********************************************************
-  // Create the Vulkan instance
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
       .pNext = nullptr,
@@ -211,44 +115,34 @@ void CreateVulkanDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInf
       .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
       .ppEnabledExtensionNames = instance_extensions.data(),
   };
-  result_ = (vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_));
+  result_ = vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_);
   assert(result_ == VK_SUCCESS);
   VkAndroidSurfaceCreateInfoKHR createInfo{
       .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
       .pNext = nullptr,
       .flags = 0,
       .window = platformWindow};
-
-  result_ = (vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_));
+  result_ = vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_);
   assert(result_ == VK_SUCCESS);
-  // Find one GPU to use:
-  // On Android, every GPU device is equal -- supporting
-  // graphics/compute/present
-  // for this sample, we use the very first GPU device found on the system
   uint32_t gpuCount = 0;
-  result_ = (vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr));
+  result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr);
   assert(result_ == VK_SUCCESS);
   VkPhysicalDevice tmpGpus[gpuCount];
-  result_ = (vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus));
+  result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus);
   assert(result_ == VK_SUCCESS);
   device.gpuDevice_ = tmpGpus[0];  // Pick up the first GPU Device
 
   // Find a GFX queue family
   uint32_t queueFamilyCount;
-  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount,
-                                           nullptr);
+  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, nullptr);
   assert(queueFamilyCount);
   std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount,
-                                           queueFamilyProperties.data());
+  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
 
-  uint32_t queueFamilyIndex;
-  for (queueFamilyIndex = 0; queueFamilyIndex < queueFamilyCount;
-       queueFamilyIndex++) {
-    if (queueFamilyProperties[queueFamilyIndex].queueFlags &
-        VK_QUEUE_GRAPHICS_BIT) {
-      break;
-    }
+  uint32_t queueFamilyIndex = 0;
+  while (queueFamilyIndex < queueFamilyCount) {
+    if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) break;
+    queueFamilyIndex++;
   }
   assert(queueFamilyIndex < queueFamilyCount);
   device.queueFamilyIndex_ = queueFamilyIndex;
@@ -278,38 +172,29 @@ void CreateVulkanDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInf
       .pEnabledFeatures = nullptr,
   };
 
-  result_ = (vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr,
-                         &device.device_));
+  result_ = vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_);
   assert(result_ == VK_SUCCESS);
   vkGetDeviceQueue(device.device_, device.queueFamilyIndex_, 0, &device.queue_);
 }
-
-void CreateSwapChain(void) {
+void CreateSwapChain() {
   memset(&swapchain, 0, sizeof(swapchain));
   VkSurfaceCapabilitiesKHR surfaceCapabilities;
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_,
-                                            &surfaceCapabilities);
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCapabilities);
   // Query the list of supported surface format and choose one we like
   uint32_t formatCount = 0;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
-                                       &formatCount, nullptr);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, nullptr);
   VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_,
-                                       &formatCount, formats);
-
+  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, formats);
   uint32_t chosenFormat = 0;
   while (chosenFormat < formatCount) {
     if (formats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) break;
     chosenFormat++;
   }
   assert(chosenFormat < formatCount);
-
   swapchain.displaySize_ = surfaceCapabilities.currentExtent;
   swapchain.displayFormat_ = formats[chosenFormat].format;
-
   VkSurfaceCapabilitiesKHR surfaceCap;
-  result_ = (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_,
-                                                    device.surface_, &surfaceCap));
+  result_ = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap);
   assert(result_ == VK_SUCCESS);
   assert(surfaceCap.supportedCompositeAlpha | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR);
   VkSwapchainCreateInfoKHR swapchainCreateInfo{
@@ -331,27 +216,20 @@ void CreateSwapChain(void) {
       .clipped = VK_FALSE,
       .oldSwapchain = VK_NULL_HANDLE,
   };
-  result_ = (vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr,
-                               &swapchain.swapchain_));
-
+  result_ = vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_);
   assert(result_ == VK_SUCCESS);
-  // Get the length of the created swap chain
-  result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,
-                                  &swapchain.swapchainLength_, nullptr));
+  result_ = vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr);
   assert(result_ == VK_SUCCESS);
   delete[] formats;
 }
-
-void DeleteSwapChain(void) {
+void DeleteSwapChain() {
   for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
     vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
     vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
   }
   vkDestroySwapchainKHR(device.device_, swapchain.swapchain_, nullptr);
 }
-
-void CreateFrameBuffers(VkRenderPass& renderPass,
-                        VkImageView depthView = VK_NULL_HANDLE) {
+void CreateFrameBuffers(VkRenderPass& renderPass, VkImageView depthView = VK_NULL_HANDLE) {
   // query display attachment to swapchain
   uint32_t SwapchainImagesCount = 0;
   result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,
@@ -418,8 +296,6 @@ void CreateFrameBuffers(VkRenderPass& renderPass,
     assert(result_ == VK_SUCCESS);
   }
 }
-
-// A helper function
 bool MapMemoryTypeToIndex(uint32_t typeBits, VkFlags requirements_mask, uint32_t* typeIndex) {
   VkPhysicalDeviceMemoryProperties memoryProperties;
   vkGetPhysicalDeviceMemoryProperties(device.gpuDevice_, &memoryProperties);
@@ -437,8 +313,6 @@ bool MapMemoryTypeToIndex(uint32_t typeBits, VkFlags requirements_mask, uint32_t
   }
   return false;
 }
-
-// Create our vertex buffer
 void CreateBuffers() {
   const float vertexData[] = {
       -1.0f, -1.0f, 0.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -481,8 +355,6 @@ void CreateBuffers() {
   result_ = vkBindBufferMemory(device.device_, buffers.vertexBuf_, deviceMemory, 0);
   assert(result_ == VK_SUCCESS);
 }
-
-enum ShaderType { VERTEX_SHADER, FRAGMENT_SHADER };
 void loadShader(const char* src, VkShaderModule* shaderOut) {
   VkShaderModuleCreateInfo shaderModuleCreateInfo{
       .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -494,9 +366,7 @@ void loadShader(const char* src, VkShaderModule* shaderOut) {
   result_ = vkCreateShaderModule(device.device_, &shaderModuleCreateInfo, nullptr, shaderOut);
   assert(result_ == VK_SUCCESS);
 }
-
-// Create Graphics Pipeline
-VkResult CreateGraphicsPipeline() {
+void CreateGraphicsPipeline() {
   memset(&gfxPipeline, 0, sizeof(gfxPipeline));
   // Create pipeline layout (empty)
   VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{
@@ -656,9 +526,7 @@ VkResult CreateGraphicsPipeline() {
       .pInitialData = nullptr,
   };
 
-  result_ = (vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr,
-                                &gfxPipeline.cache_));
-
+  result_ = (vkCreatePipelineCache(device.device_, &pipelineCacheInfo, nullptr, &gfxPipeline.cache_));
   assert(result_ == VK_SUCCESS);
   // Create the pipeline
   VkGraphicsPipelineCreateInfo pipelineCreateInfo{
@@ -683,24 +551,24 @@ VkResult CreateGraphicsPipeline() {
       .basePipelineIndex = 0,
   };
 
-  VkResult pipelineResult = vkCreateGraphicsPipelines(
-      device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr,
-      &gfxPipeline.pipeline_);
-
-  // We don't need the shaders anymore, we can release their memory
+  result_ = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
   vkDestroyShaderModule(device.device_, vertexShader, nullptr);
   vkDestroyShaderModule(device.device_, fragmentShader, nullptr);
-
-  return pipelineResult;
+  assert(result_ == VK_SUCCESS);
 }
-
 void DeleteGraphicsPipeline() {
   if (gfxPipeline.pipeline_ == VK_NULL_HANDLE) return;
   vkDestroyPipeline(device.device_, gfxPipeline.pipeline_, nullptr);
   vkDestroyPipelineCache(device.device_, gfxPipeline.cache_, nullptr);
   vkDestroyPipelineLayout(device.device_, gfxPipeline.layout_, nullptr);
 }
-void InitVulkan(ANativeWindow* window) {
+//}
+
+void vulkan_graphics::onResume() {
+  // To do
+  resume = true;
+}
+void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   VkApplicationInfo appInfo = {
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
       .pNext = nullptr,
@@ -710,10 +578,7 @@ void InitVulkan(ANativeWindow* window) {
       .engineVersion = VK_MAKE_VERSION(1, 0, 0),
       .apiVersion = VK_MAKE_VERSION(1, 1, 0),
   };
-
-  // create a device
   CreateVulkanDevice(window, &appInfo);
-
   CreateSwapChain();
   VkAttachmentDescription attachmentDescriptions{
       .format = swapchain.displayFormat_,
@@ -837,63 +702,122 @@ void InitVulkan(ANativeWindow* window) {
   assert(result_ == VK_SUCCESS);
   device.initialized_ = true;
 }
-
-// IsVulkanReady():
-//    native app poll to see if we are ready to draw...
-
-void DeleteVulkan() {
+void vulkan_graphics::needResize() {
+  // To do
+  resize = true;
+}
+void vulkan_graphics::render() {
+  if (resize) { resize = false; }
+  if (resume) { resume = false; running = true; }
+  if (running && device.initialized_) {
+    uint32_t nextIndex;
+    result_ = vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex);
+    assert(result_ == VK_SUCCESS);
+    result_ = vkResetFences(device.device_, 1, &render.fence_);
+    assert(result_ == VK_SUCCESS);
+    VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkSubmitInfo submit_info {
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = nullptr,
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = &render.semaphore_,
+      .pWaitDstStageMask = &waitStageMask,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &render.cmdBuffer_[nextIndex],
+      .signalSemaphoreCount = 0,
+      .pSignalSemaphores = nullptr,
+    };
+    result_ = vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_);
+    assert(result_ == VK_SUCCESS);
+    result_ = vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000);
+    assert(result_ == VK_SUCCESS);
+  
+    VkPresentInfoKHR presentInfo{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .swapchainCount = 1,
+        .pSwapchains = &swapchain.swapchain_,
+        .pImageIndices = &nextIndex,
+        .pResults = &result_,
+    };
+    vkQueuePresentKHR(device.queue_, &presentInfo);
+    assert(result_ == VK_SUCCESS);
+  }
+  if (pause) {
+    pause = false;
+    running = false;
+  }
+  if (destroyed) {
+    // To do 
+  }
+}
+void vulkan_graphics::onWindowTerm() {
   vkFreeCommandBuffers(device.device_, render.cmdPool_, render.cmdBufferLen_, render.cmdBuffer_);
   delete[] render.cmdBuffer_;
   vkDestroyCommandPool(device.device_, render.cmdPool_, nullptr);
   vkDestroyRenderPass(device.device_, render.renderPass_, nullptr);
   // Delete Buffers
   vkDestroyBuffer(device.device_, buffers.vertexBuf_, nullptr);
-  
   DeleteSwapChain();
   DeleteGraphicsPipeline();
-  
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
   device.initialized_ = false;
 }
-
-// Draw one frame
-void VulkanDrawFrame() {
-  if (!device.initialized_) return;
-  uint32_t nextIndex;
-  result_ = vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render.semaphore_, VK_NULL_HANDLE, &nextIndex);
-  assert(result_ == VK_SUCCESS);
-  result_ = vkResetFences(device.device_, 1, &render.fence_);
-  assert(result_ == VK_SUCCESS);
-  VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-  VkSubmitInfo submit_info {
-    .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-    .pNext = nullptr,
-    .waitSemaphoreCount = 1,
-    .pWaitSemaphores = &render.semaphore_,
-    .pWaitDstStageMask = &waitStageMask,
-    .commandBufferCount = 1,
-    .pCommandBuffers = &render.cmdBuffer_[nextIndex],
-    .signalSemaphoreCount = 0,
-    .pSignalSemaphores = nullptr,
-  };
-  result_ = vkQueueSubmit(device.queue_, 1, &submit_info, render.fence_);
-  assert(result_ == VK_SUCCESS);
-  result_ = vkWaitForFences(device.device_, 1, &render.fence_, VK_TRUE, 100000000);
-  assert(result_ == VK_SUCCESS);
-
-  VkPresentInfoKHR presentInfo{
-      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-      .pNext = nullptr,
-      .waitSemaphoreCount = 0,
-      .pWaitSemaphores = nullptr,
-      .swapchainCount = 1,
-      .pSwapchains = &swapchain.swapchain_,
-      .pImageIndices = &nextIndex,
-      .pResults = &result_,
-  };
-  vkQueuePresentKHR(device.queue_, &presentInfo);
-  assert(result_ == VK_SUCCESS);
+void vulkan_graphics::onPause() {
+  // To do
+  pause = true;
+  render();
 }
-//}
+void vulkan_graphics::onDestroy() {
+  // To do
+  destroyed = true;
+  render();
+}
+float vulkan_graphics::getWidth() { return 0;/* float(swapchain.displaySize_.width);*/ }
+float vulkan_graphics::getHeight() { return 0;/*float(swapchain.displaySize_.height);*/ }
+void vulkan_graphics::clear(const unsigned int &) {
+  // To do
+}
+void vulkan_graphics::clearcolor(const float &, const float &, const float &, const float &) {
+  // To do
+}
+engine::texture_core *vulkan_graphics::gen_texture(const int &, const int &, unsigned char *) {
+  // To do
+  return nullptr;
+}
+void vulkan_graphics::bind_texture(engine::texture_core *) {
+  // To do
+}
+void vulkan_graphics::set_texture_param(const int &, const int &) {
+  // To do
+}
+void vulkan_graphics::delete_texture(engine::texture_core *) {
+  // To do
+}
+void vulkan_graphics::flat_render(engine::texture_core*, engine::flat_vertex *, unsigned int) {
+  // To do
+}
+engine::mesh_core *vulkan_graphics::gen_mesh(engine::mesh_core::data *,unsigned int,unsigned short *, unsigned int){
+  // To do
+  return nullptr;
+}
+void vulkan_graphics::mesh_render(engine::mesh_core **,const unsigned int &) {
+  // To do
+}
+void vulkan_graphics::delete_mesh(engine::mesh_core *) {
+	// To DO: 
+}
+vulkan_graphics::vulkan_graphics() {
+  assert(InitVulkan());
+  engine::graph = this;
+}
+
+vulkan_graphics::~vulkan_graphics() {
+  TermVulkan();
+  engine::graph = nullptr;
+}
+
 
