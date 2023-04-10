@@ -28,7 +28,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/libs/$<TARGET_ARCH_ABI>
     COMMAND ${CMAKE_COMMAND} -E copy
-        ${ANDROID_NDK}/toolchains/llvm/prebuilt/${CMAKE_HOST_SYSTEM_NAME}/sysroot/usr/lib/$<TARGET_ARCH_ABI>/libvulkan.so
-        ${PROJECT_SOURCE_DIR}/libs/$<TARGET_ARCH_ABI>/libvulkan.so
+        ${ANDROID_NDK}/toolchains/llvm/prebuilt/${CMAKE_HOST_SYSTEM_NAME}/sysroot/usr/lib/${TARGET_ARCH_ABI}/libvulkan.so
+        ${PROJECT_SOURCE_DIR}/libs/${TARGET_ARCH_ABI}/libvulkan.so
 )
 
