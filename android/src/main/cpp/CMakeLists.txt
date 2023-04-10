@@ -22,13 +22,7 @@ include_directories(${Include_Dir})
 include_directories(${Include_subDir})
 #include_directories(${Vulkan_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
-target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log)
+target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log vulkan)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/../libs/${TARGET_ARCH_ABI}
-    COMMAND ${CMAKE_COMMAND} -E copy
-        ${ANDROID_NDK}/toolchains/llvm/prebuilt/${CMAKE_HOST_SYSTEM_NAME}/sysroot/usr/lib/${TARGET_ARCH_ABI}/libvulkan.so
-        ${PROJECT_SOURCE_DIR}/../libs/${TARGET_ARCH_ABI}/libvulkan.so
-)
 
