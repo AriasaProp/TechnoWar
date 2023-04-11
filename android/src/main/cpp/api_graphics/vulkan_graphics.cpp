@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
-#include <vulkan/vulkan.h>
+#include "vulkan_wrapper.hpp"
 
 //{
 VkResult result_;
@@ -21,7 +21,6 @@ struct VulkanSwapchainInfo {
   uint32_t swapchainLength_;
   VkExtent2D displaySize_;
   VkFormat displayFormat_;
-  // array of frame buffers and views
   std::vector<VkImage> displayImages_;
   std::vector<VkImageView> displayViews_;
   std::vector<VkFramebuffer> framebuffers_;
