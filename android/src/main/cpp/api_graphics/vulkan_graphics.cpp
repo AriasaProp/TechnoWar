@@ -2,7 +2,9 @@
 
 #include <vector>
 #include <unordered_set>
-#include <cassert>
+
+//#include <cassert>
+#define assert(x) (x)
 #include "vulkan_wrapper.hpp"
 
 //{
@@ -810,12 +812,12 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 	// To DO: 
 }
 vulkan_graphics::vulkan_graphics() {
-  //assert(InitVulkan());
+  assert(InitVulkan());
   engine::graph = this;
 }
 
 vulkan_graphics::~vulkan_graphics() {
-  //TermVulkan();
+  TermVulkan();
   engine::graph = nullptr;
 }
 
