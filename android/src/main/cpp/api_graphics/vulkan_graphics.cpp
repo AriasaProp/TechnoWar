@@ -813,7 +813,7 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 	// To DO: 
 }
 vulkan_graphics::vulkan_graphics() {
-  bool lde = InitVulkan();
+  assert(InitVulkan());
   FILE* log_file = fopen("/sdcard/technowar_log.txt", "w");
   if (log_file) {
     fprintf(log_file, "Some logging message\n");
