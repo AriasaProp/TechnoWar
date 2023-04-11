@@ -4,7 +4,7 @@
 #include <unordered_set>
 
 //#include <cassert>
-#define assert(x) (x)
+#define assert(x) (void)(x)
 #include "vulkan_wrapper.hpp"
 
 //{
