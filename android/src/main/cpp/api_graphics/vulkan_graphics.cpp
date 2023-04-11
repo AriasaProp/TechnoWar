@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <cassert>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 //{
 VkResult result_;
