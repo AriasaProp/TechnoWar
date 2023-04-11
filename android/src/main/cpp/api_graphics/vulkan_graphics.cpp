@@ -1,6 +1,7 @@
 #include "vulkan_graphics.hpp"
 
 #include <vector>
+#include <cstdio>
 #include <unordered_set>
 
 //#include <cassert>
@@ -812,7 +813,12 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 	// To DO: 
 }
 vulkan_graphics::vulkan_graphics() {
-  assert(InitVulkan());
+  bool lde = InitVulkan();
+  FILE* log_file = fopen("/sdcard/technowar_log.txt", "w");
+  if (log_file) {
+    fprintf(log_file, "Some logging message\n");
+    fclose(log_file);
+  }
   engine::graph = this;
 }
 
@@ -820,5 +826,7 @@ vulkan_graphics::~vulkan_graphics() {
   TermVulkan();
   engine::graph = nullptr;
 }
+
+
 
 
