@@ -16,7 +16,7 @@ struct bitmapfont {
   engine::texture_core tex_core;  // ID dari texture yang digunakan untuk menggambar font
   float glyphWidth;  // lebar dari setiap karakter pada font
   float glyphHeight;  // tinggi dari setiap karakter pada font
-  std::unordered_m4ap<char, Glyph> glyphData;  // data untuk setiap karakter pada font
+  std::unordered_map<char, Glyph> glyphData;  // data untuk setiap karakter pada font
 	struct glyph {
 	  float left;  // jarak dari posisi karakter ke kiri
 	  float top;  // jarak dari posisi karakter ke atas

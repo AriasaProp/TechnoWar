@@ -10,8 +10,8 @@
 
 //{
 VkResult result_;
+bool initialized_;
 struct VulkanDeviceInfo {
-  bool initialized_;
   VkInstance instance_;
   VkPhysicalDevice gpuDevice_;
   VkDevice device_;
@@ -702,7 +702,7 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   };
   result_ = (vkCreateSemaphore(device.device_, &semaphoreCreateInfo, nullptr, &render_.semaphore_));
   assert(result_ == VK_SUCCESS);
-  device.initialized_ = true;
+  initialized_= true;
 }
 void vulkan_graphics::needResize() {
   // To do
@@ -711,7 +711,7 @@ void vulkan_graphics::needResize() {
 void vulkan_graphics::render() {
   if (resize) { resize = false; }
   if (resume) { resume = false; running = true; }
-  if (running && device.initialized_) {
+  if (running && initialized_) {
     uint32_t nextIndex;
     result_ = vkAcquireNextImageKHR(device.device_, swapchain.swapchain_, UINT64_MAX, render_.semaphore_, VK_NULL_HANDLE, &nextIndex);
     assert(result_ == VK_SUCCESS);
@@ -766,7 +766,7 @@ void vulkan_graphics::onWindowTerm() {
   DeleteGraphicsPipeline();
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
-  device.initialized_ = false;
+  initialized_= false;
 }
 void vulkan_graphics::onPause() {
   // To do
@@ -814,10 +814,14 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 vulkan_graphics::vulkan_graphics() {
   assert(InitVulkan());
-  FILE* log_file = fopen("/sdcard/technowar_log.txt", "w");
-  if (log_file) {
-    fprintf(log_file, "Some logging message\n");
-    fclose(log_file);
+  try {
+    FILE* log_file = fopen("/sdcard/technowar_log.txt", "w");
+    if (log_file) {
+      fprintf(log_file, "Some logging message\n");
+      fclose(log_file);
+    }
+  } catch (...) {
+    
   }
   engine::graph = this;
 }
