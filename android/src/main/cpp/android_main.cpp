@@ -28,7 +28,7 @@
 #include "android_asset/android_asset.hpp"
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
-#include "api_graphics/vulkan_graphics.hpp"
+//#include "api_graphics/vulkan_graphics.hpp"
 
 android_asset *aasset;
 
@@ -72,7 +72,7 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    android_graphics *g  = new vulkan_graphics;
+    android_graphics *g  = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
 	  if (app->savedState) {
 	      g->state = *(saved_state*)app->savedState;
