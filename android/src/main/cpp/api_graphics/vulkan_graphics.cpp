@@ -4,8 +4,8 @@
 #include <cstdio>
 #include <unordered_set>
 
-//#include <cassert>
-#define assert(x) (void)(x)
+#include <cassert>
+//#define assert(x) (void)(x)
 #include "vulkan_wrapper.hpp"
 
 //{
@@ -102,146 +102,13 @@ void setImageLayout(VkCommandBuffer cmdBuffer, VkImage image, VkImageLayout oldI
   }
   vkCmdPipelineBarrier(cmdBuffer, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imageMemoryBarrier);
 }
-void CreateVulkanDevice(ANativeWindow* platformWindow, VkApplicationInfo* appInfo) {
-  std::vector<const char*> instance_extensions;
-  std::vector<const char*> device_extensions;
-  instance_extensions.push_back("VK_KHR_surface");
-  instance_extensions.push_back("VK_KHR_android_surface");
-  device_extensions.push_back("VK_KHR_swapchain");
-  VkInstanceCreateInfo instanceCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
-      .pApplicationInfo = appInfo,
-      .enabledLayerCount = 0,
-      .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
-      .ppEnabledExtensionNames = instance_extensions.data(),
-  };
-  result_ = vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_);
-  assert(result_ == VK_SUCCESS);
-  VkAndroidSurfaceCreateInfoKHR createInfo{
-      .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
-      .pNext = nullptr,
-      .flags = 0,
-      .window = platformWindow};
-  result_ = vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_);
-  assert(result_ == VK_SUCCESS);
-  uint32_t gpuCount = 0;
-  result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr);
-  assert(result_ == VK_SUCCESS);
-  VkPhysicalDevice tmpGpus[gpuCount];
-  result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus);
-  assert(result_ == VK_SUCCESS);
-  device.gpuDevice_ = tmpGpus[0];  // Pick up the first GPU Device
-
-  // Find a GFX queue family
-  uint32_t queueFamilyCount;
-  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, nullptr);
-  assert(queueFamilyCount);
-  std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
-  vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
-
-  uint32_t queueFamilyIndex = 0;
-  while (queueFamilyIndex < queueFamilyCount) {
-    if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) break;
-    queueFamilyIndex++;
-  }
-  assert(queueFamilyIndex < queueFamilyCount);
-  device.queueFamilyIndex_ = queueFamilyIndex;
-
-  // Create a logical device (vulkan device)
-  float priorities[] = {
-      1.0f,
-  };
-  VkDeviceQueueCreateInfo queueCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0,
-      .queueFamilyIndex = queueFamilyIndex,
-      .queueCount = 1,
-      .pQueuePriorities = priorities,
-  };
-
-  VkDeviceCreateInfo deviceCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .pNext = nullptr,
-      .queueCreateInfoCount = 1,
-      .pQueueCreateInfos = &queueCreateInfo,
-      .enabledLayerCount = 0,
-      .ppEnabledLayerNames = nullptr,
-      .enabledExtensionCount = static_cast<uint32_t>(device_extensions.size()),
-      .ppEnabledExtensionNames = device_extensions.data(),
-      .pEnabledFeatures = nullptr,
-  };
-
-  result_ = vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_);
-  assert(result_ == VK_SUCCESS);
-  vkGetDeviceQueue(device.device_, device.queueFamilyIndex_, 0, &device.queue_);
-}
-void CreateSwapChain() {
-  memset(&swapchain, 0, sizeof(swapchain));
-  VkSurfaceCapabilitiesKHR surfaceCapabilities;
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCapabilities);
-  // Query the list of supported surface format and choose one we like
-  uint32_t formatCount = 0;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, nullptr);
-  VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
-  vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, formats);
-  uint32_t chosenFormat = 0;
-  while (chosenFormat < formatCount) {
-    if (formats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) break;
-    chosenFormat++;
-  }
-  assert(chosenFormat < formatCount);
-  swapchain.displaySize_ = surfaceCapabilities.currentExtent;
-  swapchain.displayFormat_ = formats[chosenFormat].format;
-  VkSurfaceCapabilitiesKHR surfaceCap;
-  result_ = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap);
-  assert(result_ == VK_SUCCESS);
-  assert(surfaceCap.supportedCompositeAlpha | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR);
-  VkSwapchainCreateInfoKHR swapchainCreateInfo{
-      .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .pNext = nullptr,
-      .surface = device.surface_,
-      .minImageCount = surfaceCapabilities.minImageCount,
-      .imageFormat = formats[chosenFormat].format,
-      .imageColorSpace = formats[chosenFormat].colorSpace,
-      .imageExtent = surfaceCapabilities.currentExtent,
-      .imageArrayLayers = 1,
-      .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
-      .queueFamilyIndexCount = 1,
-      .pQueueFamilyIndices = &device.queueFamilyIndex_,
-      .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
-      .compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
-      .presentMode = VK_PRESENT_MODE_FIFO_KHR,
-      .clipped = VK_FALSE,
-      .oldSwapchain = VK_NULL_HANDLE,
-  };
-  result_ = vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_);
-  assert(result_ == VK_SUCCESS);
-  result_ = vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr);
-  assert(result_ == VK_SUCCESS);
-  delete[] formats;
-}
-void DeleteSwapChain() {
-  for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
-    vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
-    vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
-  }
-  vkDestroySwapchainKHR(device.device_, swapchain.swapchain_, nullptr);
-}
 void CreateFrameBuffers(VkRenderPass& renderPass, VkImageView depthView = VK_NULL_HANDLE) {
   // query display attachment to swapchain
   uint32_t SwapchainImagesCount = 0;
-  result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,
-                                  &SwapchainImagesCount, nullptr));
+  result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &SwapchainImagesCount, nullptr));
   assert(result_ == VK_SUCCESS);
   swapchain.displayImages_.resize(SwapchainImagesCount);
-  result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,
-                                  &SwapchainImagesCount,
-                                  swapchain.displayImages_.data()));
-
+  result_ = (vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_,&SwapchainImagesCount, swapchain.displayImages_.data()));
   assert(result_ == VK_SUCCESS);
   // create image view for each swapchain image
   swapchain.displayViews_.resize(SwapchainImagesCount);
@@ -571,17 +438,139 @@ void vulkan_graphics::onResume() {
   resume = true;
 }
 void vulkan_graphics::onWindowInit(ANativeWindow *window) {
-  VkApplicationInfo appInfo = {
-      .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-      .pNext = nullptr,
-      .pApplicationName = "tutorial05_triangle_window",
-      .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-      .pEngineName = "tutorial",
-      .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-      .apiVersion = VK_MAKE_VERSION(1, 1, 0),
-  };
-  CreateVulkanDevice(window, &appInfo);
-  CreateSwapChain();
+  std::vector<const char*> instance_extensions;
+  std::vector<const char*> device_extensions;
+  instance_extensions.push_back("VK_KHR_surface");
+  instance_extensions.push_back("VK_KHR_android_surface");
+  device_extensions.push_back("VK_KHR_swapchain");
+  // CreateVulkanDevice(window, &appInfo);
+  {
+    VkApplicationInfo appInfo = {
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = "tutorial05_triangle_window",
+        .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+        .pEngineName = "tutorial",
+        .engineVersion = VK_MAKE_VERSION(1, 0, 0),
+        .apiVersion = VK_MAKE_VERSION(1, 1, 0),
+    };
+    VkInstanceCreateInfo instanceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .pApplicationInfo = &appInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size()),
+        .ppEnabledExtensionNames = instance_extensions.data(),
+    };
+    result_ = vkCreateInstance(&instanceCreateInfo, nullptr, &device.instance_);
+    assert(result_ == VK_SUCCESS);
+    VkAndroidSurfaceCreateInfoKHR createInfo{
+        .sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .window = window};
+    result_ = vkCreateAndroidSurfaceKHR(device.instance_, &createInfo, nullptr, &device.surface_);
+    assert(result_ == VK_SUCCESS);
+    uint32_t gpuCount = 0;
+    result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, nullptr);
+    assert(result_ == VK_SUCCESS);
+    VkPhysicalDevice tmpGpus[gpuCount];
+    result_ = vkEnumeratePhysicalDevices(device.instance_, &gpuCount, tmpGpus);
+    assert(result_ == VK_SUCCESS);
+    device.gpuDevice_ = tmpGpus[0];  // Pick up the first GPU Device
+  
+    // Find a GFX queue family
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, nullptr);
+    assert(queueFamilyCount);
+    std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device.gpuDevice_, &queueFamilyCount, queueFamilyProperties.data());
+  
+    uint32_t queueFamilyIndex = 0;
+    while (queueFamilyIndex < queueFamilyCount) {
+      if (queueFamilyProperties[queueFamilyIndex].queueFlags & VK_QUEUE_GRAPHICS_BIT) break;
+      queueFamilyIndex++;
+    }
+    assert(queueFamilyIndex < queueFamilyCount);
+    device.queueFamilyIndex_ = queueFamilyIndex;
+  
+    // Create a logical device (vulkan device)
+    float priorities[] = {
+        1.0f,
+    };
+    VkDeviceQueueCreateInfo queueCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queueFamilyIndex = queueFamilyIndex,
+        .queueCount = 1,
+        .pQueuePriorities = priorities,
+    };
+  
+    VkDeviceCreateInfo deviceCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = nullptr,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueCreateInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = static_cast<uint32_t>(device_extensions.size()),
+        .ppEnabledExtensionNames = device_extensions.data(),
+        .pEnabledFeatures = nullptr,
+    };
+  
+    result_ = vkCreateDevice(device.gpuDevice_, &deviceCreateInfo, nullptr, &device.device_);
+    assert(result_ == VK_SUCCESS);
+    vkGetDeviceQueue(device.device_, device.queueFamilyIndex_, 0, &device.queue_);
+  }
+  //create swapchain
+  {
+    memset(&swapchain, 0, sizeof(swapchain));
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCapabilities);
+    // Query the list of supported surface format and choose one we like
+    uint32_t formatCount = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, nullptr);
+    VkSurfaceFormatKHR* formats = new VkSurfaceFormatKHR[formatCount];
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device.gpuDevice_, device.surface_, &formatCount, formats);
+    uint32_t chosenFormat = 0;
+    while (chosenFormat < formatCount) {
+      if (formats[chosenFormat].format == VK_FORMAT_R8G8B8A8_UNORM) break;
+      chosenFormat++;
+    }
+    assert(chosenFormat < formatCount);
+    swapchain.displaySize_ = surfaceCapabilities.currentExtent;
+    swapchain.displayFormat_ = formats[chosenFormat].format;
+    VkSurfaceCapabilitiesKHR surfaceCap;
+    result_ = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.gpuDevice_, device.surface_, &surfaceCap);
+    assert(result_ == VK_SUCCESS);
+    assert(surfaceCap.supportedCompositeAlpha | VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR);
+    VkSwapchainCreateInfoKHR swapchainCreateInfo{
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .surface = device.surface_,
+        .minImageCount = surfaceCapabilities.minImageCount,
+        .imageFormat = formats[chosenFormat].format,
+        .imageColorSpace = formats[chosenFormat].colorSpace,
+        .imageExtent = surfaceCapabilities.currentExtent,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 1,
+        .pQueueFamilyIndices = &device.queueFamilyIndex_,
+        .preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR,
+        .presentMode = VK_PRESENT_MODE_FIFO_KHR,
+        .clipped = VK_FALSE,
+        .oldSwapchain = VK_NULL_HANDLE,
+    };
+    result_ = vkCreateSwapchainKHR(device.device_, &swapchainCreateInfo, nullptr, &swapchain.swapchain_);
+    assert(result_ == VK_SUCCESS);
+    result_ = vkGetSwapchainImagesKHR(device.device_, swapchain.swapchain_, &swapchain.swapchainLength_, nullptr);
+    assert(result_ == VK_SUCCESS);
+    delete[] formats;
+  }
   VkAttachmentDescription attachmentDescriptions{
       .format = swapchain.displayFormat_,
       .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -594,7 +583,6 @@ void vulkan_graphics::onWindowInit(ANativeWindow *window) {
   };
 
   VkAttachmentReference colourReference {.attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
-
   VkSubpassDescription subpassDescription{
       .flags = 0,
       .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -762,7 +750,13 @@ void vulkan_graphics::onWindowTerm() {
   vkDestroyRenderPass(device.device_, render_.renderPass_, nullptr);
   // Delete Buffers
   vkDestroyBuffer(device.device_, buffers.vertexBuf_, nullptr);
-  DeleteSwapChain();
+  {
+    for (uint32_t i = 0; i < swapchain.swapchainLength_; i++) {
+      vkDestroyFramebuffer(device.device_, swapchain.framebuffers_[i], nullptr);
+      vkDestroyImageView(device.device_, swapchain.displayViews_[i], nullptr);
+    }
+    vkDestroySwapchainKHR(device.device_, swapchain.swapchain_, nullptr);
+  }
   DeleteGraphicsPipeline();
   vkDestroyDevice(device.device_, nullptr);
   vkDestroyInstance(device.instance_, nullptr);
@@ -814,15 +808,6 @@ void vulkan_graphics::delete_mesh(engine::mesh_core *) {
 }
 vulkan_graphics::vulkan_graphics() {
   assert(InitVulkan());
-  try {
-    FILE* log_file = fopen("/sdcard/technowar_log.txt", "w");
-    if (log_file) {
-      fprintf(log_file, "Some logging message\n");
-      fclose(log_file);
-    }
-  } catch (...) {
-    
-  }
   engine::graph = this;
 }
 
