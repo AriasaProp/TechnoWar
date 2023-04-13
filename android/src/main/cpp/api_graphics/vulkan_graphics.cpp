@@ -419,7 +419,6 @@ void CreateGraphicsPipeline() {
       .basePipelineHandle = VK_NULL_HANDLE,
       .basePipelineIndex = 0,
   };
-
   result_ = vkCreateGraphicsPipelines(device.device_, gfxPipeline.cache_, 1, &pipelineCreateInfo, nullptr, &gfxPipeline.pipeline_);
   vkDestroyShaderModule(device.device_, vertexShader, nullptr);
   vkDestroyShaderModule(device.device_, fragmentShader, nullptr);
