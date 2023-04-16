@@ -25,8 +25,11 @@
 #include "main_game.hpp"
 
 #include "android_input/android_input.hpp"
+#include "android_asset/android_asset.hpp"
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
+
+android_asset *aasset;
 
 struct android_app {
     bool destroyed;
@@ -220,6 +223,7 @@ static void onDestroy(ANativeActivity* activity) {
     pthread_cond_destroy(&app->cond);
     pthread_mutex_destroy(&app->mutex);
     delete app;
+	  delete aasset;
     activity->instance = nullptr;
 }
 static void onStart(ANativeActivity* activity) {
@@ -351,6 +355,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     android_app* app = new android_app;
     activity->instance = app;
     memset(app, 0, sizeof(android_app));
+	  aasset = new android_asset(activity->assetManager);
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);

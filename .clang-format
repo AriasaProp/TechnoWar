@@ -1,9 +1,12 @@
 BasedOnStyle: LLVM
 IndentWidth: 2
 TabWidth: 2
-UseTab: Never
+# make namespace content indent 1 level
+NamespaceIndentation: Inner
+# make short code
 AllowShortIfStatementsOnASingleLine: true
 AllowShortLoopsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: false
 ColumnLimit: 0
+# empty line will not repeated
 MaxEmptyLinesToKeep: 1
