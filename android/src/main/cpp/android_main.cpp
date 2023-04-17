@@ -69,16 +69,11 @@ enum {
 #include <cstdio>
 static void* android_app_entry(void* param) {
     {
-        FILE *fp;
-        fp = fopen("/sdcard/filewrite.txt", "w"); // buka file dengan mode write
-        if (fp == NULL) {
-            printf("Gagal membuka file\n");
-            return 1;
+        FILE *fp = fopen("/sdcard/filewrite.txt", "w"); // buka file dengan mode write
+        if (fp) {
+            fprintf(fp, "Ini adalah isi file yang baru dibuat.\n");
+            fclose(fp); // tutup file
         }
-        fprintf(fp, "Ini adalah isi file yang baru dibuat.\n");
-        fclose(fp); // tutup file
-        printf("File berhasil dibuat\n");
-        return 0;
     }
     android_app *app = (android_app*)param;
     app->config = AConfiguration_new();
