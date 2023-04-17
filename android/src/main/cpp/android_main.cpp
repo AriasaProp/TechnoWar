@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <initializer_list>
 #include <memory>
+#include <climits>
 #include <cstdlib>
 #include <cstring>
 #include <cerrno>
@@ -69,7 +70,9 @@ enum {
 #include <cstdio>
 static void* android_app_entry(void* param) {
     {
-        FILE *fp = fopen("/sdcard/filewrite.txt", "w"); // buka file dengan mode write
+        char filename[PATH_MAX];
+        snprintf(filename, PATH_MAX, "%s/filewrite.txt", getenv("EXTERNAL_STORAGE"));
+        FILE *fp = fopen(filename, "w"); // buka file dengan mode write
         if (fp) {
             fprintf(fp, "Ini adalah isi file yang baru dibuat.\n");
             fclose(fp); // tutup file
