@@ -14,7 +14,7 @@ void try_on() {
     std::ifstream file("font.fnt");
     if (!file.is_open()) {
         std::cout << "Failed to open font file." << std::endl;
-        return -1;
+        return;
     }
 
     // Parse FNT file
