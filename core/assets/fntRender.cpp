@@ -9,8 +9,7 @@ struct Character {
     float xoffset, yoffset, xadvance;
 };
 
-int try_on() {
-
+void try_on() {
     // Load FNT file
     std::ifstream file("font.fnt");
     if (!file.is_open()) {
