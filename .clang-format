@@ -15,21 +15,6 @@ SpaceBeforeParens: Always
 SpacesInParentheses: false
 # line of code hasn't limit
 ColumnLimit: 0
-# make opening brace doesn't writed after new line
-BraceWrapping:
-  AfterClass: false
-  AfterControlStatement: false
-  AfterEnum: true
-  AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
-  BeforeCatch: true
-  BeforeElse: true
-  IndentBraces: false
 # empty line will not repeated
 MaxEmptyLinesToKeep: 1
 
