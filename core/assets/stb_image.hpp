@@ -1,10 +1,6 @@
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
 
-#ifndef STBI_NO_STDIO
-#include <cstdio>
-#endif // STBI_NO_STDIO
-
 enum {
    STBI_default    = 0, // only used for desired_channels
    STBI_grey       = 1,
@@ -24,12 +20,6 @@ struct stbi_io_callbacks {
 extern unsigned char *stbi_load_from_memory   (unsigned char           const *buffer, int len   , int *x, int *y, int *channels_in_file, int desired_channels);
 extern unsigned char *stbi_load_from_callbacks(stbi_io_callbacks const *clbk  , void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
-#ifndef STBI_NO_STDIO
-extern unsigned char *stbi_load            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
-extern unsigned char *stbi_load_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
-// for stbi_load_from_file, file pointer is left pointing immediately after image
-#endif
-
 #ifndef STBI_NO_GIF
 extern unsigned char *stbi_load_gif_from_memory(unsigned char const *buffer, int len, int **delays, int *x, int *y, int *z, int *comp, int req_comp);
 #endif
@@ -46,11 +36,6 @@ extern int stbi_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wcha
 extern unsigned short *stbi_load_16_from_memory   (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
 extern unsigned short *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
-#ifndef STBI_NO_STDIO
-extern unsigned short *stbi_load_16          (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
-extern unsigned short *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
-#endif
-
 ////////////////////////////////////
 //
 // float-per-channel interface
@@ -58,11 +43,6 @@ extern unsigned short *stbi_load_from_file_16(FILE *f, int *x, int *y, int *chan
 #ifndef STBI_NO_LINEAR
    extern float *stbi_loadf_from_memory     (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
    extern float *stbi_loadf_from_callbacks  (stbi_io_callbacks const *clbk, void *user, int *x, int *y,  int *channels_in_file, int desired_channels);
-
-   #ifndef STBI_NO_STDIO
-   extern float *stbi_loadf            (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
-   extern float *stbi_loadf_from_file  (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
-   #endif
 #endif
 
 #ifndef STBI_NO_HDR
@@ -78,11 +58,6 @@ extern unsigned short *stbi_load_from_file_16(FILE *f, int *x, int *y, int *chan
 // stbi_is_hdr is always defined, but always returns false if STBI_NO_HDR
 extern int    stbi_is_hdr_from_callbacks(stbi_io_callbacks const *clbk, void *user);
 extern int    stbi_is_hdr_from_memory(unsigned char const *buffer, int len);
-#ifndef STBI_NO_STDIO
-extern int      stbi_is_hdr          (char const *filename);
-extern int      stbi_is_hdr_from_file(FILE *f);
-#endif // STBI_NO_STDIO
-
 
 // get a VERY brief reason for failure
 // on most compilers (and ALL modern mainstream compilers) this is threadsafe
@@ -96,15 +71,6 @@ extern int      stbi_info_from_memory(unsigned char const *buffer, int len, int 
 extern int      stbi_info_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
 extern int      stbi_is_16_bit_from_memory(unsigned char const *buffer, int len);
 extern int      stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *clbk, void *user);
-
-#ifndef STBI_NO_STDIO
-extern int      stbi_info               (char const *filename,     int *x, int *y, int *comp);
-extern int      stbi_info_from_file     (FILE *f,                  int *x, int *y, int *comp);
-extern int      stbi_is_16_bit          (char const *filename);
-extern int      stbi_is_16_bit_from_file(FILE *f);
-#endif
-
-
 
 // for image formats that explicitly notate that they have premultiplied alpha,
 // we just return the colors as stored in the file. set this flag to force
