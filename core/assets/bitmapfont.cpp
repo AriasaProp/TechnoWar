@@ -25,7 +25,7 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
     {xo+xh, yo+yh, {0xff, 0xff, 0xff, 0xff}, 1, 0}
   };
 }
-bitmapfont::draw() {
+void bitmapfont::draw() {
   engine::graph->flat_render(tex_core, quad, 1);
 }
 bitmapfont::~bitmapfont() {
