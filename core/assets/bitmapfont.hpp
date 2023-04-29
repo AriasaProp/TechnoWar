@@ -6,7 +6,7 @@
 struct bitmapfont {
 private:
   engine::flat_vertex *quad;
-  engine::texture_core tex_core;  // ID dari texture yang digunakan untuk menggambar font
+  engine::texture_core *tex_core;  // ID dari texture yang digunakan untuk menggambar font
   float glyphWidth;  // lebar dari setiap karakter pada font
   float glyphHeight;  // tinggi dari setiap karakter pada font
 	struct glyph {
