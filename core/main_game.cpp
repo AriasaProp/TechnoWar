@@ -16,7 +16,7 @@ engine::texture_core *myTex;
 bitmapfont *fnt;
 
 Main::Main () {
-  fnt = new bitmapfont("default.fnt", "default.png");
+  //fnt = new bitmapfont("default.fnt", "default.png");
   {
     int x, y;
     unsigned char *tD = stbi_load_from_assets("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
@@ -56,9 +56,7 @@ Main::Main () {
       {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}};
   unsigned short indices[36] = {
       0, 1, 3, 1, 2, 3,
-      4,
-      5,
-      7,
+      4, 5, 7,
       5,
       6,
       7,
@@ -120,5 +118,5 @@ Main::~Main () {
   engine::graph->delete_mesh (mp);
   engine::graph->delete_texture (myTex);
   delete fV;
-  delete fnt;
+  //delete fnt;
 }
