@@ -1,7 +1,7 @@
 #include "bitmapfont.hpp"
 #include "stb_image.hpp"
 
-const char *keyChar = 
+static const char *keyChar = 
 "!\" $%&'()*+,-./"//0-57
 "0123456789"//58-57
 ":;<=>?@"//58-64
