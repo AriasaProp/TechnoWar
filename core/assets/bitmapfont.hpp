@@ -3,26 +3,23 @@
 
 #include "../engine.hpp"
 
-const char *keyChar = 
-"!\" $%&'()*+,-./"//0-57
-"0123456789"//58-57
-":;<=>?@"//58-64
-"ABCDEFGHIJKLMNOPQRSTUVWXYZ"//65-90
-"[\\]^_`"//91-96
-"abcdefghijklmnopqrstuvwxyz"//97-122
-"{|}~";//123-126
-
 struct bitmapfont {
+private:
+  engine::flat_vertex *quad;
   engine::texture_core tex_core;  // ID dari texture yang digunakan untuk menggambar font
   float glyphWidth;  // lebar dari setiap karakter pada font
   float glyphHeight;  // tinggi dari setiap karakter pada font
-  std::unordered_map<char, Glyph> glyphData;  // data untuk setiap karakter pada font
 	struct glyph {
 	  float x, y;  // jarak dari posisi karakter
 	  float width, height;  // ukuran karakter
 	  float xoffset, yoffset;  // perpindahan posisi karakter saat menggambar
 	  float xadvance;  // jarak horizontal yang ditempuh setelah menggambar karakter
 	};
+  glyph glyphData[128];  // data untuk setiap karakter pada font
+public:
+  bitmapfont(const char *, const char *);
+  ~bitmapfont();
+  void draw();
 };
 
 #endif //Included_BitmapFont_

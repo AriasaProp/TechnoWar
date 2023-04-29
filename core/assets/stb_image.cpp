@@ -1,3 +1,4 @@
+#include "../engine.hpp"
 #include "stb_image.hpp"
 
 #if defined(STBI_ONLY_JPEG) || defined(STBI_ONLY_PNG) || defined(STBI_ONLY_BMP) \
@@ -683,16 +684,31 @@ unsigned short *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void 
    stbi__start_callbacks(&s, (stbi_io_callbacks *)clbk, user);
    return stbi__load_and_postprocess_16bit(&s,x,y,channels_in_file,desired_channels);
 }
-
-unsigned char *stbi_load_from_memory(unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp)
-{
+const stbi_io_callbacks stbi_assets_callback = {
+  [] (void *a, char *b, unsigned int l) -> int {
+    return engine::asset->read_asset ((engine::asset_core *)a, b, l);
+  },
+  [] (void *a, int l) -> void {
+    engine::asset->seek_asset ((engine::asset_core *)a, l);
+  },
+  [] (void *a) -> bool {
+    return engine::asset->eof_asset ((engine::asset_core *)a);
+  }
+};
+unsigned char *stbi_load_from_assets(const char *filename, int *x, int *y, int *comp, int req_comp) {
+   engine::asset_core *user = engine::asset->open_asset(filename);
+   stbi__context s;
+   stbi__start_callbacks(&s, &stbi_assets_callback, user);
+   engine::asset->asset_close(user);
+   return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
+}
+unsigned char *stbi_load_from_memory(unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
    stbi__context s;
    stbi__start_mem(&s,buffer,len);
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
 }
 
-unsigned char *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp)
-{
+unsigned char *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
    stbi__context s;
    stbi__start_callbacks(&s, (stbi_io_callbacks *) clbk, user);
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
