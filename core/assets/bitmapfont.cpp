@@ -1,6 +1,6 @@
 #include "bitmapfont.hpp"
 #include "stb_image.hpp"
-
+/*
 static const char *keyChar = 
 "!\" $%&'()*+,-./"//0-57
 "0123456789"//58-57
@@ -9,7 +9,7 @@ static const char *keyChar =
 "[\\]^_`"//91-96
 "abcdefghijklmnopqrstuvwxyz"//97-122
 "{|}~";//123-126
-
+*/
 bitmapfont::bitmapfont(const char *dat, const char *tex) {
   int x, y;
   unsigned char *tD = stbi_load_from_assets(tex, &x, &y, nullptr, STBI_rgb_alpha);
