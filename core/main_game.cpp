@@ -1,7 +1,7 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-//#include "assets/bitmapfont.hpp"
+#include "assets/bitmapfont.hpp"
 #include "assets/stb_image.hpp"
 #include "math/matrix4.hpp"
 #include <chrono>
