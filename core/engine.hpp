@@ -69,7 +69,7 @@ struct asset_core {
   virtual ~asset_core () {}
 };
 struct assets_core {
-  virtual asset_core open_asset (const char *) = 0;
+  virtual asset_core *open_asset (const char *) = 0;
   virtual ~assets_core () {}
 };
 extern graphics_core *graph;

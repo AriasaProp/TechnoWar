@@ -696,9 +696,9 @@ static stbi_io_callbacks stbi_assets_callback = {
   }
 };
 unsigned char *stbi_load_from_assets(const char *filename, int *x, int *y, int *comp, int req_comp) {
-   engine::asset_core user = engine::asset->open_asset(filename);
+   engine::asset_core *user = engine::asset->open_asset(filename);
    stbi__context s;
-   stbi__start_callbacks(&s, &stbi_assets_callback, &user);
+   stbi__start_callbacks(&s, &stbi_assets_callback, user);
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
 }
 unsigned char *stbi_load_from_memory(unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
