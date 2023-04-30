@@ -18,7 +18,7 @@ struct stbi_io_callbacks {
 };
 // 8-bit per channels
 unsigned char *stbi_load_from_assets(const char*, int*, int*, int*, int);
-unsigned char *stbi_load_from_memory (unsigned char  const*, int, int*, int*, int*, int);
+unsigned char *stbi_load_from_memory(unsigned char  const*, int, int*, int*, int*, int);
 unsigned char *stbi_load_from_callbacks(stbi_io_callbacks const*, void*, int*, int*, int*, int);
 
 #ifndef STBI_NO_GIF

@@ -11,7 +11,7 @@
 #include <ctime> /* time */
 
 engine::mesh_core *mp;
-engine::flat_vertex *fV, *fV1;
+engine::flat_vertex *fV;
 engine::texture_core *myTex;
 bitmapfont *fnt;
 
@@ -70,12 +70,6 @@ Main::Main () {
       {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
       {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}
   };
-  fV1 = new engine::flat_vertex[4]{
-      {320.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
-      {320.f, 720.f, {0x00, 0xff, 0xff, 0xff}, 0, 0},
-      {720.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
-      {720.f, 720.f, {0xff, 0xff, 0x01, 0xff}, 1, 0}
-  };
 }
 void Main::resume () {
 }
@@ -95,7 +89,6 @@ void Main::render () {
   );
   engine::graph->mesh_render(&mp, 1);
   engine::graph->flat_render(myTex, fV, 1);
-  //engine::graph->flat_render(myTex, fV1, 1);
   //fnt->draw ();
 }
 void Main::pause () {
@@ -104,6 +97,6 @@ Main::~Main () {
   engine::graph->delete_mesh(mp);
   engine::graph->delete_texture(myTex);
   delete fV;
-  delete fV1;
+  //delete fV1;
   //delete fnt;
 }
