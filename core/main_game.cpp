@@ -13,7 +13,7 @@
 engine::mesh_core *mp;
 engine::flat_vertex *fV;
 engine::texture_core *myTex;
-bitmapfont *fnt;
+//bitmapfont *fnt;
 
 Main::Main () {
   //fnt = new bitmapfont("default.fnt", "default.png");
