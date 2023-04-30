@@ -95,7 +95,7 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
-  engine::graph->flat_render (myTex, fV1, 1);
+  //engine::graph->flat_render (myTex, fV1, 1);
   //fnt->draw ();
 }
 void Main::pause () {
