@@ -16,7 +16,7 @@ engine::texture_core *myTex;
 bitmapfont *fnt;
 
 Main::Main () {
-  fnt = new bitmapfont("default.fnt", "default.png");
+  fnt = new bitmapfont("default.fnt", "test1.jpg");
   {
     int x, y;
     unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
