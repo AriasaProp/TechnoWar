@@ -16,7 +16,9 @@ struct a_asset: public engine::asset_core {
   bool eof() override {
 	  return AAsset_getRemainingLength(asset) == 0;
   }
-	~a_asset() { AAsset_close(asset); }
+	~a_asset() {
+	  //AAsset_close(asset);
+	}
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
   AAsset *a = AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN);
