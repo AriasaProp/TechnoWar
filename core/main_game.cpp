@@ -16,10 +16,10 @@ engine::texture_core *myTex;
 bitmapfont *fnt;
 
 Main::Main () {
-  fnt = new bitmapfont("default.fnt", "default.png");
+  //fnt = new bitmapfont("default.fnt", "default.png");
   {
     int x, y;
-    unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
+    unsigned char *tD = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
     myTex = engine::graph->gen_texture (x, y, tD);
     stbi_image_free(tD);
   }
@@ -95,7 +95,7 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
-  //engine::graph->flat_render (myTex, fV1, 1);
+  engine::graph->flat_render (myTex, fV1, 1);
   //fnt->draw ();
 }
 void Main::pause () {
@@ -105,5 +105,5 @@ Main::~Main () {
   engine::graph->delete_texture(myTex);
   delete fV;
   delete fV1;
-  delete fnt;
+  //delete fnt;
 }

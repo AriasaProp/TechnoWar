@@ -1,5 +1,5 @@
-#include "bitmapfont.hpp"
 #include "stb_image.hpp"
+#include "bitmapfont.hpp"
 /*
 static const char *keyChar = 
 "!\" $%&'()*+,-./"//0-57
