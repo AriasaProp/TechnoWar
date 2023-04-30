@@ -1,7 +1,7 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-#include "assets/bitmapfont.hpp"
+//#include "assets/bitmapfont.hpp"
 #include "assets/stb_image.hpp"
 #include "math/matrix4.hpp"
 #include <chrono>
@@ -17,12 +17,10 @@ bitmapfont *fnt;
 
 Main::Main () {
   //fnt = new bitmapfont("default.fnt", "default.png");
-  {
-    int x, y;
-    unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
-    myTex = engine::graph->gen_texture (x, y, tD);
-    stbi_image_free(tD);
-  }
+  int x, y;
+  unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
+  myTex = engine::graph->gen_texture (x, y, tD);
+  stbi_image_free(tD);
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -96,7 +94,7 @@ void Main::pause () {
 Main::~Main () {
   engine::graph->delete_mesh(mp);
   engine::graph->delete_texture(myTex);
-  delete fV;
+  delete[] fV;
   //delete fV1;
   //delete fnt;
 }
