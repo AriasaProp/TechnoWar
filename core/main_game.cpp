@@ -19,7 +19,7 @@ Main::Main () {
   //fnt = new bitmapfont("default.fnt", "default.png");
   {
     int x, y;
-    unsigned char *tD = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
+    unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
     myTex = engine::graph->gen_texture (x, y, tD);
     stbi_image_free(tD);
   }
