@@ -7,25 +7,19 @@
 struct a_asset: public engine::asset_core {
 	AAsset *asset;
 	a_asset(AAsset *a): asset(a) {}
+	int read(void *buff, unsigned int len) override {
+	  return AAsset_read(asset, buff, len);
+	}
+  void seek(int n) override {
+	  AAsset_seek(asset, n, SEEK_CUR);
+  }
+  bool eof() override {
+	  return AAsset_getRemainingLength(asset) == 0;
+  }
 	~a_asset() { AAsset_close(asset); }
 };
-engine::asset_core *android_asset::open_asset(const char *filename) {
-	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
-}
-unsigned int android_asset::read_asset(engine::asset_core *a, void *buff, unsigned int len)  {
-	if (!a) return 0;
-	return AAsset_read(static_cast<a_asset*>(a)->asset, buff, len);
-}
-void android_asset::seek_asset(engine::asset_core *a, int n)  {
-	if (!a) return;
-	AAsset_seek(static_cast<a_asset*>(a)->asset, n, SEEK_CUR);
-}
-bool android_asset::eof_asset(engine::asset_core *a)  {
-	if (!a) return true;
-	return AAsset_getRemainingLength(static_cast<a_asset*>(a)->asset) == 0;
-}
-void android_asset::close_asset(engine::asset_core *a) {
-	delete(static_cast<a_asset*>(a));
+engine::asset_core android_asset::open_asset(const char *filename) {
+	return a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;

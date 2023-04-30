@@ -686,20 +686,19 @@ unsigned short *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void 
 }
 static stbi_io_callbacks stbi_assets_callback = {
   [] (void *a, char *b, unsigned int l) -> int {
-    return engine::asset->read_asset ((engine::asset_core *)a, b, l);
+    return ((engine::asset_core *)a)->read(b, l);
   },
   [] (void *a, int l) -> void {
-    engine::asset->seek_asset ((engine::asset_core *)a, l);
+    ((engine::asset_core *)a)->seek(l);
   },
   [] (void *a) -> bool {
-    return engine::asset->eof_asset ((engine::asset_core *)a);
+    return ((engine::asset_core *)a)->eof();
   }
 };
 unsigned char *stbi_load_from_assets(const char *filename, int *x, int *y, int *comp, int req_comp) {
-   engine::asset_core *user = engine::asset->open_asset(filename);
+   engine::asset_core user = engine::asset->open_asset(filename);
    stbi__context s;
-   stbi__start_callbacks(&s, &stbi_assets_callback, (void*)user);
-   //engine::asset->close_asset(user);
+   stbi__start_callbacks(&s, &stbi_assets_callback, &user);
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
 }
 unsigned char *stbi_load_from_memory(unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
