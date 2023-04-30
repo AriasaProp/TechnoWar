@@ -16,7 +16,7 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
   tex_core = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
   (void)dat;
-  float xh = (float)x/2.f, yh = (float)y/2.f;
+  float xh = 100.f, yh = 100.f;
   float xo = 720.f, yo = 360.f;
   quad = new engine::flat_vertex[4]{
     {xo-xh, yo-yh, {0xff, 0xff, 0xff, 0xff}, 0, 1},
