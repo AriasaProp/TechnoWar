@@ -93,9 +93,9 @@ void Main::render () {
                    M_PI / 6.f * (delta),  // 30° /s
                    M_PI / 3.0f * (delta)  // 60° /s
   );
-  engine::graph->mesh_render (&mp, 1);
-  engine::graph->flat_render (myTex, fV, 1);
-  engine::graph->flat_render (myTex, fV1, 1);
+  engine::graph->mesh_render(&mp, 1);
+  engine::graph->flat_render(myTex, fV, 1);
+  //engine::graph->flat_render(myTex, fV1, 1);
   //fnt->draw ();
 }
 void Main::pause () {
