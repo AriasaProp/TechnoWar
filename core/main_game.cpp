@@ -13,10 +13,10 @@
 engine::mesh_core *mp;
 engine::flat_vertex *fV;
 engine::texture_core *myTex;
-//bitmapfont *fnt;
+bitmapfont *fnt;
 
 Main::Main () {
-  //fnt = new bitmapfont("default.fnt", "default.png");
+  fnt = new bitmapfont("default.fnt", "default.png");
   {
     int x, y;
     unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
@@ -88,7 +88,7 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
-  //fnt->draw ();
+  fnt->draw ();
 }
 void Main::pause () {
 }
@@ -96,5 +96,5 @@ Main::~Main () {
   engine::graph->delete_mesh(mp);
   engine::graph->delete_texture(myTex);
   delete fV;
-  //delete fnt;
+  delete fnt;
 }
