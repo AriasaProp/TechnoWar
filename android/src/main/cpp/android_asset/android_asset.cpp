@@ -19,7 +19,8 @@ struct a_asset: public engine::asset_core {
 	~a_asset() { AAsset_close(asset); }
 };
 engine::asset_core android_asset::open_asset(const char *filename) {
-	return a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
+  AAsset *a = AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN);
+	return a_asset(a);
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;
