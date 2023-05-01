@@ -3,9 +3,6 @@
 
 #include "../engine.hpp"
 
-struct bitmapfont_set {
-  
-}
 struct bitmapfont {
 public:
   bitmapfont(const char *, const char *);
@@ -20,7 +17,7 @@ private:
   const char *charset;
   int unicode;
   float stretchY, stretchX;
-  float smooth, aa, ;
+  float smooth, aa;
   float padding_left, padding_top, padding_right, padding_bottom;
   float spacingX, spacingY;
   float common_lineHeight, base;
