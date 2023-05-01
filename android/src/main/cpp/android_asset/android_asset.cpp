@@ -17,7 +17,7 @@ struct a_asset: public engine::asset_core {
 	  return AAsset_getRemainingLength(asset) <= 0;
   }
 	~a_asset() {
-	  if (!eof()) AAsset_close(asset);
+	  //if (!eof()) AAsset_close(asset);
 	}
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
