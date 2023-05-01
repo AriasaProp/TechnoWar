@@ -699,8 +699,9 @@ unsigned char *stbi_load_from_assets(const char *filename, int *x, int *y, int *
    engine::asset_core *user = engine::asset->open_asset(filename);
    stbi__context s;
    stbi__start_callbacks(&s, &stbi_assets_callback, user);
+   unsigned char *r = stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
    delete user;
-   return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
+   return r;
 }
 unsigned char *stbi_load_from_memory(unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
    stbi__context s;
