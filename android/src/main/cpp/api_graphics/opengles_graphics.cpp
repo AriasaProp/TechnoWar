@@ -129,9 +129,15 @@ void opengles_graphics::render() {
 				glBindTexture(GL_TEXTURE_2D, 0);
   		}
 			//validating gles resources
+			//enable depth
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
+			//enable blend
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glAlphaFunc(GL_ALWAYS, 0.0f);
+			
 			GLuint vi, fi;
 			//flat draw
 			{
