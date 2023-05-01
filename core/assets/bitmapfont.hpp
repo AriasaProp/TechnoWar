@@ -20,8 +20,10 @@ private:
   float smooth, aa;
   float padding_left, padding_top, padding_right, padding_bottom;
   float spacingX, spacingY;
+  /*
   float common_lineHeight, base;
   float scaleX, scaleY;
+  */
   
 };
 

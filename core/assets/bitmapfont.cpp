@@ -54,7 +54,7 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
   find_value = strstr(reader, "padding=");
   if (find_value) sscanf(find_value, "padding=%f,%f,%f,%f", &padding_left, &padding_top, &padding_right, &padding_bottom);
   find_value = strstr(reader, "spacing=");
-  if (find_value) sscanf(find_value, "spacing=%f,%f", &padding_left, &padding_top, &padding_right, &padding_bottom);
+  if (find_value) sscanf(find_value, "spacing=%f,%f", &spacingX, &spacingY);
   /*
   int char_count = 0;
   // Mencari nilai count= pada header
