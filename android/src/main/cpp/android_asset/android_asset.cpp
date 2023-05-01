@@ -14,15 +14,14 @@ struct a_asset: public engine::asset_core {
 	  AAsset_seek(asset, n, SEEK_CUR);
   }
   bool eof() override {
-	  return AAsset_getRemainingLength(asset) == 0;
+	  return AAsset_getRemainingLength(asset) <= 0;
   }
 	~a_asset() {
 	  if (!eof()) AAsset_close(asset);
 	}
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
-  AAsset *a = AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN);
-	return new a_asset(a);
+	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;
