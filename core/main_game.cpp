@@ -68,7 +68,7 @@ Main::Main () {
       {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
       {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}
   };
-  fV = new engine::flat_vertex[4]{
+  fV1 = new engine::flat_vertex[4]{
       {320.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
       {320.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
       {720.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
@@ -102,6 +102,6 @@ Main::~Main () {
   engine::graph->delete_mesh(mp);
   engine::graph->delete_texture(myTex);
   delete[] fV;
-  delete[] fV2;
+  delete[] fV1;
   //delete fnt;
 }
