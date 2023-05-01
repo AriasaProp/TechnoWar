@@ -19,13 +19,15 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
   stbi_image_free (tD);
   float xh = 100.f, yh = 100.f;
   float xo = 720.f, yo = 360.f;
-  bool diff = STBI_rgb_alpha != chnl;
+  unsigned char diff = STBI_rgb_alpha != chnl ?0xff:0x00;
   quad = new engine::flat_vertex[4]{
-    {xo-xh, yo-yh, {0xff, diff?0xff:0x00, diff?0xff:0x00, 0xff}, 0, 1},
-    {xo-xh, yo+yh, {0xff, diff?0xff:0x00, diff?0xff:0x00, 0xff}, 0, 0},
-    {xo+xh, yo-yh, {0xff, diff?0xff:0x00, diff?0xff:0x00, 0xff}, 1, 1},
-    {xo+xh, yo+yh, {0xff, diff?0xff:0x00, diff?0xff:0x00, 0xff}, 1, 0}
+    {xo-xh, yo-yh, {0xff, diff, diff, 0xff}, 0, 1},
+    {xo-xh, yo+yh, {0xff, diff, diff, 0xff}, 0, 0},
+    {xo+xh, yo-yh, {0xff, diff, diff, 0xff}, 1, 1},
+    {xo+xh, yo+yh, {0xff, diff, diff, 0xff}, 1, 0}
   };
+  (void)dat;
+  /*
   // Membuka file fnt dan menyimpan objek asset_core ke dalam variabel rc
   engine::asset_core *rc = engine::assets->asset_open(dat);
   //temporary buffer to read file
@@ -55,7 +57,7 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
   if (find_value) sscanf(find_value, "padding=%f,%f,%f,%f", &padding_left, &padding_top, &padding_right, &padding_bottom);
   find_value = strstr(reader, "spacing=");
   if (find_value) sscanf(find_value, "spacing=%f,%f", &spacingX, &spacingY);
-  /*
+  
   int char_count = 0;
   // Mencari nilai count= pada header
   for
@@ -87,8 +89,8 @@ bitmapfont::bitmapfont(const char *dat, const char *tex) {
     bitmapset_pic[id].page = page;
     bitmapset_pic[id].channel = channel;
   }
-  */
   delete rc;
+  */
 }
 void bitmapfont::draw() {
   engine::graph->flat_render(tex_core, quad, 1);
