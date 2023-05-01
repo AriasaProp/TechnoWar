@@ -136,7 +136,6 @@ void opengles_graphics::render() {
 			//enable blend
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      glAlphaFunc(GL_ALWAYS, 0.0f);
 			
 			GLuint vi, fi;
 			//flat draw
