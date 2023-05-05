@@ -1,8 +1,8 @@
 #include "android_asset.hpp"
 
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
 #include <cstdio>
+#include <cstring>
+#include <memory>
 
 struct a_asset: public engine::asset_core {
 	AAsset *asset;
@@ -22,6 +22,14 @@ struct a_asset: public engine::asset_core {
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
 	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
+}
+void *android_asset::asset_buffer(const char *filename, unsigned int *outLen) {
+	AAsset *asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_BUFFER);
+  *outLen = AAsset_getLength(asset);
+  void *result = malloc(*outLen);
+  memcpy(result, AAsset_getBuffer(asset), *outLen);
+  AAsset_close(asset);
+  return result;
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;

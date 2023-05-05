@@ -12,6 +12,7 @@ public:
 	android_asset(AAssetManager*);
 	~android_asset();
 	engine::asset_core *open_asset(const char *) override;
+  void *asset_buffer(const char*, unsigned int *) override;
 };
 
 #endif //Included_Android_Asset

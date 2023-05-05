@@ -16,11 +16,14 @@ engine::texture_core *myTex;
 bitmapfont *fnt;
 
 Main::Main () {
-  fnt = new bitmapfont("default.fnt", "default.png");
+  fnt = new bitmapfont ("default.fnt", "default.png");
   int x, y;
-  unsigned char *tD = stbi_load_from_assets ("test1.jpg", &x, &y, nullptr, STBI_rgb_alpha);
+  unsigned int datRI;
+  void *datR = engine::asset->asset_buffer("test.jpeg", &datRI);
+  unsigned char *tD = stbi_load_from_memory ((unsigned char const*)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
+  free(datR);
   myTex = engine::graph->gen_texture (x, y, tD);
-  stbi_image_free(tD);
+  stbi_image_free (tD);
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -51,29 +54,20 @@ Main::Main () {
       {-350.0f, +350.0f, +350.0f, 0x00, 0xff, 0xff, 0xff},
       {-350.0f, -350.0f, +350.0f, 0xff, 0xff, 0xff, 0xff},
       {+350.0f, -350.0f, +350.0f, 0x00, 0x00, 0xff, 0xff},
-      {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}
-  };
+      {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}};
   unsigned short indices[36] = {
-    0, 1, 3, 1, 2, 3,
-    4, 5, 7, 5, 6, 7,
-    8, 9, 11, 9, 10, 11,
-    12, 13, 15, 13, 14, 15,
-    16, 17, 19, 17, 18, 19,
-    20, 21, 23, 21, 22, 23
-  };
+      0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mp = engine::graph->gen_mesh (vert, 24, indices, 36);
   fV = new engine::flat_vertex[4]{
       {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
       {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
       {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
-      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}
-  };
+      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
   fV1 = new engine::flat_vertex[4]{
       {320.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
       {320.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
       {720.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
-      {720.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}
-  };
+      {720.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
 }
 void Main::resume () {
 }
@@ -91,16 +85,16 @@ void Main::render () {
                    M_PI / 6.f * (delta),  // 30° /s
                    M_PI / 3.0f * (delta)  // 60° /s
   );
-  engine::graph->mesh_render(&mp, 1);
-  engine::graph->flat_render(myTex, fV, 1);
-  engine::graph->flat_render(myTex, fV1, 1);
+  engine::graph->mesh_render (&mp, 1);
+  engine::graph->flat_render (myTex, fV, 1);
+  engine::graph->flat_render (myTex, fV1, 1);
   fnt->draw ();
 }
 void Main::pause () {
 }
 Main::~Main () {
-  engine::graph->delete_mesh(mp);
-  engine::graph->delete_texture(myTex);
+  engine::graph->delete_mesh (mp);
+  delete myTex;
   delete[] fV;
   delete[] fV1;
   delete fnt;

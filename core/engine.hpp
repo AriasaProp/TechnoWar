@@ -70,6 +70,7 @@ struct asset_core {
 };
 struct assets_core {
   virtual asset_core *open_asset (const char *) = 0;
+  virtual void *asset_buffer(const char*, unsigned int *) = 0;
   virtual ~assets_core () {}
 };
 extern graphics_core *graph;
