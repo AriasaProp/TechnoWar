@@ -21,7 +21,7 @@ struct a_asset: public engine::asset_core {
 	}
 };
 engine::asset_core *android_asset::open_asset(const char *filename) {
-	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_UNKNOWN));
+	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {
 	engine::asset = this;
