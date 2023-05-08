@@ -16,7 +16,9 @@
 engine::flat_vertex texlst[2048*4];
 
 bool BMFont::ParseFont(const char *fontfile ) {
-  std::string buffer(engine::asset->asset_buffer(fontfile, nullptr));
+  unsigned int asl;
+  const char *as = (const char*) engine::asset->asset_buffer(fontfile, &asl);
+  std::string buffer(as,asl);
 	std::stringstream buffer_stream(buffer);
 	std::string Line;
 	std::string Read, Key, Value;
