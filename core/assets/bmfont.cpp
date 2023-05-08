@@ -126,7 +126,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Converter >> K.Amount;
       }
       // wrlog("Done with this pass");
-      Kearn.insert (K);
+      Kearn.push_back (K);
     }
   }
   return true;
