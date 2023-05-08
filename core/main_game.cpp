@@ -1,7 +1,7 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-#include "assets/bitmapfont.hpp"
+#include "assets/bmfont.hpp"
 #include "assets/stb_image.hpp"
 #include "math/matrix4.hpp"
 #include <chrono>
@@ -19,9 +19,9 @@ Main::Main () {
   fnt = new bmfont ("default.fnt");
   int x, y;
   unsigned int datRI;
-  void *datR = engine::asset->asset_buffer ("test.jpeg", &datRI);
-  unsigned char *tD = stbi_load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
-  free (datR);
+  void *datR = engine::asset->asset_buffer("test.jpeg", &datRI);
+  unsigned char *tD = stbi_load_from_memory ((unsigned char const*)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
+  free(datR);
   myTex = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
   engine::mesh_core::data vert[24] = {
@@ -88,7 +88,7 @@ void Main::render () {
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
   engine::graph->flat_render (myTex, fV1, 1);
-  fnt->PrintCenter (engine::graph->getHeight () / 2.f, "Hello World!");
+  fnt->PrintCenter (engine::graph->getHeight()/2.f, "Hello World!");
 }
 void Main::pause () {
 }
