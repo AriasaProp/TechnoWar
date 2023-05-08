@@ -35,7 +35,7 @@ engine::flat_vertex texlst[2048*4];
 
 bool BMFont::ParseFont(const char *fontfile ) {
   std::string buffer(engine::asset->asset_buffer(fontfile, nullptr));
-	std::stringstream buffer_stream(buffer);
+	std::istringstream buffer_stream(buffer);
 	std::string Line;
 	std::string Read, Key, Value;
 	std::size_t i;
@@ -130,15 +130,15 @@ bool BMFont::ParseFont(const char *fontfile ) {
 				//assign the correct value
 				Converter << Value;
 				if( Key == "count" ) {
+				  int KernCount;
 				  Converter >> KernCount;
+				  Kearn.reserve(KernCount);
 				}
 			}
 		}
 
-		else if( Read == "kerning" )
-		{
-			while( !LineStream.eof() )
-			{
+		else if( Read == "kerning" ) {
+			while( !LineStream.eof() ) {
 				std::stringstream Converter;
 				LineStream >> Read;
 				i = Read.find( '=' );
@@ -164,39 +164,27 @@ bool BMFont::ParseFont(const char *fontfile ) {
 }
 
 
-int BMFont::GetKerningPair(int first, int second)
-{
-		
-	 if (KernCount ) //Only process if there actually is kerning information
-	 {
-	 //Kearning is checked for every character processed. This is expensive in terms of processing time.
-	 	 for (int j = 0; j < KernCount; j++ )
-		 {
-			if (Kearn[j].First == first && Kearn[j].Second == second)
-			 { 
-				 return Kearn[j].Amount;
-			   //wrlog("Kerning Pair Found!!!");
-				 // wrlog("FIRST: %d SECOND: %d offset %d",first,second,koffset);
-			 }
-		 }
-	 }
-
-return 0;
+int BMFont::GetKerningPair(int first, int second) {
+	if (!Kearn.empty()) { //Only process if there actually is kerning information 
+  //Kearning is checked for every character processed. This is expensive in terms of processing time.
+    for (size_t i = 0, n = Kern.size(); i < n; i++ ) {
+    	if (Kearn[i].First == first && Kearn[i].Second == second) { 
+    		 return Kearn[i].Amount;
+      }
+    }
+  }
+  return 0;
 }
 
 
-float BMFont::GetStringWidth(const char *string)
-{
- float total=0;
- CharDescriptor *f;
-
- for (int i = 0; i != strlen(string); i++)
-  { 
-	 f=&Chars[string[i]];
-   total+=f->XAdvance;
+float BMFont::GetStringWidth(const char *string) {
+  float total = 0;
+  CharDescriptor *f;
+  for (size_t i = 0, n = strlen(string); i < n; i++) { 
+    f=&Chars[string[i]];
+    total+=f->XAdvance;
   }
-
- return total * fscale;
+  return total * fscale;
 }
 
 void BMFont::Print(float x, float y, const char *fmt, ...) {
@@ -269,10 +257,9 @@ void BMFont::Print(float x, float y, const char *fmt, ...) {
 void BMFont::PrintCenter( float y, const char *string) {
 	int x=0;
 	CharDescriptor *f;		 
-	int len = ;
-	for (size_t i = 0, n = strlen(string); i != n; ++i) {
+	for (size_t i = 0, n = strlen(string); i < n; i++) {
 		f=&Chars[string[i]];
-		if (n > 1 && i < n) { 
+		if (n > 1) { 
 		  x += GetKerningPair(string[i],string[i+1]);
 		}
 		x += f->XAdvance;
@@ -280,7 +267,7 @@ void BMFont::PrintCenter( float y, const char *string) {
 
 	Print( (engine::graph->getWidth()/2.f) - (x/2) , y, string);
 }
-BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), KernCount(0), ftexid(nullptr), fblend(0), fscale(1.0){
+BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), ftexid(nullptr), fblend(0), fscale(1.0){
 	int x, y, datRI;
 	void *datR = engine::asset->asset_buffer(replace_str(fontfile,".fnt", ".png"), &datRI);
   unsigned char *tD = stbi_load_from_memory ((unsigned char const*)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
@@ -288,7 +275,6 @@ BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), KernCount(0), ftexid(n
   ftexid = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
 	ParseFont(fontfile);
-	KernCount = (int) Kearn.size();
 }
 
 BMFont::~BMFont() {

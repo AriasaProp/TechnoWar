@@ -53,7 +53,6 @@ private:
 	short Height;
 	short Pages;
 	short Outline;
-	short KernCount;
 	std::map<int,CharDescriptor> Chars;
 	std::vector<KearningInfo> Kearn;
 	int fcolor;
@@ -61,7 +60,7 @@ private:
 	float fscale;
 	int fblend;
 
-	bool ParseFont(char *);
+	bool ParseFont(const char *);
 	int GetKerningPair(int, int);
 	float GetStringWidth(const char *);
 
