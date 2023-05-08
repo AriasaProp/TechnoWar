@@ -1,7 +1,7 @@
 #ifndef __BMFONT__
 #define __BMFONT__
 
-#include <unordered_set>
+#include <set>
 #include <unordered_map>
 
 #ifndef MAKE_RGBA
@@ -59,7 +59,7 @@ private:
 	short Pages;
 	short Outline;
 	std::unordered_map<int,CharDescriptor> Chars;
-	std::unordered_set<KearningInfo> Kearn;
+	std::set<KearningInfo> Kearn;
 	int fcolor;
 	engine::texture_core *ftexid;
 	float fscale;
