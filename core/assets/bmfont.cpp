@@ -50,7 +50,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           fscale = fontSize;
         }
       }
-      if (fscale < 1.f) fscale = 24.f;
+      fscale = 2.f;
     } else if (Read == "common") {
       // this holds common data
       while (!LineStream.eof ()) {
