@@ -71,12 +71,12 @@ Main::Main () {
 }
 void Main::resume () {
 }
-std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now (), end;
+std::chrono::time_point<std::chrono::high_resolution_clock> startP = std::chrono::high_resolution_clock::now(), endP;
 float delta = 0;
 void Main::render () {
-  end = std::chrono::high_resolution_clock::now ();
-  delta = float (std::chrono::duration_cast<std::chrono::microseconds> (end - start).count ()) / 1000000.f;
-  start = end;
+  endP = std::chrono::high_resolution_clock::now();
+  delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - startP).count ()) / 1000000.f;
+  startP = endP;
   engine::inpt->process_event ();
   engine::graph->clear (7);
 
