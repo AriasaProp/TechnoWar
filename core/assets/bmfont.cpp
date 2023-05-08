@@ -33,7 +33,7 @@ static inline char *replace_str(char *str, char *orig, char *rep) {
 engine::flat_vertex texlst[2048*4];
 
 
-bool BMFont::ParseFont(char *fontfile ) {
+bool BMFont::ParseFont(const char *fontfile ) {
   std::string buffer(engine::asset->asset_buffer(fontfile, nullptr));
 	std::stringstream buffer_stream(buffer);
 	std::string Line;
@@ -129,8 +129,9 @@ bool BMFont::ParseFont(char *fontfile ) {
 
 				//assign the correct value
 				Converter << Value;
-				if( Key == "count" )
-				   {Converter >> KernCount; }
+				if( Key == "count" ) {
+				  Converter >> KernCount;
+				}
 			}
 		}
 
@@ -147,13 +148,11 @@ bool BMFont::ParseFont(char *fontfile ) {
 				//assign the correct value
 				Converter << Value;
 				if( Key == "first" )
-				{Converter >> K.First;}
-				
+				  Converter >> K.First;
 				else if( Key == "second" )
-				{Converter >> K.Second; }
-				
+				  Converter >> K.Second;
 				else if( Key == "amount" )
-				{Converter >> K.Amount;}
+				  Converter >> K.Amount;
  			}
 			//wrlog("Done with this pass");
 			Kearn.push_back(K);

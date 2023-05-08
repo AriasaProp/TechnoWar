@@ -8,31 +8,12 @@
 #define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
 #endif
 
-#ifndef GET_BLUE
-#define GET_BLUE(rgba) (( (rgba)>>16 ) & 0xff )
-#endif
- 
-#ifndef GET_GREEN
-#define GET_GREEN(rgba) (( (rgba)>>8 ) & 0xff )
-#endif
- 
-#ifndef GET_RED
-#define GET_RED(rgba) ( rgba & 0xff )
-#endif
-
-#ifndef GET_ALPHA
-#define GET_ALPHA(rgba) (( (rgba)>>24 ) & 0xff)
-#endif
-
 using namespace std;
 
-class KearningInfo {
-public:
+struct KearningInfo {
 	short First;
 	short Second;
 	short Amount;
-
-	KearningInfo() :  First( 0 ), Second( 0 ), Amount( 0 )	{ }
 };
 
 
@@ -62,7 +43,7 @@ public:
 	float GetHeight(){return LineHeight * fscale;}
 	void Print(float, float, const char *,...);
 	void PrintCenter( float, const char *);
-	BMFont();
+	BMFont(const char*);
 	~BMFont();
 
 private:
