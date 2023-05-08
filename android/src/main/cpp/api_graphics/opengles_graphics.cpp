@@ -134,9 +134,10 @@ void opengles_graphics::render() {
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
 			//enable blend
+			/*
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			
+			*/
 			GLuint vi, fi;
 			//flat draw
 			{
