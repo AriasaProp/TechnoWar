@@ -45,9 +45,12 @@ bool bmfont::ParseFont(const char *fontfile ) {
         // assign the correct value
         Converter << Value;
         if (Key == "size") {
-          Converter >> fscale;
+          short fontSize;
+          Converter >> fontSize;
+          fscale = fontSize;
         }
       }
+      if (fscale < 1.f) fscale = 24.f;
     } else if (Read == "common") {
       // this holds common data
       while (!LineStream.eof ()) {
