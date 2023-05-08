@@ -162,12 +162,8 @@ float bmfont::GetStringWidth (const char *string) {
 }
 
 void bmfont::Print (float x, float y, const char *fmt, ...) {
-  float CurX = (float)x;
-  float CurY = (float)y;
-  float DstX = 0.0;
-  float DstY = 0.0;
-  int Flen;
-  float adv = (float)1.0 / Width; // Font texture atlas spacing.
+  float x1, y1,x2, y2;
+  float adv = 1.0 / (float)Width; // Font texture atlas spacing.
   char text[512] = "";            // Holds Our String
   CharDescriptor *f;              // Pointer to font.
   va_list ap;                     // Pointer To List Of Arguments
@@ -177,49 +173,47 @@ void bmfont::Print (float x, float y, const char *fmt, ...) {
   vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
   va_end (ap);
 
-  y = y + LineHeight;
-  Flen = strlen (text);
+  y += LineHeight;
 
-  for (int i = 0; i != Flen; ++i) {
-
+  for (size_t i = 0, n = strlen(text); i < n; i++) {
     f = &Chars[text[i]];
+    // max, min
+    x1 = x + f->XOffset; //minx
+    y1 = y - f->YOffset; //maxy
+    x2 = x1 + f->Width; //maxx
+    y2 = y1 - f->Height; //miny
 
-    CurX = x + f->XOffset;
-    CurY = y - f->YOffset;
-    DstX = CurX + f->Width;
-    DstY = CurY - f->Height;
-
-    // 0,1 Texture Coord
+    // 0,1 Texture Coord, minxy
     texlst[i * 4].u = adv * f->x;
-    texlst[i * 4].v = (float)1.0 - (adv * (f->y + f->Height));
-    texlst[i * 4].x = (float)fscale * CurX;
-    texlst[i * 4].y = (float)fscale * DstY;
+    texlst[i * 4].v = adv * (f->y + f->Height);
+    texlst[i * 4].x = fscale * x1;
+    texlst[i * 4].y = fscale * y2;
     memcpy (texlst[i * 4].color, &fcolor, 4 * sizeof (unsigned char));
 
-    // 0,0 Texture Coord
+    // 0,0 Texture Coord, minx maxy
     texlst[(i * 4) + 1].u = adv * f->x;
-    texlst[(i * 4) + 1].v = (float)1.0 - (adv * f->y);
-    texlst[(i * 4) + 1].x = (float)fscale * CurX;
-    texlst[(i * 4) + 1].y = (float)fscale * CurY;
+    texlst[(i * 4) + 1].v = adv * f->y;
+    texlst[(i * 4) + 1].x = fscale * x1;
+    texlst[(i * 4) + 1].y = fscale * y1;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
-    // 1,1 Texture Coord
+    // 1,1 Texture Coord, maxxy
     texlst[(i * 4) + 2].u = adv * (f->x + f->Width);
-    texlst[(i * 4) + 2].v = (float)1.0 - (adv * (f->y + f->Height));
-    texlst[(i * 4) + 2].x = (float)fscale * DstX;
-    texlst[(i * 4) + 2].y = (float)fscale * DstY;
+    texlst[(i * 4) + 2].v = adv * (f->y + f->Height);
+    texlst[(i * 4) + 2].x = fscale * x2;
+    texlst[(i * 4) + 2].y = fscale * y1;
     memcpy (texlst[(i * 4) + 2].color, &fcolor, 4 * sizeof (unsigned char));
 
-    // 1,0 Texture Coord
+    // 1,0 Texture Coord, maxx miny
     texlst[(i * 4) + 3].u = adv * (f->x + f->Width);
-    texlst[(i * 4) + 3].v = (float)1.0 - (adv * f->y);
-    texlst[(i * 4) + 3].x = (float)fscale * DstX;
-    texlst[(i * 4) + 3].y = (float)fscale * CurY;
+    texlst[(i * 4) + 3].v = adv * f->y;
+    texlst[(i * 4) + 3].x = fscale * x2;
+    texlst[(i * 4) + 3].y = fscale * y2;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
     // Only check kerning if there is greater then 1 character and
     // if the check character is 1 less then the end of the string.
-    if (Flen > 1 && i < Flen) {
+    if (n > 1) {
       x += GetKerningPair (text[i], text[i + 1]);
     }
 
