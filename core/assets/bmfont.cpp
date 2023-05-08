@@ -14,7 +14,7 @@
 
 engine::flat_vertex texlst[2048 * 4];
 
-bool BMFont::ParseFont(const char *fontfile ) {
+bool bmfont::ParseFont(const char *fontfile ) {
   unsigned int asl;
   const char *as = (const char*) engine::asset->asset_buffer(fontfile, &asl);
   std::string buffer(as,asl);
@@ -139,7 +139,7 @@ bool BMFont::ParseFont(const char *fontfile ) {
   return true;
 }
 
-int BMFont::GetKerningPair (int first, int second) {
+int bmfont::GetKerningPair (int first, int second) {
   if (!Kearn.empty ()) { // Only process if there actually is kerning information
     // Kearning is checked for every character processed. This is expensive in terms of processing time.
     for (size_t i = 0, n = Kearn.size (); i < n; i++) {
@@ -151,7 +151,7 @@ int BMFont::GetKerningPair (int first, int second) {
   return 0;
 }
 
-float BMFont::GetStringWidth (const char *string) {
+float bmfont::GetStringWidth (const char *string) {
   float total = 0;
   CharDescriptor *f;
   for (size_t i = 0, n = strlen (string); i < n; i++) {
@@ -161,7 +161,7 @@ float BMFont::GetStringWidth (const char *string) {
   return total * fscale;
 }
 
-void BMFont::Print (float x, float y, const char *fmt, ...) {
+void bmfont::Print (float x, float y, const char *fmt, ...) {
   float CurX = (float)x;
   float CurY = (float)y;
   float DstX = 0.0;
@@ -228,7 +228,7 @@ void BMFont::Print (float x, float y, const char *fmt, ...) {
   engine::graph->flat_render (ftexid, texlst, strlen (text));
 }
 
-void BMFont::PrintCenter (float y, const char *string) {
+void bmfont::PrintCenter (float y, const char *string) {
   int x = 0;
   CharDescriptor *f;
   for (size_t i = 0, n = strlen (string); i < n; i++) {
@@ -241,7 +241,7 @@ void BMFont::PrintCenter (float y, const char *string) {
 
   Print ((engine::graph->getWidth () / 2.f) - (x / 2), y, string);
 }
-BMFont::BMFont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0), fblend (0) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0), fblend (0) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);
@@ -256,7 +256,7 @@ BMFont::BMFont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), f
   stbi_image_free (tD);
 }
 
-BMFont::~BMFont () {
+bmfont::~bmfont() {
   Chars.clear ();
   Kearn.clear ();
   engine::graph->delete_texture (ftexid);

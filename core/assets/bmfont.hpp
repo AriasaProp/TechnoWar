@@ -36,7 +36,7 @@ public:
 	{ }
 };
 
-class BMFont {
+class bmfont {
 public:
 	bool LoadFont(char *);
 	void SetColor(int r, int g, int b, int a) {fcolor = MAKE_RGBA(r,g,b,a);}
@@ -45,8 +45,8 @@ public:
 	float GetHeight(){return LineHeight * fscale;}
 	void Print(float, float, const char *,...);
 	void PrintCenter( float, const char *);
-	BMFont(const char*);
-	~BMFont();
+	bmfont(const char*);
+	~bmfont();
 
 private:
   short LineHeight;

@@ -16,7 +16,7 @@ engine::texture_core *myTex;
 bmfont *fnt;
 
 Main::Main () {
-  fnt = new bmfont ("default.fnt");
+  fnt = new bmfont("default.fnt");
   int x, y;
   unsigned int datRI;
   void *datR = engine::asset->asset_buffer("test.jpeg", &datRI);
