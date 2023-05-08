@@ -88,7 +88,7 @@ void Main::render () {
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
   engine::graph->flat_render (myTex, fV1, 1);
-  fnt->PrintCenter (engine::graph->getHeight()/2.f, "Hello World!");
+  fnt->draw_text (engine::graph->getHeight(), "Hello World!");
 }
 void Main::pause () {
 }

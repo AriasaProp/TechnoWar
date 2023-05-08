@@ -1,50 +1,51 @@
 #ifndef __BMFONT__
 #define __BMFONT__
 
-#include <vector>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 #ifndef MAKE_RGBA
 #define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
 #endif
 
-using namespace std;
-
 #include "../engine.hpp"
+// base 3
+// horizontal = 0 2 1
+// vertical =   3 4 5
+// in binary 0xvvhh b
+enum Align {
+  ALIGN_TOP_LEFT = 0,
+  ALIGN_LEFT,
+  ALIGN_BOTTOM_LEFT,
+  ALIGN_TOP_CENTER,
+  ALIGN_CENTER,
+  ALIGN_BOTTOM_CENTER,
+  ALIGN_TOP_RIGHT,
+  ALIGN_RIGHT,
+  ALIGN_BOTTOM_RIGHT
+};
 
 struct KearningInfo {
-	short First;
-	short Second;
-	short Amount;
+	short First, Second, Amount;
 };
 
-
-class CharDescriptor
-{
-
-public:
-	short x, y;
-	short Width;
-	short Height;
-	short XOffset;
-	short YOffset;
-	short XAdvance;
-	short Page;
-
-	CharDescriptor() : x( 0 ), y( 0 ), Width( 0 ), Height( 0 ), XOffset( 0 ), YOffset( 0 ),
-		XAdvance( 0 ), Page( 0 )
-	{ }
+struct CharDescriptor {
+	short x = 0, y = 0;
+	short Width = 0;
+	short Height = 0;
+	short XOffset = 0, YOffset = 0;
+	short XAdvance = 0;
+	short Page = 0;
+	CharDescriptor();
 };
 
-class bmfont {
+struct bmfont {
 public:
 	bool LoadFont(char *);
 	void SetColor(int r, int g, int b, int a) {fcolor = MAKE_RGBA(r,g,b,a);}
-	void SetBlend(int b) {fblend = b;}
 	void SetScale(float scale){fscale = scale;}
 	float GetHeight(){return LineHeight * fscale;}
-	void Print(float, float, const char *,...);
-	void PrintCenter( float, const char *);
+	void draw_text(float, float, const char *,...);
 	bmfont(const char*);
 	~bmfont();
 
@@ -55,12 +56,11 @@ private:
 	short Height;
 	short Pages;
 	short Outline;
-	std::map<int,CharDescriptor> Chars;
-	std::vector<KearningInfo> Kearn;
+	std::unordered_map<int,CharDescriptor> Chars;
+	std::unordered_set<KearningInfo> Kearn;
 	int fcolor;
 	engine::texture_core *ftexid;
 	float fscale;
-	int fblend;
 
 	bool ParseFont(const char *);
 	int GetKerningPair(int, int);

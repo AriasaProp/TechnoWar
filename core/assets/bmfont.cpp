@@ -9,10 +9,10 @@
 #include <sstream>
 #include <string>
 
+CharDescriptor::CharDescriptor(): x( 0 ), y( 0 ), Width( 0 ), Height( 0 ), XOffset( 0 ), YOffset( 0 ), XAdvance( 0 ), Page( 0 ) { }
+
 // Todo: Add buffer overflow checking.
 //#define MAX_BUFFER 256
-
-engine::flat_vertex texlst[2048 * 4];
 
 bool bmfont::ParseFont(const char *fontfile ) {
   unsigned int asl;
@@ -58,9 +58,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Converter >> Outline;
         }
       }
-    }
-
-    else if (Read == "char") {
+    } else if (Read == "char") {
       // This is data for each specific character.
       int CharID = 0;
 
@@ -93,9 +91,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Converter >> C.Page;
         }
       }
-
-      Chars.insert (std::map<int, CharDescriptor>::value_type (CharID, C));
-
+      Chars[CharID] = C;
     } else if (Read == "kernings") {
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -112,9 +108,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Kearn.reserve (KernCount);
         }
       }
-    }
-
-    else if (Read == "kerning") {
+    } else if (Read == "kerning") {
       while (!LineStream.eof ()) {
         std::stringstream Converter;
         LineStream >> Read;
@@ -132,40 +126,33 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Converter >> K.Amount;
       }
       // wrlog("Done with this pass");
-      Kearn.push_back (K);
+      Kearn.insert (K);
     }
   }
-
   return true;
 }
 
 int bmfont::GetKerningPair (int first, int second) {
-  if (!Kearn.empty ()) { // Only process if there actually is kerning information
-    // Kearning is checked for every character processed. This is expensive in terms of processing time.
-    for (size_t i = 0, n = Kearn.size (); i < n; i++) {
-      if (Kearn[i].First == first && Kearn[i].Second == second) {
+  if (!Kearn.empty ())
+    for (const KerningInfo &ki : Kearn)
+      if (ki.First == first && ki.Second == second)
         return Kearn[i].Amount;
-      }
-    }
-  }
   return 0;
 }
 
-float bmfont::GetStringWidth (const char *string) {
+float bmfont::GetStringWidth (const char *text) {
   float total = 0;
-  CharDescriptor *f;
-  for (size_t i = 0, n = strlen (string); i < n; i++) {
-    f = &Chars[string[i]];
-    total += f->XAdvance;
+  while (*text) {
+    if (Chars.find(*text) == Chars.end()) continue;
+    total += Chars[*text].XAdvance;
+    text++;
   }
   return total * fscale;
 }
 
-void bmfont::Print (float x, float y, const char *fmt, ...) {
-  float x1, y1,x2, y2;
-  float adv = 1.0 / (float)Width; // Font texture atlas spacing.
+void bmfont::draw_text (float x, float y, const char *fmt, ...) {
+  float x1,y1,x2,y2;
   char text[512] = "";            // Holds Our String
-  CharDescriptor *f;              // Pointer to font.
   va_list ap;                     // Pointer To List Of Arguments
   if (fmt == NULL)                // If There's No Text
     return;                       // Do Nothing
@@ -174,41 +161,43 @@ void bmfont::Print (float x, float y, const char *fmt, ...) {
   va_end (ap);
 
   y += LineHeight;
-
-  for (size_t i = 0, n = strlen(text); i < n; i++) {
-    f = &Chars[text[i]];
+  const size_t n = strlen(text);
+  engine::flat_vertex *texlst = alloca(i * 4 * sizeof(engine::flat_vertex));
+  for (size_t i = 0; i < n; i++) {
+    if (Chars.find(text[i]) == Chars.end()) continue;
+    const CharDescriptor &f = Chars[text[i]];
     // max, min
-    x1 = x + f->XOffset; //minx
-    y1 = y - f->YOffset; //maxy
-    x2 = x1 + f->Width; //maxx
-    y2 = y1 - f->Height; //miny
+    x1 = x + f.XOffset; //minx
+    y1 = y - f.YOffset; //maxy
+    x2 = x1 + f.Width; //maxx
+    y2 = y1 - f.Height; //miny
 
     // 0,1 Texture Coord, minxy
-    texlst[i * 4].u = adv * f->x;
-    texlst[i * 4].v = adv * (f->y + f->Height);
+    texlst[i * 4].u = f.x / (float)Width;
+    texlst[i * 4].v = (f.y + f.Height) / (float)Height;
     texlst[i * 4].x = fscale * x1;
     texlst[i * 4].y = fscale * y2;
     memcpy (texlst[i * 4].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 0,0 Texture Coord, minx maxy
-    texlst[(i * 4) + 1].u = adv * f->x;
-    texlst[(i * 4) + 1].v = adv * f->y;
+    texlst[(i * 4) + 1].u = f.x / (float)Width;
+    texlst[(i * 4) + 1].v = f.y / (float)Height;
     texlst[(i * 4) + 1].x = fscale * x1;
     texlst[(i * 4) + 1].y = fscale * y1;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 1,1 Texture Coord, maxxy
-    texlst[(i * 4) + 2].u = adv * (f->x + f->Width);
-    texlst[(i * 4) + 2].v = adv * (f->y + f->Height);
+    texlst[(i * 4) + 2].u = (f.x + f.Width) / (float)Width;
+    texlst[(i * 4) + 2].v = (f.y + f.Height) / (float)Height;
     texlst[(i * 4) + 2].x = fscale * x2;
-    texlst[(i * 4) + 2].y = fscale * y1;
+    texlst[(i * 4) + 2].y = fscale * y2;
     memcpy (texlst[(i * 4) + 2].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 1,0 Texture Coord, maxx miny
-    texlst[(i * 4) + 3].u = adv * (f->x + f->Width);
-    texlst[(i * 4) + 3].v = adv * f->y;
+    texlst[(i * 4) + 3].u = (f.x + f.Width) / (float)Width;
+    texlst[(i * 4) + 3].v = f.y / (float)Height;
     texlst[(i * 4) + 3].x = fscale * x2;
-    texlst[(i * 4) + 3].y = fscale * y2;
+    texlst[(i * 4) + 3].y = fscale * y1;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
     // Only check kerning if there is greater then 1 character and
@@ -216,26 +205,24 @@ void bmfont::Print (float x, float y, const char *fmt, ...) {
     if (n > 1) {
       x += GetKerningPair (text[i], text[i + 1]);
     }
-
-    x += f->XAdvance;
+    x += f.XAdvance;
   }
-  engine::graph->flat_render (ftexid, texlst, strlen (text));
+  engine::graph->flat_render(ftexid, texlst, n);
 }
 
-void bmfont::PrintCenter (float y, const char *string) {
+void bmfont::PrintCenter (float y, const char *text) {
   int x = 0;
-  CharDescriptor *f;
-  for (size_t i = 0, n = strlen (string); i < n; i++) {
-    f = &Chars[string[i]];
-    if (n > 1) {
-      x += GetKerningPair (string[i], string[i + 1]);
+  while (*text) {
+    if (Chars.find(*text)==Chars.end()) continue;
+    if (*(text+1)) {
+      x += GetKerningPair (*text, *(text+1));
     }
-    x += f->XAdvance;
+    x += Chars[*text].XAdvance;
+    text++;
   }
-
   Print ((engine::graph->getWidth () / 2.f) - (x / 2), y, string);
 }
-bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0), fblend (0) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);
