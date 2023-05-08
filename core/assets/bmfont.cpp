@@ -209,8 +209,7 @@ void bmfont::draw_text (float x, float y, const char *fmt, ...) {
   }
   engine::graph->flat_render(ftexid, texlst, n);
 }
-template<typename... Args>
-void bmfont::draw_text_center (float y, const char *t, Args...args) {
+void bmfont::draw_text_center (float y, const char *t) {
   int x = 0;
   for (const char *text = t; *text; text++) {
     if (Chars.find(*text)==Chars.end()) continue;
@@ -220,7 +219,7 @@ void bmfont::draw_text_center (float y, const char *t, Args...args) {
     x += Chars[*text].XAdvance;
     text++;
   }
-  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, t, args...);
+  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, t);
 }
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0) {
   int x, y;

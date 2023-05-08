@@ -46,8 +46,7 @@ public:
 	void SetScale(float scale){fscale = scale;}
 	float GetHeight(){return LineHeight * fscale;}
 	void draw_text(float, float, const char *,...);
-	template<typename... Args>
-	void draw_text_center (float, const char *, Args...);
+	void draw_text_center (float, const char *);
 	bmfont(const char*);
 	~bmfont();
 
