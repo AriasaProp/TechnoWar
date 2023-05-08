@@ -10,32 +10,14 @@
 #include <sstream> 
 #include <memory> 
 
-
 //Todo: Add buffer overflow checking.
-
-#define MAX_BUFFER 256
-
-static inline char *replace_str(char *str, char *orig, char *rep) {
- static char buffer[MAX_BUFFER];
- char *p;
-
- if(!(p = strstr(str, orig))) // Is 'orig' even in 'str'?
-  return str;
-
- strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
- buffer[p-str] = '\0';
-
- sprintf(buffer+(p-str), "%s%s", rep, p+strlen(orig));
-
- return buffer;
-}
+//#define MAX_BUFFER 256
 
 engine::flat_vertex texlst[2048*4];
 
-
 bool BMFont::ParseFont(const char *fontfile ) {
   std::string buffer(engine::asset->asset_buffer(fontfile, nullptr));
-	std::istringstream buffer_stream(buffer);
+	std::stringstream buffer_stream(buffer);
 	std::string Line;
 	std::string Read, Key, Value;
 	std::size_t i;
@@ -43,8 +25,7 @@ bool BMFont::ParseFont(const char *fontfile ) {
 	KearningInfo K;
 	CharDescriptor C;
 
-	while( !buffer_stream.eof() )
-	{
+	while(!buffer_stream.eof()) {
 		std::stringstream LineStream;
 		std::getline( buffer_stream, Line );
 		LineStream << Line;
@@ -159,7 +140,6 @@ bool BMFont::ParseFont(const char *fontfile ) {
 		}
 	}
 
-	buffer_stream.close();
 	return true;
 }
 
@@ -167,7 +147,7 @@ bool BMFont::ParseFont(const char *fontfile ) {
 int BMFont::GetKerningPair(int first, int second) {
 	if (!Kearn.empty()) { //Only process if there actually is kerning information 
   //Kearning is checked for every character processed. This is expensive in terms of processing time.
-    for (size_t i = 0, n = Kern.size(); i < n; i++ ) {
+    for (size_t i = 0, n = Kearn.size(); i < n; i++ ) {
     	if (Kearn[i].First == first && Kearn[i].Second == second) { 
     		 return Kearn[i].Amount;
       }
@@ -267,14 +247,18 @@ void BMFont::PrintCenter( float y, const char *string) {
 
 	Print( (engine::graph->getWidth()/2.f) - (x/2) , y, string);
 }
-BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), ftexid(nullptr), fblend(0), fscale(1.0){
+BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), ftexid(nullptr), fscale(1.0), fblend(0) {
 	int x, y, datRI;
-	void *datR = engine::asset->asset_buffer(replace_str(fontfile,".fnt", ".png"), &datRI);
+	ParseFont(fontfile);
+	char *texfile = new char[strlen(fontfile)];
+	memcpy(texfile, fontfile, strlen(fontfile));
+	memcpy(strstr(texfile, ".fnt"), ".png", 4);
+	void *datR = engine::asset->asset_buffer(texfile, &datRI);
+	delete[] texfile;
   unsigned char *tD = stbi_load_from_memory ((unsigned char const*)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
   free(datR);
   ftexid = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
-	ParseFont(fontfile);
 }
 
 BMFont::~BMFont() {
