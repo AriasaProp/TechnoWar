@@ -15,6 +15,7 @@ jobs:
           git config --global user.name "AriasaProp"
           sudo apt-get install -y clang-format
           clang-format -i **/*.cpp **/*.hpp
+          clang-format -i core/assets/*.cpp core/assets/*.hpp
           git add .
           git commit -m "reformating cpp"
           git push

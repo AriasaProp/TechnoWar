@@ -248,7 +248,8 @@ void BMFont::PrintCenter( float y, const char *string) {
 	Print( (engine::graph->getWidth()/2.f) - (x/2) , y, string);
 }
 BMFont::BMFont(const char *fontfile): fcolor(0xffffffff), ftexid(nullptr), fscale(1.0), fblend(0) {
-	int x, y, datRI;
+	int x, y;
+	unsigned int datRI;
 	ParseFont(fontfile);
 	char *texfile = new char[strlen(fontfile)];
 	memcpy(texfile, fontfile, strlen(fontfile));
