@@ -33,7 +33,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
 
     // read the line's type
     LineStream >> Read;
-    if (Read == "info") {
+    /*if (Read == "info") {
       // this holds info data
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -50,8 +50,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
           fscale = fontSize;
         }
       }
-      fscale = 2.f;
-    } else if (Read == "common") {
+    } else */if (Read == "common") {
       // this holds common data
       while (!LineStream.eof ()) {
         std::stringstream Converter;
