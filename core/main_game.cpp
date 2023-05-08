@@ -13,10 +13,10 @@
 engine::mesh_core *mp;
 engine::flat_vertex *fV, *fV1;
 engine::texture_core *myTex;
-bitmapfont *fnt;
+bmfont *fnt;
 
 Main::Main () {
-  fnt = new bitmapfont ("default.fnt", "default.png");
+  fnt = new bmfont ("default.fnt");
   int x, y;
   unsigned int datRI;
   void *datR = engine::asset->asset_buffer("test.jpeg", &datRI);
@@ -88,7 +88,7 @@ void Main::render () {
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
   engine::graph->flat_render (myTex, fV1, 1);
-  fnt->draw ();
+  fnt->PrintCenter (engine::graph->getHeight()/2.f, "Hello World!");
 }
 void Main::pause () {
 }

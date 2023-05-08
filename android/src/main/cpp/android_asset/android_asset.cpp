@@ -23,8 +23,10 @@ struct a_asset: public engine::asset_core {
 engine::asset_core *android_asset::open_asset(const char *filename) {
 	return new a_asset(AAssetManager_open(assetmanager, filename, AASSET_MODE_STREAMING));
 }
-void *android_asset::asset_buffer(const char *filename, unsigned int *outLen) {
+void *android_asset::asset_buffer(const char *filename, unsigned int *o) {
 	AAsset *asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_BUFFER);
+	unsigned int *outLen = o;
+	if (!outLen) outLen = new unsigned int;
   *outLen = AAsset_getLength(asset);
   void *result = malloc(*outLen);
   memcpy(result, AAsset_getBuffer(asset), *outLen);
