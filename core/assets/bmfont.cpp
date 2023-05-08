@@ -156,13 +156,13 @@ void bmfont::draw_text (float x, float y, const char *fmt, ...) {
   va_list ap;                     // Pointer To List Of Arguments
   if (fmt == NULL)                // If There's No Text
     return;                       // Do Nothing
-  va_start (ap, fmt);             // Parses The String For Variables
-  vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
-  va_end (ap);
+  std::va_start (ap, fmt);             // Parses The String For Variables
+  std::vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
+  std::va_end (ap);
 
   y += LineHeight;
   const size_t n = strlen(text);
-  engine::flat_vertex *texlst = alloca(i * 4 * sizeof(engine::flat_vertex));
+  engine::flat_vertex *texlst = alloca(n * 4 * sizeof(engine::flat_vertex));
   for (size_t i = 0; i < n; i++) {
     if (Chars.find(text[i]) == Chars.end()) continue;
     const CharDescriptor &f = Chars[text[i]];
@@ -209,10 +209,10 @@ void bmfont::draw_text (float x, float y, const char *fmt, ...) {
   }
   engine::graph->flat_render(ftexid, texlst, n);
 }
-
-void bmfont::PrintCenter (float y, const char *text) {
+template<typename... Args>
+void bmfont::draw_text_center (float y, const char *t, Args...args) {
   int x = 0;
-  while (*text) {
+  for (const char *text = t; *text; text++) {
     if (Chars.find(*text)==Chars.end()) continue;
     if (*(text+1)) {
       x += GetKerningPair (*text, *(text+1));
@@ -220,7 +220,7 @@ void bmfont::PrintCenter (float y, const char *text) {
     x += Chars[*text].XAdvance;
     text++;
   }
-  Print ((engine::graph->getWidth () / 2.f) - (x / 2), y, string);
+  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, t, args...);
 }
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0) {
   int x, y;
