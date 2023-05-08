@@ -134,9 +134,9 @@ bool bmfont::ParseFont(const char *fontfile ) {
 
 int bmfont::GetKerningPair (int first, int second) {
   if (!Kearn.empty ())
-    for (const KerningInfo &ki : Kearn)
+    for (const KearningInfo &ki : Kearn)
       if (ki.First == first && ki.Second == second)
-        return Kearn[i].Amount;
+        return ki.Amount;
   return 0;
 }
 
@@ -156,13 +156,13 @@ void bmfont::draw_text (float x, float y, const char *fmt, ...) {
   va_list ap;                     // Pointer To List Of Arguments
   if (fmt == NULL)                // If There's No Text
     return;                       // Do Nothing
-  std::va_start (ap, fmt);             // Parses The String For Variables
-  std::vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
-  std::va_end (ap);
+  va_start (ap, fmt);             // Parses The String For Variables
+  vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
+  va_end (ap);
 
   y += LineHeight;
   const size_t n = strlen(text);
-  engine::flat_vertex *texlst = alloca(n * 4 * sizeof(engine::flat_vertex));
+  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
   for (size_t i = 0; i < n; i++) {
     if (Chars.find(text[i]) == Chars.end()) continue;
     const CharDescriptor &f = Chars[text[i]];
