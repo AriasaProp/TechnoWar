@@ -167,7 +167,8 @@ float bmfont::GetStringWidth (const char *text) {
   return total * fscale;
 }
 
-void bmfont::draw_text (float x, float y, const char *fmt, ...) {
+void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
+  (void)align;
   float x1,y1,x2,y2;
   char text[512] = "";            // Holds Our String
   va_list ap;                     // Pointer To List Of Arguments
@@ -184,37 +185,37 @@ void bmfont::draw_text (float x, float y, const char *fmt, ...) {
     if (Chars.find(text[i]) == Chars.end()) continue;
     const CharDescriptor &f = Chars[text[i]];
     // max, min
-    x1 = x + f.XOffset; //minx
-    y1 = y - f.YOffset; //maxy
-    x2 = x1 + f.Width; //maxx
-    y2 = y1 - f.Height; //miny
+    x1 = x + (f.XOffset * fscale); //minx
+    y1 = y - (f.YOffset * fscale);  //maxy
+    x2 = x1 + (f.Width * fscale); //maxx
+    y2 = y1 - (f.Height * fscale);  //miny
 
     // 0,1 Texture Coord, minxy
     texlst[i * 4].u = f.x / (float)Width;
     texlst[i * 4].v = (f.y + f.Height) / (float)Height;
-    texlst[i * 4].x = fscale * x1;
-    texlst[i * 4].y = fscale * y2;
+    texlst[i * 4].x = x1;
+    texlst[i * 4].y = y2;
     memcpy (texlst[i * 4].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 0,0 Texture Coord, minx maxy
     texlst[(i * 4) + 1].u = f.x / (float)Width;
     texlst[(i * 4) + 1].v = f.y / (float)Height;
-    texlst[(i * 4) + 1].x = fscale * x1;
-    texlst[(i * 4) + 1].y = fscale * y1;
+    texlst[(i * 4) + 1].x = x1;
+    texlst[(i * 4) + 1].y = y1;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 1,1 Texture Coord, maxxy
     texlst[(i * 4) + 2].u = (f.x + f.Width) / (float)Width;
     texlst[(i * 4) + 2].v = (f.y + f.Height) / (float)Height;
-    texlst[(i * 4) + 2].x = fscale * x2;
-    texlst[(i * 4) + 2].y = fscale * y2;
+    texlst[(i * 4) + 2].x = x2;
+    texlst[(i * 4) + 2].y = y2;
     memcpy (texlst[(i * 4) + 2].color, &fcolor, 4 * sizeof (unsigned char));
 
     // 1,0 Texture Coord, maxx miny
     texlst[(i * 4) + 3].u = (f.x + f.Width) / (float)Width;
     texlst[(i * 4) + 3].v = f.y / (float)Height;
-    texlst[(i * 4) + 3].x = fscale * x2;
-    texlst[(i * 4) + 3].y = fscale * y1;
+    texlst[(i * 4) + 3].x = x2;
+    texlst[(i * 4) + 3].y = y1;
     memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
 
     // Only check kerning if there is greater then 1 character and
@@ -236,9 +237,9 @@ void bmfont::draw_text_center (float y, const char *t) {
     x += Chars[*text].XAdvance;
     text++;
   }
-  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, t);
+  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, ALIGN_TOP_LEFT, t);
 }
-bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.0) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (4.f) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);

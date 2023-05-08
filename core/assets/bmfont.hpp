@@ -45,7 +45,7 @@ public:
 	void SetColor(int r, int g, int b, int a) {fcolor = MAKE_RGBA(r,g,b,a);}
 	void SetScale(float scale){fscale = scale;}
 	float GetHeight(){return LineHeight * fscale;}
-	void draw_text(float, float, const char *,...);
+	void draw_text(float, float, Align, const char *,...);
 	void draw_text_center (float, const char *);
 	bmfont(const char*);
 	~bmfont();
