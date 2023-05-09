@@ -9,7 +9,8 @@
 #endif
 
 #include "../engine.hpp"
-enum Align {
+// xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
+enum Align : unsigned char{
   ALIGN_TOP_LEFT = 0,
   ALIGN_LEFT = 4,
   ALIGN_BOTTOM_LEFT = 8,
@@ -31,7 +32,6 @@ public:
 	void SetScale(float scale){fscale = scale;}
 	float GetHeight(){return LineHeight * fscale;}
 	void draw_text(float, float, Align, const char *,...);
-	void draw_text_center (float, const char *);
 	bmfont(const char*);
 	~bmfont();
 

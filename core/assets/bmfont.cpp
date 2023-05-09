@@ -186,16 +186,56 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   char text[1024] = "";            // Holds Our String
   vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
   va_end (ap);
-
-  (void)align;
+  unsigned char xpivot = align & 3;
+  switch (xpivot) {
+    default:
+    case 0://left
+      break;
+    case 1: { //center
+      float X = 0;
+      for (const char *t = text; *t; t++) {
+        if (Chars.find(*t)==Chars.end()) continue;
+        if (*(t+1)) {
+          X += (float)GetKerningPair (*t, *(t+1));
+        }
+        X += (float)Chars[*t].XAdvance;
+        t++;
+      }
+      x -= X * fscale * 0.5f;
+      break;
+    }
+    case 2: {
+      float X = 0;
+      for (const char *t = text; *t; t++) {
+        if (Chars.find(*t)==Chars.end()) continue;
+        if (*(t+1)) {
+          X += (float)GetKerningPair (*t, *(t+1));
+        }
+        X += (float)Chars[*t].XAdvance;
+        t++;
+      }
+      x -= X * fscale;
+      break;
+    }
+  }
+  unsigned char ypivot = (align >> 2);
+  switch (ypivot) {
+    default:
+    case 0:
+      break;
+    case 1:
+      y += LineHeight * 0.5f;
+      break;
+    case 2:
+      y += LineHeight;
+      break;
+  }
   float x1,y1,x2,y2, u1, v1, u2, v2;
-  y += LineHeight;
-  const size_t n = strlen(text);
-  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
+  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(strlen(text) * 4 * sizeof(engine::flat_vertex));
   engine::flat_vertex *cur_tex = texlst;
-  for (size_t i = 0; i < n; i++) {
-    if (Chars.find(text[i]) == Chars.end()) continue;
-    const CharDescriptor &f = Chars[text[i]];
+  for (const char *t = text; *t; t++) {
+    if (Chars.find(*t) == Chars.end()) continue;
+    const CharDescriptor &f = Chars[*t];
     // max, min
     x1 = x + (f.XOffset * fscale); //minx
     y1 = y - (f.YOffset * fscale);  //maxy
@@ -238,28 +278,14 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
 
     cur_tex++;
-    // Only check kerning if there is greater then 1 character and
-    // if the check character is 1 less then the end of the string.
-    if (n > 1) {
-      x += GetKerningPair (text[i], text[i + 1]) * fscale;
+    if (*(t+1)) {
+      x += GetKerningPair (*t, *(t+1)) * fscale;
     }
     x += f.XAdvance * fscale;
   }
   engine::graph->flat_render(ftexid, texlst, n);
 }
-void bmfont::draw_text_center (float y, const char *t) {
-  float x = 0;
-  for (const char *text = t; *text; text++) {
-    if (Chars.find(*text)==Chars.end()) continue;
-    if (*(text+1)) {
-      x += (float)GetKerningPair (*text, *(text+1));
-    }
-    x += (float)Chars[*text].XAdvance;
-    text++;
-  }
-  x *= fscale * 0.5f;
-  draw_text ((engine::graph->getWidth () * 0.5f) - x, y, ALIGN_TOP_LEFT, t);
-}
+
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
   int x, y;
   unsigned int datRI;
