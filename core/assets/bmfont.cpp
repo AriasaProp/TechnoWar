@@ -287,7 +287,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   engine::graph->flat_render(ftexid, texlst, n);
 }
 void bmfont::SetColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  memcpy(&fcolor, (unsigned char[]){r,g,b,a}, sizeof(unsigned char)*4)
+  memcpy(&fcolor, (unsigned char[]){r,g,b,a}, sizeof(unsigned char)*4);
 }
 void bmfont::SetScale(float scale) {
   fscale = scale;
