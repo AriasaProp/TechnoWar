@@ -18,7 +18,7 @@ enum Align {
   ALIGN_BOTTOM_CENTER = 9,
   ALIGN_TOP_RIGHT = 2,
   ALIGN_RIGHT = 6,
-  ALIGN_BOTTOM_RIGHT = 10;
+  ALIGN_BOTTOM_RIGHT = 10
 };
 
 struct KearningInfo;
