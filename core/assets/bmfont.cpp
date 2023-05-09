@@ -231,7 +231,8 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       break;
   }
   float x1,y1,x2,y2, u1, v1, u2, v2;
-  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(strlen(text) * 4 * sizeof(engine::flat_vertex));
+  unsigned int n = strlen(text);
+  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
   engine::flat_vertex *cur_tex = texlst;
   for (const char *t = text; *t; t++) {
     if (Chars.find(*t) == Chars.end()) continue;
