@@ -45,7 +45,7 @@ static ui_batch *ubatch;
 static world_batch *ws;
 //this is used for null texture needed
 static GLuint nullTextureId;
-static bool use_multisampling = true, use_mipmap = true;
+static bool use_mipmap = true;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -137,11 +137,6 @@ void opengles_graphics::render() {
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
 			
-			// multisample
-			if (use_multisampling) {
-			  glEnable(GL_MULTISAMPLE);
-			  glSampleCoverage(0.5f, GL_FALSE);
-			}
 			//enable blend
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
