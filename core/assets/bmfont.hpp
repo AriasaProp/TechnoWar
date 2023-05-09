@@ -4,10 +4,6 @@
 #include <vector>
 #include <unordered_map>
 
-#ifndef MAKE_RGBA
-#define MAKE_RGBA(r,g,b,a)  (r | (g << 8) | (b << 16) | (a << 24))
-#endif
-
 #include "../engine.hpp"
 // xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
 enum Align : unsigned char{
@@ -27,10 +23,9 @@ struct CharDescriptor;
 
 struct bmfont {
 public:
-	bool LoadFont(char *);
-	void SetColor(int r, int g, int b, int a) {fcolor = MAKE_RGBA(r,g,b,a);}
-	void SetScale(float scale){fscale = scale;}
-	float GetHeight(){return LineHeight * fscale;}
+	void SetColor(unsigned char, unsigned char, unsigned char, unsigned char);
+	void SetScale(float);
+	float GetHeight();
 	void draw_text(float, float, Align, const char *,...);
 	bmfont(const char*);
 	~bmfont();

@@ -22,9 +22,6 @@ struct CharDescriptor {
 	short Page = 0;
 };
 
-// Todo: Add buffer overflow checking.
-//#define MAX_BUFFER 256
-
 bool bmfont::ParseFont(const char *fontfile ) {
   unsigned int asl;
   const char *as = (const char*) engine::asset->asset_buffer(fontfile, &asl);
@@ -160,141 +157,6 @@ bool bmfont::ParseFont(const char *fontfile ) {
   return true;
 }
 
-int bmfont::GetKerningPair (int first, int second) {
-  if (!Kearn.empty ())
-    for (const KearningInfo &ki : Kearn)
-      if (ki.First == first && ki.Second == second)
-        return ki.Amount;
-  return 0;
-}
-
-float bmfont::GetStringWidth (const char *text) {
-  float total = 0;
-  while (*text) {
-    if (Chars.find(*text) == Chars.end()) continue;
-    total += Chars[*text].XAdvance;
-    text++;
-  }
-  return total * fscale;
-}
-
-void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
-  if (fmt == NULL)                // If There's No Text
-    return;                       // Do Nothing
-  va_list ap;                     // Pointer To List Of Arguments
-  va_start (ap, fmt);             // Parses The String For Variables
-  char text[1024] = "";            // Holds Our String
-  vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
-  va_end (ap);
-  unsigned char xpivot = align & 3;
-  switch (xpivot) {
-    default:
-    case 0://left
-      break;
-    case 1: { //center
-      float X = 0;
-      for (const char *t = text; *t; t++) {
-        if (Chars.find(*t)==Chars.end()) continue;
-        if (*(t+1)) {
-          X += (float)GetKerningPair (*t, *(t+1));
-        }
-        X += (float)Chars[*t].XAdvance;
-        t++;
-      }
-      x -= X * fscale * 0.5f;
-      break;
-    }
-    case 2: {
-      float X = 0;
-      for (const char *t = text; *t; t++) {
-        if (Chars.find(*t)==Chars.end()) continue;
-        if (*(t+1)) {
-          X += (float)GetKerningPair (*t, *(t+1));
-        }
-        X += (float)Chars[*t].XAdvance;
-        t++;
-      }
-      x -= X * fscale;
-      break;
-    }
-  }
-  unsigned char ypivot = (align >> 2);
-  switch (ypivot) {
-    default:
-    case 0:
-      break;
-    case 1:
-      y += LineHeight * fscale * 0.5f;
-      break;
-    case 2:
-      y += LineHeight * fscale;
-      break;
-  }
-  float x1,y1,x2,y2, u1, v1, u2, v2;
-  unsigned int n = strlen(text);
-  engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
-  engine::flat_vertex *cur_tex = texlst;
-  for (const char *t = text; *t; t++) {
-    if (Chars.find(*t) == Chars.end()) continue;
-    const CharDescriptor &f = Chars[*t];
-    // max, min
-    x1 = x + (f.XOffset * fscale); //minx
-    y1 = y - (f.YOffset * fscale);  //maxy
-    x2 = x1 + (f.Width * fscale); //maxx
-    y2 = y1 - (f.Height * fscale);  //miny
-    u1 = f.x / (float)Width;
-    v1 = f.y / (float)Height;
-    u2 = (f.x + f.Width) / (float)Width;
-    v2 = (f.y + f.Height) / (float)Height;
-
-    // 0,1 Texture Coord, minxy
-    cur_tex->u = u1;
-    cur_tex->v = v2;
-    cur_tex->x = x1;
-    cur_tex->y = y2;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-    
-    cur_tex++;
-    // 0,0 Texture Coord, minx maxy
-    cur_tex->u = u1;
-    cur_tex->v = v1;
-    cur_tex->x = x1;
-    cur_tex->y = y1;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-
-    cur_tex++;
-    // 1,1 Texture Coord, maxxy
-    cur_tex->u = u2;
-    cur_tex->v = v2;
-    cur_tex->x = x2;
-    cur_tex->y = y2;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-
-    cur_tex++;
-    // 1,0 Texture Coord, maxx miny
-    cur_tex->u = u2;
-    cur_tex->v = v1;
-    cur_tex->x = x2;
-    cur_tex->y = y1;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-
-    cur_tex++;
-    if (*(t+1)) {
-      x += GetKerningPair (*t, *(t+1)) * fscale;
-    }
-    x += f.XAdvance * fscale;
-  }
-  engine::graph->flat_render(ftexid, texlst, n);
-}
-void bmfont::SetColor(unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  memcpy(&fcolor, (unsigned char[]){r,g,b,a}, sizeof(unsigned char)*4)
-}
-void bmfont::SetScale(float scale) {
-  fscale = scale;
-}
-float bmfont::GetHeight(){
-  return (float)LineHeight * fscale;
-}
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
   int x, y;
   unsigned int datRI;
@@ -302,16 +164,12 @@ bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fs
   char *texfile = new char[strlen (fontfile)];
   memcpy (texfile, fontfile, strlen (fontfile));
   memcpy (strstr (texfile, ".fnt"), ".png", 4);
-  void *datR = engine::asset->asset_buffer (texfile, &datRI);
+  unsigned char *tD = stbi_load (texfile, &x, &y, nullptr, STBI_rgb_alpha);
   delete[] texfile;
-  unsigned char *tD = stbi_load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
-  free (datR);
-  ftexid = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
 }
 
 bmfont::~bmfont() {
   Chars.clear ();
   Kearn.clear ();
-  engine::graph->delete_texture (ftexid);
 }
