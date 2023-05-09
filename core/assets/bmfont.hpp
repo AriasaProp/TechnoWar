@@ -25,19 +25,8 @@ enum Align {
   ALIGN_BOTTOM_RIGHT
 };
 
-struct KearningInfo {
-	short First, Second, Amount;
-};
-
-struct CharDescriptor {
-	short x = 0, y = 0;
-	short Width = 0;
-	short Height = 0;
-	short XOffset = 0, YOffset = 0;
-	short XAdvance = 0;
-	short Page = 0;
-	CharDescriptor();
-};
+struct KearningInfo;
+struct CharDescriptor;
 
 struct bmfont {
 public:

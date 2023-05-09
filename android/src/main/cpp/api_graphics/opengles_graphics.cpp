@@ -122,8 +122,10 @@ void opengles_graphics::render() {
 	  			0xff, 0xff, 0xff, 0xff
 	  		};
 				glBindTexture(GL_TEXTURE_2D, nullTextureId);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 				glBindTexture(GL_TEXTURE_2D, 0);
@@ -134,10 +136,8 @@ void opengles_graphics::render() {
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
 			//enable blend
-			/*
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			*/
 			GLuint vi, fi;
 			//flat draw
 			{

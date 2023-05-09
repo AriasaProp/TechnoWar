@@ -9,7 +9,18 @@
 #include <sstream>
 #include <string>
 
-CharDescriptor::CharDescriptor(): x( 0 ), y( 0 ), Width( 0 ), Height( 0 ), XOffset( 0 ), YOffset( 0 ), XAdvance( 0 ), Page( 0 ) { }
+struct KearningInfo {
+	short First, Second, Amount;
+};
+
+struct CharDescriptor {
+	short x = 0, y = 0;
+	short Width = 0;
+	short Height = 0;
+	short XOffset = 0, YOffset = 0;
+	short XAdvance = 0;
+	short Page = 0;
+};
 
 // Todo: Add buffer overflow checking.
 //#define MAX_BUFFER 256
@@ -247,7 +258,7 @@ void bmfont::draw_text_center (float y, const char *t) {
     text++;
   }
   x *= fscale * 0.5f;
-  draw_text ((engine::graph->getWidth () / 2.f) - x, y, ALIGN_TOP_LEFT, t);
+  draw_text ((engine::graph->getWidth () * 0.5f) - x, y, ALIGN_TOP_LEFT, t);
 }
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (4.f) {
   int x, y;
