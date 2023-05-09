@@ -10,18 +10,15 @@
 
 #include "../engine.hpp"
 enum Align {
-  ALIGN_TOP_LEFT(0, 0),
-  ALIGN_LEFT(0, 1),
-  ALIGN_BOTTOM_LEFT(0, 2),
-  ALIGN_TOP_CENTER(1, 0),
-  ALIGN_CENTER(1,1),
-  ALIGN_BOTTOM_CENTER(1, 2),
-  ALIGN_TOP_RIGHT(2, 0),
-  ALIGN_RIGHT(2,1),
-  ALIGN_BOTTOM_RIGHT(2,2);
-  
-  char v, h;
-  Align(char V, char H): v(V), h(H) {}
+  ALIGN_TOP_LEFT = 0,
+  ALIGN_LEFT = 4,
+  ALIGN_BOTTOM_LEFT = 8,
+  ALIGN_TOP_CENTER = 1,
+  ALIGN_CENTER = 5,
+  ALIGN_BOTTOM_CENTER = 9,
+  ALIGN_TOP_RIGHT = 2,
+  ALIGN_RIGHT = 6,
+  ALIGN_BOTTOM_RIGHT = 10;
 };
 
 struct KearningInfo;
