@@ -37,8 +37,10 @@ struct android_app {
     bool destroyed;
     int appCmdState;
     int msgread, msgwrite;
+    size_t savedStateSize;
     ANativeActivity* activity;
     AConfiguration* config;
+    void* savedState;
     ALooper* looper;
     ANativeWindow* window; //update in mainThread
     AInputQueue* inputQueue;
@@ -48,6 +50,7 @@ struct android_app {
 }; 
 
 enum {
+    APP_CMD_START,
     APP_CMD_RESUME,
     APP_CMD_INPUT_INIT,
     APP_CMD_INIT_WINDOW,
@@ -56,10 +59,12 @@ enum {
     APP_CMD_CONFIG_CHANGED,
     APP_CMD_LOST_FOCUS,
     APP_CMD_LOW_MEMORY,
+    APP_CMD_SAVE_STATE,
     APP_CMD_TERM_WINDOW,
     APP_CMD_INPUT_TERM,
     APP_CMD_PAUSE,
     APP_CMD_STOP,
+    APP_CMD_DESTROY,
 };
 
 #include <cstdio>
@@ -80,6 +85,9 @@ static void* android_app_entry(void* param) {
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     android_graphics *g  = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
+	  if (app->savedState) {
+	      g->state = *(saved_state*)app->savedState;
+	  }
 	  while (!g->destroyed) {
 	    switch (ALooper_pollAll(g->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
@@ -93,10 +101,14 @@ static void* android_app_entry(void* param) {
 			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
 					switch (cmd) {
 				    case APP_CMD_RESUME:
-				    	g->onResume();/*
+				    	g->onResume();
 			        pthread_mutex_lock(&app->mutex);
-						  
-						  pthread_mutex_unlock(&app->mutex);*/
+						  if (app->savedState != NULL) {
+					      free(app->savedState);
+					      app->savedState = NULL;
+					      app->savedStateSize = 0;
+						  }
+						  pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_INIT_WINDOW:
 			      	g->onWindowInit(app->window);
@@ -150,6 +162,22 @@ static void* android_app_entry(void* param) {
 			      case APP_CMD_CONFIG_CHANGED:
 			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
 			        break;
+			      case APP_CMD_SAVE_STATE:
+			        pthread_mutex_lock(&app->mutex);
+						  if (app->savedState != NULL) {
+					      free(app->savedState);
+					      app->savedState = NULL;
+					      app->savedStateSize = 0;
+						  }
+			  			pthread_mutex_unlock(&app->mutex);
+				      app->savedState = malloc(sizeof(saved_state));
+				      *((saved_state*)app->savedState) = g->state;
+				      app->savedStateSize = sizeof(saved_state);
+					    pthread_mutex_lock(&app->mutex);
+					    app->appCmdState = cmd;
+					    pthread_cond_broadcast(&app->cond);
+					    pthread_mutex_unlock(&app->mutex);
+			        break;
 			      case APP_CMD_PAUSE:
 			      	g->onPause();
 					    pthread_mutex_lock(&app->mutex);
@@ -157,7 +185,7 @@ static void* android_app_entry(void* param) {
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
-			      case APP_CMD_STOP:
+			      case APP_CMD_DESTROY:
 				  		g->onDestroy();
 			        break;
 			      default:
@@ -173,6 +201,11 @@ static void* android_app_entry(void* param) {
 	  delete g;
 	  delete inpt;
     pthread_mutex_lock(&app->mutex);
+    if (app->savedState != NULL) {
+      free(app->savedState);
+      app->savedState = NULL;
+      app->savedStateSize = 0;
+    }
     if (app->inputQueue != NULL) {
         AInputQueue_detachLooper(app->inputQueue);
         app->inputQueue = NULL;
@@ -188,39 +221,10 @@ static void android_app_write_cmd(android_app *app, int8_t cmd) {
         LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
-static void onStart(ANativeActivity* activity) {
-    android_app* app = new android_app;
-    activity->instance = app;
-    memset(app, 0, sizeof(android_app));
-	  aasset = new android_asset(activity->assetManager);
-    app->activity = activity;
-    pthread_mutex_init(&app->mutex, NULL);
-    pthread_cond_init(&app->cond, NULL);
-    if (pipe(&app->msgread)) {
-        LOGI("could not create pipe: %s", strerror(errno));
-    }
-    pthread_attr_t attr; 
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    pthread_create(&app->thread, &attr, android_app_entry, app);
-    pthread_attr_destroy(&attr);
-}
-static void onResume(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_RESUME);
-}
-static void onPause(ANativeActivity* activity) {
+static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     pthread_mutex_lock(&app->mutex);
-    android_app_write_cmd(app, APP_CMD_PAUSE);
-    while (app->appCmdState != APP_CMD_PAUSE) {
-        pthread_cond_wait(&app->cond, &app->mutex);
-    }
-    pthread_mutex_unlock(&app->mutex);
-}
-static void onStop(ANativeActivity* activity) {
-    android_app *app = (android_app*)activity->instance;
-    pthread_mutex_lock(&app->mutex);
-    android_app_write_cmd(app, APP_CMD_STOP);
+    android_app_write_cmd(app, APP_CMD_DESTROY);
     app->destroyed = false;
     while (!app->destroyed) {
     	pthread_cond_wait(&app->cond, &app->mutex);
@@ -233,6 +237,41 @@ static void onStop(ANativeActivity* activity) {
     delete app;
 	  delete aasset;
     activity->instance = nullptr;
+}
+static void onStart(ANativeActivity* activity) {
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_START);
+}
+static void onResume(ANativeActivity* activity) {
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_RESUME);
+}
+static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
+    android_app *app = (android_app*)activity->instance;
+    void* savedState = NULL;
+    pthread_mutex_lock(&app->mutex);
+    android_app_write_cmd(app, APP_CMD_SAVE_STATE);
+    while (app->appCmdState != APP_CMD_SAVE_STATE) {
+        pthread_cond_wait(&app->cond, &app->mutex);
+    }
+    if (app->savedState != NULL) {
+        savedState = app->savedState;
+        *outLen = app->savedStateSize;
+        app->savedState = NULL;
+        app->savedStateSize = 0;
+    }
+    pthread_mutex_unlock(&app->mutex);
+    return savedState;
+}
+static void onPause(ANativeActivity* activity) {
+    android_app *app = (android_app*)activity->instance;
+    pthread_mutex_lock(&app->mutex);
+    android_app_write_cmd(app, APP_CMD_PAUSE);
+    while (app->appCmdState != APP_CMD_PAUSE) {
+        pthread_cond_wait(&app->cond, &app->mutex);
+    }
+    pthread_mutex_unlock(&app->mutex);
+}
+static void onStop(ANativeActivity* activity) {
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_STOP);
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONFIG_CHANGED);
@@ -309,7 +348,7 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-void ANativeActivity_onCreate(ANativeActivity *activity, void*, size_t) {
+void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
     activity->callbacks->onStart = onStart;
     activity->callbacks->onResume = onResume;
     activity->callbacks->onInputQueueCreated = onInputQueueCreated;
@@ -318,12 +357,33 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void*, size_t) {
     activity->callbacks->onConfigurationChanged = onConfigurationChanged;
     activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
     activity->callbacks->onLowMemory = onLowMemory;
-    //activity->callbacks->onSaveInstanceState = onSaveInstanceState;
+    activity->callbacks->onSaveInstanceState = onSaveInstanceState;
     activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
     activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
     activity->callbacks->onPause = onPause;
     activity->callbacks->onStop = onStop;
-    //activity->callbacks->onDestroy = onDestroy;
+    activity->callbacks->onDestroy = onDestroy;
+    
+    android_app* app = new android_app;
+    activity->instance = app;
+    memset(app, 0, sizeof(android_app));
+	  aasset = new android_asset(activity->assetManager);
+    app->activity = activity;
+    pthread_mutex_init(&app->mutex, NULL);
+    pthread_cond_init(&app->cond, NULL);
+    if (savedState != NULL) {
+        app->savedState = malloc(savedStateSize);
+        app->savedStateSize = savedStateSize;
+        memcpy(app->savedState, savedState, savedStateSize);
+    }
+    if (pipe(&app->msgread)) {
+        LOGI("could not create pipe: %s", strerror(errno));
+    }
+    pthread_attr_t attr; 
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&app->thread, &attr, android_app_entry, app);
+    pthread_attr_destroy(&attr);
 }
 
 
