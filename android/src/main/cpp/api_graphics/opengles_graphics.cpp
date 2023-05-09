@@ -39,12 +39,13 @@ struct opengles_texture: public engine::texture_core {
 	}
 };
 
-Main *m_Main = nullptr;
-inline void resize_viewport(const int,const int);
-ui_batch *ubatch;
-world_batch *ws;
+static Main *m_Main = nullptr;
+static inline void resize_viewport(const int,const int);
+static ui_batch *ubatch;
+static world_batch *ws;
 //this is used for null texture needed
-GLuint nullTextureId;
+static GLuint nullTextureId;
+static bool use_multisampling = true, use_mipmap = true;
 
 float opengles_graphics::getWidth() { return (float)width; }
 float opengles_graphics::getHeight() { return (float)height; }
@@ -135,10 +136,17 @@ void opengles_graphics::render() {
 			glDepthRangef(0.0f, 1.0f);
 			glClearDepthf(1.0f);
 			glDepthFunc(GL_LESS);
+			
+			// multisample
+			if (use_multisampling) {
+			  glEnable(GL_MULTISAMPLE);
+			  glSampleCoverage(0.5f, GL_FALSE);
+			}
 			//enable blend
       glEnable(GL_BLEND);
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			GLuint vi, fi;
+			
 			//flat draw
 			{
 				ubatch->shader = glCreateProgram();
@@ -281,9 +289,16 @@ void opengles_graphics::render() {
 				glGenTextures(1, &itex->id);
 				glBindTexture(GL_TEXTURE_2D, itex->id);
 				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, itex->w, itex->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)itex->d);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      	if (use_mipmap) {
+      	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      	  glGenerateMipmap(GL_TEXTURE_2D);
+      	} else {
+      	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      	}
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -413,10 +428,17 @@ engine::texture_core *opengles_graphics::gen_texture(const int &width, const int
 	opengles_texture *t = new opengles_texture(0, width, height, data);
 	glGenTextures(1, &t->id);
 	glBindTexture(GL_TEXTURE_2D, t->id);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	if (use_mipmap) {
+	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	  glGenerateMipmap(GL_TEXTURE_2D);
+	} else {
+	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 	managedTexture.insert(t);
 	return t;
@@ -514,7 +536,7 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	delete m;
 }
 
-inline void resize_viewport(const int w, const int h) {
+static inline void resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/float(w);
 	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/float(h);

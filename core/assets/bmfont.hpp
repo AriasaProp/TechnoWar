@@ -9,20 +9,19 @@
 #endif
 
 #include "../engine.hpp"
-// base 3
-// horizontal = 0 2 1
-// vertical =   3 4 5
-// in binary 0xvvhh b
 enum Align {
-  ALIGN_TOP_LEFT = 0,
-  ALIGN_LEFT,
-  ALIGN_BOTTOM_LEFT,
-  ALIGN_TOP_CENTER,
-  ALIGN_CENTER,
-  ALIGN_BOTTOM_CENTER,
-  ALIGN_TOP_RIGHT,
-  ALIGN_RIGHT,
-  ALIGN_BOTTOM_RIGHT
+  ALIGN_TOP_LEFT(0, 0),
+  ALIGN_LEFT(0, 1),
+  ALIGN_BOTTOM_LEFT(0, 2),
+  ALIGN_TOP_CENTER(1, 0),
+  ALIGN_CENTER(1,1),
+  ALIGN_BOTTOM_CENTER(1, 2),
+  ALIGN_TOP_RIGHT(2, 0),
+  ALIGN_RIGHT(2,1),
+  ALIGN_BOTTOM_RIGHT(2,2);
+  
+  char v, h;
+  Align(char V, char H): v(V), h(H) {}
 };
 
 struct KearningInfo;

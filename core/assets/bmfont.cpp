@@ -183,7 +183,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     return;                       // Do Nothing
   va_list ap;                     // Pointer To List Of Arguments
   va_start (ap, fmt);             // Parses The String For Variables
-  char text[512] = "";            // Holds Our String
+  char text[1024] = "";            // Holds Our String
   vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
   va_end (ap);
 
@@ -260,7 +260,7 @@ void bmfont::draw_text_center (float y, const char *t) {
   x *= fscale * 0.5f;
   draw_text ((engine::graph->getWidth () * 0.5f) - x, y, ALIGN_TOP_LEFT, t);
 }
-bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (4.f) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);
