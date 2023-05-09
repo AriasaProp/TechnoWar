@@ -309,7 +309,7 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     }
     pthread_mutex_unlock(&app->mutex);
 }
-void ANativeActivity_onCreate(ANativeActivity*, void*, size_t) {
+void ANativeActivity_onCreate(ANativeActivity *activity, void*, size_t) {
     activity->callbacks->onStart = onStart;
     activity->callbacks->onResume = onResume;
     activity->callbacks->onInputQueueCreated = onInputQueueCreated;
