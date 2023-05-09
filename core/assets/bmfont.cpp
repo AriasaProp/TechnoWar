@@ -168,19 +168,20 @@ float bmfont::GetStringWidth (const char *text) {
 }
 
 void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
-  (void)align;
-  float x1,y1,x2,y2;
-  char text[512] = "";            // Holds Our String
-  va_list ap;                     // Pointer To List Of Arguments
   if (fmt == NULL)                // If There's No Text
     return;                       // Do Nothing
+  va_list ap;                     // Pointer To List Of Arguments
   va_start (ap, fmt);             // Parses The String For Variables
+  char text[512] = "";            // Holds Our String
   vsprintf (text, fmt, ap);       // And Converts Symbols To Actual Numbers
   va_end (ap);
 
+  (void)align;
+  float x1,y1,x2,y2, u1, v1, u2, v2;
   y += LineHeight;
   const size_t n = strlen(text);
   engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
+  engine::flat_vertex *cur_tex = texlst;
   for (size_t i = 0; i < n; i++) {
     if (Chars.find(text[i]) == Chars.end()) continue;
     const CharDescriptor &f = Chars[text[i]];
@@ -189,55 +190,64 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     y1 = y - (f.YOffset * fscale);  //maxy
     x2 = x1 + (f.Width * fscale); //maxx
     y2 = y1 - (f.Height * fscale);  //miny
+    u1 = f.x / (float)Width;
+    v1 = f.y / (float)Height;
+    u2 = (f.x + f.Width) / (float)Width;
+    v2 = (f.y + f.Height) / (float)Height;
 
     // 0,1 Texture Coord, minxy
-    texlst[i * 4].u = f.x / (float)Width;
-    texlst[i * 4].v = (f.y + f.Height) / (float)Height;
-    texlst[i * 4].x = x1;
-    texlst[i * 4].y = y2;
-    memcpy (texlst[i * 4].color, &fcolor, 4 * sizeof (unsigned char));
-
+    cur_tex->u = u1;
+    cur_tex->v = v2;
+    cur_tex->x = x1;
+    cur_tex->y = y2;
+    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    
+    cur_tex++;
     // 0,0 Texture Coord, minx maxy
-    texlst[(i * 4) + 1].u = f.x / (float)Width;
-    texlst[(i * 4) + 1].v = f.y / (float)Height;
-    texlst[(i * 4) + 1].x = x1;
-    texlst[(i * 4) + 1].y = y1;
-    memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u1;
+    cur_tex->v = v1;
+    cur_tex->x = x1;
+    cur_tex->y = y1;
+    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
 
+    cur_tex++;
     // 1,1 Texture Coord, maxxy
-    texlst[(i * 4) + 2].u = (f.x + f.Width) / (float)Width;
-    texlst[(i * 4) + 2].v = (f.y + f.Height) / (float)Height;
-    texlst[(i * 4) + 2].x = x2;
-    texlst[(i * 4) + 2].y = y2;
-    memcpy (texlst[(i * 4) + 2].color, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u2;
+    cur_tex->v = v2;
+    cur_tex->x = x2;
+    cur_tex->y = y2;
+    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
 
+    cur_tex++;
     // 1,0 Texture Coord, maxx miny
-    texlst[(i * 4) + 3].u = (f.x + f.Width) / (float)Width;
-    texlst[(i * 4) + 3].v = f.y / (float)Height;
-    texlst[(i * 4) + 3].x = x2;
-    texlst[(i * 4) + 3].y = y1;
-    memcpy (texlst[(i * 4) + 3].color, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u2;
+    cur_tex->v = v1;
+    cur_tex->x = x2;
+    cur_tex->y = y1;
+    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
 
+    cur_tex++;
     // Only check kerning if there is greater then 1 character and
     // if the check character is 1 less then the end of the string.
     if (n > 1) {
-      x += GetKerningPair (text[i], text[i + 1]);
+      x += GetKerningPair (text[i], text[i + 1]) * fscale;
     }
-    x += f.XAdvance;
+    x += f.XAdvance * fscale;
   }
   engine::graph->flat_render(ftexid, texlst, n);
 }
 void bmfont::draw_text_center (float y, const char *t) {
-  int x = 0;
+  float x = 0;
   for (const char *text = t; *text; text++) {
     if (Chars.find(*text)==Chars.end()) continue;
     if (*(text+1)) {
-      x += GetKerningPair (*text, *(text+1));
+      x += (float)GetKerningPair (*text, *(text+1));
     }
-    x += Chars[*text].XAdvance;
+    x += (float)Chars[*text].XAdvance;
     text++;
   }
-  draw_text ((engine::graph->getWidth () / 2.f) - (x / 2), y, ALIGN_TOP_LEFT, t);
+  x *= fscale * 0.5f;
+  draw_text ((engine::graph->getWidth () / 2.f) - x, y, ALIGN_TOP_LEFT, t);
 }
 bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (4.f) {
   int x, y;
