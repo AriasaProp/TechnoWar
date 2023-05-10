@@ -32,6 +32,7 @@
 //#include "api_graphics/vulkan_graphics.hpp"
 
 android_asset *aasset;
+android_graphics *agraphics;
 
 struct android_app {
     bool destroyed;
@@ -83,13 +84,13 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    android_graphics *g  = new opengles_graphics;
+    agraphics = new opengles_graphics;
 	  android_input *inpt = new android_input(app->looper);
 	  if (app->savedState) {
-	      g->state = *(saved_state*)app->savedState;
+	      agraphics->state = *(saved_state*)app->savedState;
 	  }
-	  while (!g->destroyed) {
-	    switch (ALooper_pollAll(g->running ? 0 : -1, nullptr, nullptr, nullptr)) {
+	  while (!agraphics->destroyed) {
+	    switch (ALooper_pollAll(agraphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
 	      	inpt->process_input();
 	      	break;
@@ -101,7 +102,7 @@ static void* android_app_entry(void* param) {
 			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
 					switch (cmd) {
 				    case APP_CMD_RESUME:
-				    	g->onResume();
+				    	agraphics->onResume();
 			        pthread_mutex_lock(&app->mutex);
 						  if (app->savedState != NULL) {
 					      free(app->savedState);
@@ -111,14 +112,14 @@ static void* android_app_entry(void* param) {
 						  pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_INIT_WINDOW:
-			      	g->onWindowInit(app->window);
+			      	agraphics->onWindowInit(app->window);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 				    case APP_CMD_WINDOW_RESIZED:
-				    	g->needResize();
+				    	agraphics->needResize();
 				    	break;
 				    case APP_CMD_GAINED_FOCUS:
 				    	inpt->attach_sensor();
@@ -152,7 +153,7 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_TERM_WINDOW:
-			      	g->onWindowTerm();
+			      	agraphics->onWindowTerm();
 			        app->window = NULL;
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -171,7 +172,7 @@ static void* android_app_entry(void* param) {
 						  }
 			  			pthread_mutex_unlock(&app->mutex);
 				      app->savedState = malloc(sizeof(saved_state));
-				      *((saved_state*)app->savedState) = g->state;
+				      *((saved_state*)app->savedState) = agraphics->state;
 				      app->savedStateSize = sizeof(saved_state);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -179,14 +180,14 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_PAUSE:
-			      	g->onPause();
+			      	agraphics->onPause();
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_DESTROY:
-				  		g->onDestroy();
+				  		agraphics->onDestroy();
 			        break;
 			      default:
 			      	// ?
@@ -194,11 +195,11 @@ static void* android_app_entry(void* param) {
 			  	}
 			  	break;
 			  default:
-					g->render();
+					agraphics->render();
 			  	break;
 	    }
 	  }
-	  delete g;
+	  delete agraphics;
 	  delete inpt;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
@@ -384,6 +385,17 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     pthread_create(&app->thread, &attr, android_app_entry, app);
     pthread_attr_destroy(&attr);
+}
+
+//native mainActivity
+#include <jni.h>
+
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets(JNIEnv *env, jclass, jint left, jint top, jint right, jint bottom) {
+    if (!agraphics) return;
+    agraphics->cur_safe_insets.left = left;
+    agraphics->cur_safe_insets.top = top;
+    agraphics->cur_safe_insets.right = right;
+    agraphics->cur_safe_insets.bottom = bottom;
 }
 
 

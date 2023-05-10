@@ -40,7 +40,6 @@ struct opengles_texture: public engine::texture_core {
 };
 
 static Main *m_Main = nullptr;
-static inline void resize_viewport(const int,const int);
 static ui_batch *ubatch;
 static world_batch *ws;
 //this is used for null texture needed
@@ -531,10 +530,14 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	delete m;
 }
 
-static inline void resize_viewport(const int w, const int h) {
+inline void opengles_graphics::resize_viewport(const int w, const int h) {
 	glViewport(0, 0, w, h);
-	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/float(w);
-	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/float(h);
+	float W = float(w - cur_safe_insets.left - cur_safe_insets.right);
+	float H = float(h - cur_safe_insets.top - cur_safe_insets.bottom);
+	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/W;
+	ubatch->ui_projection[12] = -float(w + left - right)/W;
+	ubatch->ui_projection[13] = -float(h + top - bottom)/H;
+	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/H;
 	ubatch->dirty_projection = true;
 	ws->dirty_worldProj = true;
 }

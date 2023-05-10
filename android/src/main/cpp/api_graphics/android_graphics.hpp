@@ -14,10 +14,17 @@ struct saved_state {
     int32_t x;
     int32_t y;
 };
+struct safe_insets {
+  int left;
+  int top;
+  int right;
+  int bottom;
+};
 
 struct android_graphics: public engine::graphics_core {
 	bool resize, resume, running, pause, destroyed;
 	saved_state state;
+	safe_insets cur_safe_insets;
 	//android
 	virtual void onResume() = 0;
 	virtual void onWindowInit(ANativeWindow*) = 0;
