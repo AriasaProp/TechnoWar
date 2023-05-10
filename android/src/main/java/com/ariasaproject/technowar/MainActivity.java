@@ -8,6 +8,9 @@ import android.view.DisplayCutout;
 import android.view.WindowInsets;
 
 public class MainActivity extends NativeActivity {
+    static {
+      System.loadLibrary("ext");
+    }
     static native void setInsets(int left, int top, int right, int bottom);
 
     @Override
