@@ -29,8 +29,8 @@ public class MainActivity extends NativeActivity {
                       displayCutout.getSafeInsetRight(),
                       displayCutout.getSafeInsetBottom()
                     );
-    		*/
                 }
+    		*/
                 decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                     private DisplayCutout mDisplayCutout;
                     @Override
