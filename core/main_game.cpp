@@ -88,9 +88,9 @@ void Main::render () {
   engine::graph->mesh_render (&mp, 1);
   engine::graph->flat_render (myTex, fV, 1);
   engine::graph->flat_render (myTex, fV1, 1);
-  fnt->draw_text(0+10, engine::graph->getHeight(), ALIGN_TOP_LEFT, "Left!");
-  fnt->draw_text(engine::graph->getWidth()*0.5f, engine::graph->getHeight(), ALIGN_TOP, "Middle!");
-  fnt->draw_text(engine::graph->getWidth()-10, engine::graph->getHeight(), ALIGN_TOP_RIGHT, "Right!");
+  fnt->draw_text(0+10, engine::graph->getHeight(), ALIGN_TOP_LEFT, "Left Side!");
+  fnt->draw_text(engine::graph->getWidth()*0.5f, engine::graph->getHeight(), ALIGN_TOP, "Middle Side!");
+  fnt->draw_text(engine::graph->getWidth()-10, engine::graph->getHeight(), ALIGN_TOP_RIGHT, "Right Side!");
 }
 void Main::pause () {
 }
