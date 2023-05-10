@@ -390,7 +390,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
 //native mainActivity
 #include <jni.h>
 
-JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets(JNIEnv *env, jclass, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets(JNIEnv *, jclass, jint left, jint top, jint right, jint bottom) {
     if (!agraphics) return;
     agraphics->cur_safe_insets.left = left;
     agraphics->cur_safe_insets.top = top;
