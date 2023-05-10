@@ -12,6 +12,7 @@ public class MainActivity extends NativeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         //get insets
     		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             final View decorView = getWindow().getDecorView();
@@ -25,24 +26,23 @@ public class MainActivity extends NativeActivity {
                       displayCutout.getSafeInsetBottom()
                     );
                 }
+                decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+                    private DisplayCutout mDisplayCutout;
+                    @Override
+                    public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                        mDisplayCutout = insets.getDisplayCutout();
+                        setInsets(
+                          mDisplayCutout.getSafeInsetLeft(),
+                          mDisplayCutout.getSafeInsetTop(),
+                          mDisplayCutout.getSafeInsetRight(),
+                          mDisplayCutout.getSafeInsetBottom());
+                        return insets;
+                    }
+                });
             } catch (UnsupportedOperationException e) {
                 //Gdx.app.log("AndroidGraphics", "Unable to get safe area insets");
             }
-            decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-                private DisplayCutout mDisplayCutout;
-                @Override
-                public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                    mDisplayCutout = insets.getDisplayCutout();
-                    setInsets(
-                      mDisplayCutout.getSafeInsetLeft(),
-                      mDisplayCutout.getSafeInsetTop(),
-                      mDisplayCutout.getSafeInsetRight(),
-                      mDisplayCutout.getSafeInsetBottom());
-                    return insets;
-                }
-            });
     		}
-        super.onCreate(savedInstanceState);
     }
     
 }
