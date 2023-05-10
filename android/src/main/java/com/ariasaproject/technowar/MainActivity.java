@@ -8,14 +8,15 @@ import android.view.DisplayCutout;
 import android.view.WindowInsets;
 
 public class MainActivity extends NativeActivity {
-    static {
+    /*static {
       System.loadLibrary("ext");
-    }
-    static native void setInsets(int left, int top, int right, int bottom);
+    }*/
+    //static native void setInsets(int left, int top, int right, int bottom);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*
         //get insets
     		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             final View decorView = getWindow().getDecorView();
@@ -46,6 +47,7 @@ public class MainActivity extends NativeActivity {
                 //Gdx.app.log("AndroidGraphics", "Unable to get safe area insets");
             }
     		}
+    		*/
     }
     
 }
