@@ -5,10 +5,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.DisplayCutout;
 import android.view.WindowInsets;
-import android.view.WindowInsets.Type;
-import android.view.WindowInsetsController;
-import android.view.WindowInsetsController.Appearance;
-
 
 public class MainActivity extends NativeActivity {
     static native void setInsets(int left, int top, int right, int bottom);
