@@ -17,17 +17,7 @@ public class MainActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        updateSafeArea();
-        super.surfaceCreated(holder);
-    }
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        updateSafeArea();
-        super.surfaceChanged(holder, format, width, height);
-    }
-    void updateSafeArea() {
+    public void onGlobalLayout() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             DisplayCutout displayCutout = getWindow().getDecorView().getRootWindowInsets().getDisplayCutout();
             if (displayCutout != null) {
