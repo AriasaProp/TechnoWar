@@ -540,8 +540,8 @@ inline void opengles_graphics::resize_viewport() {
 	glViewport(0, 0, wWidth, wHeight);
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/wWidth;
 	ubatch->ui_projection[5] = ws->worldProj[5] = 2.f/wHeight;
-	ubatch->ui_projection[12] = -float(wWidth + 2*cur_safe_insets.left)/float(wWidth);
-	ubatch->ui_projection[13] = -float(wHeight + 2*cur_safe_insets.bottom)/float(wHeight);
+	ubatch->ui_projection[12] = -float(wWidth - 2*cur_safe_insets.left)/float(wWidth);
+	ubatch->ui_projection[13] = -float(wHeight - 2*cur_safe_insets.bottom)/float(wHeight);
 	wWidth -= cur_safe_insets.left + cur_safe_insets.right;
 	wHeight -= cur_safe_insets.top + cur_safe_insets.bottom;
 	ubatch->dirty_projection = true;
