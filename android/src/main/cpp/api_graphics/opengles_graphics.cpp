@@ -553,6 +553,8 @@ opengles_graphics::opengles_graphics() {
 	ws = new world_batch;
 	memset(ubatch,0,sizeof(ui_batch));
 	memset(ws,0,sizeof(world_batch));
+	ubatch->ui_projection[15] = 1;
+	ubatch->ui_projection[10] = 1;
 	ws->worldProj[15] = 1;
 	ws->worldProj[10] = 0.00001f;
   engine::graph = this;
