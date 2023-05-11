@@ -9,10 +9,6 @@
 #include <sstream>
 #include <string>
 
-struct KearningInfo {
-	short Amount;
-};
-
 struct CharDescriptor {
 	short x = 0, y = 0;
 	short Width = 0;
@@ -34,7 +30,6 @@ bool bmfont::ParseFont(const char *fontfile ) {
 	std::string Read, Key, Value;
 	unsigned int i; 
 
-  KearningInfo K;
   CharDescriptor C;
 
   while (!buffer_stream.eof()) {
