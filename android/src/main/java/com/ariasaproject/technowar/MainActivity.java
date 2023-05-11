@@ -6,28 +6,36 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.DisplayCutout;
 import android.view.WindowInsets;
+import android.view.SurfaceHolder;
 
 public class MainActivity extends NativeActivity {
     static native void setInsets(int left, int top, int right, int bottom);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*
-        if (Build.VERSION.SDK_INT >= 28) {
-            getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-                    private DisplayCutout mDisplayCutout;
-                    @Override
-                    public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                        mDisplayCutout = insets.getDisplayCutout();
-                        setInsets(
-                          mDisplayCutout.getSafeInsetLeft(),
-                          mDisplayCutout.getSafeInsetTop(),
-                          mDisplayCutout.getSafeInsetRight(),
-                          mDisplayCutout.getSafeInsetBottom());
-                        return insets;
-                    }
-                });
+    }
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        updateSafeArea();
+        super.surfaceCreated(holder);
+    }
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        updateSafeArea();
+        super.surfaceChanged(holder, format, width, height)
+    }
+    @TargetApi(Build.VERSION_CODES.P)
+    void updateSafeArea() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            DisplayCutout displayCutout = getWindow().getDecorView().getRootWindowInsets().getDisplayCutout();
+            if (displayCutout != null) {
+                setInsets(
+                  displayCutout.getSafeInsetLeft(),
+                  displayCutout.getSafeInsetTop(),
+                  displayCutout.getSafeInsetRight(),
+                  displayCutout.getSafeInsetBottom()
+                );
+            }
         }
-        */
     }
 }
