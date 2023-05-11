@@ -22,7 +22,7 @@ public class MainActivity extends NativeActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         updateSafeArea();
-        super.surfaceChanged(holder, format, width, height)
+        super.surfaceChanged(holder, format, width, height);
     }
     @TargetApi(Build.VERSION_CODES.P)
     void updateSafeArea() {
