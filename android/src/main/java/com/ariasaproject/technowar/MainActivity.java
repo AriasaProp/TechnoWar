@@ -28,11 +28,13 @@ public class MainActivity extends NativeActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             DisplayCutout displayCutout = getWindow().getDecorView().getRootWindowInsets().getDisplayCutout();
             if (displayCutout != null) {
-                setInsets(
+                setInsets( 50, 5, 50, 5
+                  /*
                   displayCutout.getSafeInsetLeft(),
                   displayCutout.getSafeInsetTop(),
                   displayCutout.getSafeInsetRight(),
                   displayCutout.getSafeInsetBottom()
+                  */
                 );
             }
         }
