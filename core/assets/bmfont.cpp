@@ -259,7 +259,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       float nX = f.XAdvance;
       std::unordered_map<std::pair<short,short>,float>::iterator it = Kearn.find(std::make_pair((short)*t, (short)*(t+1)));
       if (it != Kearn.end())
-        nX += *it;
+        nX += it->second;
       x += nX * fscale;
     }
   }
