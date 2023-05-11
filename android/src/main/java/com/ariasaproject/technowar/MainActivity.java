@@ -8,10 +8,7 @@ import android.view.DisplayCutout;
 import android.view.WindowInsets;
 
 public class MainActivity extends NativeActivity {
-    /*static {
-      System.loadLibrary("ext");
-    }*/
-    //static native void setInsets(int left, int top, int right, int bottom);
+    static native void setInsets(int left, int top, int right, int bottom);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +19,7 @@ public class MainActivity extends NativeActivity {
             try {
                 DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
         /*
+    		*/
                 if (displayCutout != null) {
                     setInsets(
                       displayCutout.getSafeInsetLeft(),
@@ -30,19 +28,18 @@ public class MainActivity extends NativeActivity {
                       displayCutout.getSafeInsetBottom()
                     );
                 }
-    		*/
                 decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                     private DisplayCutout mDisplayCutout;
                     @Override
                     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                         mDisplayCutout = insets.getDisplayCutout();
         /*
+    		*/
                         setInsets(
                           mDisplayCutout.getSafeInsetLeft(),
                           mDisplayCutout.getSafeInsetTop(),
                           mDisplayCutout.getSafeInsetRight(),
                           mDisplayCutout.getSafeInsetBottom());
-    		*/
                         return insets;
                     }
                 });
