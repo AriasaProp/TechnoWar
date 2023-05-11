@@ -37,7 +37,7 @@ private:
 	short Pages;
 	short Outline;
 	std::unordered_map<int,CharDescriptor> Chars;
-	std::unordered_map<std::pair<short,short>, float> Kearn;
+	std::unordered_map<unsigned int,float> Kearn;
 	int fcolor;
 	engine::texture_core *ftexid;
 	float fscale;

@@ -137,7 +137,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
         Kearn.reserve(KernCount);
       }
     } else if (Read == "kerning") {
-      short id1, id2;
+      short id[2];
       float amount;
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -147,13 +147,13 @@ bool bmfont::ParseFont(const char *fontfile ) {
         Value = Read.substr (i + 1);
         Converter << Value;
         if (Key == "first")
-          Converter >> id1;
+          Converter >> id[0];
         else if (Key == "second")
-          Converter >> id2;
+          Converter >> id[1];
         else if (Key == "amount")
           Converter >> amount;
       }
-      Kearn[std::make_pair(id1,id2)] = amount;
+      Kearn[*((unsigned int*)id)] = amount;
     }
   }
   return true;
@@ -252,7 +252,8 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     cur_tex++;
     if (*(t+1)) {
       float nX = f.XAdvance;
-      std::unordered_map<std::pair<short,short>,float>::iterator it = Kearn.find(std::make_pair((short)*t, (short)*(t+1)));
+      short key[2] = {*t, *(t+1)};
+      std::unordered_map<unsigned int,float>::iterator it = Kearn.find(*((unsigned int*)key));
       if (it != Kearn.end())
         nX += it->second;
       x += nX * fscale;
