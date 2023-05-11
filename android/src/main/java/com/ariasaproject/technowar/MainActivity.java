@@ -14,12 +14,10 @@ public class MainActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //get insets
-    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    		if (Build.VERSION.SDK_INT >= 28) {
             final View decorView = getWindow().getDecorView();
             try {
                 DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
-        /*
-    		*/
                 if (displayCutout != null) {
                     setInsets(
                       displayCutout.getSafeInsetLeft(),
@@ -33,8 +31,6 @@ public class MainActivity extends NativeActivity {
                     @Override
                     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                         mDisplayCutout = insets.getDisplayCutout();
-        /*
-    		*/
                         setInsets(
                           mDisplayCutout.getSafeInsetLeft(),
                           mDisplayCutout.getSafeInsetTop(),

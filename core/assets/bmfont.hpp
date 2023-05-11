@@ -1,8 +1,8 @@
 #ifndef __BMFONT__
 #define __BMFONT__
 
-#include <vector>
 #include <unordered_map>
+#include <utility>
 
 #include "../engine.hpp"
 // xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
@@ -18,7 +18,6 @@ enum Align : unsigned char{
   ALIGN_BOTTOM_RIGHT = 10
 };
 
-struct KearningInfo;
 struct CharDescriptor;
 
 struct bmfont {
@@ -38,14 +37,12 @@ private:
 	short Pages;
 	short Outline;
 	std::unordered_map<int,CharDescriptor> Chars;
-	std::vector<KearningInfo> Kearn;
+	std::unordered_map<std::pair<short,short>, float> Kearn;
 	int fcolor;
 	engine::texture_core *ftexid;
 	float fscale;
 
 	bool ParseFont(const char *);
-	int GetKerningPair(int, int);
-	float GetStringWidth(const char *);
 
 };
 

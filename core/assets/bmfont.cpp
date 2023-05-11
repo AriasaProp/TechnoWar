@@ -10,7 +10,7 @@
 #include <string>
 
 struct KearningInfo {
-	short First, Second, Amount;
+	short Amount;
 };
 
 struct CharDescriptor {
@@ -32,7 +32,7 @@ bool bmfont::ParseFont(const char *fontfile ) {
 	std::stringstream buffer_stream(buffer);
 	std::string Line;
 	std::string Read, Key, Value;
-	std::size_t i; 
+	unsigned int i; 
 
   KearningInfo K;
   CharDescriptor C;
@@ -86,17 +86,26 @@ bool bmfont::ParseFont(const char *fontfile ) {
           Converter >> Outline;
         }
       }
+    } else if (Read == "chars") { // only 1 value
+      std::stringstream Converter;
+      LineStream >> Read;
+      i = Read.find ('=');
+      Key = Read.substr (0, i);
+      Value = Read.substr (i + 1);
+      Converter << Value;
+      if (Key == "count") {
+        int CharCount;
+        Converter >> CharCount;
+        Chars.reserve(CharCount);
+      }
     } else if (Read == "char") {
-      // This is data for each specific character.
       int CharID = 0;
-
       while (!LineStream.eof ()) {
         std::stringstream Converter;
         LineStream >> Read;
         i = Read.find ('=');
         Key = Read.substr (0, i);
         Value = Read.substr (i + 1);
-
         // Assign the correct value
         Converter << Value;
         if (Key == "id") {
@@ -120,62 +129,39 @@ bool bmfont::ParseFont(const char *fontfile ) {
         }
       }
       Chars[CharID] = C;
-    } else if (Read == "kernings") {
-      while (!LineStream.eof ()) {
-        std::stringstream Converter;
-        LineStream >> Read;
-        i = Read.find ('=');
-        Key = Read.substr (0, i);
-        Value = Read.substr (i + 1);
-
-        // assign the correct value
-        Converter << Value;
-        if (Key == "count") {
-          int KernCount;
-          Converter >> KernCount;
-          Kearn.reserve (KernCount);
-        }
+    } else if (Read == "kernings") { //only 1 value
+      std::stringstream Converter;
+      LineStream >> Read;
+      i = Read.find ('=');
+      Key = Read.substr (0, i);
+      Value = Read.substr (i + 1);
+      Converter << Value;
+      if (Key == "count") {
+        int KernCount;
+        Converter >> KernCount;
+        Kearn.reserve(KernCount);
       }
     } else if (Read == "kerning") {
+      short id1, id2;
+      float amount;
       while (!LineStream.eof ()) {
         std::stringstream Converter;
         LineStream >> Read;
         i = Read.find ('=');
         Key = Read.substr (0, i);
         Value = Read.substr (i + 1);
-
-        // assign the correct value
         Converter << Value;
         if (Key == "first")
-          Converter >> K.First;
+          Converter >> id1;
         else if (Key == "second")
-          Converter >> K.Second;
+          Converter >> id2;
         else if (Key == "amount")
-          Converter >> K.Amount;
+          Converter >> amount;
       }
-      // wrlog("Done with this pass");
-      Kearn.push_back (K);
+      Kearn[std::make_pair(id1,id2)] = amount;
     }
   }
   return true;
-}
-
-int bmfont::GetKerningPair (int first, int second) {
-  if (!Kearn.empty ())
-    for (const KearningInfo &ki : Kearn)
-      if (ki.First == first && ki.Second == second)
-        return ki.Amount;
-  return 0;
-}
-
-float bmfont::GetStringWidth (const char *text) {
-  float total = 0;
-  while (*text) {
-    if (Chars.find(*text) == Chars.end()) continue;
-    total += Chars[*text].XAdvance;
-    text++;
-  }
-  return total * fscale;
 }
 
 void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
@@ -188,40 +174,30 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   va_end (ap);
   unsigned char xpivot = align & 3;
   switch (xpivot) {
-    default:
-    case 0://left
+    default://left
       break;
-    case 1: { //center
-      float X = 0;
+    case 1: {//center
+      float total = 0;
       for (const char *t = text; *t; t++) {
-        if (Chars.find(*t)==Chars.end()) continue;
-        if (*(t+1)) {
-          X += (float)GetKerningPair (*t, *(t+1));
-        }
-        X += (float)Chars[*t].XAdvance;
-        t++;
+        if (Chars.find(*t) == Chars.end()) continue;
+        total += Chars[*t].XAdvance;
       }
-      x -= X * fscale * 0.5f;
+      x -= total * 0.5f * fscale;;
       break;
     }
-    case 2: {
-      float X = 0;
+    case 2: {//right
+      float total = 0;
       for (const char *t = text; *t; t++) {
-        if (Chars.find(*t)==Chars.end()) continue;
-        if (*(t+1)) {
-          X += (float)GetKerningPair (*t, *(t+1));
-        }
-        X += (float)Chars[*t].XAdvance;
-        t++;
+        if (Chars.find(*t) == Chars.end()) continue;
+        total += Chars[*t].XAdvance;
       }
-      x -= X * fscale;
+      x -= total * fscale;;
       break;
     }
   }
   unsigned char ypivot = (align >> 2);
   switch (ypivot) {
     default:
-    case 0:
       break;
     case 1:
       y += LineHeight * fscale * 0.5f;
@@ -280,9 +256,12 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
 
     cur_tex++;
     if (*(t+1)) {
-      x += GetKerningPair (*t, *(t+1)) * fscale;
+      float nX = f.XAdvance;
+      std::unordered_map<std::pair<short,short>,float>::iterator it = Kearn.find(std::make_pair((short)*t, (short)*(t+1)));
+      if (it != Kearn.end())
+        nX += *it;
+      x += nX * fscale;
     }
-    x += f.XAdvance * fscale;
   }
   engine::graph->flat_render(ftexid, texlst, n);
 }
