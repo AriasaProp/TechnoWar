@@ -34,7 +34,8 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onStart() {
     		if (Build.VERSION.SDK_INT >= 28) {
-            DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
+            final View decorView = getWindow().getDecorView();
+            final DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
             if (displayCutout != null) {
                 setInsets(
                   displayCutout.getSafeInsetLeft(),
