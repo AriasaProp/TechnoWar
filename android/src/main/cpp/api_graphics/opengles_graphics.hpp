@@ -3,19 +3,13 @@
 
 #include "android_graphics.hpp"
 #include "../main_game.hpp"
-#include <EGL/egl.h>
 #include <unordered_set>
 
 struct opengles_graphics: public android_graphics {
 private:
 	ANativeWindow *window;
-	EGLDisplay display;
-	EGLSurface surface;
-	EGLContext context;
-	EGLConfig eConfig;
 	std::unordered_set<engine::texture_core*> managedTexture;
 	std::unordered_set<engine::mesh_core*> managedMesh;
-	EGLint width, height;
 public:
 	//android
 	void onResume() override;
@@ -38,7 +32,7 @@ public:
   engine::mesh_core* gen_mesh(engine::mesh_core::data*, unsigned int, unsigned short*, unsigned int) override;
   void mesh_render(engine::mesh_core**, const unsigned int&) override;
   void delete_mesh(engine::mesh_core*) override;
-  inline void resize_viewport(const int, const int);
+  inline void resize_viewport();
   
   opengles_graphics();
   ~opengles_graphics();

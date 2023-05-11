@@ -4,6 +4,13 @@
 // make opengles lastest possible version
 #include <GLES3/gl32.h> //API 24
 
+#include <EGL/egl.h>
+static EGLDisplay display;
+static EGLSurface surface;
+static EGLContext context;
+static EGLConfig eConfig;
+static EGLint wWidth, wHeight;
+
 struct ui_batch {
 	bool dirty_projection;
 	GLint shader;
@@ -46,8 +53,8 @@ static world_batch *ws;
 static GLuint nullTextureId;
 static bool use_mipmap = true;
 
-float opengles_graphics::getWidth() { return (float)width; }
-float opengles_graphics::getHeight() { return (float)height; }
+float opengles_graphics::getWidth() { return (float)wWidth; }
+float opengles_graphics::getHeight() { return (float)wHeight; }
 
 void opengles_graphics::onResume() {
 	resume = true;
@@ -108,9 +115,9 @@ void opengles_graphics::render() {
 			surface = eglCreateWindowSurface(display, eConfig, window, nullptr);
   	}
   	eglMakeCurrent(display, surface, surface, context);
-  	eglQuerySurface(display, surface, EGL_WIDTH, &width);
-  	eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-		resize_viewport(width, height);
+  	eglQuerySurface(display, surface, EGL_WIDTH, &wWidth);
+  	eglQuerySurface(display, surface, EGL_HEIGHT, &wHeight);
+		resize_viewport();
   	if (newCntx) {
   		//made root for null texture test
   		{
@@ -303,10 +310,9 @@ void opengles_graphics::render() {
   } else if (resize) {
 		eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglMakeCurrent(display, surface, surface, context);
-    int32_t width, height;
-		eglQuerySurface(display, surface, EGL_WIDTH, &width);
-		eglQuerySurface(display, surface, EGL_HEIGHT, &height);
-		resize_viewport(width, height);
+		eglQuerySurface(display, surface, EGL_WIDTH, &wWidth);
+		eglQuerySurface(display, surface, EGL_HEIGHT, &wHeight);
+		resize_viewport();
 	}
 	resize = false;
   if (resume) {
@@ -418,12 +424,12 @@ void opengles_graphics::clear(const unsigned int &m) {
 void opengles_graphics::clearcolor(const float &r, const float &g, const float &b, const float &a) {
 	glClearColor(r, g, b, a);
 }
-engine::texture_core *opengles_graphics::gen_texture(const int &width, const int &height, unsigned char *data) {
-	opengles_texture *t = new opengles_texture(0, width, height, data);
+engine::texture_core *opengles_graphics::gen_texture(const int &tw, const int &th, unsigned char *data) {
+	opengles_texture *t = new opengles_texture(0, tw, th, data);
 	glGenTextures(1, &t->id);
 	glBindTexture(GL_TEXTURE_2D, t->id);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tw, th, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void*)data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -530,14 +536,14 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	delete m;
 }
 
-inline void opengles_graphics::resize_viewport(const int w, const int h) {
-	glViewport(0, 0, w, h);
-	float W = float(w - cur_safe_insets.left - cur_safe_insets.right);
-	float H = float(h - cur_safe_insets.top - cur_safe_insets.bottom);
-	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/W;
-	ubatch->ui_projection[12] = -float(w + cur_safe_insets.left - cur_safe_insets.right)/W;
-	ubatch->ui_projection[13] = -float(h + cur_safe_insets.top - cur_safe_insets.bottom)/H;
-	ws->worldProj[5] = ubatch->ui_projection[5] = 2.f/H;
+inline void opengles_graphics::resize_viewport() {
+	glViewport(0, 0, wWidth, wHeight);
+	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/wWidth;
+	ubatch->ui_projection[5] = ws->worldProj[5] = 2.f/wHeight;
+	ubatch->ui_projection[12] = -float(wWidth + 2*cur_safe_insets.left)/float(wWidth);
+	ubatch->ui_projection[13] = -float(wHeight + 2*cur_safe_insets.bottom)/float(wHeight);
+	wWidth -= cur_safe_insets.left + cur_safe_insets.right;
+	wHeight -= cur_safe_insets.top + cur_safe_insets.bottom;
 	ubatch->dirty_projection = true;
 	ws->dirty_worldProj = true;
 }
