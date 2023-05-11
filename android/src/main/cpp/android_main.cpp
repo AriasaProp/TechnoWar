@@ -387,7 +387,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     pthread_attr_destroy(&attr);
 }
 
-//native mainActivity
+//native MainActivity.java
 #include <jni.h>
 
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets(JNIEnv *, jclass, jint left, jint top, jint right, jint bottom) {
