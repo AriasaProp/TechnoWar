@@ -18,13 +18,14 @@ public class MainActivity extends NativeActivity implements  View.OnApplyWindowI
     private DisplayCutout mDisplayCutout;
     @Override
     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-        if (Build.VERSION.SDK_INT < 28) return;
-        mDisplayCutout = insets.getDisplayCutout();
-        setInsets(
-          mDisplayCutout.getSafeInsetLeft(),
-          mDisplayCutout.getSafeInsetTop(),
-          mDisplayCutout.getSafeInsetRight(),
-          mDisplayCutout.getSafeInsetBottom());
+        if (Build.VERSION.SDK_INT >= 28) {
+          mDisplayCutout = insets.getDisplayCutout();
+          setInsets(
+            mDisplayCutout.getSafeInsetLeft(),
+            mDisplayCutout.getSafeInsetTop(),
+            mDisplayCutout.getSafeInsetRight(),
+            mDisplayCutout.getSafeInsetBottom());
+        }
         return insets;
     }
     
