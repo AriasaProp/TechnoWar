@@ -12,6 +12,7 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*
         if (Build.VERSION.SDK_INT >= 28) {
             getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                     private DisplayCutout mDisplayCutout;
@@ -27,5 +28,6 @@ public class MainActivity extends NativeActivity {
                     }
                 });
         }
+        */
     }
 }
