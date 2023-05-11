@@ -16,17 +16,7 @@ public class MainActivity extends NativeActivity {
         //get insets
     		if (Build.VERSION.SDK_INT >= 28) {
             final View decorView = getWindow().getDecorView();
-            try {
-                DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
-                if (displayCutout != null) {
-                    setInsets(
-                      displayCutout.getSafeInsetLeft(),
-                      displayCutout.getSafeInsetTop(),
-                      displayCutout.getSafeInsetRight(),
-                      displayCutout.getSafeInsetBottom()
-                    );
-                }
-                decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
                     private DisplayCutout mDisplayCutout;
                     @Override
                     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
@@ -39,10 +29,22 @@ public class MainActivity extends NativeActivity {
                         return insets;
                     }
                 });
-            } catch (Exception e) {
-                //Gdx.app.log("AndroidGraphics", "Unable to get safe area insets");
+    		}
+    }
+    @Override
+    protected void onStart() {
+    		if (Build.VERSION.SDK_INT >= 28) {
+            DisplayCutout displayCutout = decorView.getRootWindowInsets().getDisplayCutout();
+            if (displayCutout != null) {
+                setInsets(
+                  displayCutout.getSafeInsetLeft(),
+                  displayCutout.getSafeInsetTop(),
+                  displayCutout.getSafeInsetRight(),
+                  displayCutout.getSafeInsetBottom()
+                );
             }
     		}
+    		super.onStart();
     }
     
 }
