@@ -24,7 +24,6 @@ public class MainActivity extends NativeActivity {
         updateSafeArea();
         super.surfaceChanged(holder, format, width, height);
     }
-    @TargetApi(Build.VERSION_CODES.P)
     void updateSafeArea() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             DisplayCutout displayCutout = getWindow().getDecorView().getRootWindowInsets().getDisplayCutout();
