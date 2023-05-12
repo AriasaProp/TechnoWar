@@ -18,10 +18,11 @@ public class MainActivity extends NativeActivity {
         super.onCreate(savedInstanceState);
         final View decorView = getWindow().getDecorView();
         decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            private DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    DisplayCutout displayCutout = insets.getDisplayCutout();
+                    displayCutout = insets.getDisplayCutout();
                     if (displayCutout != null) {
                         setInsets(
                           displayCutout.getSafeInsetLeft(),
