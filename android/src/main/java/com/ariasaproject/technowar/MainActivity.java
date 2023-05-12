@@ -16,8 +16,7 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final View decorView = getWindow().getDecorView();
-        decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+        getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             private DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
@@ -35,6 +34,15 @@ public class MainActivity extends NativeActivity {
                 return insets;
             }
         });
-        //decorView.requestApplyInsets();
+    }
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        getWindow().getDecorView().requestApplyInsets();
+        super.surfaceChanged();
+    }
+    @Override
+    public void onGlobalLayout() {
+        getWindow().getDecorView().requestApplyInsets();
+        super.onGlobalLayout();
     }
 }

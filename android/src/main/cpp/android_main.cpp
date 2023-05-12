@@ -31,8 +31,9 @@
 #include "api_graphics/opengles_graphics.hpp"
 //#include "api_graphics/vulkan_graphics.hpp"
 
-android_asset *aasset;
-android_graphics *agraphics;
+static android_asset *a_asset;
+static android_graphics *a_graphics;
+static android_input *a_input;
 
 struct android_app {
     bool destroyed;
@@ -84,25 +85,25 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    agraphics = new opengles_graphics;
-	  android_input *inpt = new android_input(app->looper);
+    a_graphics = new opengles_graphics;
+	  a_input = new android_input(app->looper);
 	  if (app->savedState) {
-	      agraphics->state = *(saved_state*)app->savedState;
+	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
-	  while (!agraphics->destroyed) {
-	    switch (ALooper_pollAll(agraphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
+	  while (!a_graphics->destroyed) {
+	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
-	      	inpt->process_input();
+	      	a_input->process_input();
 	      	break;
 	      case 3: //sensor queue
-	      	inpt->process_sensor();
+	      	a_input->process_sensor();
 	      	break;
 	    	case 1: //android activity queue
 					int8_t cmd;
 			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
 					switch (cmd) {
 				    case APP_CMD_RESUME:
-				    	agraphics->onResume();
+				    	a_graphics->onResume();
 			        pthread_mutex_lock(&app->mutex);
 						  if (app->savedState != NULL) {
 					      free(app->savedState);
@@ -112,24 +113,24 @@ static void* android_app_entry(void* param) {
 						  pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_INIT_WINDOW:
-			      	agraphics->onWindowInit(app->window);
+			      	a_graphics->onWindowInit(app->window);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 				    case APP_CMD_WINDOW_RESIZED:
-				    	agraphics->needResize();
+				    	a_graphics->needResize();
 				    	break;
 				    case APP_CMD_GAINED_FOCUS:
-				    	inpt->attach_sensor();
+				    	a_input->attach_sensor();
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_INPUT_INIT:
-		        	inpt->set_input_queue(app->looper, app->inputQueue);
+		        	a_input->set_input_queue(app->looper, app->inputQueue);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
@@ -137,7 +138,7 @@ static void* android_app_entry(void* param) {
 				      break;
 			      case APP_CMD_INPUT_TERM:
 			      	if (app->inputQueue != NULL) {
-			        	inpt->set_input_queue(app->looper, NULL);
+			        	a_input->set_input_queue(app->looper, NULL);
 				        app->inputQueue = NULL;
 			      	}
 					    pthread_mutex_lock(&app->mutex);
@@ -146,14 +147,14 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 				    case APP_CMD_LOST_FOCUS:
-				    	inpt->detach_sensor();
+				    	a_input->detach_sensor();
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_TERM_WINDOW:
-			      	agraphics->onWindowTerm();
+			      	a_graphics->onWindowTerm();
 			        app->window = NULL;
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -172,7 +173,7 @@ static void* android_app_entry(void* param) {
 						  }
 			  			pthread_mutex_unlock(&app->mutex);
 				      app->savedState = malloc(sizeof(saved_state));
-				      *((saved_state*)app->savedState) = agraphics->state;
+				      *((saved_state*)app->savedState) = a_graphics->state;
 				      app->savedStateSize = sizeof(saved_state);
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
@@ -180,14 +181,14 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_PAUSE:
-			      	agraphics->onPause();
+			      	a_graphics->onPause();
 					    pthread_mutex_lock(&app->mutex);
 					    app->appCmdState = cmd;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_DESTROY:
-				  		agraphics->onDestroy();
+				  		a_graphics->onDestroy();
 			        break;
 			      default:
 			      	// ?
@@ -195,12 +196,10 @@ static void* android_app_entry(void* param) {
 			  	}
 			  	break;
 			  default:
-					agraphics->render();
+					a_graphics->render();
 			  	break;
 	    }
 	  }
-	  delete agraphics;
-	  delete inpt;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
@@ -215,6 +214,12 @@ static void* android_app_entry(void* param) {
     app->destroyed = true;
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
+    delete a_graphics;
+	  delete a_input;
+	  delete a_asset;
+	  a_graphics = nullptr;
+	  a_input = nullptr;
+	  a_asset = nullptr;
     return NULL;
 }
 static void android_app_write_cmd(android_app *app, int8_t cmd) {
@@ -236,7 +241,6 @@ static void onDestroy(ANativeActivity* activity) {
     pthread_cond_destroy(&app->cond);
     pthread_mutex_destroy(&app->mutex);
     delete app;
-	  delete aasset;
     activity->instance = nullptr;
 }
 static void onStart(ANativeActivity* activity) {
@@ -368,7 +372,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     android_app* app = new android_app;
     activity->instance = app;
     memset(app, 0, sizeof(android_app));
-	  aasset = new android_asset(activity->assetManager);
+	  a_asset = new android_asset(activity->assetManager);
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
@@ -391,11 +395,12 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
 #include <jni.h>
 
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets(JNIEnv *, jclass, jint left, jint top, jint right, jint bottom) {
-    if (!agraphics) return;
-    agraphics->cur_safe_insets.left = left;
-    agraphics->cur_safe_insets.top = top;
-    agraphics->cur_safe_insets.right = right;
-    agraphics->cur_safe_insets.bottom = bottom;
+    if (!a_graphics) return;
+    a_graphics->cur_safe_insets.left = left;
+    a_graphics->cur_safe_insets.top = top;
+    a_graphics->cur_safe_insets.right = right;
+    a_graphics->cur_safe_insets.bottom = bottom;
+    a_graphics->need
 }
 
 

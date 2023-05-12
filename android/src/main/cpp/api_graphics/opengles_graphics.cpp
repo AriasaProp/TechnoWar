@@ -9,7 +9,8 @@ static EGLDisplay display;
 static EGLSurface surface;
 static EGLContext context;
 static EGLConfig eConfig;
-static EGLint wWidth, wHeight;
+static EGLint wWidth, wHeight; // platform full display
+static float game_width, game_height; // display after safe insets
 
 struct ui_batch {
 	bool dirty_projection;
@@ -53,8 +54,8 @@ static world_batch *ws;
 static GLuint nullTextureId;
 static bool use_mipmap = true;
 
-float opengles_graphics::getWidth() { return (float)wWidth; }
-float opengles_graphics::getHeight() { return (float)wHeight; }
+float opengles_graphics::getWidth() { return game_width; }
+float opengles_graphics::getHeight() { return game_height; }
 
 void opengles_graphics::onResume() {
 	resume = true;
@@ -117,7 +118,8 @@ void opengles_graphics::render() {
   	eglMakeCurrent(display, surface, surface, context);
   	eglQuerySurface(display, surface, EGL_WIDTH, &wWidth);
   	eglQuerySurface(display, surface, EGL_HEIGHT, &wHeight);
-		resize_viewport();
+		glViewport(0, 0, wWidth, wHeight);
+		update_matrix();
   	if (newCntx) {
   		//made root for null texture test
   		{
@@ -312,7 +314,8 @@ void opengles_graphics::render() {
 		eglMakeCurrent(display, surface, surface, context);
 		eglQuerySurface(display, surface, EGL_WIDTH, &wWidth);
 		eglQuerySurface(display, surface, EGL_HEIGHT, &wHeight);
-		resize_viewport();
+		glViewport(0, 0, wWidth, wHeight);
+		update_matrix();
 	}
 	resize = false;
   if (resume) {
@@ -536,14 +539,13 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	delete m;
 }
 
-inline void opengles_graphics::resize_viewport() {
-	glViewport(0, 0, wWidth, wHeight);
+inline void opengles_graphics::update_matrix() {
 	ubatch->ui_projection[0] = ws->worldProj[0] = 2.f/wWidth;
 	ubatch->ui_projection[5] = ws->worldProj[5] = 2.f/wHeight;
 	ubatch->ui_projection[12] = -float(wWidth - 2*cur_safe_insets.left)/float(wWidth);
 	ubatch->ui_projection[13] = -float(wHeight - 2*cur_safe_insets.bottom)/float(wHeight);
-	wWidth -= cur_safe_insets.left + cur_safe_insets.right;
-	wHeight -= cur_safe_insets.top + cur_safe_insets.bottom;
+	game_width = float(wWidth - cur_safe_insets.left - cur_safe_insets.right);
+	game_height = float(wHeight - cur_safe_insets.top - cur_safe_insets.bottom);
 	ubatch->dirty_projection = true;
 	ws->dirty_worldProj = true;
 }
