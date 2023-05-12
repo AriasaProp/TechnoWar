@@ -16,18 +16,24 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-    public void onGlobalLayout() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            DisplayCutout displayCutout = getWindow().getDecorView().getRootWindowInsets().getDisplayCutout();
-            if (displayCutout != null) {
-                setInsets(
-                  displayCutout.getSafeInsetLeft(),
-                  displayCutout.getSafeInsetTop(),
-                  displayCutout.getSafeInsetRight(),
-                  displayCutout.getSafeInsetBottom()
-                );
+        final View decorView = getWindow().getDecorView();
+        decorView.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    DisplayCutout displayCutout = insets.getDisplayCutout();
+                    if (displayCutout != null) {
+                        setInsets(
+                          displayCutout.getSafeInsetLeft(),
+                          displayCutout.getSafeInsetTop(),
+                          displayCutout.getSafeInsetRight(),
+                          displayCutout.getSafeInsetBottom()
+                        );
+                    }
+                }
+                return insets;
             }
-        }
+        });
+        //decorView.requestApplyInsets();
     }
 }
