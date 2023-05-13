@@ -21,29 +21,31 @@ public class MainActivity extends NativeActivity {
             private android.view.DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    int insetsL = 0;
-                    int insetsT = 0;
-                    int insetsR = 0;
-                    int insetsB = 0;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        int tl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT).getRadius();
-                        int bl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
-                        insetsL = Math.max(tl, bl)/3;
-                        int tr = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_RIGHT).getRadius();
-                        insetsT = Math.max(tl, tr)/3;
-                        int br = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_RIGHT).getRadius();
-                        insetsR = Math.max(tr, br)/3;
-                        insetsB = Math.max(bl, br)/3;
+                if (insets != null) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        int insetsL = 0;
+                        int insetsT = 0;
+                        int insetsR = 0;
+                        int insetsB = 0;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            int tl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT).getRadius();
+                            int bl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
+                            insetsL = Math.max(tl, bl)/3;
+                            int tr = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_RIGHT).getRadius();
+                            insetsT = Math.max(tl, tr)/3;
+                            int br = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_RIGHT).getRadius();
+                            insetsR = Math.max(tr, br)/3;
+                            insetsB = Math.max(bl, br)/3;
+                        }
+                        displayCutout = insets.getDisplayCutout();
+                        if (displayCutout != null) {
+                            insetsL = Math.max(insetsL, displayCutout.getSafeInsetLeft());
+                            insetsT = Math.max(insetsT, displayCutout.getSafeInsetTop());
+                            insetsR = Math.max(insetsR, displayCutout.getSafeInsetRight());
+                            insetsB = Math.max(insetsB, displayCutout.getSafeInsetBottom());
+                        }
+                        setInsets(insetsL, insetsT, insetsR, insetsB);
                     }
-                    displayCutout = insets.getDisplayCutout();
-                    if (displayCutout != null) {
-                        insetsL = Math.max(insetsL, displayCutout.getSafeInsetLeft());
-                        insetsT = Math.max(insetsT, displayCutout.getSafeInsetTop());
-                        insetsR = Math.max(insetsR, displayCutout.getSafeInsetRight());
-                        insetsB = Math.max(insetsB, displayCutout.getSafeInsetBottom());
-                    }
-                    setInsets(insetsL, insetsT, insetsR, insetsB);
                 }
                 return insets;
             }
