@@ -23,8 +23,8 @@ public class MainActivity extends NativeActivity {
             private DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                int insetsL, insetsT, insetsR, insetsB;
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    int insetsL = 0, insetsT = 0, insetsR = 0, insetsB = 0;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         int tl = insets.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT).getRadius();
                         int bl = insets.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
@@ -42,8 +42,8 @@ public class MainActivity extends NativeActivity {
                         insetsR = Math.max(insetsR, displayCutout.getSafeInsetRight());
                         insetsB = Math.max(insetsB, displayCutout.getSafeInsetBottom());
                     }
+                    setInsets(insetsL, insetsT, insetsR, insetsB);
                 }
-                setInsets(insetsL, insetsT, insetsR, insetsB);
                 return insets;
             }
         });
