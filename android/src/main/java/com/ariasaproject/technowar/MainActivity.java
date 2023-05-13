@@ -38,7 +38,7 @@ public class MainActivity extends NativeActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         getWindow().getDecorView().requestApplyInsets();
-        super.surfaceChanged();
+        super.surfaceChanged(holder, format, width, height);
     }
     @Override
     public void onGlobalLayout() {
