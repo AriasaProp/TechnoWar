@@ -20,20 +20,20 @@ struct key_event {
 		KEY_DOWN
 	} type;
 };
-std::unordered_set<key_event*> key_events;
-std::unordered_map<std::string, float*> _sensor;
-float *m_accelerometer;
-float *m_gyroscope;
-std::unordered_set<int> key_pressed;
-std::unordered_set<int> just_key_pressed;
-ASensorEvent *s_event;
-ASensorManager* sensorManager;
-const ASensor* accelerometerSensor;
-const ASensor* gyroscopeSensor;
-ASensorEventQueue* sensorEventQueue;
-AInputQueue *inputQueue = NULL;
-AInputEvent* i_event;
-bool sensor_enabled = false;
+static std::unordered_set<key_event> key_events;
+static std::unordered_map<std::string, float*> _sensor;
+static std::unordered_set<int> key_pressed;
+static std::unordered_set<int> just_key_pressed;
+static ASensorEvent *s_event;
+static ASensorManager* sensorManager;
+static const ASensor* accelerometerSensor;
+static const ASensor* gyroscopeSensor;
+static ASensorEventQueue* sensorEventQueue;
+static AInputQueue *inputQueue;
+//cache only
+static AInputEvent* i_event;
+
+static bool sensor_enabled;
 //funct
 float	*android_input::getSensorValue(const char *sensor_name) {	return _sensor[sensor_name]; }
 int android_input::getX(unsigned int p = 0) {	return input_pointer_cache[p].x; }
@@ -51,20 +51,19 @@ void android_input::process_event() {
 	if(just_key_pressed.size() > 0) {
 		just_key_pressed.clear();
 	}
-	for (key_event *k : key_events) {
-		switch(k->type) {
-			case key_event::event::KEY_UP: {
+	for (const key_event &k : key_events) {
+		switch(k.type) {
+			case key_event::event::KEY_UP:{
 			}
 				break;
 			case key_event::event::KEY_DOWN:{
-				std::unordered_set<int>::iterator key = just_key_pressed.find(k->keyCode);
+				std::unordered_set<int>::iterator key = just_key_pressed.find(k.keyCode);
 				if(key != just_key_pressed.end()) {
-					just_key_pressed.insert(k->keyCode);
+					just_key_pressed.insert(k.keyCode);
 				}
 			}
 				break;
 		}
-		delete k;
 	}
 	key_events.clear();
 }
@@ -76,7 +75,7 @@ void android_input::set_input_queue(ALooper *looper, AInputQueue *i) {
 		AInputQueue_attachLooper(inputQueue, looper, 2, NULL, nullptr);
 }
 void android_input::process_input() {
-	if (inputQueue == NULL) return;
+	if (!inputQueue) return;
 	if (AInputQueue_getEvent(inputQueue, &i_event) < 0) return;
   if (AInputQueue_preDispatchEvent(inputQueue, i_event) != 0) return;
   int32_t handled = 0;
@@ -89,7 +88,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.insert(keyCode);
 					}
-					key_events.insert(new key_event{keyCode,key_event::event::KEY_DOWN});
+					key_events.insert({.keyCode = keyCode,.type = key_event::event::KEY_DOWN});
 				}
 					break;
 				case AKEY_EVENT_ACTION_UP: {
@@ -97,7 +96,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.erase(key);
 					}
-					key_events.insert(new key_event{keyCode,key_event::event::KEY_UP});
+					key_events.insert({.keyCode = keyCode,.type = key_event::event::KEY_UP});
 				}
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
@@ -110,17 +109,15 @@ void android_input::process_input() {
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {
 		    case AMOTION_EVENT_ACTION_POINTER_DOWN:
 		    case AMOTION_EVENT_ACTION_DOWN:
-					if (AMotionEvent_getEdgeFlags(i_event) != 0)
-						break;
-		    {
-					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
-						break;
-					touch_pointer &ip = input_pointer_cache[pointer_index];
-		    	ip.active = true;
-	        ip.xs = ip.x = AMotionEvent_getX(i_event, pointer_index);
-	        ip.ys = ip.y = AMotionEvent_getY(i_event, pointer_index);
-		    }
+					if (AMotionEvent_getEdgeFlags(i_event) == 0) {
+  					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+  					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
+  						break;
+  					touch_pointer &ip = input_pointer_cache[pointer_index];
+  		    	ip.active = true;
+  	        ip.xs = ip.x = AMotionEvent_getX(i_event, pointer_index);
+  	        ip.ys = ip.y = AMotionEvent_getY(i_event, pointer_index);
+  		    }
 		    	break;
 		    case AMOTION_EVENT_ACTION_MOVE:
 		    	for (size_t i = 0, j = AMotionEvent_getPointerCount(i_event); (i<j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
@@ -202,17 +199,19 @@ void android_input::detach_sensor() {
 	sensor_enabled = false;
 }
 android_input::android_input(ALooper *looper) {
-	//input
 	_sensor.emplace("accelerometer", new float[3]{});
 	_sensor.emplace("gyroscope", new float[3]{});
-	input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
-	s_event = new ASensorEvent[2];
+	
+  s_event = new ASensorEvent[2];
   sensorManager = ASensorManager_getInstance();
   accelerometerSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_ACCELEROMETER);
   gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
 	sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, 3 , NULL, nullptr);
+	inputQueue = nullptr;
+  sensor_enabled = false;
+	//input
+	input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
 	engine::inpt = this;
-
 }
 android_input::~android_input() {
 	detach_sensor();

@@ -2,7 +2,6 @@
 #define _Included_Android_Input
 
 #include "../engine.hpp"
-#include <unordered_set>
 #include <android/sensor.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
