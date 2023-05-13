@@ -20,7 +20,7 @@ struct key_event {
 		KEY_DOWN
 	} type;
 };
-static std::unordered_set<key_event> key_events;
+static std::unordered_set<key_event*> key_events;
 static std::unordered_map<std::string, float*> _sensor;
 static std::unordered_set<int> key_pressed;
 static std::unordered_set<int> just_key_pressed;
@@ -51,19 +51,20 @@ void android_input::process_event() {
 	if(just_key_pressed.size() > 0) {
 		just_key_pressed.clear();
 	}
-	for (const key_event &k : key_events) {
-		switch(k.type) {
+	for (const key_event *k : key_events) {
+		switch(k->type) {
 			case key_event::event::KEY_UP:{
 			}
 				break;
 			case key_event::event::KEY_DOWN:{
-				std::unordered_set<int>::iterator key = just_key_pressed.find(k.keyCode);
+				std::unordered_set<int>::iterator key = just_key_pressed.find(k->keyCode);
 				if(key != just_key_pressed.end()) {
-					just_key_pressed.insert(k.keyCode);
+					just_key_pressed.insert(k->keyCode);
 				}
 			}
 				break;
 		}
+		delete k;
 	}
 	key_events.clear();
 }
@@ -88,7 +89,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.insert(keyCode);
 					}
-					key_events.insert({.keyCode = keyCode,.type = key_event::event::KEY_DOWN});
+					key_events.insert(new key_event{.keyCode = keyCode,.type = key_event::event::KEY_DOWN});
 				}
 					break;
 				case AKEY_EVENT_ACTION_UP: {
@@ -96,7 +97,7 @@ void android_input::process_input() {
 					if(key != key_pressed.end()) {
 						key_pressed.erase(key);
 					}
-					key_events.insert({.keyCode = keyCode,.type = key_event::event::KEY_UP});
+					key_events.insert(new key_event{.keyCode = keyCode,.type = key_event::event::KEY_UP});
 				}
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
