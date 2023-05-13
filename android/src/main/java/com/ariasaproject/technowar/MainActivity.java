@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.DisplayCutout;
 import android.view.WindowInsets;
-import android.view.WindowInsets.RoundedCorner;
+import android.view.RoundedCorner;
 import android.view.SurfaceHolder;
 
 public class MainActivity extends NativeActivity {
