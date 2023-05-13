@@ -400,7 +400,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_
     a_graphics->cur_safe_insets.top = top;
     a_graphics->cur_safe_insets.right = right;
     a_graphics->cur_safe_insets.bottom = bottom;
-    a_graphics->need
+    a_graphics->resize = true;
 }
 
 
