@@ -17,7 +17,6 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        /*
         getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             private android.view.DisplayCutout displayCutout;
             @Override
@@ -49,6 +48,7 @@ public class MainActivity extends NativeActivity {
                 return insets;
             }
         });
+        /*
         */
     }
     /*
