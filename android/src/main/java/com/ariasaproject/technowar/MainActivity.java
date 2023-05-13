@@ -6,9 +6,7 @@ import android.os.Build;
 import android.app.NativeActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.view.DisplayCutout;
 import android.view.WindowInsets;
-import android.view.RoundedCorner;
 import android.view.SurfaceHolder;
 
 public class MainActivity extends NativeActivity {
@@ -20,18 +18,21 @@ public class MainActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-            private DisplayCutout displayCutout;
+            private android.view.DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    int insetsL = 0, insetsT = 0, insetsR = 0, insetsB = 0;
+                    int insetsL = 0;
+                    int insetsT = 0;
+                    int insetsR = 0;
+                    int insetsB = 0;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        int tl = insets.getRoundedCorner(RoundedCorner.POSITION_TOP_LEFT).getRadius();
-                        int bl = insets.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
-                        int tr = insets.getRoundedCorner(RoundedCorner.POSITION_TOP_RIGHT).getRadius();
-                        int br = insets.getRoundedCorner(RoundedCorner.POSITION_BOTTOM_RIGHT).getRadius();
+                        int tl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT).getRadius();
+                        int bl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
                         insetsL = Math.max(tl, bl)/3;
+                        int tr = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_RIGHT).getRadius();
                         insetsT = Math.max(tl, tr)/3;
+                        int br = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_RIGHT).getRadius();
                         insetsR = Math.max(tr, br)/3;
                         insetsB = Math.max(bl, br)/3;
                     }
@@ -53,9 +54,11 @@ public class MainActivity extends NativeActivity {
         getWindow().getDecorView().requestApplyInsets();
         super.surfaceChanged(holder, format, width, height);
     }
+    /*
     @Override
     public void onGlobalLayout() {
         getWindow().getDecorView().requestApplyInsets();
         super.onGlobalLayout();
     }
+    */
 }
