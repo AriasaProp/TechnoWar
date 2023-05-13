@@ -18,10 +18,9 @@ public class MainActivity extends NativeActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-            private android.view.DisplayCutout displayCutout;
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                if (insets != null) {
+                try {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                         int insetsL = 0;
                         int insetsT = 0;
@@ -37,7 +36,7 @@ public class MainActivity extends NativeActivity {
                             insetsR = Math.max(tr, br)/3;
                             insetsB = Math.max(bl, br)/3;
                         }
-                        displayCutout = insets.getDisplayCutout();
+                        final android.view.DisplayCutout displayCutout = insets.getDisplayCutout();
                         if (displayCutout != null) {
                             insetsL = Math.max(insetsL, displayCutout.getSafeInsetLeft());
                             insetsT = Math.max(insetsT, displayCutout.getSafeInsetTop());
@@ -46,6 +45,8 @@ public class MainActivity extends NativeActivity {
                         }
                         setInsets(insetsL, insetsT, insetsR, insetsB);
                     }
+                } catch (Exception e) {
+                    //unsuported ?
                 }
                 return insets;
             }
