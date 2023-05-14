@@ -32,7 +32,6 @@ struct android_graphics: public engine::graphics_core {
 	virtual void render() = 0;
 	virtual void onWindowTerm() = 0;
 	virtual void onPause() = 0;
-	virtual void onDestroy() = 0;
 	virtual ~android_graphics() = 0;
 };
 

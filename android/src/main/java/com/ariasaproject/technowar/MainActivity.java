@@ -20,12 +20,12 @@ public class MainActivity extends NativeActivity {
         getWindow().getDecorView().setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
             @Override
             public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+                int insetsL = 0;
+                int insetsT = 0;
+                int insetsR = 0;
+                int insetsB = 0;
                 try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        int insetsL = 0;
-                        int insetsT = 0;
-                        int insetsR = 0;
-                        int insetsB = 0;
+                    if ((insets != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             int tl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT).getRadius();
                             int bl = insets.getRoundedCorner(android.view.RoundedCorner.POSITION_BOTTOM_LEFT).getRadius();
@@ -43,23 +43,23 @@ public class MainActivity extends NativeActivity {
                             insetsR = Math.max(insetsR, displayCutout.getSafeInsetRight());
                             insetsB = Math.max(insetsB, displayCutout.getSafeInsetBottom());
                         }
-                        setInsets(insetsL, insetsT, insetsR, insetsB);
                     }
                 } catch (Exception e) {
                     //unsuported ?
+                    // cause floating window
                 }
+                setInsets(insetsL, insetsT, insetsR, insetsB);
                 return insets;
             }
         });
-        /*
-        */
     }
-    /*
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         getWindow().getDecorView().requestApplyInsets();
         super.surfaceChanged(holder, format, width, height);
     }
+    //on global layout changes may not important
+    /*
     @Override
     public void onGlobalLayout() {
         getWindow().getDecorView().requestApplyInsets();

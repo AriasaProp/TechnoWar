@@ -58,6 +58,7 @@ enum {
     APP_CMD_INIT_WINDOW,
     APP_CMD_GAINED_FOCUS,
     APP_CMD_WINDOW_RESIZED,
+    APP_CMD_CONTENT_RECT_CHANGED,
     APP_CMD_CONFIG_CHANGED,
     APP_CMD_LOST_FOCUS,
     APP_CMD_LOW_MEMORY,
@@ -76,12 +77,12 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    a_graphics = new opengles_graphics;
 	  a_input = new android_input(app->looper);
 	  if (app->savedState) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
-	  while (!a_graphics->destroyed) {
+    a_graphics = new opengles_graphics;
+	  while (a_graphics) {
 	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
 	      	a_input->process_input();
@@ -110,6 +111,8 @@ static void* android_app_entry(void* param) {
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
+				    case APP_CMD_CONTENT_RECT_CHANGED:
+				    	break;
 				    case APP_CMD_WINDOW_RESIZED:
 				    	a_graphics->needResize();
 				    	break;
@@ -179,7 +182,8 @@ static void* android_app_entry(void* param) {
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_DESTROY:
-				  		a_graphics->onDestroy();
+              delete a_graphics;
+          	  a_graphics = nullptr;
 			        break;
 			      default:
 			      	// ?
@@ -205,10 +209,8 @@ static void* android_app_entry(void* param) {
     app->destroyed = true;
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
-    delete a_graphics;
 	  delete a_input;
 	  delete a_asset;
-	  a_graphics = nullptr;
 	  a_input = nullptr;
 	  a_asset = nullptr;
     return NULL;
@@ -306,6 +308,9 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
+static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
+    android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONTENT_RECT_CHANGED);
+}
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
     if(app->window == NULL) return;
@@ -350,6 +355,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     activity->callbacks->onInputQueueCreated = onInputQueueCreated;
     activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
     activity->callbacks->onNativeWindowResized = onNativeWindowResized;
+    activity->callbacks->onContentRectChanged = onContentRectChanged;
     activity->callbacks->onConfigurationChanged = onConfigurationChanged;
     activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
     activity->callbacks->onLowMemory = onLowMemory;
@@ -391,7 +397,6 @@ extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_
     a_graphics->cur_safe_insets.top = top;
     a_graphics->cur_safe_insets.right = right;
     a_graphics->cur_safe_insets.bottom = bottom;
-    a_graphics->resize = true;
 }
 
 

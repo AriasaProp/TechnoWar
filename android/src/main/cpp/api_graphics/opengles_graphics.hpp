@@ -18,7 +18,6 @@ public:
 	void render() override;
 	void onWindowTerm() override;
 	void onPause() override;
-	void onDestroy() override;
 	//core
 	float getWidth() override;
   float getHeight() override;

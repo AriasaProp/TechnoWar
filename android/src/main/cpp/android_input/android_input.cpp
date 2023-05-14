@@ -4,9 +4,6 @@
 #include <unordered_map>
 #include <cstring>
 #include <string>
-#include <android/sensor.h>
-#include <android/looper.h>
-#include <android/native_activity.h>
 
 struct touch_pointer {
 	bool active;

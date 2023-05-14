@@ -410,10 +410,6 @@ void opengles_graphics::onPause() {
 	render();
 	running = false;
 }
-void opengles_graphics::onDestroy() {
-	destroyed = true;
-	render();
-}
 void opengles_graphics::clear(const unsigned int &m) {
 	GLuint c = 0;
 	if (m&1)
@@ -563,6 +559,8 @@ opengles_graphics::opengles_graphics() {
 }
 
 opengles_graphics::~opengles_graphics() {
+	destroyed = true;
+	render();
 	managedTexture.clear();
 	managedMesh.clear();
 	delete ubatch;
