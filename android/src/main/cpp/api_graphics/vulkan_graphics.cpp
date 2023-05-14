@@ -766,11 +766,6 @@ void vulkan_graphics::onPause() {
   pause = true;
   render();
 }
-void vulkan_graphics::onDestroy() {
-  // To do
-  destroyed = true;
-  render();
-}
 float vulkan_graphics::getWidth() { return 0;/* float(swapchain.displaySize_.width);*/ }
 float vulkan_graphics::getHeight() { return 0;/*float(swapchain.displaySize_.height);*/ }
 void vulkan_graphics::clear(const unsigned int &) {
@@ -811,6 +806,9 @@ vulkan_graphics::vulkan_graphics() {
 }
 
 vulkan_graphics::~vulkan_graphics() {
+  // To do
+  destroyed = true;
+  render();
   TermVulkan();
   engine::graph = nullptr;
 }
