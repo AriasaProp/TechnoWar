@@ -308,7 +308,7 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
 }
-static void onContentRectChanged(ANativeActivity* activity, const ARect* rect) {
+static void onContentRectChanged(ANativeActivity* activity, const ARect*) {
     android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONTENT_RECT_CHANGED);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
