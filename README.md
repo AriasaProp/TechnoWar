@@ -10,7 +10,7 @@ This is 3D Game Application for cross platform with currently no context. I am s
 |----------|---------------|-----|---------|-------|-------|
 | Launcher |       v       |  x  |    x    |   x   |   x   |
 | Core     |       v       |  x  |    x    |   x   |   x   |
-| Graphics | OpenGL ES 3+  |  x  |    x    |   x   |   x   |
+| Graphics | OpenGL ES 3.2 |  x  |    x    |   x   |   x   |
 | Input    | Touchscreen   |  x  |    x    |   x   |   x   |
 | Asset    | AAssetManager |  x  |    x    |   x   |   x   |
 | Net      |       x       |  x  |    x    |   x   |   x   |
