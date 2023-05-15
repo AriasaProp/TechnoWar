@@ -24,8 +24,8 @@ I apologize for any bad design in the project.
 
 ## Dependencies
 Thanks for 🙏
-@nothing for stb/stb_image as image decompressor
-@dharani811 for bmfont/bmfont as font object
+> @nothings for stb/stb_image as image decompressor
+> @dharani811 for bmfont/bmfont as font object
 
 ## License
 
