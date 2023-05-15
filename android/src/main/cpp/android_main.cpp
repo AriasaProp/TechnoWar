@@ -106,7 +106,7 @@ static void* android_app_entry(void* param) {
 			      case APP_CMD_INIT_WINDOW:
 			      	a_graphics->onWindowInit(app->window);
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
@@ -118,14 +118,14 @@ static void* android_app_entry(void* param) {
 				    case APP_CMD_GAINED_FOCUS:
 				    	a_input->attach_sensor();
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
 			      case APP_CMD_INPUT_INIT:
 		        	a_input->set_input_queue(app->looper, app->inputQueue);
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
@@ -135,14 +135,14 @@ static void* android_app_entry(void* param) {
 				        app->inputQueue = NULL;
 			      	}
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 				    case APP_CMD_LOST_FOCUS:
 				    	a_input->detach_sensor();
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
@@ -150,7 +150,7 @@ static void* android_app_entry(void* param) {
 			      	a_graphics->onWindowTerm();
 			        app->window = NULL;
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
@@ -169,14 +169,14 @@ static void* android_app_entry(void* param) {
 				      *((saved_state*)app->savedState) = a_graphics->state;
 				      app->savedStateSize = sizeof(saved_state);
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_PAUSE:
 			      	a_graphics->onPause();
 					    pthread_mutex_lock(&app->mutex);
-					    app->appCmdState = cmd;
+					    app->appCmdState = cmd_activity;
 					    pthread_cond_broadcast(&app->cond);
 					    pthread_mutex_unlock(&app->mutex);
 				      break;
