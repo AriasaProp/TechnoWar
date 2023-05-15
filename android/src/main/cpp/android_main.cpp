@@ -70,10 +70,8 @@ enum {
 };
 
 #include <cstdio>
-static bool pthread_destroyed;
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
-    pthread_destroyed = false;
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
@@ -207,7 +205,7 @@ static void* android_app_entry(void* param) {
         app->inputQueue = NULL;
     }
     AConfiguration_delete(app->config);
-    pthread_destroyed = true;
+    app->destroyed = true;
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
 	  delete a_input;
@@ -225,7 +223,7 @@ static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_DESTROY);
-    while (!pthread_destroyed) {
+    while (!app->destroyed) {
     	pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);
@@ -367,6 +365,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     activity->callbacks->onDestroy = onDestroy;
     
     android_app* app = new android_app;
+    app->destroyed = false;
     activity->instance = app;
     memset(app, 0, sizeof(android_app));
 	  a_asset = new android_asset(activity->assetManager);
