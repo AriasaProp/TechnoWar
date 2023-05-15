@@ -11,6 +11,7 @@ private:
 	std::unordered_set<engine::texture_core*> managedTexture;
 	std::unordered_set<engine::mesh_core*> managedMesh;
 public:
+  bool destroyed;
 	//android
 	void onResume() override;
 	void onWindowInit(ANativeWindow*) override;

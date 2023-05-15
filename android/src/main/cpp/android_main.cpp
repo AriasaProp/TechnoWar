@@ -15,7 +15,6 @@
 #include <sched.h>
 #include <string>
 
-#include <EGL/egl.h>
 #include <android/configuration.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
@@ -71,8 +70,10 @@ enum {
 };
 
 #include <cstdio>
+static bool pthread_destroyed;
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
+    pthread_destroyed = false;
     app->config = AConfiguration_new();
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
@@ -206,7 +207,7 @@ static void* android_app_entry(void* param) {
         app->inputQueue = NULL;
     }
     AConfiguration_delete(app->config);
-    app->destroyed = true;
+    pthread_destroyed = true;
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
 	  delete a_input;
@@ -224,8 +225,7 @@ static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_DESTROY);
-    app->destroyed = false;
-    while (!app->destroyed) {
+    while (!pthread_destroyed) {
     	pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);

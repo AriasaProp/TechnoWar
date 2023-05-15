@@ -22,7 +22,7 @@ struct safe_insets {
 };
 
 struct android_graphics: public engine::graphics_core {
-	bool resize, resume, running, pause, destroyed;
+	bool resize, resume, running, pause;
 	saved_state state;
 	safe_insets cur_safe_insets;
 	//android
