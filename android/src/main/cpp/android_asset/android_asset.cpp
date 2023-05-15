@@ -25,12 +25,12 @@ engine::asset_core *android_asset::open_asset(const char *filename) {
 }
 void *android_asset::asset_buffer(const char *filename, unsigned int *o) {
 	AAsset *asset = AAssetManager_open(assetmanager, filename, AASSET_MODE_BUFFER);
-	unsigned int *outLen = o;
-	if (!outLen) outLen = new unsigned int;
+	unsigned int *outLen = (o?o:new unsigned int);
   *outLen = AAsset_getLength(asset);
   void *result = malloc(*outLen);
   memcpy(result, AAsset_getBuffer(asset), *outLen);
   AAsset_close(asset);
+  if (!o) delete outLen;
   return result;
 }
 android_asset::android_asset(AAssetManager *mngr): assetmanager(mngr) {

@@ -81,6 +81,7 @@ static void* android_app_entry(void* param) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
     a_graphics = new opengles_graphics;
+    int8_t cmd_activity;
 	  while (a_graphics) {
 	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
@@ -90,9 +91,8 @@ static void* android_app_entry(void* param) {
 	      	a_input->process_sensor();
 	      	break;
 	    	case 1: //android activity queue
-					int8_t cmd;
-			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
-					switch (cmd) {
+			    if (read(app->msgread, &cmd_activity, sizeof(cmd_activity)) != sizeof(cmd_activity)) break;
+					switch (cmd_activity) {
 				    case APP_CMD_RESUME:
 				    	a_graphics->onResume();
 			        pthread_mutex_lock(&app->mutex);
@@ -386,12 +386,15 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     activity->callbacks->onStop = onStop;
     activity->callbacks->onDestroy = onDestroy;
     
+    LOGI("Report onCreate 1");
     android_app* app = new android_app;
     app->destroyed = false;
     activity->instance = app;
+    LOGI("Report onCreate 2");
     memset(app, 0, sizeof(android_app));
 	  a_asset = new android_asset(activity->assetManager);
     app->activity = activity;
+    LOGI("Report onCreate 4");
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
     if (savedState != NULL) {
@@ -399,14 +402,17 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
         app->savedStateSize = savedStateSize;
         memcpy(app->savedState, savedState, savedStateSize);
     }
+    LOGI("Report onCreate 5");
     if (pipe(&app->msgread)) {
         LOGI("could not create pipe: %s", strerror(errno));
     }
+    LOGI("Report onCreate 6");
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     pthread_create(&app->thread, &attr, android_app_entry, app);
     pthread_attr_destroy(&attr);
+    LOGI("Report onCreate 7");
 }
 
 //native MainActivity.java
