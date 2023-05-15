@@ -214,13 +214,14 @@ static void* android_app_entry(void* param) {
 	  a_asset = nullptr;
     return NULL;
 }
-static void android_app_write_cmd(android_app *app, int8_t cmd) {
+static inline void android_app_write_cmd(android_app *app, int8_t cmd) {
     if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGI("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
 static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_DESTROY);
     while (!app->destroyed) {
@@ -235,13 +236,18 @@ static void onDestroy(ANativeActivity* activity) {
     activity->instance = nullptr;
 }
 static void onStart(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_START);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_START);
 }
 static void onResume(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_RESUME);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_RESUME);
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return nullptr;
     void* savedState = NULL;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_SAVE_STATE);
@@ -259,6 +265,7 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
 }
 static void onPause(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_PAUSE);
     while (app->appCmdState != APP_CMD_PAUSE) {
@@ -267,16 +274,23 @@ static void onPause(ANativeActivity* activity) {
     pthread_mutex_unlock(&app->mutex);
 }
 static void onStop(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_STOP);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_STOP);
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONFIG_CHANGED);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_CONFIG_CHANGED);
 }
 static void onLowMemory(ANativeActivity* activity) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_LOW_MEMORY);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_LOW_MEMORY);
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     const int8_t foc = focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, foc);
@@ -287,6 +301,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     if (app->window != NULL) { //window should null when window create
       pthread_mutex_lock(&app->mutex);
 	    android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
@@ -304,14 +319,19 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     pthread_mutex_unlock(&app->mutex);
 }
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_WINDOW_RESIZED);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_WINDOW_RESIZED);
 }
 static void onContentRectChanged(ANativeActivity* activity, const ARect*) {
-    android_app_write_cmd((android_app*)activity->instance, APP_CMD_CONTENT_RECT_CHANGED);
+    android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
+    android_app_write_cmd(app, APP_CMD_CONTENT_RECT_CHANGED);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
-    if(app->window == NULL) return;
+    if (app->destroyed) return;
+    if (app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
     android_app_write_cmd(app, APP_CMD_TERM_WINDOW);
     while (app->appCmdState != APP_CMD_TERM_WINDOW) {
@@ -321,6 +341,7 @@ static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
 }
 static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     if (app->inputQueue != NULL) {
 	    pthread_mutex_lock(&app->mutex);
     	android_app_write_cmd(app, APP_CMD_INPUT_TERM);
@@ -339,6 +360,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 }
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     android_app *app = (android_app*)activity->instance;
+    if (app->destroyed) return;
     if(app->inputQueue == NULL) return;
     pthread_mutex_lock(&app->mutex);
   	android_app_write_cmd(app, APP_CMD_INPUT_TERM);
