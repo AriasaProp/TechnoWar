@@ -8,12 +8,12 @@ This is 3D Game Application for cross platform with currently no context. I am s
 
 | Platform |    Android    | iOS | Windows | Linux | MacOS |
 |----------|---------------|-----|---------|-------|-------|
-| Launcher |       v       |     |         |       |       |
-| Core     |       v       |     |         |       |       |
-| Graphics | OpenGL ES 3+  |     |         |       |       |
-| Input    | Touchscreen   |     |         |       |       |
-| Asset    |               |     |         |       |       |
-| Net      |               |     |         |       |       |
+| Launcher |       v       |  x  |    x    |   x   |   x   |
+| Core     |       v       |  x  |    x    |   x   |   x   |
+| Graphics | OpenGL ES 3+  |  x  |    x    |   x   |   x   |
+| Input    | Touchscreen   |  x  |    x    |   x   |   x   |
+| Asset    | AAssetManager |  x  |    x    |   x   |   x   |
+| Net      |       x       |  x  |    x    |   x   |   x   |
 |          |               |     |         |       |       |
 
 ## Contributing
