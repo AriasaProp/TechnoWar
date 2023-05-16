@@ -402,7 +402,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
         app->savedStateSize = savedStateSize;
         memcpy(app->savedState, savedState, savedStateSize);
     }
-    assert(pipe(&app->msgread) != -1); // just end when fd failed
+    assert(pipe(&app->msgread) == 0); // just end when fd failed
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
