@@ -157,7 +157,6 @@ static void* android_app_entry(void* param) {
 			      	// ?
 			      	break;
 			  	}
-			  	
 			    pthread_mutex_lock(&app->mutex);
 			    app->appCmdState = cmd_activity;
 			    pthread_cond_broadcast(&app->cond);
@@ -193,7 +192,8 @@ static void onDestroy(ANativeActivity* activity) {
     if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
     const APP_CMD cmd = APP_CMD_DESTROY;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (!app->destroyed) {
     	pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -209,13 +209,15 @@ static void onStart(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_START;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onResume(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_RESUME;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     android_app *app = (android_app*)activity->instance;
@@ -223,7 +225,8 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     void* savedState = NULL;
     pthread_mutex_lock(&app->mutex);
     const APP_CMD cmd = APP_CMD_SAVE_STATE;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != APP_CMD_SAVE_STATE) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -241,7 +244,8 @@ static void onPause(ANativeActivity* activity) {
     if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
     const APP_CMD cmd = APP_CMD_PAUSE;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -251,27 +255,31 @@ static void onStop(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_STOP;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_CONFIG_CHANGED;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onLowMemory(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_LOW_MEMORY;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD foc = focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS;
+    const APP_CMD cmd = focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS;
     pthread_mutex_lock(&app->mutex);
-    assert(write(app->msgwrite, &foc, sizeof(foc)) == sizeof(foc));
-    while (app->appCmdState != foc) {
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
+    while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
     pthread_mutex_unlock(&app->mutex);
@@ -283,7 +291,8 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     if (app->window != NULL) { //window should null when window create
       pthread_mutex_lock(&app->mutex);
       cmd = APP_CMD_TERM_WINDOW;
-      assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+      if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+        assert(false);
 	    while (app->appCmdState != cmd) {
 	        pthread_cond_wait(&app->cond, &app->mutex);
 	    }
@@ -292,7 +301,8 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     app->window = window;
     cmd = APP_CMD_INIT_WINDOW;
     pthread_mutex_lock(&app->mutex);
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -302,13 +312,15 @@ static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_WINDOW_RESIZED;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onContentRectChanged(ANativeActivity* activity, const ARect*) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     const APP_CMD cmd = APP_CMD_CONTENT_RECT_CHANGED;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
@@ -316,7 +328,8 @@ static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     if (app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
     const APP_CMD cmd = APP_CMD_TERM_WINDOW;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != APP_CMD_TERM_WINDOW) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -329,7 +342,8 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     if (app->inputQueue != NULL) {
 	    pthread_mutex_lock(&app->mutex);
       cmd = APP_CMD_INPUT_TERM;
-      assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+      if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
 	    while (app->appCmdState != APP_CMD_INPUT_TERM) {
         pthread_cond_wait(&app->cond, &app->mutex);
 	    }
@@ -338,7 +352,8 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     app->inputQueue = queue;
     pthread_mutex_lock(&app->mutex);
     cmd = APP_CMD_INPUT_INIT;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != APP_CMD_INPUT_INIT) {
       pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -350,7 +365,8 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     pthread_mutex_lock(&app->mutex);
     if(app->inputQueue == NULL) return;
     const APP_CMD cmd = APP_CMD_INPUT_TERM;
-    assert(write(app->msgwrite, &cmd, sizeof(cmd)) == sizeof(cmd));
+    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      assert(false);
     while (app->appCmdState != cmd) {
       pthread_cond_wait(&app->cond, &app->mutex);
     }
