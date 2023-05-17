@@ -16,8 +16,8 @@ android {
         applicationId "com.ariasaproject.technowar"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 2
-        versionName "0.0.1"
+        versionCode 1
+        versionName "0"
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
         buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
