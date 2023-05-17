@@ -30,10 +30,6 @@
 #include "api_graphics/opengles_graphics.hpp"
 //#include "api_graphics/vulkan_graphics.hpp"
 
-static android_asset *a_asset;
-static android_graphics *a_graphics;
-static android_input *a_input;
-
 struct android_app {
     bool destroyed;
     int appCmdState;
@@ -68,7 +64,7 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-
+android_graphics *a_graphics;
 #include <cstdio>
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;
@@ -76,11 +72,12 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-	  a_input = new android_input(app->looper);
+    android_input *a_input = new android_input(app->looper);
 	  if (app->savedState) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
     a_graphics = new opengles_graphics;
+	  android_asset *a_asset = new android_asset(activity->assetManager);
     char cmd;
 	  while (a_graphics) {
 	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
@@ -170,6 +167,10 @@ static void* android_app_entry(void* param) {
 			  	break;
 	    }
 	  }
+	  delete a_input;
+	  delete a_asset;
+	  a_input = nullptr;
+	  a_asset = nullptr;
     pthread_mutex_lock(&app->mutex);
     if (app->savedState != NULL) {
       free(app->savedState);
@@ -184,10 +185,6 @@ static void* android_app_entry(void* param) {
     app->destroyed = true;
     pthread_cond_broadcast(&app->cond);
     pthread_mutex_unlock(&app->mutex);
-	  delete a_input;
-	  delete a_asset;
-	  a_input = nullptr;
-	  a_asset = nullptr;
     return NULL;
 }
 static void onDestroy(ANativeActivity* activity) {
@@ -378,7 +375,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     android_app* app = new android_app;
     activity->instance = app;
     memset(app, 0, sizeof(android_app));
-	  a_asset = new android_asset(activity->assetManager);
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
