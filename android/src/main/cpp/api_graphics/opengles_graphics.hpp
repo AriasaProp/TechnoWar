@@ -4,12 +4,19 @@
 #include "android_graphics.hpp"
 #include "../main_game.hpp"
 #include <unordered_set>
-
+struct ui_batch;
+struct world_batch;
+struct gl_data;
 struct opengles_graphics: public android_graphics {
 private:
+  float game_width, game_height; // display after safe insets
+  Main *m_Main;
+  ui_batch *ubatch;
+  world_batch *wbatch;
 	ANativeWindow *window;
 	std::unordered_set<engine::texture_core*> managedTexture;
 	std::unordered_set<engine::mesh_core*> managedMesh;
+  gl_data mgl_data;
 public:
   bool destroyed;
 	//android
