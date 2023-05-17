@@ -77,7 +77,7 @@ static void* android_app_entry(void* param) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
     a_graphics = new opengles_graphics;
-	  android_asset *a_asset = new android_asset(activity->assetManager);
+	  android_asset *a_asset = new android_asset(app->activity->assetManager);
     char cmd;
 	  while (a_graphics) {
 	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
