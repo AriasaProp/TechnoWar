@@ -50,8 +50,7 @@ struct android_app {
     pthread_t thread;
 }; 
 
-enum APP_CMD: char {
-    APP_CMD_NONE,
+enum {
     APP_CMD_START,
     APP_CMD_RESUME,
     APP_CMD_INPUT_INIT,
@@ -82,7 +81,7 @@ static void* android_app_entry(void* param) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
     a_graphics = new opengles_graphics;
-    APP_CMD cmd_activity;
+    char cmd;
 	  while (a_graphics) {
 	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
 	      case 2: //input queue
@@ -92,8 +91,10 @@ static void* android_app_entry(void* param) {
 	      	a_input->process_sensor();
 	      	break;
 	    	case 1: //android activity queue
-			    if (read(app->msgread, &cmd_activity, sizeof(cmd_activity)) != sizeof(cmd_activity)) break;
-					switch (cmd_activity) {
+			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
+					switch (cmd) {
+				    case APP_CMD_START:
+			        break;
 				    case APP_CMD_RESUME:
 				    	a_graphics->onResume();
 			        pthread_mutex_lock(&app->mutex);
@@ -149,6 +150,8 @@ static void* android_app_entry(void* param) {
 			      case APP_CMD_PAUSE:
 			      	a_graphics->onPause();
 				      break;
+			      case APP_CMD_STOP:
+				      break;
 			      case APP_CMD_DESTROY:
               delete a_graphics;
           	  a_graphics = nullptr;
@@ -158,7 +161,7 @@ static void* android_app_entry(void* param) {
 			      	break;
 			  	}
 			    pthread_mutex_lock(&app->mutex);
-			    app->appCmdState = cmd_activity;
+			    app->appCmdState = cmd;
 			    pthread_cond_broadcast(&app->cond);
 			    pthread_mutex_unlock(&app->mutex);
 			  	break;
@@ -191,9 +194,9 @@ static void onDestroy(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
-    const APP_CMD cmd = APP_CMD_DESTROY;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_DESTROY;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (!app->destroyed) {
     	pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -208,28 +211,27 @@ static void onDestroy(ANativeActivity* activity) {
 static void onStart(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_START;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_START;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onResume(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_RESUME;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_RESUME;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return nullptr;
     void* savedState = NULL;
     pthread_mutex_lock(&app->mutex);
-    const APP_CMD cmd = APP_CMD_SAVE_STATE;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
-    while (app->appCmdState != APP_CMD_SAVE_STATE) {
-        pthread_cond_wait(&app->cond, &app->mutex);
-    }
+    const char cmd = APP_CMD_SAVE_STATE;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
+    while (app->appCmdState != APP_CMD_SAVE_STATE)
+      pthread_cond_wait(&app->cond, &app->mutex);
     if (app->savedState != NULL) {
         savedState = app->savedState;
         *outLen = app->savedStateSize;
@@ -243,9 +245,9 @@ static void onPause(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
-    const APP_CMD cmd = APP_CMD_PAUSE;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_PAUSE;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -254,31 +256,31 @@ static void onPause(ANativeActivity* activity) {
 static void onStop(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_STOP;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_STOP;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_CONFIG_CHANGED;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_CONFIG_CHANGED;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onLowMemory(ANativeActivity* activity) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_LOW_MEMORY;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_LOW_MEMORY;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS;
+    const char cmd = focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS;
     pthread_mutex_lock(&app->mutex);
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -287,12 +289,12 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    APP_CMD cmd;
+    char cmd;
     if (app->window != NULL) { //window should null when window create
       pthread_mutex_lock(&app->mutex);
       cmd = APP_CMD_TERM_WINDOW;
-      if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-        assert(false);
+      while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+        LOGE("cannot write on pipe , %s", strerror(errno));
 	    while (app->appCmdState != cmd) {
 	        pthread_cond_wait(&app->cond, &app->mutex);
 	    }
@@ -301,8 +303,8 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
     app->window = window;
     cmd = APP_CMD_INIT_WINDOW;
     pthread_mutex_lock(&app->mutex);
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (app->appCmdState != cmd) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -311,25 +313,25 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_WINDOW_RESIZED;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_WINDOW_RESIZED;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onContentRectChanged(ANativeActivity* activity, const ARect*) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    const APP_CMD cmd = APP_CMD_CONTENT_RECT_CHANGED;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_CONTENT_RECT_CHANGED;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
     if (app->window == NULL) return;
     pthread_mutex_lock(&app->mutex);
-    const APP_CMD cmd = APP_CMD_TERM_WINDOW;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    const char cmd = APP_CMD_TERM_WINDOW;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (app->appCmdState != APP_CMD_TERM_WINDOW) {
         pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -338,12 +340,12 @@ static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
 static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     android_app *app = (android_app*)activity->instance;
     if (app->destroyed) return;
-    APP_CMD cmd;
+    char cmd;
     if (app->inputQueue != NULL) {
 	    pthread_mutex_lock(&app->mutex);
       cmd = APP_CMD_INPUT_TERM;
-      if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+      while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+        LOGE("cannot write on pipe , %s", strerror(errno));
 	    while (app->appCmdState != APP_CMD_INPUT_TERM) {
         pthread_cond_wait(&app->cond, &app->mutex);
 	    }
@@ -352,8 +354,8 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
     app->inputQueue = queue;
     pthread_mutex_lock(&app->mutex);
     cmd = APP_CMD_INPUT_INIT;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
     while (app->appCmdState != APP_CMD_INPUT_INIT) {
       pthread_cond_wait(&app->cond, &app->mutex);
     }
@@ -364,12 +366,11 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue*) {
     if (app->destroyed) return;
     pthread_mutex_lock(&app->mutex);
     if(app->inputQueue == NULL) return;
-    const APP_CMD cmd = APP_CMD_INPUT_TERM;
-    if (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
-      assert(false);
-    while (app->appCmdState != cmd) {
+    const char cmd = APP_CMD_INPUT_TERM;
+    while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
+      LOGE("cannot write on pipe , %s", strerror(errno));
+    while (app->appCmdState != cmd)
       pthread_cond_wait(&app->cond, &app->mutex);
-    }
     pthread_mutex_unlock(&app->mutex);
 }
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
@@ -402,7 +403,8 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
         app->savedStateSize = savedStateSize;
         memcpy(app->savedState, savedState, savedStateSize);
     }
-    assert(pipe(&app->msgread) == 0); // just end when fd failed
+    while(pipe(&app->msgread))
+      LOGE("Failed to create pipe, %s", strerror(errno));
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
