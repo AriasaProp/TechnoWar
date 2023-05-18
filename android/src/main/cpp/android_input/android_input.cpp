@@ -173,14 +173,14 @@ void android_input::process_sensor() {
 			ASensorEvent &e = minput->s_event[j];
 			switch (e.type) {
 				case ASENSOR_TYPE_ACCELEROMETER: {
-					sensor_value &t = minput->sensors["accelerometer"];
+					engine::sensor_value &t = minput->sensors["accelerometer"];
 					t.x = e.acceleration.x/2.f + 0.5f;
 					t.y = e.acceleration.y/2.f + 0.5f;
 					t.z = e.acceleration.z/2.f + 0.5f;
 					break;
 				}
 				case ASENSOR_TYPE_GYROSCOPE: {
-					sensor_value &t = minput->sensors["gyroscope"];
+					engine::sensor_value &t = minput->sensors["gyroscope"];
 					t.x = e.acceleration.x/2.f + 0.5f;
 					t.y = e.acceleration.y/2.f + 0.5f;
 					t.z = e.acceleration.z/2.f + 0.5f;
@@ -194,8 +194,8 @@ void android_input::process_sensor() {
 }
 void android_input::detach_sensor() {
 	if (!minput->sensor_enabled) return;
-	for (auto i = minput->sensors.begin(); i != minput->sensors.end(); i++)
-		memset(i->second, 0, sizeof(sensor_value));
+	for (std::unordered_map<std::string,engine::sensor_value>::iterator i = minput->sensors.begin(), n = minput->sensors.end(); i != n; i++)
+		i->second = engine::sensor_value{};
   ASensorEventQueue_disableSensor(minput->sensorEventQueue, minput->accelerometerSensor);
   ASensorEventQueue_disableSensor(minput->sensorEventQueue, minput->gyroscopeSensor);
 	minput->sensor_enabled = false;
