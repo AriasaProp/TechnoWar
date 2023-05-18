@@ -270,7 +270,7 @@ void bmfont::SetScale(float scale) {
 float bmfont::GetHeight(){
   return (float)LineHeight * fscale;
 }
-bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (2.4f) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);

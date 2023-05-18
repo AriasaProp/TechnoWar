@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.SurfaceHolder;
+import android.widget.Toast;
 
 public class MainActivity extends NativeActivity {
     static {
@@ -49,21 +50,56 @@ public class MainActivity extends NativeActivity {
                     // cause floating window
                 }
                 setInsets(insetsL, insetsT, insetsR, insetsB);
+                callToast("request Insets!");
                 return insets;
             }
         });
+        callToast("Create done!");
+    }
+    @Override
+    protected void onStart() {
+        callToast("On Start");
+        super.onStart();
+    }
+    @Override
+    protected void onResume() {
+        callToast("On Resume");
+        super.onResume();
+    }
+    @Override
+    protected void onPause() {
+        callToast("On Pause");
+        super.onPause();
+    }
+    @Override
+    protected void onStop() {
+        callToast("On Stop");
+        super.onStop();
+    }
+    @Override
+    protected void onDestroy() {
+        callToast("On Destroy");
+        super.onDestroy();
+    }
+    
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        callToast("Surface Created");
+        super.surfaceCreated(holder);
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        callToast("on Surface Changed!");
         getWindow().getDecorView().requestApplyInsets();
         super.surfaceChanged(holder, format, width, height);
     }
-    //on global layout changes may not important
-    /*
     @Override
-    public void onGlobalLayout() {
-        getWindow().getDecorView().requestApplyInsets();
-        super.onGlobalLayout();
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        callToast("Surface Destroyed");
+        super.surfaceDestroyed(holder);
     }
-    */
+    
+    void callToast (CharSequence msg) {
+        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+    }
 }
