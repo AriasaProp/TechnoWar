@@ -5,16 +5,16 @@
 #include <GLES3/gl32.h> //API 24
 
 struct ui_batch {
-	bool dirty_projection;
-	GLint shader;
+	bool dirty_uiProj;
+	GLint ui_shader;
 	GLint u_projection;
 	GLint u_texture;
 	GLuint vao, vbo, ibo;
-	float ui_projection[16];
+	float uiProj[16];
 };
 struct world_batch {
 	bool dirty_worldProj;
-	GLint shader, u_worldProj, u_transProj;
+	GLint world_shader, u_worldProj, u_transProj;
 	float worldProj[16];
 };
 struct opengles_texture: public engine::texture_core {
@@ -41,16 +41,14 @@ struct opengles_texture: public engine::texture_core {
 
 #include <EGL/egl.h>
 struct gl_data {
+  bool use_mipmap = true;
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
+  GLuint nullTextureId; //this is used for null texture needed
 };
-
-//this is used for null texture needed
-static GLuint nullTextureId;
-static bool use_mipmap = true;
 
 float opengles_graphics::getWidth() { return game_width; }
 float opengles_graphics::getHeight() { return game_height; }
@@ -121,14 +119,14 @@ void opengles_graphics::render() {
   	if (newCntx) {
   		//made root for null texture test
   		{
-	  		glGenTextures(1, &nullTextureId);
+	  		glGenTextures(1, &mgl_data->nullTextureId);
 	  		unsigned char data[16]{
 	  			0xff, 0xff, 0xff, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0x11, 0x11, 0x11, 0xff,
 	  			0xff, 0xff, 0xff, 0xff
 	  		};
-				glBindTexture(GL_TEXTURE_2D, nullTextureId);
+				glBindTexture(GL_TEXTURE_2D, mgl_data->nullTextureId);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -150,7 +148,7 @@ void opengles_graphics::render() {
 			
 			//flat draw
 			{
-				ubatch->shader = glCreateProgram();
+				ubatch->ui_shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
@@ -173,7 +171,7 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
-				glAttachShader(ubatch->shader, vi);
+				glAttachShader(ubatch->ui_shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
@@ -193,12 +191,12 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
-				glAttachShader(ubatch->shader, fi);
-				glLinkProgram(ubatch->shader);
+				glAttachShader(ubatch->ui_shader, fi);
+				glLinkProgram(ubatch->ui_shader);
 				glDeleteShader(vi);
 				glDeleteShader(fi);
-				ubatch->u_projection = glGetUniformLocation(ubatch->shader, "u_proj");
-				ubatch->u_texture = glGetUniformLocation(ubatch->shader, "u_tex");
+				ubatch->u_projection = glGetUniformLocation(ubatch->ui_shader, "u_proj");
+				ubatch->u_texture = glGetUniformLocation(ubatch->ui_shader, "u_tex");
 				glGenVertexArrays(1, &ubatch->vao);
 				glGenBuffers(2, &ubatch->vbo);
 				glBindVertexArray(ubatch->vao);
@@ -223,7 +221,7 @@ void opengles_graphics::render() {
 			}
 			//world draw
 			{
-				wbatch->shader = glCreateProgram();
+				wbatch->world_shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
@@ -244,7 +242,7 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
-				glAttachShader(wbatch->shader, vi);
+				glAttachShader(wbatch->world_shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
@@ -262,12 +260,12 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
-				glAttachShader(wbatch->shader, fi);
-				glLinkProgram(wbatch->shader);
+				glAttachShader(wbatch->world_shader, fi);
+				glLinkProgram(wbatch->world_shader);
 				glDeleteShader(vi);
 				glDeleteShader(fi);
-				wbatch->u_worldProj = glGetUniformLocation(wbatch->shader, "worldview_proj");
-				wbatch->u_transProj = glGetUniformLocation(wbatch->shader, "trans_proj");
+				wbatch->u_worldProj = glGetUniformLocation(wbatch->world_shader, "worldview_proj");
+				wbatch->u_transProj = glGetUniformLocation(wbatch->world_shader, "trans_proj");
 			}
 			//mesh
 			for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
@@ -294,7 +292,7 @@ void opengles_graphics::render() {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
       	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      	if (use_mipmap) {
+      	if (mgl_data->use_mipmap) {
       	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
       	  glGenerateMipmap(GL_TEXTURE_2D);
       	} else {
@@ -303,10 +301,6 @@ void opengles_graphics::render() {
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
-  	if (!m_Main) {
-  		m_Main = new Main;
-  		resume = false;
-  	}
   } else if (resize) {
 		eglMakeCurrent(mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		eglMakeCurrent(mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
@@ -316,7 +310,10 @@ void opengles_graphics::render() {
 		update_matrix();
 	}
 	resize = false;
-  if (resume) {
+	if (!m_Main) {
+		m_Main = new Main;
+		resume = false;
+	} else if (resume) {
   	m_Main->resume();
 		resume = false;
   }
@@ -367,9 +364,9 @@ void opengles_graphics::render() {
 			{
 				//invalidating gles resources
 				//world draw
-				glDeleteProgram(wbatch->shader);
+				glDeleteProgram(wbatch->world_shader);
 				//flat draw
-				glDeleteProgram(ubatch->shader);
+				glDeleteProgram(ubatch->ui_shader);
 				glDeleteVertexArrays(1, &ubatch->vao);
 				glDeleteBuffers(2, &ubatch->vbo);
 				//mesh
@@ -383,7 +380,7 @@ void opengles_graphics::render() {
 				}
 				
 				//reset null texture
-				glDeleteTextures(1, &nullTextureId);
+				glDeleteTextures(1, &mgl_data->nullTextureId);
 			}
     	eglDestroyContext(mgl_data->display, mgl_data->context);
     	mgl_data->context = EGL_NO_CONTEXT;
@@ -430,7 +427,7 @@ engine::texture_core *opengles_graphics::gen_texture(const int &tw, const int &t
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	if (use_mipmap) {
+	if (mgl_data->use_mipmap) {
 	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	  glGenerateMipmap(GL_TEXTURE_2D);
 	} else {
@@ -455,13 +452,13 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 }
 void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
-	glUseProgram(ubatch->shader);
+	glUseProgram(ubatch->ui_shader);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex?((opengles_texture*)tex)->id:nullTextureId);
+	glBindTexture(GL_TEXTURE_2D, tex?((opengles_texture*)tex)->id:mgl_data->nullTextureId);
 	glUniform1i(ubatch->u_texture, 0);
-	if (ubatch->dirty_projection) {
-		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->ui_projection);
-		ubatch->dirty_projection = false;
+	if (ubatch->dirty_uiProj) {
+		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->uiProj);
+		ubatch->dirty_uiProj = false;
 	}
 	glBindVertexArray(ubatch->vao);
 	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
@@ -498,7 +495,7 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
-	glUseProgram(wbatch->shader);
+	glUseProgram(wbatch->world_shader);
 	if (wbatch->dirty_worldProj) {
 		glUniformMatrix4fv(wbatch->u_worldProj, 1, false, wbatch->worldProj);
 		wbatch->dirty_worldProj = false;
@@ -534,27 +531,24 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 }
 
 inline void opengles_graphics::update_matrix() {
-	ubatch->ui_projection[0] = wbatch->worldProj[0] = 2.f/mgl_data->wWidth;
-	ubatch->ui_projection[5] = wbatch->worldProj[5] = 2.f/mgl_data->wHeight;
-	ubatch->ui_projection[12] = -float(mgl_data->wWidth - 2*cur_safe_insets.left)/float(mgl_data->wWidth);
-	ubatch->ui_projection[13] = -float(mgl_data->wHeight - 2*cur_safe_insets.bottom)/float(mgl_data->wHeight);
+	ubatch->uiProj[0] = wbatch->worldProj[0] = 2.f/mgl_data->wWidth;
+	ubatch->uiProj[5] = wbatch->worldProj[5] = 2.f/mgl_data->wHeight;
+	ubatch->uiProj[12] = -float(mgl_data->wWidth - 2*cur_safe_insets.left)/float(mgl_data->wWidth);
+	ubatch->uiProj[13] = -float(mgl_data->wHeight - 2*cur_safe_insets.bottom)/float(mgl_data->wHeight);
 	game_width = float(mgl_data->wWidth - cur_safe_insets.left - cur_safe_insets.right);
 	game_height = float(mgl_data->wHeight - cur_safe_insets.top - cur_safe_insets.bottom);
-	ubatch->dirty_projection = true;
+	ubatch->dirty_uiProj = true;
 	wbatch->dirty_worldProj = true;
 }
 
 opengles_graphics::opengles_graphics() {
-	ubatch = new ui_batch;
-	wbatch = new world_batch;
-	mgl_data = new gl_data;
-	memset(ubatch,0,sizeof(ui_batch));
-	memset(wbatch,0,sizeof(world_batch));
-	memset(mgl_data,0,sizeof(gl_data));
-	ubatch->ui_projection[15] = 1;
-	ubatch->ui_projection[10] = 1;
-	wbatch->worldProj[15] = 1;
+	ubatch = new ui_batch{};
+	wbatch = new world_batch{};
+	mgl_data = new gl_data{};
+	ubatch->uiProj[10] = 1;
+	ubatch->uiProj[15] = 1;
 	wbatch->worldProj[10] = 0.00001f;
+	wbatch->worldProj[15] = 1;
   engine::graph = this;
 }
 

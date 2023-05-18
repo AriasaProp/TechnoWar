@@ -12,7 +12,7 @@ struct android_input: public engine::input_core {
 private:
   struct ainput *minput;
 public:
-	float	*getSensorValue(const char *) override;
+	engine::sensor_value getSensorValue(const char *) const override;
 	int getX(unsigned int) override;
 	int getDeltaX(unsigned int) override;
 	int getY(unsigned int) override;
