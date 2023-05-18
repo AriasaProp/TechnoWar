@@ -57,45 +57,44 @@ public class MainActivity extends NativeActivity {
     }
     @Override
     protected void onStart() {
-        callToast("On Start");
         super.onStart();
     }
     @Override
     protected void onResume() {
-        callToast("On Resume");
         super.onResume();
+        callToast("On Resume");
     }
     @Override
     protected void onPause() {
-        callToast("On Pause");
         super.onPause();
+        callToast("On Pause");
     }
     @Override
     protected void onStop() {
-        callToast("On Stop");
         super.onStop();
+        callToast("On Stop");
     }
     @Override
     protected void onDestroy() {
-        callToast("On Destroy");
         super.onDestroy();
+        callToast("On Destroy");
     }
     
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-        callToast("Surface Created");
         super.surfaceCreated(holder);
+        callToast("Surface Created");
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        callToast("on Surface Changed!");
         getWindow().getDecorView().requestApplyInsets();
+        callToast("on Surface Changed!");
         super.surfaceChanged(holder, format, width, height);
     }
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        callToast("Surface Destroyed");
         super.surfaceDestroyed(holder);
+        callToast("Surface Destroyed");
     }
     
     void callToast (CharSequence msg) {

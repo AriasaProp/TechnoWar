@@ -67,6 +67,7 @@ float opengles_graphics::getHeight() { return game_height; }
 void opengles_graphics::onResume() {
 	resume = true;
 	running = true;
+	render();
 }
 void opengles_graphics::onWindowInit(ANativeWindow *w){
 	window = w;
