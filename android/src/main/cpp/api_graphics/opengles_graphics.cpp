@@ -554,7 +554,7 @@ opengles_graphics::opengles_graphics() {
 	ubatch->ui_projection[10] = 1;
 	wbatch->worldProj[15] = 1;
 	wbatch->worldProj[10] = 0.00001f;
-  engine::graph = &this;
+  engine::graph = this;
 }
 
 opengles_graphics::~opengles_graphics() {
