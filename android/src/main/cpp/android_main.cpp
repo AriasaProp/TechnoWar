@@ -64,7 +64,7 @@ enum {
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
-android_graphics *a_graphics;
+static android_graphics *a_graphics;
 #include <cstdio>
 static void* android_app_entry(void* param) {
     android_app *app = (android_app*)param;

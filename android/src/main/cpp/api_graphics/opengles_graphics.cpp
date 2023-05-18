@@ -550,6 +550,7 @@ opengles_graphics::opengles_graphics() {
 	mgl_data = new gl_data;
 	memset(ubatch,0,sizeof(ui_batch));
 	memset(wbatch,0,sizeof(world_batch));
+	memset(mgl_data,0,sizeof(gl_data));
 	ubatch->ui_projection[15] = 1;
 	ubatch->ui_projection[10] = 1;
 	wbatch->worldProj[15] = 1;
