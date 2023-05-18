@@ -35,7 +35,9 @@ struct gl_data {
 	GLint ui_shader;
 	GLint u_uiProj;
 	GLint u_uiTex;
-	GLint world_shader, u_worldProj, u_worldTransProj;
+	GLint world_shader;
+	GLint u_worldProj;
+	GLint u_worldTransProj;
 	GLuint ui_vao, ui_vbo, ui_ibo;
   GLuint nullTextureId; //this is used for null texture needed
 	float uiProj[16] = {
@@ -278,16 +280,16 @@ void opengles_graphics::render() {
 			}
 			//mesh
 			for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-				glGenVertexArrays(1, &(*i)->ui_vao);
-				glGenBuffers(2, &(*i)->ui_vbo);
-				glBindVertexArray((*i)->ui_vao);
-				glBindBuffer(GL_ARRAY_BUFFER, (*i)->ui_vbo);
+				glGenVertexArrays(1, &(*i)->vao);
+				glGenBuffers(2, &(*i)->vbo);
+				glBindVertexArray((*i)->vao);
+				glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
 				glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(engine::mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
 				glEnableVertexAttribArray(0);
 				glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 				glEnableVertexAttribArray(1);
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ui_ibo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
 			}
 			glBindVertexArray(0);
@@ -380,8 +382,8 @@ void opengles_graphics::render() {
 				glDeleteBuffers(2, &mgl_data->ui_vbo);
 				//mesh
 				for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-					glDeleteVertexArrays(1, &(*i)->ui_vao);
-					glDeleteBuffers(2, &(*i)->ui_vbo);
+					glDeleteVertexArrays(1, &(*i)->vao);
+					glDeleteBuffers(2, &(*i)->vbo);
 				}
 				//texture
 				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
@@ -485,16 +487,16 @@ engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsign
 	r->index_len = i_len;
 	r->index = new unsigned short[i_len];
 	memcpy(r->index, i, i_len*sizeof(unsigned short));
-	glGenVertexArrays(1, &r->ui_vao);
-	glGenBuffers(2, &r->ui_vbo);
-	glBindVertexArray(r->ui_vao);
-	glBindBuffer(GL_ARRAY_BUFFER, r->ui_vbo); 
+	glGenVertexArrays(1, &r->vao);
+	glGenBuffers(2, &r->vbo);
+	glBindVertexArray(r->vao);
+	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(engine::mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ui_ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	glBindVertexArray(0);
 	managedMesh.insert(r);
@@ -512,14 +514,14 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	for (unsigned int i = 0; i < count; ++i) {
 		engine::mesh_core *m = *(meshes+i);
 		glUniformMatrix4fv(mgl_data->u_worldTransProj, 1, false, m->trans);
-		glBindVertexArray(m->ui_vao);
+		glBindVertexArray(m->vao);
 		if (m->dirty_vertex) {
-			glBindBuffer(GL_ARRAY_BUFFER, m->ui_vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(engine::mesh_core::data), (void*)m->vertex);
 			m->dirty_vertex = false;
 		}
 		if (m->dirty_index) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ui_ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
 			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 			m->dirty_index = false;
 		}
@@ -532,8 +534,8 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
-	glDeleteVertexArrays(1, &m->ui_vao);
-	glDeleteBuffers(2, &m->ui_vbo);
+	glDeleteVertexArrays(1, &m->vao);
+	glDeleteBuffers(2, &m->vbo);
 	delete[] m->vertex;
 	delete[] m->index;
 	delete m;
