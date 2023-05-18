@@ -2,15 +2,11 @@
 #define _Included_OPENGLES_Graphics
 
 #include "android_graphics.hpp"
-#include "../main_game.hpp"
 #include <unordered_set>
 
 struct opengles_graphics: public android_graphics {
 private:
   float game_width, game_height; // display after safe insets
-  Main *m_Main;
-  struct ui_batch *ubatch;
-  struct world_batch *wbatch;
 	ANativeWindow *window;
   struct gl_data *mgl_data;
 	std::unordered_set<engine::texture_core*> managedTexture;

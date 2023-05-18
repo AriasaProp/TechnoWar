@@ -1,22 +1,10 @@
 #include "opengles_graphics.hpp"
+#include "../main_game.hpp"
 #include <cassert>
 #include <cstddef>
 // make opengles lastest possible version
 #include <GLES3/gl32.h> //API 24
 
-struct ui_batch {
-	bool dirty_uiProj;
-	GLint ui_shader;
-	GLint u_projection;
-	GLint u_texture;
-	GLuint vao, vbo, ibo;
-	float uiProj[16];
-};
-struct world_batch {
-	bool dirty_worldProj;
-	GLint world_shader, u_worldProj, u_transProj;
-	float worldProj[16];
-};
 struct opengles_texture: public engine::texture_core {
 	GLuint id;
 	unsigned int w,h;
@@ -41,13 +29,34 @@ struct opengles_texture: public engine::texture_core {
 
 #include <EGL/egl.h>
 struct gl_data {
+  bool dirty_uiProj;
+	bool dirty_worldProj;
   bool use_mipmap = true;
+	GLint ui_shader;
+	GLint u_uiProj;
+	GLint u_uiTex;
+	GLint world_shader, u_worldProj, u_worldTransProj;
+	GLuint ui_vao, ui_vbo, ui_ibo;
+  GLuint nullTextureId; //this is used for null texture needed
+	float uiProj[16] = {
+	  1,0,0,0,
+	  0,1,0,0,
+	  0,0,1,0,
+	  0,0,0,1
+	};
+	float worldProj[16] = {
+	  1,0,0,0,
+	  0,1,0,0,
+	  0,0,0.00001f,0,
+	  0,0,0,1
+	};
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
-  GLuint nullTextureId; //this is used for null texture needed
+  
+  Main *m_Main;//core activity
 };
 
 float opengles_graphics::getWidth() { return game_width; }
@@ -148,7 +157,7 @@ void opengles_graphics::render() {
 			
 			//flat draw
 			{
-				ubatch->ui_shader = glCreateProgram();
+				mgl_data->ui_shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
@@ -171,7 +180,7 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
-				glAttachShader(ubatch->ui_shader, vi);
+				glAttachShader(mgl_data->ui_shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
@@ -191,15 +200,15 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
-				glAttachShader(ubatch->ui_shader, fi);
-				glLinkProgram(ubatch->ui_shader);
+				glAttachShader(mgl_data->ui_shader, fi);
+				glLinkProgram(mgl_data->ui_shader);
 				glDeleteShader(vi);
 				glDeleteShader(fi);
-				ubatch->u_projection = glGetUniformLocation(ubatch->ui_shader, "u_proj");
-				ubatch->u_texture = glGetUniformLocation(ubatch->ui_shader, "u_tex");
-				glGenVertexArrays(1, &ubatch->vao);
-				glGenBuffers(2, &ubatch->vbo);
-				glBindVertexArray(ubatch->vao);
+				mgl_data->u_uiProj = glGetUniformLocation(mgl_data->ui_shader, "u_proj");
+				mgl_data->u_uiTex = glGetUniformLocation(mgl_data->ui_shader, "u_tex");
+				glGenVertexArrays(1, &mgl_data->ui_vao);
+				glGenBuffers(2, &mgl_data->ui_vbo);
+				glBindVertexArray(mgl_data->ui_vao);
 				unsigned short indexs[MAX_UI_DRAW*6];
 				for (unsigned short i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
 					indexs[j] = k++;
@@ -207,9 +216,9 @@ void opengles_graphics::render() {
 					indexs[j+2] = indexs[j+4] = k++;
 					indexs[j+3] = k++;
 				}
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ubatch->ibo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mgl_data->ui_ibo);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW);
-				glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+				glBindBuffer(GL_ARRAY_BUFFER, mgl_data->ui_vbo);
 				glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, color));
@@ -221,7 +230,7 @@ void opengles_graphics::render() {
 			}
 			//world draw
 			{
-				wbatch->world_shader = glCreateProgram();
+				mgl_data->world_shader = glCreateProgram();
 				vi = glCreateShader(GL_VERTEX_SHADER);
 				const char *vt = "#version 300 es"
 					"\n#define LOW lowp"
@@ -242,7 +251,7 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(vi, 1, &vt, 0);
 				glCompileShader(vi);
-				glAttachShader(wbatch->world_shader, vi);
+				glAttachShader(mgl_data->world_shader, vi);
 				fi = glCreateShader(GL_FRAGMENT_SHADER);
 				const char *ft = "#version 300 es"
 					"\n#define LOW lowp"
@@ -260,25 +269,25 @@ void opengles_graphics::render() {
 					"\n}";
 				glShaderSource(fi, 1, &ft, 0);
 				glCompileShader(fi);
-				glAttachShader(wbatch->world_shader, fi);
-				glLinkProgram(wbatch->world_shader);
+				glAttachShader(mgl_data->world_shader, fi);
+				glLinkProgram(mgl_data->world_shader);
 				glDeleteShader(vi);
 				glDeleteShader(fi);
-				wbatch->u_worldProj = glGetUniformLocation(wbatch->world_shader, "worldview_proj");
-				wbatch->u_transProj = glGetUniformLocation(wbatch->world_shader, "trans_proj");
+				mgl_data->u_worldProj = glGetUniformLocation(mgl_data->world_shader, "worldview_proj");
+				mgl_data->u_worldTransProj = glGetUniformLocation(mgl_data->world_shader, "trans_proj");
 			}
 			//mesh
 			for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-				glGenVertexArrays(1, &(*i)->vao);
-				glGenBuffers(2, &(*i)->vbo);
-				glBindVertexArray((*i)->vao);
-				glBindBuffer(GL_ARRAY_BUFFER, (*i)->vbo);
+				glGenVertexArrays(1, &(*i)->ui_vao);
+				glGenBuffers(2, &(*i)->ui_vbo);
+				glBindVertexArray((*i)->ui_vao);
+				glBindBuffer(GL_ARRAY_BUFFER, (*i)->ui_vbo);
 				glBufferData(GL_ARRAY_BUFFER, (*i)->vertex_len*sizeof(engine::mesh_core::data), (void*)(*i)->vertex, GL_STATIC_DRAW);
 				glEnableVertexAttribArray(0);
 				glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 				glEnableVertexAttribArray(1);
 				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ibo);
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, (*i)->ui_ibo);
 				glBufferData(GL_ELEMENT_ARRAY_BUFFER, (*i)->index_len*sizeof(unsigned short), (void*)(*i)->index, GL_STATIC_DRAW);
 			}
 			glBindVertexArray(0);
@@ -310,26 +319,26 @@ void opengles_graphics::render() {
 		update_matrix();
 	}
 	resize = false;
-	if (!m_Main) {
-		m_Main = new Main;
+	if (!mgl_data->m_Main) {
+		mgl_data->m_Main = new Main;
 		resume = false;
 	} else if (resume) {
-  	m_Main->resume();
+  	mgl_data->m_Main->resume();
 		resume = false;
   }
   state.angle += .01f;
   if (state.angle > 1) {
       state.angle = 0;
   }
-  m_Main->render();
+  mgl_data->m_Main->render();
   if (pause) {
-  	m_Main->pause();
+  	mgl_data->m_Main->pause();
 		pause = false;
   }
   unsigned int EGLTermReq = 0;
   if (destroyed) {
-  	delete(m_Main);
-  	m_Main = nullptr;
+  	delete(mgl_data->m_Main);
+  	mgl_data->m_Main = nullptr;
   	EGLTermReq |= TERM_EGL_DISPLAY;
   }
 	if (!eglSwapBuffers(mgl_data->display, mgl_data->surface)) {
@@ -364,15 +373,15 @@ void opengles_graphics::render() {
 			{
 				//invalidating gles resources
 				//world draw
-				glDeleteProgram(wbatch->world_shader);
+				glDeleteProgram(mgl_data->world_shader);
 				//flat draw
-				glDeleteProgram(ubatch->ui_shader);
-				glDeleteVertexArrays(1, &ubatch->vao);
-				glDeleteBuffers(2, &ubatch->vbo);
+				glDeleteProgram(mgl_data->ui_shader);
+				glDeleteVertexArrays(1, &mgl_data->ui_vao);
+				glDeleteBuffers(2, &mgl_data->ui_vbo);
 				//mesh
 				for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
-					glDeleteVertexArrays(1, &(*i)->vao);
-					glDeleteBuffers(2, &(*i)->vbo);
+					glDeleteVertexArrays(1, &(*i)->ui_vao);
+					glDeleteBuffers(2, &(*i)->ui_vbo);
 				}
 				//texture
 				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
@@ -452,16 +461,16 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 }
 void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
 	glDisable(GL_DEPTH_TEST);
-	glUseProgram(ubatch->ui_shader);
+	glUseProgram(mgl_data->ui_shader);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex?((opengles_texture*)tex)->id:mgl_data->nullTextureId);
-	glUniform1i(ubatch->u_texture, 0);
-	if (ubatch->dirty_uiProj) {
-		glUniformMatrix4fv(ubatch->u_projection, 1, false, ubatch->uiProj);
-		ubatch->dirty_uiProj = false;
+	glUniform1i(mgl_data->u_uiTex, 0);
+	if (mgl_data->dirty_uiProj) {
+		glUniformMatrix4fv(mgl_data->u_uiProj, 1, false, mgl_data->uiProj);
+		mgl_data->dirty_uiProj = false;
 	}
-	glBindVertexArray(ubatch->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, ubatch->vbo);
+	glBindVertexArray(mgl_data->ui_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, mgl_data->ui_vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 4*len*sizeof(engine::flat_vertex), (void*)v);
 	glDrawElements(GL_TRIANGLES, 6*len, GL_UNSIGNED_SHORT, NULL);
 	glBindVertexArray(0);
@@ -476,16 +485,16 @@ engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsign
 	r->index_len = i_len;
 	r->index = new unsigned short[i_len];
 	memcpy(r->index, i, i_len*sizeof(unsigned short));
-	glGenVertexArrays(1, &r->vao);
-	glGenBuffers(2, &r->vbo);
-	glBindVertexArray(r->vao);
-	glBindBuffer(GL_ARRAY_BUFFER, r->vbo); 
+	glGenVertexArrays(1, &r->ui_vao);
+	glGenBuffers(2, &r->ui_vbo);
+	glBindVertexArray(r->ui_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, r->ui_vbo); 
 	glBufferData(GL_ARRAY_BUFFER, r->vertex_len*sizeof(engine::mesh_core::data), (void*)r->vertex, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(engine::mesh_core::data), NULL);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::mesh_core::data), (void*)(3*sizeof(float)));
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ui_ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	glBindVertexArray(0);
 	managedMesh.insert(r);
@@ -495,22 +504,22 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glEnable(GL_DEPTH_TEST);
-	glUseProgram(wbatch->world_shader);
-	if (wbatch->dirty_worldProj) {
-		glUniformMatrix4fv(wbatch->u_worldProj, 1, false, wbatch->worldProj);
-		wbatch->dirty_worldProj = false;
+	glUseProgram(mgl_data->world_shader);
+	if (mgl_data->dirty_worldProj) {
+		glUniformMatrix4fv(mgl_data->u_worldProj, 1, false, mgl_data->worldProj);
+		mgl_data->dirty_worldProj = false;
 	}
 	for (unsigned int i = 0; i < count; ++i) {
 		engine::mesh_core *m = *(meshes+i);
-		glUniformMatrix4fv(wbatch->u_transProj, 1, false, m->trans);
-		glBindVertexArray(m->vao);
+		glUniformMatrix4fv(mgl_data->u_worldTransProj, 1, false, m->trans);
+		glBindVertexArray(m->ui_vao);
 		if (m->dirty_vertex) {
-			glBindBuffer(GL_ARRAY_BUFFER, m->vbo);
+			glBindBuffer(GL_ARRAY_BUFFER, m->ui_vbo);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, m->vertex_len*sizeof(engine::mesh_core::data), (void*)m->vertex);
 			m->dirty_vertex = false;
 		}
 		if (m->dirty_index) {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ibo);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m->ui_ibo);
 			glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m->index_len*sizeof(unsigned short), (void*)m->index);
 			m->dirty_index = false;
 		}
@@ -523,32 +532,27 @@ void opengles_graphics::delete_mesh(engine::mesh_core *m) {
 	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
 	if (it == managedMesh.end()) return;
 	managedMesh.erase(it);
-	glDeleteVertexArrays(1, &m->vao);
-	glDeleteBuffers(2, &m->vbo);
+	glDeleteVertexArrays(1, &m->ui_vao);
+	glDeleteBuffers(2, &m->ui_vbo);
 	delete[] m->vertex;
 	delete[] m->index;
 	delete m;
 }
 
 inline void opengles_graphics::update_matrix() {
-	ubatch->uiProj[0] = wbatch->worldProj[0] = 2.f/mgl_data->wWidth;
-	ubatch->uiProj[5] = wbatch->worldProj[5] = 2.f/mgl_data->wHeight;
-	ubatch->uiProj[12] = -float(mgl_data->wWidth - 2*cur_safe_insets.left)/float(mgl_data->wWidth);
-	ubatch->uiProj[13] = -float(mgl_data->wHeight - 2*cur_safe_insets.bottom)/float(mgl_data->wHeight);
+	mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f/mgl_data->wWidth;
+	mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f/mgl_data->wHeight;
+	//ui safe insets update
+	mgl_data->uiProj[12] = -float(mgl_data->wWidth - 2*cur_safe_insets.left)/float(mgl_data->wWidth);
+	mgl_data->uiProj[13] = -float(mgl_data->wHeight - 2*cur_safe_insets.bottom)/float(mgl_data->wHeight);
 	game_width = float(mgl_data->wWidth - cur_safe_insets.left - cur_safe_insets.right);
 	game_height = float(mgl_data->wHeight - cur_safe_insets.top - cur_safe_insets.bottom);
-	ubatch->dirty_uiProj = true;
-	wbatch->dirty_worldProj = true;
+	mgl_data->dirty_uiProj = true;
+	mgl_data->dirty_worldProj = true;
 }
 
 opengles_graphics::opengles_graphics() {
-	ubatch = new ui_batch{};
-	wbatch = new world_batch{};
 	mgl_data = new gl_data{};
-	ubatch->uiProj[10] = 1;
-	ubatch->uiProj[15] = 1;
-	wbatch->worldProj[10] = 0.00001f;
-	wbatch->worldProj[15] = 1;
   engine::graph = this;
 }
 
@@ -557,8 +561,6 @@ opengles_graphics::~opengles_graphics() {
 	render();
 	managedTexture.clear();
 	managedMesh.clear();
-	delete ubatch;
-	delete wbatch;
 	delete mgl_data;
   engine::graph = nullptr;
 }

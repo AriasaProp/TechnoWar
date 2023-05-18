@@ -82,28 +82,25 @@ void android_input::process_input() {
 	switch (AInputEvent_getType(minput->i_event)) {
 		case AINPUT_EVENT_TYPE_KEY: {
 			int32_t keyCode = AKeyEvent_getKeyCode(minput->i_event);
+			std::unordered_set<int>::iterator key = minput->key_pressed.find(keyCode);
 			switch (AKeyEvent_getAction(minput->i_event)) {
-				case AKEY_EVENT_ACTION_DOWN: {
-					std::unordered_set<int>::iterator key = minput->key_pressed.find(keyCode);
+				case AKEY_EVENT_ACTION_DOWN:
 					if(key != minput->key_pressed.end()) {
 						minput->key_pressed.insert(keyCode);
 					}
 					minput->key_events.insert(new key_event{.keyCode = keyCode,.type = key_event::event::KEY_DOWN});
-				}
 					break;
-				case AKEY_EVENT_ACTION_UP: {
-					std::unordered_set<int>::iterator key = minput->key_pressed.find(keyCode);
+				case AKEY_EVENT_ACTION_UP:
 					if(key != minput->key_pressed.end()) {
 						minput->key_pressed.erase(key);
 					}
 					minput->key_events.insert(new key_event{.keyCode = keyCode,.type = key_event::event::KEY_UP});
-				}
 					break;
 				case AKEY_EVENT_ACTION_MULTIPLE:
 					break;
 			}
-		}
 			break;
+		}
 		case AINPUT_EVENT_TYPE_MOTION: {
 			const int32_t motion = AMotionEvent_getAction(minput->i_event);
 			switch(motion&AMOTION_EVENT_ACTION_MASK) {
@@ -129,8 +126,7 @@ void android_input::process_input() {
 		    	break;
 		    case AMOTION_EVENT_ACTION_POINTER_UP:
 		    case AMOTION_EVENT_ACTION_UP:
-		    case AMOTION_EVENT_ACTION_OUTSIDE:
-		    {
+		    case AMOTION_EVENT_ACTION_OUTSIDE: {
 					const int8_t pointer_index = (motion&AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
 					if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
 						break;
@@ -213,9 +209,10 @@ android_input::android_input(ALooper *looper) {
 }
 android_input::~android_input() {
 	detach_sensor();
-	set_input_queue(NULL, NULL);
+	if (minput->inputQueue)
+		AInputQueue_detachLooper(minput->inputQueue);
 	minput->sensors.clear();
 	minput->key_pressed.clear();
-	engine::inpt = nullptr;
 	delete minput;
+	engine::inpt = nullptr;
 }

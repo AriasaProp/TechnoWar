@@ -76,7 +76,7 @@ static void* android_app_entry(void* param) {
 	  if (app->savedState) {
 	      a_graphics->state = *(saved_state*)app->savedState;
 	  }
-    a_graphics = new opengles_graphics;
+    a_graphics = new opengles_graphics{};
 	  android_asset *a_asset = new android_asset(app->activity->assetManager);
     char cmd;
 	  while (a_graphics) {
@@ -372,9 +372,8 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     activity->callbacks->onStop = onStop;
     activity->callbacks->onDestroy = onDestroy;
     
-    android_app* app = new android_app;
+    android_app* app = new android_app{};
     activity->instance = app;
-    memset(app, 0, sizeof(android_app));
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
