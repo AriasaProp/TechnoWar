@@ -8,11 +8,9 @@
 
 //define input engine extern
 #define MAX_TOUCH_POINTERS_COUNT 30
-struct ainput;
-
 struct android_input: public engine::input_core {
 private:
-  ainput minput;
+  struct ainput *minput;
 public:
 	float	*getSensorValue(const char *) override;
 	int getX(unsigned int) override;

@@ -564,6 +564,7 @@ opengles_graphics::~opengles_graphics() {
 	managedMesh.clear();
 	delete ubatch;
 	delete wbatch;
+	delete mgl_data;
   engine::graph = nullptr;
 }
 
