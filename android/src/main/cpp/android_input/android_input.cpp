@@ -157,15 +157,15 @@ void android_input::process_input() {
   AInputQueue_finishEvent(minput->inputQueue, minput->i_event, handled);
 }
 void android_input::attach_sensor() {
-	if (minput->sensot_enabled) return;
+	if (minput->sensor_enabled) return;
   ASensorEventQueue_enableSensor(sensorEventQueue,accelerometerSensor);
   ASensorEventQueue_setEventRate(sensorEventQueue,accelerometerSensor,50000/3);
   ASensorEventQueue_enableSensor(sensorEventQueue,gyroscopeSensor);
   ASensorEventQueue_setEventRate(sensorEventQueue,gyroscopeSensor,50000/3);
-	minput->sensot_enabled = true;
+	minput->sensor_enabled = true;
 }
 void android_input::process_sensor() {
-	if (!minput->sensot_enabled) return;
+	if (!minput->sensor_enabled) return;
 	unsigned int i, j;
 	float *sensor_temp;
 	while ((i = ASensorEventQueue_getEvents(sensorEventQueue,s_event, 2)) > 0) {
@@ -191,12 +191,12 @@ void android_input::process_sensor() {
 	}
 }
 void android_input::detach_sensor() {
-	if (!minput->sensot_enabled) return;
+	if (!minput->sensor_enabled) return;
 	for (auto i = minput->_sensor.begin(); i != minput->_sensor.end(); i++)
 		memset(i->second, 0, 3*sizeof(float));
   ASensorEventQueue_disableSensor(sensorEventQueue, accelerometerSensor);
   ASensorEventQueue_disableSensor(sensorEventQueue, gyroscopeSensor);
-	minput->sensot_enabled = false;
+	minput->sensor_enabled = false;
 }
 android_input::android_input(ALooper *looper) {
   minput = new ainput;
@@ -209,7 +209,7 @@ android_input::android_input(ALooper *looper) {
   gyroscopeSensor = ASensorManager_getDefaultSensor(sensorManager,ASENSOR_TYPE_GYROSCOPE);
 	sensorEventQueue = ASensorManager_createEventQueue(sensorManager, looper, 3 , NULL, nullptr);
 	minput->inputQueue = nullptr;
-  minput->sensot_enabled = false;
+  minput->sensor_enabled = false;
 	//input
 	input_pointer_cache = new touch_pointer[MAX_TOUCH_POINTERS_COUNT]{};
 	engine::inpt = this;
