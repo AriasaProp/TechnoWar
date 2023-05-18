@@ -50,7 +50,6 @@ public class MainActivity extends NativeActivity {
                     // cause floating window
                 }
                 setInsets(insetsL, insetsT, insetsR, insetsB);
-                callToast("request Insets!");
                 return insets;
             }
         });
