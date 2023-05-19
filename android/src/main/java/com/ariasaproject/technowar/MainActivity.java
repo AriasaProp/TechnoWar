@@ -76,8 +76,9 @@ public class MainActivity extends NativeActivity {
     }
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         callToast("On Destroy");
+        super.onDestroy();
+        callToast("Destroyed");
     }
     
     @Override
@@ -88,7 +89,7 @@ public class MainActivity extends NativeActivity {
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         getWindow().getDecorView().requestApplyInsets();
-        callToast("on Surface Changed!");
+        //callToast("on Surface Changed!");
         super.surfaceChanged(holder, format, width, height);
     }
     @Override
