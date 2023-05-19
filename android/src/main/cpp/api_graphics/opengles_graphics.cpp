@@ -28,6 +28,9 @@ struct opengles_texture: public engine::texture_core {
 };
 
 #include <EGL/egl.h>
+#define TERM_EGL_SURFACE 1
+#define TERM_EGL_CONTEXT 2
+#define TERM_EGL_DISPLAY 4
 struct gl_data {
   bool dirty_uiProj;
 	bool dirty_worldProj;
@@ -67,7 +70,6 @@ float opengles_graphics::getHeight() { return game_height; }
 void opengles_graphics::onResume() {
 	resume = true;
 	running = true;
-	render();
 }
 void opengles_graphics::onWindowInit(ANativeWindow *w){
 	window = w;
@@ -328,10 +330,6 @@ void opengles_graphics::render() {
 	} else if (resume) {
   	mgl_data->m_Main->resume();
 		resume = false;
-  }
-  state.angle += .01f;
-  if (state.angle > 1) {
-      state.angle = 0;
   }
   mgl_data->m_Main->render();
   if (pause) {

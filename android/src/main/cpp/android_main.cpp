@@ -31,10 +31,8 @@ struct android_app {
     bool destroyed;
     int appCmdState;
     int msgread, msgwrite;
-    size_t savedStateSize;
     ANativeActivity* activity;
     AConfiguration* config;
-    void* savedState;
     ALooper* looper;
     ANativeWindow* window; //update in mainThread
     AInputQueue* inputQueue;
@@ -70,9 +68,6 @@ static void* android_app_entry(void* param) {
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     android_input *a_input = new android_input(app->looper);
-	  if (app->savedState) {
-	      a_graphics->state = *(saved_state*)app->savedState;
-	  }
     a_graphics = new opengles_graphics{};
 	  android_asset *a_asset = new android_asset(app->activity->assetManager);
     char cmd;
@@ -91,13 +86,6 @@ static void* android_app_entry(void* param) {
 			        break;
 				    case APP_CMD_RESUME:
 				    	a_graphics->onResume();
-			        pthread_mutex_lock(&app->mutex);
-						  if (app->savedState != NULL) {
-					      free(app->savedState);
-					      app->savedState = NULL;
-					      app->savedStateSize = 0;
-						  }
-						  pthread_mutex_unlock(&app->mutex);
 			        break;
 			      case APP_CMD_INIT_WINDOW:
 			      	a_graphics->onWindowInit(app->window);
@@ -130,16 +118,6 @@ static void* android_app_entry(void* param) {
 			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
 			        break;
 			      case APP_CMD_SAVE_STATE:
-			        pthread_mutex_lock(&app->mutex);
-						  if (app->savedState != NULL) {
-					      free(app->savedState);
-					      app->savedState = NULL;
-					      app->savedStateSize = 0;
-						  }
-			  			pthread_mutex_unlock(&app->mutex);
-				      app->savedState = malloc(sizeof(saved_state));
-				      *((saved_state*)app->savedState) = a_graphics->state;
-				      app->savedStateSize = sizeof(saved_state);
 			        break;
 			      case APP_CMD_PAUSE:
 			      	a_graphics->onPause();
@@ -169,11 +147,6 @@ static void* android_app_entry(void* param) {
 	  a_input = nullptr;
 	  a_asset = nullptr;
     pthread_mutex_lock(&app->mutex);
-    if (app->savedState != NULL) {
-      free(app->savedState);
-      app->savedState = NULL;
-      app->savedStateSize = 0;
-    }
     if (app->inputQueue != NULL) {
         AInputQueue_detachLooper(app->inputQueue);
         app->inputQueue = NULL;
@@ -277,23 +250,16 @@ static void onContentRectChanged(ANativeActivity* activity, const ARect*) {
     while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
       LOGE("cannot write on pipe , %s", strerror(errno));
 }
+//wanna safe setting to Android Bundle safe instance? 
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
     android_app *app = (android_app*)activity->instance;
-    void* savedState = NULL;
     pthread_mutex_lock(&app->mutex);
     const char cmd = APP_CMD_SAVE_STATE;
     while (write(app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd))
       LOGE("cannot write on pipe , %s", strerror(errno));
-    while (app->appCmdState != APP_CMD_SAVE_STATE)
-      pthread_cond_wait(&app->cond, &app->mutex);
-    if (app->savedState != NULL) {
-        savedState = app->savedState;
-        *outLen = app->savedStateSize;
-        app->savedState = NULL;
-        app->savedStateSize = 0;
-    }
     pthread_mutex_unlock(&app->mutex);
-    return savedState;
+    *outLen = 0;
+    return nullptr;
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow*) {
     android_app *app = (android_app*)activity->instance;
@@ -354,7 +320,7 @@ static void onDestroy(ANativeActivity* activity) {
 }
 
 
-void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
+void ANativeActivity_onCreate(ANativeActivity* activity, void*, size_t) {
     activity->callbacks->onStart = onStart;
     activity->callbacks->onResume = onResume;
     activity->callbacks->onInputQueueCreated = onInputQueueCreated;
@@ -376,11 +342,6 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
     app->activity = activity;
     pthread_mutex_init(&app->mutex, NULL);
     pthread_cond_init(&app->cond, NULL);
-    if (savedState != NULL) {
-        app->savedState = malloc(savedStateSize);
-        app->savedStateSize = savedStateSize;
-        memcpy(app->savedState, savedState, savedStateSize);
-    }
     while(pipe(&app->msgread))
       LOGE("Failed to create pipe, %s", strerror(errno));
     pthread_attr_t attr; 

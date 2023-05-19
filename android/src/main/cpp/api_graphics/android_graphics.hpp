@@ -1,19 +1,9 @@
 #ifndef _Included_Android_Graphics
 #define _Included_Android_Graphics
 
-#include <EGL/egl.h> 
 #include <android/native_activity.h>
 #include "../engine.hpp"
 
-#define TERM_EGL_SURFACE 1
-#define TERM_EGL_CONTEXT 2
-#define TERM_EGL_DISPLAY 4
-
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
 struct safe_insets {
   int left;
   int top;
@@ -23,7 +13,6 @@ struct safe_insets {
 
 struct android_graphics: public engine::graphics_core {
 	bool resize, resume, running, pause;
-	saved_state state;
 	safe_insets cur_safe_insets;
 	//android
 	virtual void onResume() = 0;
