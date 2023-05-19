@@ -67,86 +67,88 @@ static void* android_app_entry(void* param) {
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-    android_input a_input(app->looper);
     a_graphics = new opengles_graphics{};
-	  android_asset a_asset(app->activity->assetManager);
     char cmd;
-	  while (a_graphics) {
-	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
-	      case 2: //input queue
-	      	a_input.process_input();
-	      	break;
-	      case 3: //sensor queue
-	      	a_input.process_sensor();
-	      	break;
-	    	case 1: //android activity queue
-			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
-					switch (cmd) {
-				    case APP_CMD_START:
-			        break;
-				    case APP_CMD_RESUME:
-				    	a_graphics->onResume();
-			        break;
-			      case APP_CMD_INIT_WINDOW:
-			      	a_graphics->onWindowInit(app->window);
-			        break;
-				    case APP_CMD_CONTENT_RECT_CHANGED:
-				    	break;
-				    case APP_CMD_WINDOW_RESIZED:
-				    	a_graphics->needResize();
-				    	break;
-				    case APP_CMD_GAINED_FOCUS:
-				    	a_input.attach_sensor();
-				      break;
-			      case APP_CMD_INPUT_INIT:
-		        	a_input.set_input_queue(app->looper, app->inputQueue);
-				      break;
-			      case APP_CMD_INPUT_TERM:
-			      	if (app->inputQueue != NULL) {
-			        	a_input.set_input_queue(app->looper, NULL);
-				        app->inputQueue = NULL;
-			      	}
-			        break;
-				    case APP_CMD_LOST_FOCUS:
-				    	a_input.detach_sensor();
-				      break;
-			      case APP_CMD_TERM_WINDOW:
-			      	a_graphics->onWindowTerm();
-			        app->window = NULL;
-			        break;
-			      case APP_CMD_CONFIG_CHANGED:
-			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-			        break;
-			      case APP_CMD_SAVE_STATE:
-			        break;
-			      case APP_CMD_PAUSE:
-			      	a_graphics->onPause();
-				      break;
-			      case APP_CMD_STOP:
-				      break;
-			      case APP_CMD_DESTROY:
-              delete a_graphics;
-          	  a_graphics = nullptr;
-			        break;
-			      default:
-			      	// ?
-			      	break;
-			  	}
-			    pthread_mutex_lock(&app->mutex);
-			    app->appCmdState = cmd;
-			    pthread_cond_broadcast(&app->cond);
-			    pthread_mutex_unlock(&app->mutex);
-			  	break;
-			  default:
-					a_graphics->render();
-			  	break;
-	    }
-	  }
-    pthread_mutex_lock(&app->mutex);
-    if (app->inputQueue != NULL) {
-        AInputQueue_detachLooper(app->inputQueue);
-        app->inputQueue = NULL;
+    {
+	      android_asset a_asset(app->activity->assetManager);
+        android_input a_input(app->looper);
+        bool running = false;
+    	  while (cmd == APP_CMD_DESTROY) {
+    	    switch (ALooper_pollAll(running ? 0 : -1, nullptr, nullptr, nullptr)) {
+    	      case 2: //input queue
+    	      	a_input.process_input();
+    	      	break;
+    	      case 3: //sensor queue
+    	      	a_input.process_sensor();
+    	      	break;
+    	    	case 1: //android activity queue
+    			    if (read(app->msgread, &cmd, sizeof(cmd)) != sizeof(cmd)) break;
+    					switch (cmd) {
+    				    case APP_CMD_START:
+    			        break;
+    				    case APP_CMD_RESUME:
+    				      running = true;
+    				    	a_graphics->onResume();
+    			        break;
+    			      case APP_CMD_INIT_WINDOW:
+    			      	a_graphics->onWindowInit(app->window);
+    			        break;
+    				    case APP_CMD_CONTENT_RECT_CHANGED:
+    				    	break;
+    				    case APP_CMD_WINDOW_RESIZED:
+    				    	a_graphics->needResize();
+    				    	break;
+    				    case APP_CMD_GAINED_FOCUS:
+    				    	a_input.attach_sensor();
+    				      break;
+    			      case APP_CMD_INPUT_INIT:
+    		        	a_input.set_input_queue(app->looper, app->inputQueue);
+    				      break;
+    			      case APP_CMD_INPUT_TERM:
+    			      	if (app->inputQueue != NULL) {
+    			        	a_input.set_input_queue(app->looper, NULL);
+    				        app->inputQueue = NULL;
+    			      	}
+    			        break;
+    				    case APP_CMD_LOST_FOCUS:
+    				    	a_input.detach_sensor();
+    				      break;
+    			      case APP_CMD_TERM_WINDOW:
+    			      	a_graphics->onWindowTerm();
+    			        app->window = NULL;
+    			        break;
+    			      case APP_CMD_CONFIG_CHANGED:
+    			        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+    			        break;
+    			      case APP_CMD_SAVE_STATE:
+    			        break;
+    			      case APP_CMD_PAUSE:
+    			        running = false;
+    			      	a_graphics->onPause();
+    				      break;
+    			      case APP_CMD_STOP:
+    				      break;
+    			      case APP_CMD_DESTROY:
+    			        break;
+    			      default:
+    			      	// ?
+    			      	break;
+    			  	}
+    			    pthread_mutex_lock(&app->mutex);
+    			    app->appCmdState = cmd;
+    			    pthread_cond_broadcast(&app->cond);
+    			    pthread_mutex_unlock(&app->mutex);
+    			  	break;
+    			  default:
+    			    if (!running) break;
+    					a_graphics->render();
+    			  	break;
+    	    }
+    	  }
     }
+    delete a_graphics;
+	  a_graphics = nullptr;
+    pthread_mutex_lock(&app->mutex);
     AConfiguration_delete(app->config);
     app->destroyed = true;
     pthread_cond_broadcast(&app->cond);

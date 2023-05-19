@@ -12,7 +12,7 @@ struct safe_insets {
 };
 
 struct android_graphics: public engine::graphics_core {
-	bool resize, resume, running, pause;
+	bool resize, resume, pause;
 	safe_insets cur_safe_insets;
 	//android
 	virtual void onResume() = 0;
