@@ -6,7 +6,7 @@
 
 struct vulkan_graphics: public android_graphics {
 public:
-  bool destroyed;
+  bool destroyed, running;
 	//android
 	void onResume() override;
 	void onWindowInit(ANativeWindow*) override;
