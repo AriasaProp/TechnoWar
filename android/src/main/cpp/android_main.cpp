@@ -41,7 +41,8 @@ struct android_app {
     pthread_t thread;
 }; 
 
-enum {
+enum APP_CMD: char{
+    APP_CMD_CREATE = 0,
     APP_CMD_START,
     APP_CMD_RESUME,
     APP_CMD_INPUT_INIT,
@@ -68,12 +69,12 @@ static void* android_app_entry(void* param) {
     app->looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     a_graphics = new opengles_graphics{};
-    char cmd;
     {
+        bool running = false;
+        char cmd = APP_CMD_CREATE;
 	      android_asset a_asset(app->activity->assetManager);
         android_input a_input(app->looper);
-        bool running = false;
-    	  while (cmd == APP_CMD_DESTROY) {
+    	  while (cmd != APP_CMD_DESTROY) {
     	    switch (ALooper_pollAll(running ? 0 : -1, nullptr, nullptr, nullptr)) {
     	      case 2: //input queue
     	      	a_input.process_input();
