@@ -1,5 +1,6 @@
 #include "opengles_graphics.hpp"
 #include "../main_game.hpp"
+#include <unordered_set>
 #include <cassert>
 #include <cstddef>
 // make opengles lastest possible version
@@ -60,7 +61,10 @@ struct gl_data {
   EGLContext context;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
-  
+  //
+	std::unordered_set<engine::texture_core*> managedTexture;
+	std::unordered_set<engine::mesh_core*> managedMesh;
+	
   Main *m_Main;//core activity
 };
 
@@ -281,7 +285,7 @@ void opengles_graphics::render() {
 				mgl_data->u_worldTransProj = glGetUniformLocation(mgl_data->world_shader, "trans_proj");
 			}
 			//mesh
-			for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+			for (std::unordered_set<engine::mesh_core*>::iterator i = mgl_data->managedMesh.begin(); i != mgl_data->managedMesh.end(); ++i) {
 				glGenVertexArrays(1, &(*i)->vao);
 				glGenBuffers(2, &(*i)->vbo);
 				glBindVertexArray((*i)->vao);
@@ -296,7 +300,7 @@ void opengles_graphics::render() {
 			}
 			glBindVertexArray(0);
 			//texture
-			for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+			for (std::unordered_set<engine::texture_core*>::iterator i = mgl_data->managedTexture.begin(); i != mgl_data->managedTexture.end(); ++i) {
 				opengles_texture *itex = static_cast<opengles_texture*>(*i);
 				glGenTextures(1, &itex->id);
 				glBindTexture(GL_TEXTURE_2D, itex->id);
@@ -379,12 +383,12 @@ void opengles_graphics::render() {
 				glDeleteVertexArrays(1, &mgl_data->ui_vao);
 				glDeleteBuffers(2, &mgl_data->ui_vbo);
 				//mesh
-				for (std::unordered_set<engine::mesh_core*>::iterator i = managedMesh.begin(); i != managedMesh.end(); ++i) {
+				for (std::unordered_set<engine::mesh_core*>::iterator i = mgl_data->managedMesh.begin(); i != mgl_data->managedMesh.end(); ++i) {
 					glDeleteVertexArrays(1, &(*i)->vao);
 					glDeleteBuffers(2, &(*i)->vbo);
 				}
 				//texture
-				for (std::unordered_set<engine::texture_core*>::iterator i = managedTexture.begin(); i != managedTexture.end(); ++i) {
+				for (std::unordered_set<engine::texture_core*>::iterator i = mgl_data->managedTexture.begin(); i != mgl_data->managedTexture.end(); ++i) {
 					glDeleteTextures(1, &(static_cast<opengles_texture*>(*i))->id);
 				}
 				
@@ -442,7 +446,7 @@ engine::texture_core *opengles_graphics::gen_texture(const int &tw, const int &t
 	  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
-	managedTexture.insert(t);
+	mgl_data->managedTexture.insert(t);
 	return t;
 }
 void opengles_graphics::bind_texture(engine::texture_core *t) {
@@ -452,9 +456,9 @@ void opengles_graphics::set_texture_param(const int &param, const int &val) {
 	glTexParameteri(GL_TEXTURE_2D, param, val);
 }
 void opengles_graphics::delete_texture(engine::texture_core *t) {
-	std::unordered_set<engine::texture_core*>::iterator it = managedTexture.find(t);
-	if (it == managedTexture.end()) return;
-	managedTexture.erase(it);
+	std::unordered_set<engine::texture_core*>::iterator it = mgl_data->managedTexture.find(t);
+	if (it == mgl_data->managedTexture.end()) return;
+	mgl_data->managedTexture.erase(it);
 	glDeleteTextures(1, &(static_cast<opengles_texture*>(t)->id));
 	delete t;
 }
@@ -496,7 +500,7 @@ engine::mesh_core *opengles_graphics::gen_mesh(engine::mesh_core::data *v,unsign
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, r->index_len*sizeof(unsigned short), (void*)r->index, GL_STATIC_DRAW);
 	glBindVertexArray(0);
-	managedMesh.insert(r);
+	mgl_data->managedMesh.insert(r);
 	return r;
 }
 void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned int &count) {
@@ -528,9 +532,9 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	glUseProgram(0);
 }
 void opengles_graphics::delete_mesh(engine::mesh_core *m) {
-	std::unordered_set<engine::mesh_core*>::iterator it = managedMesh.find(m);
-	if (it == managedMesh.end()) return;
-	managedMesh.erase(it);
+	std::unordered_set<engine::mesh_core*>::iterator it = mgl_data->managedMesh.find(m);
+	if (it == mgl_data->managedMesh.end()) return;
+	mgl_data->managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
 	glDeleteBuffers(2, &m->vbo);
 	delete[] m->vertex;
@@ -558,8 +562,8 @@ opengles_graphics::opengles_graphics() {
 opengles_graphics::~opengles_graphics() {
 	destroyed = true;
 	render();
-	managedTexture.clear();
-	managedMesh.clear();
+	mgl_data->managedTexture.clear();
+	mgl_data->managedMesh.clear();
 	delete mgl_data;
   engine::graph = nullptr;
 }
