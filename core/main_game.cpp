@@ -20,7 +20,6 @@ struct mMainData {
   engine::texture_core *myTex;
   //bmfont *fnt;
   auto startP = std::chrono::high_resolution_clock::now ();
-  float delta = 0;
 };
 
 Main::Main () {
@@ -68,7 +67,7 @@ void Main::resume () {
 }
 void Main::render () {
   auto endP = std::chrono::high_resolution_clock::now ();
-  mdata->delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
+  float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
   mdata->startP = endP;
   engine::graph->clear (7);
 
