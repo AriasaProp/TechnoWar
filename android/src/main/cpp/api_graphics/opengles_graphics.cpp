@@ -317,6 +317,11 @@ void opengles_graphics::render() {
       	}
 			}
 			glBindTexture(GL_TEXTURE_2D, 0);
+			//core
+    	if (!mgl_data->m_Main) {
+    		mgl_data->m_Main = new Main;
+    		resume = false;
+    	}
 		}
   } else if (resize) {
 		eglMakeCurrent(mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -327,14 +332,11 @@ void opengles_graphics::render() {
 		update_matrix();
 	}
 	resize = false;
-	if (!mgl_data->m_Main) {
-		mgl_data->m_Main = new Main;
-		resume = false;
-	} else if (resume) {
+	if (resume) {
   	mgl_data->m_Main->resume();
 		resume = false;
   }
-  //mgl_data->m_Main->render();
+  mgl_data->m_Main->render();
   if (pause) {
   	mgl_data->m_Main->pause();
 		pause = false;
@@ -391,7 +393,6 @@ void opengles_graphics::render() {
 				for (std::unordered_set<engine::texture_core*>::iterator i = mgl_data->managedTexture.begin(); i != mgl_data->managedTexture.end(); ++i) {
 					glDeleteTextures(1, &(static_cast<opengles_texture*>(*i))->id);
 				}
-				
 				//reset null texture
 				glDeleteTextures(1, &mgl_data->nullTextureId);
 			}
