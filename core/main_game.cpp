@@ -17,11 +17,6 @@ struct mMainData {
       {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
       {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
       {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
-  engine::flat_vertex fV1[4] = {
-      {320.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
-      {320.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
-      {720.f, 320.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
-      {720.f, 720.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
   engine::texture_core *myTex;
   bmfont *fnt;
 };
@@ -75,7 +70,6 @@ void Main::render () {
   endP = std::chrono::high_resolution_clock::now ();
   delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - startP).count ()) / 1000000.f;
   startP = endP;
-  engine::inpt->process_event ();
   engine::graph->clear (7);
 
   matrix4::rotate (mdata->mp->trans,
@@ -85,8 +79,7 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  engine::graph->flat_render (mdata->myTex, mdata->fV1, 1);
-  mdata->fnt->draw_text (0 + 10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0006");
+  mdata->fnt->draw_text (0 + 10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0007");
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Rab, 24 Mei 2023!");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "issue onRender App");
 }

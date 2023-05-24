@@ -70,11 +70,12 @@ static void* android_app_entry(void* param) {
     ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     a_graphics = new opengles_graphics{};
     {
+        bool running = false;
         char cmd = APP_CMD_CREATE;
 	      android_asset a_asset(app->activity->assetManager);
         android_input a_input(app->looper);
     	  while (cmd != APP_CMD_DESTROY) {
-    	    switch (ALooper_pollAll(a_graphics->running ? 0 : -1, nullptr, nullptr, nullptr)) {
+    	    switch (ALooper_pollAll(running ? 0 : -1, nullptr, nullptr, nullptr)) {
     	      case 2: //input queue
     	      	a_input.process_input();
     	      	break;
@@ -87,6 +88,7 @@ static void* android_app_entry(void* param) {
     				    case APP_CMD_START:
     			        break;
     				    case APP_CMD_RESUME:
+    				      running = true;
     				    	a_graphics->onResume();
     			        break;
     			      case APP_CMD_INIT_WINDOW:
@@ -123,6 +125,7 @@ static void* android_app_entry(void* param) {
     			        break;
     			      case APP_CMD_PAUSE:
     			      	a_graphics->onPause();
+    			      	running = false;
     				      break;
     			      case APP_CMD_STOP:
     				      break;
@@ -138,7 +141,10 @@ static void* android_app_entry(void* param) {
     			    pthread_mutex_unlock(&app->mutex);
     			  	break;
     			  default:
-    					a_graphics->render();
+    			    if (running) {
+    			      a_input.process_event ();
+    					  a_graphics->render();
+    			    }
     			  	break;
     	    }
     	  }
