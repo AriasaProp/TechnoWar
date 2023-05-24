@@ -201,7 +201,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       y += LineHeight * fscale;
       break;
   }
-  float x1,y1,x2,y2, u1, v1, u2, v2;
+  float x1, y1, x2, y2, u1, v1, u2, v2;
   unsigned int n = strlen(text);
   engine::flat_vertex *texlst = (engine::flat_vertex*)alloca(n * 4 * sizeof(engine::flat_vertex));
   engine::flat_vertex *cur_tex = texlst;
@@ -219,41 +219,41 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     v2 = (f.y + f.Height) / (float)Height;
 
     // 0,1 Texture Coord, minxy
-    cur_tex->u = u1;
-    cur_tex->v = v2;
     cur_tex->x = x1;
     cur_tex->y = y2;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    memcpy (&cur_tex->r, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u1;
+    cur_tex->v = v2;
     
     cur_tex++;
     // 0,0 Texture Coord, minx maxy
-    cur_tex->u = u1;
-    cur_tex->v = v1;
     cur_tex->x = x1;
     cur_tex->y = y1;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    memcpy (&cur_tex->r, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u1;
+    cur_tex->v = v1;
 
     cur_tex++;
     // 1,1 Texture Coord, maxxy
-    cur_tex->u = u2;
-    cur_tex->v = v2;
     cur_tex->x = x2;
     cur_tex->y = y2;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    memcpy (&cur_tex->r, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u2;
+    cur_tex->v = v2;
 
     cur_tex++;
     // 1,0 Texture Coord, maxx miny
-    cur_tex->u = u2;
-    cur_tex->v = v1;
     cur_tex->x = x2;
     cur_tex->y = y1;
-    memcpy (cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    memcpy (&cur_tex->r, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u2;
+    cur_tex->v = v1;
 
     cur_tex++;
     if (*(t+1)) {
       float nX = f.XAdvance;
       short key[2] = {*t, *(t+1)};
-      std::unordered_map<unsigned int,float>::iterator it = Kearn.find(*((unsigned int*)key));
+      auto it = Kearn.find(*((unsigned int*)key));
       if (it != Kearn.end())
         nX += it->second;
       x += nX * fscale;

@@ -89,7 +89,6 @@ void opengles_graphics::render() {
     	mgl_data->eConfig = nullptr;
   	}
   	if (!mgl_data->eConfig) {
-		  EGLint temp;
 		  const EGLint configAttr[] = {
 		    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		    EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
@@ -98,14 +97,12 @@ void opengles_graphics::render() {
 		    EGL_ALPHA_SIZE, 0,
 		    EGL_NONE
 		  };
+		  EGLint temp;
 		  eglChooseConfig(mgl_data->display, configAttr, nullptr,0, &temp);
-		  assert(temp);
 		  EGLConfig *configs = (EGLConfig*) alloca(temp*sizeof(EGLConfig));
-		  assert(configs);
 		  eglChooseConfig(mgl_data->display, configAttr, configs, temp, &temp);
-		  assert(temp);
 		  mgl_data->eConfig = configs[0];
-		  for (unsigned int i = 0, j = temp, k = 0, l; i < j; i++) {
+		  for (size_t i = 0, j = temp, k = 0, l; i < j; i++) {
 		    EGLConfig& cfg = configs[i];
 		    eglGetConfigAttrib(mgl_data->display, cfg, EGL_BUFFER_SIZE, &temp);
 		    l = temp;
@@ -343,7 +340,7 @@ void opengles_graphics::render() {
   }
   unsigned int EGLTermReq = 0;
   if (destroyed) {
-  	delete(mgl_data->m_Main);
+  	delete mgl_data->m_Main;
   	mgl_data->m_Main = nullptr;
   	EGLTermReq |= TERM_EGL_DISPLAY;
   }
@@ -533,7 +530,7 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 	glUseProgram(0);
 }
 void opengles_graphics::delete_mesh(engine::mesh_core *m) {
-	std::unordered_set<engine::mesh_core*>::iterator it = mgl_data->managedMesh.find(m);
+	auto it = mgl_data->managedMesh.find(m);
 	if (it == mgl_data->managedMesh.end()) return;
 	mgl_data->managedMesh.erase(it);
 	glDeleteVertexArrays(1, &m->vao);
