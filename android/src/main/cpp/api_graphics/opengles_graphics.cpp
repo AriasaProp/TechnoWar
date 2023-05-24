@@ -73,6 +73,7 @@ float opengles_graphics::getHeight() { return game_height; }
 
 void opengles_graphics::onResume() {
 	resume = true;
+	running = true;
 }
 void opengles_graphics::onWindowInit(ANativeWindow *w){
 	window = w;
@@ -81,7 +82,7 @@ void opengles_graphics::needResize() {
 	resize = true;
 }
 void opengles_graphics::render() {
-  if (!window) return;
+  if (!window || !running) return;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
   	if (!mgl_data->display) {
     	mgl_data->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -416,6 +417,7 @@ void opengles_graphics::onWindowTerm(){
 void opengles_graphics::onPause() {
 	pause = true;
 	render();
+	running = false;
 }
 void opengles_graphics::clear(const unsigned int &m) {
 	GLuint c = 0;
