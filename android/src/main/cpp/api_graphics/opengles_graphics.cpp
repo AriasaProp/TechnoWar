@@ -56,9 +56,9 @@ struct gl_data {
 	  0,0,0.00001f,0,
 	  0,0,0,1
 	};
-  EGLDisplay display;
-  EGLSurface surface;
-  EGLContext context;
+  EGLDisplay display = EGL_NO_DISPLAY;
+  EGLSurface surface = EGL_NO_SURFACE;
+  EGLContext context = EGL_NO_CONTEXT;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
   //
@@ -282,7 +282,7 @@ void opengles_graphics::render() {
 				mgl_data->u_worldTransProj = glGetUniformLocation(mgl_data->world_shader, "trans_proj");
 			}
 			//mesh
-			for (std::unordered_set<engine::mesh_core*>::iterator i = mgl_data->managedMesh.begin(); i != mgl_data->managedMesh.end(); ++i) {
+			for (auto i = mgl_data->managedMesh.begin(), j = mgl_data->managedMesh.end(); i != j; i++) {
 				glGenVertexArrays(1, &(*i)->vao);
 				glGenBuffers(2, &(*i)->vbo);
 				glBindVertexArray((*i)->vao);
@@ -297,7 +297,7 @@ void opengles_graphics::render() {
 			}
 			glBindVertexArray(0);
 			//texture
-			for (std::unordered_set<engine::texture_core*>::iterator i = mgl_data->managedTexture.begin(); i != mgl_data->managedTexture.end(); ++i) {
+			for (auto i = mgl_data->managedTexture.begin(), j = mgl_data->managedTexture.end(); i != j; i++) {
 				opengles_texture *itex = static_cast<opengles_texture*>(*i);
 				glGenTextures(1, &itex->id);
 				glBindTexture(GL_TEXTURE_2D, itex->id);
@@ -382,12 +382,12 @@ void opengles_graphics::render() {
 				glDeleteVertexArrays(1, &mgl_data->ui_vao);
 				glDeleteBuffers(2, &mgl_data->ui_vbo);
 				//mesh
-				for (std::unordered_set<engine::mesh_core*>::iterator i = mgl_data->managedMesh.begin(); i != mgl_data->managedMesh.end(); ++i) {
+				for (auto i = mgl_data->managedMesh.begin(), j = mgl_data->managedMesh.end(); i != j; i++) {
 					glDeleteVertexArrays(1, &(*i)->vao);
 					glDeleteBuffers(2, &(*i)->vbo);
 				}
 				//texture
-				for (std::unordered_set<engine::texture_core*>::iterator i = mgl_data->managedTexture.begin(); i != mgl_data->managedTexture.end(); ++i) {
+				for (auto i = mgl_data->managedTexture.begin(), j = mgl_data->managedTexture.end(); i != j; i++) {
 					glDeleteTextures(1, &(static_cast<opengles_texture*>(*i))->id);
 				}
 				//reset null texture
@@ -510,7 +510,7 @@ void opengles_graphics::mesh_render(engine::mesh_core **meshes,const unsigned in
 		glUniformMatrix4fv(mgl_data->u_worldProj, 1, false, mgl_data->worldProj);
 		mgl_data->dirty_worldProj = false;
 	}
-	for (unsigned int i = 0; i < count; ++i) {
+	for (size_t i = 0; i < count; ++i) {
 		engine::mesh_core *m = *(meshes+i);
 		glUniformMatrix4fv(mgl_data->u_worldTransProj, 1, false, m->trans);
 		glBindVertexArray(m->vao);
