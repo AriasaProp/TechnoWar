@@ -226,7 +226,7 @@ void opengles_graphics::render() {
 				glBindBuffer(GL_ARRAY_BUFFER, mgl_data->ui_vbo);
 				glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
 				glVertexAttribPointer(0, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, x));
-				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, color));
+				glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, true, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, r));
 				glVertexAttribPointer(2, 2, GL_FLOAT, false, sizeof(engine::flat_vertex), (void*)offsetof(engine::flat_vertex, u));
 				glEnableVertexAttribArray(0);
 				glEnableVertexAttribArray(1);
