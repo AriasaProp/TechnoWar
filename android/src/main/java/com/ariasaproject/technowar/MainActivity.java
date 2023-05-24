@@ -53,7 +53,7 @@ public class MainActivity extends NativeActivity {
                 return insets;
             }
         });
-        //callToast("Create done!");
+        callToast("Create done!");
     }
     @Override
     protected void onStart() {
@@ -62,33 +62,33 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //callToast("On Resume");
+        callToast("On Resume");
     }
     @Override
     protected void onPause() {
         super.onPause();
-        //callToast("On Pause");
+        callToast("On Pause");
     }
     @Override
     protected void onStop() {
         super.onStop();
-        //callToast("On Stop");
+        callToast("On Stop");
     }
     @Override
     protected void onDestroy() {
-        //callToast("On Destroy");
+        callToast("On Destroy");
         super.onDestroy();
-        //callToast("Destroyed");
+        callToast("Destroyed");
     }
     
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         super.surfaceCreated(holder);
-        //callToast("Surface Created");
+        callToast("Surface Created");
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        //callToast("on Surface Changed!");
+        callToast("on Surface Changed!");
         super.surfaceChanged(holder, format, width, height);
     }
     @Override
@@ -99,11 +99,11 @@ public class MainActivity extends NativeActivity {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
-        //callToast("Surface Destroyed");
+        callToast("Surface Destroyed");
     }
-    /*
+    
     void callToast (CharSequence msg) {
         Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
-    */
+    
 }
