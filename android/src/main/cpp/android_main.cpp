@@ -142,7 +142,7 @@ static void* android_app_entry(void* param) {
     			  	break;
     			  default:
     			    if (!running) break;
-    					a_graphics->render();
+    					//a_graphics->render();
     			  	break;
     	    }
     	  }
