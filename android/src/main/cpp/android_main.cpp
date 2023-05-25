@@ -75,7 +75,7 @@ static void* android_app_entry(void* param) {
 	      android_asset a_asset(app->activity->assetManager);
         android_input a_input(app->looper);
     	  while (cmd != APP_CMD_DESTROY) {
-    	    switch (ALooper_pollAll(running ? 0 : -1, nullptr, nullptr, nullptr)) {
+    	    switch (ALooper_pollAll(0, nullptr, nullptr, nullptr)) {
     	      case 2: //input queue
     	      	a_input.process_input();
     	      	break;
