@@ -27,20 +27,6 @@
 #include "api_graphics/opengles_graphics.hpp"
 //#include "api_graphics/vulkan_graphics.hpp"
 
-struct android_app {
-    bool destroyed;
-    int appCmdState;
-    int msgread, msgwrite;
-    ANativeActivity* activity;
-    AConfiguration* config;
-    ALooper* looper;
-    ANativeWindow* window; //update in mainThread
-    AInputQueue* inputQueue;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    pthread_t thread;
-}; 
-
 enum APP_CMD: char{
     APP_CMD_CREATE = 0,
     APP_CMD_START,
@@ -60,6 +46,19 @@ enum APP_CMD: char{
     APP_CMD_STOP,
     APP_CMD_DESTROY,
 };
+struct android_app {
+    bool destroyed;
+    char appCmdState = APP_CMD_CREATE;
+    int msgread, msgwrite;
+    ANativeActivity* activity;
+    AConfiguration* config;
+    ALooper* looper;
+    ANativeWindow* window; //update in mainThread
+    AInputQueue* inputQueue;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    pthread_t thread;
+}; 
 static android_graphics *a_graphics;
 #include <cstdio>
 static void* android_app_entry(void* param) {
@@ -75,7 +74,7 @@ static void* android_app_entry(void* param) {
 	      android_asset a_asset(app->activity->assetManager);
         android_input a_input(app->looper);
     	  while (cmd != APP_CMD_DESTROY) {
-    	    switch (ALooper_pollAll(0, nullptr, nullptr, nullptr)) {
+    	    switch (ALooper_pollAll(running?0:-1, nullptr, nullptr, nullptr)) {
     	      case 2: //input queue
     	      	a_input.process_input();
     	      	break;
@@ -143,7 +142,7 @@ static void* android_app_entry(void* param) {
     			  default:
     			    if (running) {
     			      a_input.process_event ();
-    					  a_graphics->render();
+    					  //a_graphics->render();
     			    }
     			  	break;
     	    }

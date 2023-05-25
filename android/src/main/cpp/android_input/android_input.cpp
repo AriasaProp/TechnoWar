@@ -190,7 +190,7 @@ void android_input::process_sensor() {
 }
 void android_input::detach_sensor() {
 	if (!minput->sensor_enabled) return;
-	for (std::unordered_map<std::string,engine::sensor_value>::iterator i = minput->sensors.begin(), n = minput->sensors.end(); i != n; i++)
+	for (auto i = minput->sensors.begin(), n = minput->sensors.end(); i != n; i++)
 		i->second = engine::sensor_value{};
   ASensorEventQueue_disableSensor(minput->sensorEventQueue, minput->accelerometerSensor);
   ASensorEventQueue_disableSensor(minput->sensorEventQueue, minput->gyroscopeSensor);
