@@ -2,11 +2,11 @@
 #define Included_MATRIX4 1
 
 namespace matrix4 {
-	void idt(float *);
-	void mul(float *, float*);
-	void rotate(float *, float, float, float);
-	void toOrtho(float *, float, float, float, float, float, float);
-	void toOrtho2D(float *, float, float);
-}
+void idt (float *);
+void mul (float *, float *);
+void rotate (float *, float, float, float);
+void toOrtho (float *, float, float, float, float, float, float);
+void toOrtho2D (float *, float, float);
+} // namespace matrix4
 
-#endif //Included_MATRIX4
+#endif // Included_MATRIX4

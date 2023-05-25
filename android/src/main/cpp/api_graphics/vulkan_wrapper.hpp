@@ -5,8 +5,8 @@
 #define VK_USE_PLATFORM_ANDROID_KHR 1
 #include <vulkan/vulkan.h>
 
-bool InitVulkan();
-void TermVulkan();
+bool InitVulkan ();
+void TermVulkan ();
 // VK_core
 extern PFN_vkCreateInstance vkCreateInstance;
 extern PFN_vkDestroyInstance vkDestroyInstance;

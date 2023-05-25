@@ -6,7 +6,7 @@
 
 #include "../engine.hpp"
 // xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
-enum Align : unsigned char{
+enum Align : unsigned char {
   ALIGN_TOP_LEFT = 0,
   ALIGN_LEFT = 4,
   ALIGN_BOTTOM_LEFT = 8,
@@ -22,28 +22,27 @@ struct CharDescriptor;
 
 struct bmfont {
 public:
-	void SetColor(unsigned char, unsigned char, unsigned char, unsigned char);
-	void SetScale(float);
-	float GetHeight();
-	void draw_text(float, float, Align, const char *,...);
-	bmfont(const char*);
-	~bmfont();
+  void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
+  void SetScale (float);
+  float GetHeight ();
+  void draw_text (float, float, Align, const char *, ...);
+  bmfont (const char *);
+  ~bmfont ();
 
 private:
   short LineHeight;
-	short Base;
-	short Width;
-	short Height;
-	short Pages;
-	short Outline;
-	std::unordered_map<int,CharDescriptor> Chars;
-	std::unordered_map<unsigned int,float> Kearn;
-	int fcolor;
-	engine::texture_core *ftexid;
-	float fscale;
+  short Base;
+  short Width;
+  short Height;
+  short Pages;
+  short Outline;
+  std::unordered_map<int, CharDescriptor> Chars;
+  std::unordered_map<unsigned int, float> Kearn;
+  int fcolor;
+  engine::texture_core *ftexid;
+  float fscale;
 
-	bool ParseFont(const char *);
-
+  bool ParseFont (const char *);
 };
 
 #endif

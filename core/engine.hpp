@@ -46,7 +46,9 @@ struct graphics_core {
   virtual void mesh_render (mesh_core **, const unsigned int &) = 0;
   virtual void delete_mesh (mesh_core *) = 0;
 };
-struct sensor_value {float x,y,z;};
+struct sensor_value {
+  float x, y, z;
+};
 struct input_core {
   virtual sensor_value getSensorValue (const char *) const = 0;
   virtual int getX (unsigned int) = 0;

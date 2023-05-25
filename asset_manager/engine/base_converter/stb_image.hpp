@@ -9,8 +9,8 @@ enum {
   STBI_rgb_alpha = 4
 };
 
-#include <cstdlib>
 #include <cstdio>
+#include <cstdlib>
 
 struct stbi_io_callbacks {
   int (*read) (void *user, char *data, unsigned int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
@@ -20,7 +20,7 @@ struct stbi_io_callbacks {
 // 8-bit per channels
 unsigned char *stbi_load_from_memory (unsigned char const *, int, int *, int *, int *, int);
 unsigned char *stbi_load_from_callbacks (stbi_io_callbacks const *, void *, int *, int *, int *, int);
-//stdio
+// stdio
 unsigned char *stbi_load (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
 unsigned char *stbi_load_from_file (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 
@@ -36,12 +36,12 @@ unsigned short *stbi_load_16_from_memory (unsigned char const *buffer, int len, 
 unsigned short *stbi_load_16_from_callbacks (stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 unsigned short *stbi_load_16 (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
-unsigned short *stbi_load_from_file_16(FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
+unsigned short *stbi_load_from_file_16 (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_LINEAR
 float *stbi_loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
 float *stbi_loadf_from_callbacks (stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
-   
+
 float *stbi_loadf (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
 float *stbi_loadf_from_file (FILE *f, int *x, int *y, int *channels_in_file, int desired_channels);
 #endif
@@ -61,7 +61,7 @@ int stbi_is_hdr_from_callbacks (stbi_io_callbacks const *clbk, void *user);
 int stbi_is_hdr_from_memory (unsigned char const *buffer, int len);
 
 int stbi_is_hdr (char const *filename);
-int stbi_is_hdr_from_file(FILE *f);
+int stbi_is_hdr_from_file (FILE *f);
 
 // get a VERY brief reason for failure
 // on most compilers (and ALL modern mainstream compilers) this is threadsafe
@@ -79,7 +79,7 @@ int stbi_is_16_bit_from_callbacks (stbi_io_callbacks const *clbk, void *user);
 int stbi_info (char const *filename, int *x, int *y, int *comp);
 int stbi_info_from_file (FILE *f, int *x, int *y, int *comp);
 int stbi_is_16_bit (char const *filename);
-int stbi_is_16_bit_from_file(FILE *f);
+int stbi_is_16_bit_from_file (FILE *f);
 
 // for image formats that explicitly notate that they have premultiplied alpha,
 // we just return the colors as stored in the file. set this flag to force

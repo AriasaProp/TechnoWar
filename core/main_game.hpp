@@ -4,6 +4,7 @@
 struct Main {
 private:
   struct mMainData *mdata;
+
 public:
   Main ();
   void resume ();

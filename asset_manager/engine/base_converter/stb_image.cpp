@@ -244,19 +244,19 @@ static void stbi__start_callbacks (stbi__context *s, stbi_io_callbacks *c, void 
 }
 
 static stbi_io_callbacks stbi__stdio_callbacks = {
-    [](void *user, char *data, unsigned int size) -> int {
-       return (int) fread(data,1,size,(FILE*) user);
+    [] (void *user, char *data, unsigned int size) -> int {
+      return (int)fread (data, 1, size, (FILE *)user);
     },
-    [](void *user, int n) -> void {
-      fseek((FILE*) user, n, SEEK_CUR);
-      int ch = fgetc((FILE*) user);
-      if (ch != EOF) ungetc(ch, (FILE *) user);
+    [] (void *user, int n) -> void {
+      fseek ((FILE *)user, n, SEEK_CUR);
+      int ch = fgetc ((FILE *)user);
+      if (ch != EOF) ungetc (ch, (FILE *)user);
     },
-    [](void *user) -> bool{return feof((FILE*) user) || ferror((FILE *) user);},
+    [] (void *user) -> bool { return feof ((FILE *)user) || ferror ((FILE *)user); },
 };
 
-static void stbi__start_file(stbi__context *s, FILE *f) {
-   stbi__start_callbacks(s, &stbi__stdio_callbacks, (void *) f);
+static void stbi__start_file (stbi__context *s, FILE *f) {
+  stbi__start_callbacks (s, &stbi__stdio_callbacks, (void *)f);
 }
 
 static void stbi__rewind (stbi__context *s) {
@@ -664,84 +664,81 @@ static void stbi__float_postprocess (float *result, int *x, int *y, int *comp, i
 #endif
 
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+extern __declspec(dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+extern __declspec(dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
 #endif
 
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-int stbi_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input) {
-    return WideCharToMultiByte(65001 null, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
+int stbi_convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input) {
+  return WideCharToMultiByte (65001 null, 0, input, -1, buffer, (int)bufferlen, NULL, NULL);
 }
 #endif
 
-static FILE *stbi__fopen(char const *filename, char const *mode) {
-   FILE *f;
+static FILE *stbi__fopen (char const *filename, char const *mode) {
+  FILE *f;
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-   wchar_t wMode[64];
-   wchar_t wFilename[1024];
-    if (0 == MultiByteToWideChar(65001 null, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
-      return 0;
+  wchar_t wMode[64];
+  wchar_t wFilename[1024];
+  if (0 == MultiByteToWideChar (65001 null, 0, filename, -1, wFilename, sizeof (wFilename) / sizeof (*wFilename)))
+    return 0;
 
-    if (0 == MultiByteToWideChar(65001 null, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
-      return 0;
+  if (0 == MultiByteToWideChar (65001 null, 0, mode, -1, wMode, sizeof (wMode) / sizeof (*wMode)))
+    return 0;
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-    if (0 != _wfopen_s(&f, wFilename, wMode))
-        f = 0;
+  if (0 != _wfopen_s (&f, wFilename, wMode))
+    f = 0;
 #else
-   f = _wfopen(wFilename, wMode);
+  f = _wfopen (wFilename, wMode);
 #endif
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
-   if (0 != fopen_s(&f, filename, mode))
-      f=0;
+  if (0 != fopen_s (&f, filename, mode))
+    f = 0;
 #else
-   f = fopen(filename, mode);
+  f = fopen (filename, mode);
 #endif
-   return f;
+  return f;
 }
 
-
-unsigned char *stbi_load(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   FILE *f = stbi__fopen(filename, null);
-   unsigned char *result;
-   if (!f) return stbi__errpuc(null, null);
-   result = stbi_load_from_file(f,x,y,comp,req_comp);
-   fclose(f);
-   return result;
+unsigned char *stbi_load (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  FILE *f = stbi__fopen (filename, null);
+  unsigned char *result;
+  if (!f) return stbi__errpuc (null, null);
+  result = stbi_load_from_file (f, x, y, comp, req_comp);
+  fclose (f);
+  return result;
 }
 
-unsigned char *stbi_load_from_file(FILE *f, int *x, int *y, int *comp, int req_comp)
-{
-   unsigned char *result;
-   stbi__context s;
-   stbi__start_file(&s,f);
-   result = stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
-   if (result) {
-      fseek(f, - (int) (s.img_buffer_end - s.img_buffer), SEEK_CUR);
-   }
-   return result;
+unsigned char *stbi_load_from_file (FILE *f, int *x, int *y, int *comp, int req_comp) {
+  unsigned char *result;
+  stbi__context s;
+  stbi__start_file (&s, f);
+  result = stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
+  if (result) {
+    fseek (f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
+  }
+  return result;
 }
 
-uint16_t *stbi_load_from_file_16(FILE *f, int *x, int *y, int *comp, int req_comp)
-{
-   uint16_t *result;
-   stbi__context s;
-   stbi__start_file(&s,f);
-   result = stbi__load_and_postprocess_16bit(&s,x,y,comp,req_comp);
-   if (result) {
-      fseek(f, - (int) (s.img_buffer_end - s.img_buffer), SEEK_CUR);
-   }
-   return result;
+uint16_t *stbi_load_from_file_16 (FILE *f, int *x, int *y, int *comp, int req_comp) {
+  uint16_t *result;
+  stbi__context s;
+  stbi__start_file (&s, f);
+  result = stbi__load_and_postprocess_16bit (&s, x, y, comp, req_comp);
+  if (result) {
+    fseek (f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
+  }
+  return result;
 }
 
-unsigned short *stbi_load_16(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   FILE *f = stbi__fopen(filename, null);
-   uint16_t *result;
-   if (!f) return (unsigned short *) stbi__errpuc(null, null);
-   result = stbi_load_from_file_16(f,x,y,comp,req_comp);
-   fclose(f);
-   return result;
+unsigned short *stbi_load_16 (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  FILE *f = stbi__fopen (filename, null);
+  uint16_t *result;
+  if (!f) return (unsigned short *)stbi__errpuc (null, null);
+  result = stbi_load_from_file_16 (f, x, y, comp, req_comp);
+  fclose (f);
+  return result;
 }
 
 #endif
@@ -816,19 +813,19 @@ float *stbi_loadf_from_callbacks (stbi_io_callbacks const *clbk, void *user, int
 
 #endif // !STBI_NO_LINEAR
 
-float *stbi_loadf(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   float *result;
-   FILE *f = stbi__fopen(filename, null);
-   if (!f) return stbi__errpf(null, null);
-   result = stbi_loadf_from_file(f,x,y,comp,req_comp);
-   fclose(f);
-   return result;
+float *stbi_loadf (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  float *result;
+  FILE *f = stbi__fopen (filename, null);
+  if (!f) return stbi__errpf (null, null);
+  result = stbi_loadf_from_file (f, x, y, comp, req_comp);
+  fclose (f);
+  return result;
 }
 
-float *stbi_loadf_from_file(FILE *f, int *x, int *y, int *comp, int req_comp) {
-   stbi__context s;
-   stbi__start_file(&s,f);
-   return stbi__loadf_main(&s,x,y,comp,req_comp);
+float *stbi_loadf_from_file (FILE *f, int *x, int *y, int *comp, int req_comp) {
+  stbi__context s;
+  stbi__start_file (&s, f);
+  return stbi__loadf_main (&s, x, y, comp, req_comp);
 }
 
 // these is-hdr-or-not is defined independent of whether STBI_NO_LINEAR is
@@ -847,28 +844,28 @@ int stbi_is_hdr_from_memory (unsigned char const *buffer, int len) {
 #endif
 }
 int stbi_is_hdr (char const *filename) {
-   FILE *f = stbi__fopen(filename, null);
-   int result=0;
-   if (f) {
-      result = stbi_is_hdr_from_file(f);
-      fclose(f);
-   }
-   return result;
+  FILE *f = stbi__fopen (filename, null);
+  int result = 0;
+  if (f) {
+    result = stbi_is_hdr_from_file (f);
+    fclose (f);
+  }
+  return result;
 }
 
-int stbi_is_hdr_from_file(FILE *f) {
-   #ifndef STBI_NO_HDR
-   long pos = ftell(f);
-   int res;
-   stbi__context s;
-   stbi__start_file(&s,f);
-   res = stbi__hdr_test(&s);
-   fseek(f, pos, SEEK_SET);
-   return res;
-   #else
-   STBI_NOTUSED(f);
-   return 0;
-   #endif
+int stbi_is_hdr_from_file (FILE *f) {
+#ifndef STBI_NO_HDR
+  long pos = ftell (f);
+  int res;
+  stbi__context s;
+  stbi__start_file (&s, f);
+  res = stbi__hdr_test (&s);
+  fseek (f, pos, SEEK_SET);
+  return res;
+#else
+  STBI_NOTUSED (f);
+  return 0;
+#endif
 }
 
 int stbi_is_hdr_from_callbacks (stbi_io_callbacks const *clbk, void *user) {
@@ -7125,42 +7122,42 @@ static int stbi__is_16_main (stbi__context *s) {
   return 0;
 }
 
-int stbi_info(char const *filename, int *x, int *y, int *comp) {
-    FILE *f = stbi__fopen(filename, null);
-    int result;
-    if (!f) return stbi__err(null, null);
-    result = stbi_info_from_file(f, x, y, comp);
-    fclose(f);
-    return result;
+int stbi_info (char const *filename, int *x, int *y, int *comp) {
+  FILE *f = stbi__fopen (filename, null);
+  int result;
+  if (!f) return stbi__err (null, null);
+  result = stbi_info_from_file (f, x, y, comp);
+  fclose (f);
+  return result;
 }
 
-int stbi_info_from_file(FILE *f, int *x, int *y, int *comp) {
-   int r;
-   stbi__context s;
-   long pos = ftell(f);
-   stbi__start_file(&s, f);
-   r = stbi__info_main(&s,x,y,comp);
-   fseek(f,pos,SEEK_SET);
-   return r;
+int stbi_info_from_file (FILE *f, int *x, int *y, int *comp) {
+  int r;
+  stbi__context s;
+  long pos = ftell (f);
+  stbi__start_file (&s, f);
+  r = stbi__info_main (&s, x, y, comp);
+  fseek (f, pos, SEEK_SET);
+  return r;
 }
 
-int stbi_is_16_bit(char const *filename) {
-    FILE *f = stbi__fopen(filename, null);
-    int result;
-    if (!f) return stbi__err(null, null);
-    result = stbi_is_16_bit_from_file(f);
-    fclose(f);
-    return result;
+int stbi_is_16_bit (char const *filename) {
+  FILE *f = stbi__fopen (filename, null);
+  int result;
+  if (!f) return stbi__err (null, null);
+  result = stbi_is_16_bit_from_file (f);
+  fclose (f);
+  return result;
 }
 
-int stbi_is_16_bit_from_file(FILE *f) {
-   int r;
-   stbi__context s;
-   long pos = ftell(f);
-   stbi__start_file(&s, f);
-   r = stbi__is_16_main(&s);
-   fseek(f,pos,SEEK_SET);
-   return r;
+int stbi_is_16_bit_from_file (FILE *f) {
+  int r;
+  stbi__context s;
+  long pos = ftell (f);
+  stbi__start_file (&s, f);
+  r = stbi__is_16_main (&s);
+  fseek (f, pos, SEEK_SET);
+  return r;
 }
 
 int stbi_info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp) {
