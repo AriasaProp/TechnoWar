@@ -284,7 +284,7 @@ void opengles_graphics::render() {
 			for (engine::mesh_core *i : mgl_data->managedMesh) {
 				glGenVertexArrays(1, &i->vao);
 				glGenBuffers(2, &i->vbo);
-				glBindVertexArray((*i)->vao);
+				glBindVertexArray(i->vao);
 				glBindBuffer(GL_ARRAY_BUFFER, i->vbo);
 				glBufferData(GL_ARRAY_BUFFER, i->vertex_len*sizeof(engine::mesh_core::data), (void*)i->vertex, GL_STATIC_DRAW);
 				glEnableVertexAttribArray(0);
@@ -456,7 +456,7 @@ void opengles_graphics::delete_texture(engine::texture_core *t) {
 	auto it = mgl_data->managedTexture.find(i);
 	if (it == mgl_data->managedTexture.end()) return;
 	mgl_data->managedTexture.erase(it);
-	glDeleteTextures(1, &i->id));
+	glDeleteTextures(1, &i->id);
 	delete i;
 }
 void opengles_graphics::flat_render(engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
