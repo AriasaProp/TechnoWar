@@ -142,7 +142,7 @@ static void *android_app_entry (void *param) {
       default:
         if (running) {
           a_input.process_event ();
-          // a_graphics->render();
+          a_graphics->render();
         }
         break;
       }
