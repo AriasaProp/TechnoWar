@@ -5,12 +5,14 @@
 #include "android_graphics.hpp"
 
 struct vulkan_graphics : public android_graphics {
+private
+  bool pause, resume, resize, relayout, destroyed;
 public:
-  bool destroyed, running;
   // android
   void onResume () override;
   void onWindowInit (ANativeWindow *) override;
   void needResize () override;
+  void needLayout () override;
   void render () override;
   void onWindowTerm () override;
   void onPause () override;

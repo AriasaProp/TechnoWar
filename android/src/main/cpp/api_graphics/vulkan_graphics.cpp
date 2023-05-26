@@ -707,15 +707,20 @@ void vulkan_graphics::needResize () {
   // To do
   resize = true;
 }
+void vulkan_graphics::needLayout () {
+  // To do
+  relayout = true;
+}
 void vulkan_graphics::render () {
   if (resize) {
     resize = false;
   }
+  if (relayout)
+    relayout = false;
   if (resume) {
     resume = false;
-    running = true;
   }
-  if (running && initialized_) {
+  if (initialized_) {
     uint32_t nextIndex;
     result_ = vkAcquireNextImageKHR (device.device_, swapchain.swapchain_, UINT64_MAX, render_.semaphore_, VK_NULL_HANDLE, &nextIndex);
     assert (result_ == VK_SUCCESS);
@@ -753,7 +758,6 @@ void vulkan_graphics::render () {
   }
   if (pause) {
     pause = false;
-    running = false;
   }
   if (destroyed) {
     // To do
