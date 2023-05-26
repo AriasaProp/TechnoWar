@@ -3,21 +3,13 @@
 
 #include "../engine.hpp"
 #include <android/native_activity.h>
-
-struct safe_insets {
-  int left;
-  int top;
-  int right;
-  int bottom;
-};
-
 struct android_graphics : public engine::graphics_core {
-  bool resize, resume, pause;
-  safe_insets cur_safe_insets;
+  float cur_safe_insets[4];
   // android
   virtual void onResume () = 0;
   virtual void onWindowInit (ANativeWindow *) = 0;
   virtual void needResize () = 0;
+  virtual void needLayout () = 0;
   virtual void render () = 0;
   virtual void onWindowTerm () = 0;
   virtual void onPause () = 0;

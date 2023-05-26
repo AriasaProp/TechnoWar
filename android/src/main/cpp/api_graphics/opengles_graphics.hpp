@@ -5,16 +5,16 @@
 
 struct opengles_graphics : public android_graphics {
 private:
+  bool resize, relayout, resume, pause, destroyed;
   float game_width, game_height; // display after safe insets
   ANativeWindow *window = nullptr;
   struct gl_data *mgl_data;
-
 public:
-  bool destroyed;
   // android
   void onResume () override;
   void onWindowInit (ANativeWindow *) override;
   void needResize () override;
+  void needLayout () override;
   void render () override;
   void onWindowTerm () override;
   void onPause () override;
@@ -31,7 +31,7 @@ public:
   engine::mesh_core *gen_mesh (engine::mesh_core::data *, unsigned int, unsigned short *, unsigned int) override;
   void mesh_render (engine::mesh_core **, const unsigned int &) override;
   void delete_mesh (engine::mesh_core *) override;
-  inline void update_matrix ();
+  inline void update_layout ();
 
   opengles_graphics ();
   ~opengles_graphics ();

@@ -94,6 +94,7 @@ static void *android_app_entry (void *param) {
           a_graphics->onWindowInit (app->window);
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
+          a_graphics->needLayout ();
           break;
         case APP_CMD_WINDOW_RESIZED:
           a_graphics->needResize ();
@@ -284,8 +285,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets (JNIEnv *, jclass, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
-  a_graphics->cur_safe_insets.left = left;
-  a_graphics->cur_safe_insets.top = top;
-  a_graphics->cur_safe_insets.right = right;
-  a_graphics->cur_safe_insets.bottom = bottom;
+  a_graphics->cur_safe_insets[0] = left;
+  a_graphics->cur_safe_insets[1] = top;
+  a_graphics->cur_safe_insets[2] = right;
+  a_graphics->cur_safe_insets[3] = bottom;
 }

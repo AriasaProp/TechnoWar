@@ -61,6 +61,9 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
 void opengles_graphics::needResize () {
   resize = true;
 }
+void opengles_graphics::needLayout () {
+  relayout = true;
+}
 void opengles_graphics::render () {
   if (!window) return;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
@@ -103,8 +106,6 @@ void opengles_graphics::render () {
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
-    glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    update_matrix ();
     if (newCntx) {
       // made root for null texture test
       {
@@ -277,14 +278,19 @@ void opengles_graphics::render () {
       }
       glBindTexture (GL_TEXTURE_2D, 0);
     }
+    glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
+    update_layout ();
   } else if (resize) {
     eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    update_matrix ();
+    update_layout ();
+  } else if (relayout) {
+    update_layout ();
   }
+  relayout = false;
   resize = false;
   // core
   if (!mgl_data->m_Main) {
@@ -498,14 +504,14 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
   delete m;
 }
 
-inline void opengles_graphics::update_matrix () {
+inline void opengles_graphics::update_layout () {
   mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / mgl_data->wWidth;
   mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / mgl_data->wHeight;
   // ui safe insets update
-  mgl_data->uiProj[12] = -float (mgl_data->wWidth - 2 * cur_safe_insets.left) / float (mgl_data->wWidth);
-  mgl_data->uiProj[13] = -float (mgl_data->wHeight - 2 * cur_safe_insets.bottom) / float (mgl_data->wHeight);
-  game_width = float (mgl_data->wWidth - cur_safe_insets.left - cur_safe_insets.right);
-  game_height = float (mgl_data->wHeight - cur_safe_insets.top - cur_safe_insets.bottom);
+  mgl_data->uiProj[12] = -float (mgl_data->wWidth - 2 * cur_safe_insets[0]) / float (mgl_data->wWidth);
+  mgl_data->uiProj[13] = -float (mgl_data->wHeight - 2 * cur_safe_insets[3]) / float (mgl_data->wHeight);
+  game_width = float (mgl_data->wWidth - cur_safe_insets[0] - cur_safe_insets[2]);
+  game_height = float (mgl_data->wHeight - cur_safe_insets[1] - cur_safe_insets[3]);
   mgl_data->dirty_uiProj = true;
   mgl_data->dirty_worldProj = true;
 }
