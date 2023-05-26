@@ -18,8 +18,8 @@ struct mMainData {
       {120.f, 520.f, 0xff, 0xf0, 0x01, 0xff, 0, 0},
       {520.f, 120.f, 0xff, 0xf0, 0x01, 0xff, 1, 1},
       {520.f, 520.f, 0xff, 0xf0, 0x01, 0xff, 1, 0}};
-  engine::texture_core *myTex;
   */
+  engine::texture_core *myTex;
   bmfont *fnt;
   std::chrono::time_point<std::chrono::high_resolution_clock> startP = std::chrono::high_resolution_clock::now ();
 };
@@ -27,11 +27,11 @@ struct mMainData {
 Main::Main () {
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
-  /*
   int x, y;
   unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
   mdata->myTex = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
+  /*
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -81,8 +81,8 @@ void Main::render () {
                    M_PI / 3.0f * delta  // 60° /s
   );
   engine::graph->mesh_render (&mdata->mp, 1);
-  engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
   */
+  engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0000");
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Jum, 26 Mei 2023!");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "issue onRender App");
@@ -91,7 +91,7 @@ void Main::pause () {
 }
 Main::~Main () {
   //engine::graph->delete_mesh (mdata->mp);
-  //delete mdata->myTex;
+  delete mdata->myTex;
   delete mdata->fnt;
   delete mdata;
 }
