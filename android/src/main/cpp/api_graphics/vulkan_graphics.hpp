@@ -5,7 +5,7 @@
 #include "android_graphics.hpp"
 
 struct vulkan_graphics : public android_graphics {
-private
+private:
   bool pause, resume, resize, relayout, destroyed;
 public:
   // android
