@@ -11,9 +11,7 @@
 #include <ctime> /* time */
 
 struct mMainData {
-  /*
   engine::mesh_core *mp;
-  */
   engine::flat_vertex fV[4] = {
       {120.f, 120.f, 0xff, 0xf0, 0x01, 0xff, 0, 1},
       {120.f, 520.f, 0xff, 0xf0, 0x01, 0xff, 0, 0},
@@ -31,7 +29,6 @@ Main::Main () {
   unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
   mdata->myTex = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
-  /*
   engine::mesh_core::data vert[24] = {
       // front red
       {+350.0f, +350.0f, -350.0f, 0xff, 0x00, 0x00, 0xff},
@@ -65,7 +62,6 @@ Main::Main () {
       {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mdata->mp = engine::graph->gen_mesh (vert, 24, indices, 36);
-  */
 }
 void Main::resume () {
 }
@@ -83,14 +79,14 @@ void Main::render () {
   engine::graph->mesh_render (&mdata->mp, 1);
   */
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0001");
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0002");
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Jum, 26 Mei 2023!");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "issue mesh render");
 }
 void Main::pause () {
 }
 Main::~Main () {
-  //engine::graph->delete_mesh (mdata->mp);
+  engine::graph->delete_mesh (mdata->mp);
   delete mdata->myTex;
   delete mdata->fnt;
   delete mdata;
