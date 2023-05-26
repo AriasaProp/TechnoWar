@@ -23,6 +23,7 @@ struct opengles_texture : public engine::texture_core {
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 struct gl_data {
+  bool resize, relayout, resume, pause, destroyed;
   bool dirty_uiProj;
   bool dirty_worldProj;
   GLint ui_shader;
@@ -42,6 +43,7 @@ struct gl_data {
   EGLContext context = EGL_NO_CONTEXT;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
+  float game_width, game_height; // display after safe insets
                           //
   std::unordered_set<opengles_texture *> managedTexture;
   std::unordered_set<engine::mesh_core *> managedMesh;
@@ -49,20 +51,20 @@ struct gl_data {
   Main *m_Main; // core activity
 };
 
-float opengles_graphics::getWidth () { return game_width; }
-float opengles_graphics::getHeight () { return game_height; }
+float opengles_graphics::getWidth () { return mgl_data->game_width; }
+float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
 void opengles_graphics::onResume () {
-  resume = true;
+  mgl_data->resume = true;
 }
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
 void opengles_graphics::needResize () {
-  resize = true;
+  mgl_data->resize = true;
 }
 void opengles_graphics::needLayout () {
-  relayout = true;
+  mgl_data->relayout = true;
 }
 void opengles_graphics::render () {
   if (!window) return;
@@ -280,37 +282,37 @@ void opengles_graphics::render () {
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (resize) {
+  } else if (mgl_data->resize) {
     eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (relayout) {
+  } else if (mgl_data->relayout) {
     update_layout ();
   }
-  relayout = false;
-  resize = false;
+  mgl_data->relayout = false;
+  mgl_data->resize = false;
   // core
   if (!mgl_data->m_Main) {
     mgl_data->m_Main = new Main;
-    resume = false;
-  } else if (resume) {
+    mgl_data->resume = false;
+  } else if (mgl_data->resume) {
     mgl_data->m_Main->resume ();
-    resume = false;
+    mgl_data->resume = false;
   }
   mgl_data->m_Main->render ();
-  if (pause) {
+  if (mgl_data->pause) {
     mgl_data->m_Main->pause ();
-    pause = false;
+    mgl_data->pause = false;
   }
   unsigned int EGLTermReq = 0;
-  if (destroyed) {
+  if (mgl_data->destroyed) {
     delete mgl_data->m_Main;
     mgl_data->m_Main = nullptr;
     EGLTermReq |= TERM_EGL_DISPLAY;
-    destroyed = false;
+    mgl_data->destroyed = false;
   }
   if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
@@ -380,7 +382,7 @@ void opengles_graphics::onWindowTerm () {
   window = NULL;
 }
 void opengles_graphics::onPause () {
-  pause = true;
+  mgl_data->pause = true;
   render ();
 }
 void opengles_graphics::clear (const unsigned int &m) {
@@ -510,8 +512,8 @@ inline void opengles_graphics::update_layout () {
   // ui safe insets update
   mgl_data->uiProj[12] = -float (mgl_data->wWidth - 2 * cur_safe_insets[0]) / float (mgl_data->wWidth);
   mgl_data->uiProj[13] = -float (mgl_data->wHeight - 2 * cur_safe_insets[3]) / float (mgl_data->wHeight);
-  game_width = float (mgl_data->wWidth - cur_safe_insets[0] - cur_safe_insets[2]);
-  game_height = float (mgl_data->wHeight - cur_safe_insets[1] - cur_safe_insets[3]);
+  mgl_data->game_width = float (mgl_data->wWidth - cur_safe_insets[0] - cur_safe_insets[2]);
+  mgl_data->game_height = float (mgl_data->wHeight - cur_safe_insets[1] - cur_safe_insets[3]);
   mgl_data->dirty_uiProj = true;
   mgl_data->dirty_worldProj = true;
 }
@@ -522,7 +524,7 @@ opengles_graphics::opengles_graphics () {
 }
 
 opengles_graphics::~opengles_graphics () {
-  destroyed = true;
+  mgl_data->destroyed = true;
   render ();
   mgl_data->managedTexture.clear ();
   mgl_data->managedMesh.clear ();

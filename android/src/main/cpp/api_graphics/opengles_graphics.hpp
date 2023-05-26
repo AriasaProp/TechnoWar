@@ -5,8 +5,6 @@
 
 struct opengles_graphics : public android_graphics {
 private:
-  bool resize, relayout, resume, pause, destroyed;
-  float game_width, game_height; // display after safe insets
   ANativeWindow *window = nullptr;
   struct gl_data *mgl_data;
 public:
