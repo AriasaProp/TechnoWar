@@ -124,6 +124,9 @@ void opengles_graphics::render () {
         glBindTexture (GL_TEXTURE_2D, 0);
       }
       // validating gles resources
+      //cullface to front
+      glEnable (GL_CULL_FACE);
+      glCullFace (GL_FRONT);
       // enable depth
       glDepthRangef (0.0f, 1.0f);
       glClearDepthf (1.0f);
@@ -468,8 +471,6 @@ engine::mesh_core *opengles_graphics::gen_mesh (engine::mesh_core::data *v, unsi
   return r;
 }
 void opengles_graphics::mesh_render (engine::mesh_core **meshes, const unsigned int &count) {
-  glEnable (GL_CULL_FACE);
-  glCullFace (GL_FRONT);
   glEnable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->world_shader);
   if (mgl_data->dirty_worldProj) {

@@ -75,9 +75,7 @@ void Main::render () {
                    M_PI / 6.f * delta,  // 30° /s
                    M_PI / 3.0f * delta  // 60° /s
   );
-  /*
   engine::graph->mesh_render (&mdata->mp, 1);
-  */
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0002");
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Jum, 26 Mei 2023!");
