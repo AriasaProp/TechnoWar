@@ -13,12 +13,12 @@
 struct mMainData {
   /*
   engine::mesh_core *mp;
+  */
   engine::flat_vertex fV[4] = {
       {120.f, 120.f, 0xff, 0xf0, 0x01, 0xff, 0, 1},
       {120.f, 520.f, 0xff, 0xf0, 0x01, 0xff, 0, 0},
       {520.f, 120.f, 0xff, 0xf0, 0x01, 0xff, 1, 1},
       {520.f, 520.f, 0xff, 0xf0, 0x01, 0xff, 1, 0}};
-  */
   engine::texture_core *myTex;
   bmfont *fnt;
   std::chrono::time_point<std::chrono::high_resolution_clock> startP = std::chrono::high_resolution_clock::now ();
