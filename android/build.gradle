@@ -10,7 +10,7 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "0"
-        signingConfig  {
+        signingConfig {
             storeFile file('sign.keystore')
             storePassword '123456'
             keyAlias = 'demo'
