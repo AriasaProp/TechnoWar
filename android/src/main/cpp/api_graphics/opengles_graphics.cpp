@@ -288,7 +288,6 @@ void opengles_graphics::render () {
   
   resize = false;
   resume = pause = false;
-  /*
   // core
   if (!mgl_data->m_Main) {
     mgl_data->m_Main = new Main;
@@ -302,7 +301,6 @@ void opengles_graphics::render () {
     mgl_data->m_Main->pause ();
     pause = false;
   }
-  */
   unsigned int EGLTermReq = 0;
   if (destroyed) {
     //delete mgl_data->m_Main;
