@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        mainSign {
+            storeFile file('sign.keystore')
+            storePassword '123456'
+            keyAlias = 'demo'
+            keyPassword '123456'
+        }
+    }
     compileSdkVersion 33
     ndkVersion "25.2.9519653"
     namespace "com.ariasaproject.technowar"
@@ -10,12 +18,7 @@ android {
         targetSdkVersion 30
         versionCode 1
         versionName "0"
-        signingConfig {
-            storeFile file('sign.keystore')
-            storePassword '123456'
-            keyAlias = 'demo'
-            keyPassword '123456'
-        }
+        signingConfig signingConfigs.mainSign
         multiDexEnabled true
         buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
