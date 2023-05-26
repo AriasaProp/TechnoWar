@@ -66,16 +66,16 @@ Main::Main () {
 void Main::resume () {
 }
 void Main::render () {
-  auto endP = std::chrono::high_resolution_clock::now ();
-  //float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
+  std::chrono::time_point<std::chrono::high_resolution_clock> endP = std::chrono::high_resolution_clock::now ();
+  float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
   mdata->startP = endP;
   engine::graph->clear (7);
-  /*
   matrix4::rotate (mdata->mp->trans,
                    M_PI / 12.f * delta, // 15° /s
                    M_PI / 6.f * delta,  // 30° /s
                    M_PI / 3.0f * delta  // 60° /s
   );
+  /*
   engine::graph->mesh_render (&mdata->mp, 1);
   */
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
