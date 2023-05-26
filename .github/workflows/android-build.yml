@@ -23,7 +23,7 @@ jobs:
       with:
         gradle-version: 8.1.1
     - name: Build Gradle
-      run: gradle :android:build
+      run: gradle :android:build -Pdebug
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:

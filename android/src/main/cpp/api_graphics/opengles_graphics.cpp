@@ -34,7 +34,6 @@ struct opengles_texture : public engine::texture_core {
 struct gl_data {
   bool dirty_uiProj;
   bool dirty_worldProj;
-  bool use_mipmap = true;
   GLint ui_shader;
   GLint u_uiProj;
   GLint u_uiTex;
@@ -135,12 +134,10 @@ void opengles_graphics::render () {
       glDepthRangef (0.0f, 1.0f);
       glClearDepthf (1.0f);
       glDepthFunc (GL_LESS);
-
       // enable blend
       glEnable (GL_BLEND);
       glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       GLuint vi, fi;
-
       // flat draw
       {
         mgl_data->ui_shader = glCreateProgram ();
@@ -212,7 +209,6 @@ void opengles_graphics::render () {
         glEnableVertexAttribArray (0);
         glEnableVertexAttribArray (1);
         glEnableVertexAttribArray (2);
-        glBindVertexArray (0);
       }
       // world draw
       {
@@ -286,12 +282,7 @@ void opengles_graphics::render () {
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if (mgl_data->use_mipmap) {
-          glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-          glGenerateMipmap (GL_TEXTURE_2D);
-        } else {
-          glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        }
+        glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       }
       glBindTexture (GL_TEXTURE_2D, 0);
       // core
@@ -417,12 +408,7 @@ engine::texture_core *opengles_graphics::gen_texture (const int &tw, const int &
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  if (mgl_data->use_mipmap) {
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glGenerateMipmap (GL_TEXTURE_2D);
-  } else {
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  }
+  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture (GL_TEXTURE_2D, 0);
   mgl_data->managedTexture.insert (t);
   return t;
