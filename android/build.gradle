@@ -15,7 +15,7 @@ android {
     defaultConfig {
         applicationId "com.ariasaproject.technowar"
         minSdkVersion 24
-        targetSdkVersion 30
+        targetSdkVersion 33
         versionCode 1
         versionName "0"
         signingConfig signingConfigs.mainSign
