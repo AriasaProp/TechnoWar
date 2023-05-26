@@ -13,15 +13,6 @@ struct opengles_texture : public engine::texture_core {
     d = new unsigned char[w * h * sizeof (unsigned char)];
     memcpy (d, dt, w * h * sizeof (unsigned char));
   }
-  unsigned int width () override {
-    return w;
-  }
-  unsigned int height () override {
-    return h;
-  }
-  unsigned char *data () override {
-    return d;
-  }
   ~opengles_texture () {
     delete[] d;
   }
@@ -285,11 +276,6 @@ void opengles_graphics::render () {
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       }
       glBindTexture (GL_TEXTURE_2D, 0);
-      // core
-      if (!mgl_data->m_Main) {
-        mgl_data->m_Main = new Main;
-        resume = false;
-      }
     }
   } else if (resize) {
     eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -299,8 +285,15 @@ void opengles_graphics::render () {
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_matrix ();
   }
+  
   resize = false;
-  if (resume) {
+  resume = pause = false;
+  /*
+  // core
+  if (!mgl_data->m_Main) {
+    mgl_data->m_Main = new Main;
+    resume = false;
+  } else if (resume) {
     mgl_data->m_Main->resume ();
     resume = false;
   }
@@ -309,11 +302,13 @@ void opengles_graphics::render () {
     mgl_data->m_Main->pause ();
     pause = false;
   }
+  */
   unsigned int EGLTermReq = 0;
   if (destroyed) {
-    delete mgl_data->m_Main;
+    //delete mgl_data->m_Main;
     mgl_data->m_Main = nullptr;
     EGLTermReq |= TERM_EGL_DISPLAY;
+    destroyed = false;
   }
   if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
