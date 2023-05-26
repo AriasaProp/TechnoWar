@@ -25,6 +25,7 @@ struct mMainData {
 Main::Main () {
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
+  /*
   int x, y;
   unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
   mdata->myTex = engine::graph->gen_texture (x, y, tD);
@@ -62,15 +63,16 @@ Main::Main () {
       {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mdata->mp = engine::graph->gen_mesh (vert, 24, indices, 36);
+  */
 }
 void Main::resume () {
 }
 void Main::render () {
   auto endP = std::chrono::high_resolution_clock::now ();
-  float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
+  //float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
   mdata->startP = endP;
   engine::graph->clear (7);
-
+  /*
   matrix4::rotate (mdata->mp->trans,
                    M_PI / 12.f * delta, // 15° /s
                    M_PI / 6.f * delta,  // 30° /s
@@ -78,8 +80,9 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  mdata->fnt->draw_text (0 + 10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0007");
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Rab, 24 Mei 2023!");
+  */
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0000");
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Jum, 26 Mei 2023!");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "issue onRender App");
 }
 void Main::pause () {
