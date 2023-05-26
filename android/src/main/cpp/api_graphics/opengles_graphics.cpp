@@ -285,9 +285,7 @@ void opengles_graphics::render () {
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_matrix ();
   }
-  
   resize = false;
-  resume = pause = false;
   // core
   if (!mgl_data->m_Main) {
     mgl_data->m_Main = new Main;
@@ -303,7 +301,7 @@ void opengles_graphics::render () {
   }
   unsigned int EGLTermReq = 0;
   if (destroyed) {
-    //delete mgl_data->m_Main;
+    delete mgl_data->m_Main;
     mgl_data->m_Main = nullptr;
     EGLTermReq |= TERM_EGL_DISPLAY;
     destroyed = false;
