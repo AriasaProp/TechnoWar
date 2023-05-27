@@ -1,9 +1,6 @@
 apply plugin: 'com.android.application'
 
-def workflowHash = System.getenv('WORKFLOW_HASH')
-def workflowTime = System.getenv('WORKFLOW_TIME')
-def branchName = System.getenv('BRANCH_NAME')
-
+a
 android {
     signingConfigs {
         mainSign {
@@ -38,7 +35,7 @@ android {
     }
     externalNativeBuild {
         cmake {
-            arguments "-DWORKFLOW_HASH=${workflowHash} -DWORKFLOW_TIME=${workflowTime} -DBRANCH_NAME=${branchName}"
+            arguments "-DWORKFLOW_HASH=${workflowHash}", "-DWORKFLOW_TIME=${workflowTime}", "-DBRANCH_NAME=${branchName}"
             path "src/main/cpp/CMakeLists.txt"
         }
     }
