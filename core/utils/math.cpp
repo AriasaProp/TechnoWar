@@ -8,18 +8,18 @@
 
 //Point definition
 template<typename T, size_t N>
-Point::Point() {
+Point<T,N>::Point() {
   for (size_t i = 0; i < N; i++)
     data[i] = T();
 }
 
 template<typename T, size_t N>
-T &Point::operator[](size_t i) {
+T &Point<T,N>::operator[](size_t i) {
   return data[i];
 }
 
 template<typename T, size_t N>
-const T & Point::operator[](size_t i) const {
+const T &Point<T,N>::operator[](size_t i) const {
   return data[i];
 }
 
