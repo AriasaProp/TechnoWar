@@ -14,7 +14,7 @@ namespace uistage {
     actors.insert(this);
   }
   actor::~actor() {
-    auto it = actros.find(this);
+    auto it = actors.find(this);
     if (it != actors.end())
       actors.erase(it);
   }
@@ -22,11 +22,11 @@ namespace uistage {
   void addTextureRegion(std::string key, engine::texture_core *tex, float x1, float y1, float x2, float y2, bool ninePatch = false) {
     regions[key] = textureAtlas{ninePatch, tex, x1,y1,x2,y2};
   }
-  void act (float delta) {
+  void act (float) {
     //nothing to do
   }
   void draw () {
     
-    engine::graph->flat_render(/*tex*/,/**/,/**/)
+    //engine::graph->flat_render(/*tex*/,/**/,/**/)
   }
 }
