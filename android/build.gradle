@@ -25,11 +25,6 @@ android {
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
         buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
-        
-        buildConfigField "String", "WORKFLOW_HASH", "\"${workflowHash}\""
-        buildConfigField "String", "WORKFLOW_TIME", "\"${workflowTime}\""
-        buildConfigField "String", "BRANCH_NAME", "\"${branchName}\""
-        
         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
     
@@ -43,6 +38,7 @@ android {
     }
     externalNativeBuild {
         cmake {
+            arguments "-DWORKFLOW_HASH=${workflowHash} -DWORKFLOW_TIME=${workflowTime} -DBRANCH_NAME=${branchName}"
             path "src/main/cpp/CMakeLists.txt"
         }
     }
