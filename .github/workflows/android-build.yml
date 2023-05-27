@@ -36,4 +36,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: buildAPK
-        path: ${{ github.workspace }}/android/build/outputs/apk/${BUILD_TYPE}/android-${BUILD_TYPE}.apk
+        path: ${{ github.workspace }}/android/build/outputs/apk/${{ BUILD_TYPE }}/android-${{ BUILD_TYPE }}.apk
