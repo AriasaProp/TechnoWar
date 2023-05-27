@@ -16,16 +16,6 @@ enum Align : unsigned char {
   ALIGN_BOTTOM_RIGHT = 10
 };
 
-template<typename T, size_t N>
-struct Point {
-private:
-  T data[N];
-public:
-  Point();
-  T &operator[](size_t i);
-  const T &operator[](size_t i) const;
-};
-
 namespace matrix4 {
   void idt (float *);
   void mul (float *, float *);

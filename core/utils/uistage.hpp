@@ -3,12 +3,11 @@
 
 #include <string>
 #include "../engine.hpp"
-#include "math.hpp"
 
 namespace uistage {
   struct actor {
-    Point<float,2> position, size;
-    Point<unsigned char,4> color;
+    float position[2], size[2];
+    unsigned char color[4] = {0xff,0xff,0xff,0xff};
     std::string texKey;
     actor();
     ~actor();

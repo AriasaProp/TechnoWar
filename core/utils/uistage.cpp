@@ -1,4 +1,5 @@
 #include "uistage.hpp"
+#include "math.hpp"
 #include <unordered_map>
 #include <unordered_set>
 
