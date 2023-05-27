@@ -11,6 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      buildType: ${{ github.event.inputs.build-type }}
     steps:
     - name: Check
       uses: actions/checkout@v3
@@ -26,9 +28,8 @@ jobs:
         gradle-version: 8.1.1
     - name: Build Gradle
       run: |
-        echo "buildType=${{ github.event.inputs.build-type }}" >> $GITHUB_ENV
-        echo "build type ${{ env.buildType }}"
-        gradle :android:build -P"${{ env.buildType }}"
+        echo "build type $buildType"
+        gradle :android:build -P${{ env.buildType }}
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
