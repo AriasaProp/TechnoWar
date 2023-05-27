@@ -8,7 +8,7 @@
 namespace uistage {
   struct actor {
     Point<float,2> position, size;
-    float color = 0xffffffff;
+    Point<unsigned char,4> color;
     std::string texKey;
     actor();
     ~actor();

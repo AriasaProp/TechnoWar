@@ -21,7 +21,7 @@ struct mMainData {
   engine::texture_core *myTex;
   bmfont *fnt;
   std::chrono::time_point<std::chrono::high_resolution_clock> startP = std::chrono::high_resolution_clock::now ();
-  actor *button1;
+  uistage::actor *button1;
 };
 
 Main::Main () {
@@ -95,6 +95,8 @@ void Main::render () {
 void Main::pause () {
 }
 Main::~Main () {
+  delete button1;
+  
   engine::graph->delete_mesh (mdata->mp);
   delete mdata->myTex;
   delete mdata->fnt;
