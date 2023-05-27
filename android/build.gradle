@@ -38,7 +38,9 @@ android {
     }
     externalNativeBuild {
         cmake {
-            arguments "-DWORKFLOW_HASH=${workflowHash}", "-DWORKFLOW_TIME=${workflowTime}", "-DBRANCH_NAME=${branchName}"
+            arguments "-DWORKFLOW_HASH:STRING=${workflowHash}",
+                      "-DWORKFLOW_TIME:STRING=${workflowTime}",
+                      "-DBRANCH_NAME:STRING=${branchName}"
             path "src/main/cpp/CMakeLists.txt"
         }
     }
