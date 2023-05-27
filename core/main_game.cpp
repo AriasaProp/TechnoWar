@@ -1,5 +1,9 @@
 #include "main_game.hpp"
 #include "engine.hpp"
+// Mendapatkan nilai makro dari konfigurasi build.gradle
+#define WORKFLOW_HASH BUILD_CONFIG_WORKFLOW_HASH
+#define WORKFLOW_TIME BUILD_CONFIG_WORKFLOW_TIME
+#define BRANCH_NAME BUILD_CONFIG_BRANCH_NAME
 
 #include "assets/bmfont.hpp"
 #include "assets/stb_image.hpp"
@@ -77,9 +81,9 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0000");
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, WORKFLOW_HASH);
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Sab, 27 Mei 2023!");
-  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "on Testing");
+  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, BRANCH_NAME);
 }
 void Main::pause () {
 }
