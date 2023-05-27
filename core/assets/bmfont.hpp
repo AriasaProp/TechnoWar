@@ -5,18 +5,7 @@
 #include <utility>
 
 #include "../engine.hpp"
-// xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
-enum Align : unsigned char {
-  ALIGN_TOP_LEFT = 0,
-  ALIGN_LEFT = 4,
-  ALIGN_BOTTOM_LEFT = 8,
-  ALIGN_TOP = 1,
-  ALIGN_CENTER = 5,
-  ALIGN_BOTTOM = 9,
-  ALIGN_TOP_RIGHT = 2,
-  ALIGN_RIGHT = 6,
-  ALIGN_BOTTOM_RIGHT = 10
-};
+#include "../utils/math.hpp"
 
 struct CharDescriptor;
 

@@ -3,7 +3,8 @@
 
 #include "assets/bmfont.hpp"
 #include "assets/stb_image.hpp"
-#include "math/matrix4.hpp"
+#include "utils/math.hpp"
+#include "utils/uistage.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
@@ -20,6 +21,7 @@ struct mMainData {
   engine::texture_core *myTex;
   bmfont *fnt;
   std::chrono::time_point<std::chrono::high_resolution_clock> startP = std::chrono::high_resolution_clock::now ();
+  actor *button1;
 };
 
 Main::Main () {
@@ -62,6 +64,12 @@ Main::Main () {
       {+350.0f, +350.0f, +350.0f, 0x00, 0xff, 0x00, 0xff}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mdata->mp = engine::graph->gen_mesh (vert, 24, indices, 36);
+  
+  button1 = new uistage::actor();
+  button1->position[0] = 300.f;
+  button1->position[1] = 150.f;
+  button1->size[0] = 200.f;
+  button1->size[1] = 200.f;
 }
 void Main::resume () {
 }
@@ -77,9 +85,12 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, WORKFLOW_HASH);
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, WORKFLOW_TIME);
-  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, BRANCH_NAME);
+  
+  uistage::draw();
+  
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0009");
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Sab, 27 Mei 2023");
+  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "main");
 }
 void Main::pause () {
 }
