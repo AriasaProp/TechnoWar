@@ -77,9 +77,9 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0002");
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Jum, 26 Mei 2023!");
-  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "issue mesh render");
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0000");
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Sab, 27 Mei 2023!");
+  mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "on Testing");
 }
 void Main::pause () {
 }
