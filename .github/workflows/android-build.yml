@@ -1,10 +1,12 @@
 name: Build & Publish Android Artifacts
 
 on:
-  push:
-    paths:
-      - 'android/**'
-      - 'core/**'
+  workflow_dispatch:
+    inputs:
+      build-type:
+        description: 'Build type (release/debug)'
+        required: true
+        default: 'debug' # Nilai default dapat disesuaikan
 
 jobs:
   build:
@@ -23,9 +25,15 @@ jobs:
       with:
         gradle-version: 8.1.1
     - name: Build Gradle
-      run: gradle :android:build -Pdebug
+      run: |
+        if [ "${{ github.event.inputs.build-type }}" == "release" ]; then
+          BUILD_TYPE="release"
+        else
+          BUILD_TYPE="debug"
+        fi
+        gradle :android:build -P${BUILD_TYPE}
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: buildAPK
-        path: ${{github.workspace}}/android/build/outputs/apk/debug/android-debug.apk
+        path: ${{ github.workspace }}/android/build/outputs/apk/${BUILD_TYPE}/android-${BUILD_TYPE}.apk
