@@ -28,7 +28,7 @@ jobs:
       run: |
         echo "buildType=${{ github.event.inputs.build-type }}" >> $GITHUB_ENV
         echo "build type ${{ env.buildType }}"
-        gradle :android:build -P${{ env.buildType }}
+        gradle :android:build -P"${{ env.buildType }}"
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3
       with:
