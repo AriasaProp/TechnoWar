@@ -1,9 +1,5 @@
 #include "main_game.hpp"
 #include "engine.hpp"
-// Mendapatkan nilai makro dari konfigurasi build.gradle
-#define WORKFLOW_HASH BUILD_CONFIG_WORKFLOW_HASH
-#define WORKFLOW_TIME BUILD_CONFIG_WORKFLOW_TIME
-#define BRANCH_NAME BUILD_CONFIG_BRANCH_NAME
 
 #include "assets/bmfont.hpp"
 #include "assets/stb_image.hpp"
