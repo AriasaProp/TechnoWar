@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 
-a
 android {
     signingConfigs {
         mainSign {
