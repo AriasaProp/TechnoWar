@@ -16,6 +16,17 @@ enum Align : unsigned char {
   ALIGN_BOTTOM_RIGHT = 10
 };
 
+struct AtomicCounter {
+private:
+  size_t curpos = 0;
+  size_t count;
+  float data[N];
+public:
+  AtomicCounter(size_t);
+  AtomicCounter &operator+=(float);
+  const float operator float() const;
+};
+
 namespace matrix4 {
   void idt (float *);
   void mul (float *, float *);

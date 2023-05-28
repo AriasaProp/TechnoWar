@@ -73,6 +73,7 @@ Main::Main () {
 }
 void Main::resume () {
 }
+AtomicCounter averagefps(10);
 void Main::render () {
   std::chrono::time_point<std::chrono::high_resolution_clock> endP = std::chrono::high_resolution_clock::now ();
   float delta = float (std::chrono::duration_cast<std::chrono::microseconds> (endP - mdata->startP).count ()) / 1000000.f;
@@ -88,8 +89,9 @@ void Main::render () {
   
   uistage::draw();
   
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "Rev. 0009");
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "Sab, 27 Mei 2023");
+  averagefps += delta;
+  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%.2f:%.2fms/frame", delta*1000.f, float(averagefps)*1000.f);
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "27/05/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "main");
 }
 void Main::pause () {

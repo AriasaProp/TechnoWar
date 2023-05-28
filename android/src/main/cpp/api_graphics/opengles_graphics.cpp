@@ -34,17 +34,15 @@ struct gl_data {
   GLint u_worldTransProj;
   GLuint ui_vao, ui_vbo, ui_ibo;
   GLuint nullTextureId; // this is used for null texture needed
-  float uiProj[16] = {
-      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-  float worldProj[16] = {
-      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
   EGLDisplay display = EGL_NO_DISPLAY;
   EGLSurface surface = EGL_NO_SURFACE;
   EGLContext context = EGL_NO_CONTEXT;
   EGLConfig eConfig;
   EGLint wWidth, wHeight; // platform full display
   float game_width, game_height; // display after safe insets
-                          //
+  //
+  float uiProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  float worldProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
   std::unordered_set<opengles_texture *> managedTexture;
   std::unordered_set<engine::mesh_core *> managedMesh;
 
