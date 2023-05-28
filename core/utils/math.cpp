@@ -69,7 +69,7 @@ void clock_count::end() {
 size_t clock_count::getFPS() {
   return FPS_result;
 }
-float clock_count::geyDelta() {
+float clock_count::getDelta() {
   return delta_result;
 }
 
