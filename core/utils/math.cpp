@@ -11,6 +11,7 @@ AtomicCounter::AtomicCounter(size_t c): count(c) {
 AtomicCounter &AtomicCounter::operator+=(float v) {
   if(curpos>=count) curpos = 0;
   data[curpos++] = v;
+  return this;
 }
 AtomicCounter::operator float() const {
   float result = float();
