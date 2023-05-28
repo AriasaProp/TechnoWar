@@ -12,7 +12,7 @@ AtomicCounter &AtomicCounter::operator+=(float v) {
   if(curpos>=count) curpos = 0;
   data[curpos++] = v;
 }
-const float AtomicCounter::operator float() const {
+AtomicCounter::operator float() const {
   float result = float();
   for(size_t i = 0; i < count; i++)
     result += data[i];

@@ -20,11 +20,11 @@ struct AtomicCounter {
 private:
   size_t curpos = 0;
   size_t count;
-  float data[N];
+  float *data;
 public:
   AtomicCounter(size_t);
   AtomicCounter &operator+=(float);
-  const float operator float() const;
+  operator float() const;
 };
 
 namespace matrix4 {
