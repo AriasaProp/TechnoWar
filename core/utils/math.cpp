@@ -65,8 +65,6 @@ void clock_count::render() {
   }
 }
 void clock_count::end() {
-  start_clock = 0;
-  end_clock = 0;
   frame_count = 0;
   delta_count = 0;
 }
