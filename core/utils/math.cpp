@@ -23,8 +23,6 @@ AtomicCounter::operator float() const {
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock;
 static std::chrono::time_point<std::chrono::high_resolution_clock> end_clock;
-static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock_fps;
-static std::chrono::time_point<std::chrono::high_resolution_clock> end_clock_fps;
 static float delta_cache[10]{};
 static float delta_result;
 static float delta_count;
@@ -67,6 +65,12 @@ void clock_count::render() {
 void clock_count::end() {
   frame_count = 0;
   delta_count = 0;
+}
+size_t clock_count::getFPS() {
+  return FPS_result;
+}
+float clock_count::geyDelta() {
+  return delta_result;
 }
 
 static float tmp[16]{};
