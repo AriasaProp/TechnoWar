@@ -1,6 +1,7 @@
 #include "math.hpp"
 
 #include <cmath>
+#include <chrono>
 #include <cstring>
 
 //Atomic Counter
@@ -20,6 +21,55 @@ AtomicCounter::operator float() const {
   return result / count;
 }
 
+static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock;
+static std::chrono::time_point<std::chrono::high_resolution_clock> end_clock;
+static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock_fps;
+static std::chrono::time_point<std::chrono::high_resolution_clock> end_clock_fps;
+static float delta_cache[10]{};
+static float delta_result;
+static float delta_count;
+static size_t FPS_cache[10]{};
+static size_t FPS_result;
+static size_t frame_count;
+
+void clock_count::start() {
+  start_clock = std::chrono::high_resolution_clock::now ();
+  frame_count = 0;
+  delta_count = 0;
+  
+}
+static size_t iloop;
+void clock_count::render() {
+  end_clock = std::chrono::high_resolution_clock::now ();
+  for (iloop = 9; iloop; iloop--) {
+    delta_cache[iloop] = delta_cache[iloop-1];
+    delta_result += delta_cache[iloop];
+  }
+  delta_cache[0] = float (std::chrono::duration_cast<std::chrono::microseconds> (end_clock - start_clock).count ()) / 1000000.f;
+  delta_result += delta_cache[0];
+  delta_result /= 10.f;
+  delta_count += delta_cache[0];
+  frame_count++;
+  
+  start_clock = end_clock;
+  if (delta_count >= 1.0f) {
+    delta_count -= 1.0f;
+    for (iloop = 9; iloop; iloop--) {
+      FPS_cache[iloop] = FPS_cache[iloop-1];
+      FPS_result += FPS_cache[iloop];
+    }
+    FPS_cache[0] = frame_count;
+    FPS_result += FPS_cache[0];
+    FPS_result /= 10;
+    frame_count = 0;
+  }
+}
+void clock_count::end() {
+  start_clock = 0;
+  end_clock = 0;
+  frame_count = 0;
+  delta_count = 0;
+}
 
 static float tmp[16]{};
 

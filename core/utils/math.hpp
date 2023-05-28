@@ -27,6 +27,15 @@ public:
   operator float() const;
 };
 
+namespace clock_count {
+  void start();
+  void render();
+  void end();
+  
+  size_t getFPS();
+  float getDelta();
+}
+
 namespace matrix4 {
   void idt (float *);
   void mul (float *, float *);

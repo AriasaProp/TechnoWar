@@ -10,31 +10,31 @@
 #include <string>
 
 struct KearningInfo {
-  short First, Second, Amount;
+	short First, Second, Amount;
 };
 
 struct CharDescriptor {
-  short x = 0, y = 0;
-  short Width = 0;
-  short Height = 0;
-  short XOffset = 0, YOffset = 0;
-  short XAdvance = 0;
-  short Page = 0;
+	short x = 0, y = 0;
+	short Width = 0;
+	short Height = 0;
+	short XOffset = 0, YOffset = 0;
+	short XAdvance = 0;
+	short Page = 0;
 };
 
-bool bmfont::ParseFont (const char *fontfile) {
+bool bmfont::ParseFont(const char *fontfile ) {
   unsigned int asl;
-  const char *as = (const char *)engine::asset->asset_buffer (fontfile, &asl);
-  std::string buffer (as, asl);
-  std::stringstream buffer_stream (buffer);
-  std::string Line;
-  std::string Read, Key, Value;
-  std::size_t i;
+  const char *as = (const char*) engine::asset->asset_buffer(fontfile, &asl);
+  std::string buffer(as,asl);
+	std::stringstream buffer_stream(buffer);
+	std::string Line;
+	std::string Read, Key, Value;
+	std::size_t i; 
 
   KearningInfo K;
   CharDescriptor C;
 
-  while (!buffer_stream.eof ()) {
+  while (!buffer_stream.eof()) {
     std::stringstream LineStream;
     std::getline (buffer_stream, Line);
     LineStream << Line;
@@ -58,8 +58,7 @@ bool bmfont::ParseFont (const char *fontfile) {
           fscale = fontSize;
         }
       }
-    } else */
-    if (Read == "common") {
+    } else */if (Read == "common") {
       // this holds common data
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -158,7 +157,7 @@ bool bmfont::ParseFont (const char *fontfile) {
   return true;
 }
 
-bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
+bmfont::bmfont(const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (3.f) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);
@@ -170,7 +169,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), f
   stbi_image_free (tD);
 }
 
-bmfont::~bmfont () {
+bmfont::~bmfont() {
   Chars.clear ();
   Kearn.clear ();
 }
