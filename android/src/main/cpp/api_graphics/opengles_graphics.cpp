@@ -48,7 +48,7 @@ struct gl_data {
 float opengles_graphics::getWidth () { return mgl_data->game_width; }
 float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
-void opengles_graphics::preRender (ANativeWindow &*window, unsigned int &resize) {
+void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) {
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);

@@ -8,7 +8,7 @@ private:
   struct gl_data *mgl_data;
 public:
   // android
-  void preRender (ANativeWindow&*, unsigned int&) override;
+  void preRender (ANativeWindow*, unsigned int&) override;
   void render (unsigned int&) override;
   void postRender (bool) override;
   void onWindowTerm () override;
