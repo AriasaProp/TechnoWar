@@ -99,7 +99,6 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_INIT_WINDOW:
-          a_graphics->onWindowInit (app->window);
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
           resize |= 1;
