@@ -23,7 +23,6 @@ struct opengles_texture : public engine::texture_core {
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 struct gl_data {
-  bool resize, relayout, resume, pause, destroyed;
   bool dirty_uiProj;
   bool dirty_worldProj;
   GLint ui_shader;
@@ -52,20 +51,11 @@ struct gl_data {
 float opengles_graphics::getWidth () { return mgl_data->game_width; }
 float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
-void opengles_graphics::onResume () {
-  mgl_data->resume = true;
-}
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
-void opengles_graphics::needResize () {
-  mgl_data->resize = true;
-}
-void opengles_graphics::needLayout () {
-  mgl_data->relayout = true;
-}
-void opengles_graphics::render () {
-  if (!window) return;
+bool opengles_graphics::preRender (unsigned char &resize) {
+  if (!window) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     if (!mgl_data->display) {
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
@@ -283,38 +273,39 @@ void opengles_graphics::render () {
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (mgl_data->resize) {
-    eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
-    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
-    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
-    glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    update_layout ();
-  } else if (mgl_data->relayout) {
+  } else if (resize) {
+    if (resize&2) {
+      eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+      eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
+      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
+      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
+      glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
+    }
     update_layout ();
   }
-  mgl_data->relayout = false;
-  mgl_data->resize = false;
+  resize = 0;
+  return true;
+}
+void opengles_graphics::render (unsigned int &agsr) {
+  if (!window) return;
   // core
   if (!mgl_data->m_Main) {
     mgl_data->m_Main = new Main;
-    mgl_data->resume = false;
-  } else if (mgl_data->resume) {
+  } else if (agsr&AGSR_RESUME) {
     mgl_data->m_Main->resume ();
-    mgl_data->resume = false;
   }
   mgl_data->m_Main->render ();
-  if (mgl_data->pause) {
+  if (agsr&AGSR_PAUSE) {
     mgl_data->m_Main->pause ();
-    mgl_data->pause = false;
   }
-  unsigned int EGLTermReq = 0;
-  if (mgl_data->destroyed) {
+  if (agsr&AGSR_DESTROY) {
     delete mgl_data->m_Main;
     mgl_data->m_Main = nullptr;
-    EGLTermReq |= TERM_EGL_DISPLAY;
-    mgl_data->destroyed = false;
   }
+  agsr = 0;
+}
+void opengles_graphics::postRender (bool isDestroy) {
+  unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY: 0;
   if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
     case EGL_BAD_SURFACE:
@@ -381,10 +372,6 @@ void opengles_graphics::onWindowTerm () {
     mgl_data->surface = EGL_NO_SURFACE;
   }
   window = NULL;
-}
-void opengles_graphics::onPause () {
-  mgl_data->pause = true;
-  render ();
 }
 void opengles_graphics::clear (const unsigned int &m) {
   GLuint c = 0;
@@ -523,8 +510,6 @@ opengles_graphics::opengles_graphics () {
 }
 
 opengles_graphics::~opengles_graphics () {
-  mgl_data->destroyed = true;
-  render ();
   mgl_data->managedTexture.clear ();
   mgl_data->managedMesh.clear ();
   delete mgl_data;

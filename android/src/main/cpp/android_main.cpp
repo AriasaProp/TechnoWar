@@ -25,7 +25,6 @@
 #include "android_input/android_input.hpp"
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
-//#include "api_graphics/vulkan_graphics.hpp"
 
 enum APP_CMD : char {
   APP_CMD_CREATE = 0,
@@ -70,6 +69,8 @@ static void *android_app_entry (void *param) {
   a_graphics = new opengles_graphics{};
   {
     bool running = false;
+    unsigned int resize = 0;
+    unsigned int agsr = 0;
     char cmd = APP_CMD_CREATE;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
@@ -88,16 +89,16 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_RESUME:
           running = true;
-          a_graphics->onResume ();
+          agsr |= AGSR_RESUME;
           break;
         case APP_CMD_INIT_WINDOW:
           a_graphics->onWindowInit (app->window);
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          a_graphics->needLayout ();
+          resize |= 1;
           break;
         case APP_CMD_WINDOW_RESIZED:
-          a_graphics->needResize ();
+          resize |= 2;
           break;
         case APP_CMD_GAINED_FOCUS:
           a_input.attach_sensor ();
@@ -124,12 +125,21 @@ static void *android_app_entry (void *param) {
         case APP_CMD_SAVE_STATE:
           break;
         case APP_CMD_PAUSE:
-          a_graphics->onPause ();
+          agsr |= AGSR_PAUSE;
+          if (a_graphics->preRender(resize)) {
+            a_graphics->render(agsr);
+            a_graphics->postRender(false);
+          }
           running = false;
           break;
         case APP_CMD_STOP:
           break;
         case APP_CMD_DESTROY:
+          agsr |= AGSR_DESTROY;
+          if (a_graphics->preRender(resize)) {
+            a_graphics->render(agsr);
+          }
+          a_graphics->postRender(true);
           break;
         default:
           // ?
@@ -143,7 +153,10 @@ static void *android_app_entry (void *param) {
       default:
         if (running) {
           a_input.process_event ();
-          a_graphics->render();
+          if (a_graphics->preRender(resize)) {
+            a_graphics->render(agsr);
+            a_graphics->postRender(false);
+          }
         }
         break;
       }

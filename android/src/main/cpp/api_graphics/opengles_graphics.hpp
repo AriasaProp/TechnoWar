@@ -9,13 +9,11 @@ private:
   struct gl_data *mgl_data;
 public:
   // android
-  void onResume () override;
   void onWindowInit (ANativeWindow *) override;
-  void needResize () override;
-  void needLayout () override;
-  void render () override;
+  bool preRender (unsigned int&) override;
+  void render (unsigned int&) override;
+  void postRender (bool) override;
   void onWindowTerm () override;
-  void onPause () override;
   // core
   float getWidth () override;
   float getHeight () override;
