@@ -1,5 +1,4 @@
 #include "opengles_graphics.hpp"
-#include "../main_game.hpp"
 #include <cstddef>
 #include <unordered_set>
 // make opengles lastest possible version
@@ -44,27 +43,20 @@ struct gl_data {
   float worldProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
   std::unordered_set<opengles_texture *> managedTexture;
   std::unordered_set<engine::mesh_core *> managedMesh;
-
-  Main *m_Main; // core activity
 };
 
 float opengles_graphics::getWidth () { return mgl_data->game_width; }
 float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
-void opengles_graphics::onWindowInit (ANativeWindow *w) {
-  window = w;
-}
-bool opengles_graphics::preRender (unsigned int &resize) {
-  if (!window) return false;
+void opengles_graphics::preRender (ANativeWindow &*window, unsigned int &resize) {
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
-    if (!mgl_data->display) {
+    while (!mgl_data->display) {
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
       eglInitialize (mgl_data->display, nullptr, nullptr);
       mgl_data->eConfig = nullptr;
     }
-    if (!mgl_data->eConfig) {
-      const EGLint configAttr[] = {
-          EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_ALPHA_SIZE, 0, EGL_NONE};
+    while (!mgl_data->eConfig) {
+      const EGLint configAttr[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_ALPHA_SIZE, 0, EGL_NONE};
       EGLint temp;
       eglChooseConfig (mgl_data->display, configAttr, nullptr, 0, &temp);
       EGLConfig *configs = (EGLConfig *)alloca (temp * sizeof (EGLConfig));
@@ -85,14 +77,14 @@ bool opengles_graphics::preRender (unsigned int &resize) {
       }
     }
     bool newCntx = false;
-    if (!mgl_data->context) {
+    while (!mgl_data->context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       mgl_data->context = eglCreateContext (mgl_data->display, mgl_data->eConfig, nullptr, ctxAttr);
       newCntx = true;
     }
-    if (!mgl_data->surface) {
+    while (!mgl_data->surface)
       mgl_data->surface = eglCreateWindowSurface (mgl_data->display, mgl_data->eConfig, window, nullptr);
-    }
+    
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
@@ -284,25 +276,6 @@ bool opengles_graphics::preRender (unsigned int &resize) {
     update_layout ();
   }
   resize = 0;
-  return true;
-}
-void opengles_graphics::render (unsigned int &agsr) {
-  if (!window) return;
-  // core
-  if (!mgl_data->m_Main) {
-    mgl_data->m_Main = new Main;
-  } else if (agsr&AGSR_RESUME) {
-    mgl_data->m_Main->resume ();
-  }
-  mgl_data->m_Main->render ();
-  if (agsr&AGSR_PAUSE) {
-    mgl_data->m_Main->pause ();
-  }
-  if (agsr&AGSR_DESTROY) {
-    delete mgl_data->m_Main;
-    mgl_data->m_Main = nullptr;
-  }
-  agsr = 0;
 }
 void opengles_graphics::postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY: 0;
@@ -371,7 +344,6 @@ void opengles_graphics::onWindowTerm () {
     eglDestroySurface (mgl_data->display, mgl_data->surface);
     mgl_data->surface = EGL_NO_SURFACE;
   }
-  window = NULL;
 }
 void opengles_graphics::clear (const unsigned int &m) {
   GLuint c = 0;

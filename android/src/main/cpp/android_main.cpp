@@ -52,14 +52,21 @@ struct android_app {
   ANativeActivity *activity;
   AConfiguration *config;
   ALooper *looper;
-  ANativeWindow *window; // update in mainThread
+  ANativeWindow *window = nullptr; // update in mainThread
   AInputQueue *inputQueue;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
 };
+
 static android_graphics *a_graphics;
 #include <cstdio>
+
+// AGSR Android Graphics State Request
+#define AGSR_RESUME 1
+#define AGSR_PAUSE 2
+#define AGSR_DESTROY 4
+
 static void *android_app_entry (void *param) {
   android_app *app = (android_app *)param;
   app->config = AConfiguration_new ();
@@ -68,10 +75,10 @@ static void *android_app_entry (void *param) {
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   a_graphics = new opengles_graphics{};
   {
-    bool running = false;
+    bool running = false, resume = false;
     unsigned int resize = 0;
-    unsigned int agsr = 0;
     char cmd = APP_CMD_CREATE;
+    Main *m_Main = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     while (cmd != APP_CMD_DESTROY) {
@@ -89,7 +96,7 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_RESUME:
           running = true;
-          agsr |= AGSR_RESUME;
+          resume = true;
           break;
         case APP_CMD_INIT_WINDOW:
           a_graphics->onWindowInit (app->window);
@@ -117,7 +124,7 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_TERM_WINDOW:
           a_graphics->onWindowTerm ();
-          app->window = NULL;
+          app->window = nullptr;
           break;
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
@@ -125,9 +132,12 @@ static void *android_app_entry (void *param) {
         case APP_CMD_SAVE_STATE:
           break;
         case APP_CMD_PAUSE:
-          agsr |= AGSR_PAUSE;
-          if (a_graphics->preRender(resize)) {
-            a_graphics->render(agsr);
+          if (app->window) {
+            a_graphics->preRender(app->window, resize);
+            // core
+            if (!m_Main)
+              m_Main = new Main;
+            m_Main->pause ();
             a_graphics->postRender(false);
           }
           running = false;
@@ -135,9 +145,13 @@ static void *android_app_entry (void *param) {
         case APP_CMD_STOP:
           break;
         case APP_CMD_DESTROY:
-          agsr |= AGSR_DESTROY;
-          if (a_graphics->preRender(resize)) {
-            a_graphics->render(agsr);
+          if (app->window) {
+            a_graphics->preRender(app->window, resize);
+            // core
+            if (m_Main) {
+              delete m_Main;
+              m_Main = nullptr;
+            }
           }
           a_graphics->postRender(true);
           break;
@@ -153,8 +167,17 @@ static void *android_app_entry (void *param) {
       default:
         if (running) {
           a_input.process_event ();
-          if (a_graphics->preRender(resize)) {
-            a_graphics->render(agsr);
+          if (app->window) {
+            a_graphics->preRender(app->window, resize);
+            // core
+            if (!m_Main) {
+              m_Main = new Main;
+              resume = false;
+            } else if (resume) {
+              m_Main->resume ();
+              resume = false;
+            }
+            m_Main->render ();
             a_graphics->postRender(false);
           }
         }
