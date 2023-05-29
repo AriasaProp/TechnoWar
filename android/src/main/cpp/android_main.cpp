@@ -62,11 +62,6 @@ struct android_app {
 static android_graphics *a_graphics;
 #include <cstdio>
 
-// AGSR Android Graphics State Request
-#define AGSR_RESUME 1
-#define AGSR_PAUSE 2
-#define AGSR_DESTROY 4
-
 static void *android_app_entry (void *param) {
   android_app *app = (android_app *)param;
   app->config = AConfiguration_new ();
@@ -79,6 +74,7 @@ static void *android_app_entry (void *param) {
     unsigned int resize = 0;
     char cmd = APP_CMD_CREATE;
     Main *m_Main = nullptr;
+    ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     while (cmd != APP_CMD_DESTROY) {
@@ -92,19 +88,10 @@ static void *android_app_entry (void *param) {
       case 1: // android activity queue
         if (read (app->msgread, &cmd, sizeof (cmd)) != sizeof (cmd)) break;
         switch (cmd) {
-        case APP_CMD_START:
-          break;
-        case APP_CMD_RESUME:
-          running = true;
-          resume = true;
-          break;
         case APP_CMD_INIT_WINDOW:
-          break;
-        case APP_CMD_CONTENT_RECT_CHANGED:
-          resize |= 1;
-          break;
-        case APP_CMD_WINDOW_RESIZED:
-          resize |= 2;
+          pthread_mutex_lock (&app->mutex);
+          window = app->window;
+          pthread_mutex_unlock (&app->mutex);
           break;
         case APP_CMD_GAINED_FOCUS:
           a_input.attach_sensor ();
@@ -123,16 +110,14 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_TERM_WINDOW:
           a_graphics->onWindowTerm ();
-          app->window = nullptr;
+          window = nullptr;
           break;
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
-        case APP_CMD_SAVE_STATE:
-          break;
         case APP_CMD_PAUSE:
-          if (app->window) {
-            a_graphics->preRender(app->window, resize);
+          if (window) {
+            a_graphics->preRender(window, resize);
             // core
             if (!m_Main)
               m_Main = new Main;
@@ -141,11 +126,9 @@ static void *android_app_entry (void *param) {
           }
           running = false;
           break;
-        case APP_CMD_STOP:
-          break;
         case APP_CMD_DESTROY:
-          if (app->window) {
-            a_graphics->preRender(app->window, resize);
+          if (window) {
+            a_graphics->preRender(window, resize);
             // core
             if (m_Main) {
               delete m_Main;
@@ -162,24 +145,37 @@ static void *android_app_entry (void *param) {
         app->appCmdState = cmd;
         pthread_cond_broadcast (&app->cond);
         pthread_mutex_unlock (&app->mutex);
+        switch (cmd) {
+        case APP_CMD_RESUME:
+          running = true;
+          resume = true;
+          break;
+        case APP_CMD_CONTENT_RECT_CHANGED:
+          resize |= 1;
+          break;
+        case APP_CMD_WINDOW_RESIZED:
+          resize |= 2;
+          break;
+        default:
+          // ?
+          break;
+        }
         break;
       default:
-        if (running) {
-          a_input.process_event ();
-          if (app->window) {
-            a_graphics->preRender(app->window, resize);
-            // core
-            if (!m_Main) {
-              m_Main = new Main;
-              resume = false;
-            } else if (resume) {
-              m_Main->resume ();
-              resume = false;
-            }
-            m_Main->render ();
-            a_graphics->postRender(false);
-          }
+        if (!running) break;
+        a_input.process_event ();
+        if (!window) break;
+        a_graphics->preRender(window, resize);
+        // core
+        if (!m_Main) {
+          m_Main = new Main;
+          resume = false;
+        } else if (resume) {
+          m_Main->resume ();
+          resume = false;
         }
+        m_Main->render ();
+        a_graphics->postRender(false);
         break;
       }
     }
@@ -212,14 +208,14 @@ static void onResume (ANativeActivity *activity) {
 }
 static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *window) {
   android_app *app = (android_app *)activity->instance;
-  if (app->window != NULL) // window should null when window create
+  if (app->window) // window should null when window create
     write_android_cmd (app, APP_CMD_TERM_WINDOW);
   app->window = window;
   write_android_cmd (app, APP_CMD_INIT_WINDOW);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
   android_app *app = (android_app *)activity->instance;
-  if (app->inputQueue != NULL)
+  if (app->inputQueue)
     write_android_cmd (app, APP_CMD_INPUT_TERM);
   app->inputQueue = queue;
   write_android_cmd (app, APP_CMD_INPUT_INIT);
@@ -254,6 +250,7 @@ static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
 static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *) {
   android_app *app = (android_app *)activity->instance;
   if (!app->window) return;
+  app->window = nullptr;
   write_android_cmd (app, APP_CMD_TERM_WINDOW);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {

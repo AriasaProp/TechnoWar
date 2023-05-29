@@ -16,16 +16,10 @@ enum Align : unsigned char {
   ALIGN_BOTTOM_RIGHT = 10
 };
 
-struct AtomicCounter {
-private:
-  size_t curpos = 0;
-  size_t count;
-  float *data;
-public:
-  AtomicCounter(size_t);
-  AtomicCounter &operator+=(float);
-  operator float() const;
-};
+//resident memory usage
+namespace memory_usage {
+  unsigned long mem_usage ();
+}
 
 namespace clock_count {
   void start();

@@ -23,7 +23,6 @@ struct mMainData {
 };
 
 Main::Main () {
-  clock_count::start();
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
   int x, y;
@@ -69,8 +68,10 @@ Main::Main () {
   mdata->button1->position[1] = 150.f;
   mdata->button1->size[0] = 200.f;
   mdata->button1->size[1] = 200.f;
+  resume();
 }
 void Main::resume () {
+  clock_count::start();
 }
 //AtomicCounter averagefps(10);
 void Main::render () {
@@ -86,9 +87,9 @@ void Main::render () {
   
   uistage::draw();
   
-  //averagefps += delta;
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "29/05/2023");
+  mdata->fnt->draw_text (10, engine::graph->getHeight () - 70, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "30/05/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Android Launcher");
   clock_count::render();
 }

@@ -3,22 +3,13 @@
 #include <cmath>
 #include <chrono>
 #include <cstring>
+#include <sys/resources.h>
 
-//Atomic Counter
-AtomicCounter::AtomicCounter(size_t c): count(c) {
-  for(size_t i = 0; i < count; i++)
-    data[i] = float();
-}
-AtomicCounter &AtomicCounter::operator+=(float v) {
-  if(curpos>=count) curpos = 0;
-  data[curpos++] = v;
-  return *this;
-}
-AtomicCounter::operator float() const {
-  float result = float();
-  for(size_t i = 0; i < count; i++)
-    result += data[i];
-  return result / count;
+static struct rusage myusage;
+
+unsigned long memory_usage::mem_usage () {
+  getrusage(RUSAGE_SELF, &myusage);
+  return myusage.ru_maxrss;
 }
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock;
