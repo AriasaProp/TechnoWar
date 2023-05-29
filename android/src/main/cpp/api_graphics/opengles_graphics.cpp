@@ -54,7 +54,7 @@ float opengles_graphics::getHeight () { return mgl_data->game_height; }
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
-bool opengles_graphics::preRender (unsigned char &resize) {
+bool opengles_graphics::preRender (unsigned int &resize) {
   if (!window) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     if (!mgl_data->display) {
