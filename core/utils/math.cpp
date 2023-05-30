@@ -3,7 +3,7 @@
 #include <cmath>
 #include <chrono>
 #include <cstring>
-#include <sys/resources.h>
+#include <sys/resource.h>
 
 static struct rusage myusage;
 
