@@ -8,8 +8,8 @@
 namespace engine {
 // texture core
 struct texture_core {
-  virtual unsigned int width() const;
-  virtual unsigned int height() const;
+  virtual unsigned int width();
+  virtual unsigned int height();
   virtual ~texture_core (){};
 };
 // ui_core

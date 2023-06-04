@@ -12,10 +12,10 @@ struct opengles_texture : public engine::texture_core {
     d = new unsigned char[w * h * sizeof (unsigned char)];
     memcpy (d, dt, w * h * sizeof (unsigned char));
   }
-  unsigned int width() const override {
+  unsigned int width() override {
     return w;
   }
-  unsigned int height() const override {
+  unsigned int height() override {
     return h;
   }
   ~opengles_texture () {
