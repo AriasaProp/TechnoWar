@@ -44,9 +44,9 @@ void uistage::draw () {
     y2 = y1 + a.size[1];
     
     textureAtlas &ta = regions[a.texKey];
-    engine::texture_core &*tex = ta.tex;
+    engine::texture_core *tex = ta.tex;
     // left , top, right, bottom
-    const unsigned int &*split = ta.region.patch;
+    const unsigned int *split = ta.region.patch;
     
     bool patched = (split[0] || split[1] || split[2] || split[3]);
     //bottom - left
