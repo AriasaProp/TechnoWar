@@ -32,14 +32,13 @@ void uistage::draw () {
   for (auto i = actors.begin(), j = actors.end(); i != j; i++) {
     engine::flat_vertex *verts = vert;
     actor &a = **i;
-    unsigned int *split = a.patch;
     x1 = a.pos[0];
     y1 = a.pos[1];
     x2 = x1 + a.size[0];
     y2 = y1 + a.size[1];
     
-    const textureAtlas &ta = regions[a.texKey];
-    const engine::texture_core *tex = ta.tex;
+    textureAtlas &ta = regions[a.texKey];
+    engine::texture_core *tex = ta.tex;
     // left , top, right, bottom
     unsigned int *split = ta.region.patch;
     
@@ -96,12 +95,12 @@ void uistage::draw () {
     }
     *(verts++) = {x2, y2, {0xff, 0xff, 0xff, 0xff}, 1, 0};
     
-    engine::graph->flat_render(tex,verts,patched?9:1)
+    engine::graph->flat_render(tex,verts,patched?9:1);
   }
 }
 void uistage::clear() {
   for (auto i = regions.begin(), j = regions.end(); i != j; i++) {
-    delete i->seconds.tex;
+    delete i->second.tex;
   }
   regions.clear();
 }
