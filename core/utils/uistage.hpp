@@ -9,7 +9,7 @@ namespace uistage {
     float pos[2], size[2];
     unsigned char color[4] = {0xff,0xff,0xff,0xff};
     std::string texKey;
-    actor();
+    actor(float[2],float[2], unsigned char[4], std::string);
     ~actor();
   };
   struct texture_region {

@@ -10,7 +10,7 @@ struct textureAtlas {
 static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<actor*> actors;
 
-uistage::actor::actor() {
+uistage::actor::actor(float p[2],float s[2], unsigned char c[4], std::string tex = ""): pos(p), size(s), color(c), texKey(tex) {
   actors.insert(this);
 }
 uistage::actor::~actor() {
