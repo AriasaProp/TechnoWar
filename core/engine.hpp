@@ -1,5 +1,5 @@
 #ifndef _Included_Engine
-#define _Included_Engine
+#define _Included_Engine 1
 // maximum ui draws
 #define MAX_UI_DRAW 100
 // maximum output log message in char
@@ -8,8 +8,8 @@
 namespace engine {
 // texture core
 struct texture_core {
-  virtual unsigned int width();
-  virtual unsigned int height();
+  virtual unsigned int width() = 0;
+  virtual unsigned int height() = 0;
   virtual ~texture_core (){};
 };
 // ui_core
