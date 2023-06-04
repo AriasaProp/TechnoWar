@@ -78,8 +78,7 @@ Main::Main () {
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {tex->width(),tex->height()}, {10,10,10,10}});
     stbi_image_free (t);
   }
-  mdata->button1 = new uistage::actor;
-  *mdata->button1 = {{300.f,150.f},{200.f,200.f}, {}, "btn1"};
+  mdata->button1 = new uistage::actor{{300.f,150.f},{200.f,200.f}, {}, "btn1"};
   resume();
 }
 void Main::resume () {
