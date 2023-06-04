@@ -1,5 +1,5 @@
 #ifndef _Included_OPENGLES_Graphics
-#define _Included_OPENGLES_Graphics
+#define _Included_OPENGLES_Graphics 1
 
 #include "android_graphics.hpp"
 
