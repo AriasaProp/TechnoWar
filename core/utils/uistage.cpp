@@ -101,7 +101,7 @@ void uistage::draw () {
     }
     *(verts++) = {x2, y2, {0xff, 0xff, 0xff, 0xff}, 1, 0};
     
-    engine::graph->flat_render(tex,verts,patched?9:1);
+    engine::graph->flat_render(tex,vert,patched?9:1);
   }
 }
 void uistage::clear() {
