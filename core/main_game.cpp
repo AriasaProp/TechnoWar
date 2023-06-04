@@ -74,11 +74,16 @@ Main::Main () {
     uistage::addTextureRegion("btn1" ,tex, uistage::texture_region{{0,0}, {tex->width(),tex->height()}, {10,10,10,10}});
     stbi_image_free (t);
     t = stbi_load_from_assets ("btn1_.png", &x, &y, nullptr, STBI_rgb_alpha);
-    *tex = engine::graph->gen_texture (x, y, t);
+    tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {tex->width(),tex->height()}, {10,10,10,10}});
     stbi_image_free (t);
   }
-  mdata->button1 = new uistage::actor{{300.f,150.f},{200.f,200.f}, {}, "btn1"};
+  uistage::actor *btn = mdata->button1 = new uistage::actor;
+  btn->pos[0] = 300.f;
+  btn->pos[1] = 150.f;
+  btn->size[0] = 200.f;
+  btn->size[1] = 200.f;
+  btn->texKey =  "btn1";
   resume();
 }
 void Main::resume () {
