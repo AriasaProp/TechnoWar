@@ -21,10 +21,6 @@ unsigned char *stbi_load_from_assets (const char *, int *, int *, int *, int);
 unsigned char *stbi_load_from_memory (unsigned char const *, int, int *, int *, int *, int);
 unsigned char *stbi_load_from_callbacks (stbi_io_callbacks const *, void *, int *, int *, int *, int);
 
-#ifndef STBI_NO_GIF
-unsigned char *stbi_load_gif_from_memory (unsigned char const *buffer, int len, int **delays, int *x, int *y, int *z, int *comp, int req_comp);
-#endif
-
 #ifdef STBI_WINDOWS_UTF8
 int stbi_convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif

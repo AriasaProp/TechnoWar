@@ -8,12 +8,14 @@
 namespace engine {
 // texture core
 struct texture_core {
+  virtual unsigned int width();
+  virtual unsigned int height();
   virtual ~texture_core (){};
 };
 // ui_core
 struct flat_vertex {
   float x, y;
-  unsigned char r, g, b, a;
+  unsigned char color[4];
   float u, v;
 };
 // mesh core
@@ -22,12 +24,11 @@ struct mesh_core {
   unsigned int vao, vbo, ibo;
   unsigned int vertex_len, index_len;
   struct data {
-    float x, y, z;
-    unsigned char r, g, b, a;
+    float pos[3];
+    unsigned char color[4];
   } *vertex = nullptr;
   unsigned short *index = nullptr;
-  float trans[16]{
-      1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  float trans[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 };
 struct graphics_core {
   virtual float getWidth () = 0;

@@ -12,6 +12,12 @@ struct opengles_texture : public engine::texture_core {
     d = new unsigned char[w * h * sizeof (unsigned char)];
     memcpy (d, dt, w * h * sizeof (unsigned char));
   }
+  unsigned int width() override {
+    return w;
+  }
+  unsigned int height() override {
+    return h;
+  }
   ~opengles_texture () {
     delete[] d;
   }
@@ -181,7 +187,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
         glBindBuffer (GL_ARRAY_BUFFER, mgl_data->ui_vbo);
         glBufferData (GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof (engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
         glVertexAttribPointer (0, 2, GL_FLOAT, false, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, x));
-        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, r));
+        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, color));
         glVertexAttribPointer (2, 2, GL_FLOAT, false, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, u));
         glEnableVertexAttribArray (0);
         glEnableVertexAttribArray (1);
@@ -243,9 +249,9 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
         glBindBuffer (GL_ARRAY_BUFFER, i->vbo);
         glBufferData (GL_ARRAY_BUFFER, i->vertex_len * sizeof (engine::mesh_core::data), (void *)i->vertex, GL_STATIC_DRAW);
         glEnableVertexAttribArray (0);
-        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), NULL);
+        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, pos));
         glEnableVertexAttribArray (1);
-        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)(3 * sizeof (float)));
+        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, color));
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, i->ibo);
         glBufferData (GL_ELEMENT_ARRAY_BUFFER, i->index_len * sizeof (unsigned short), (void *)i->index, GL_STATIC_DRAW);
       }
@@ -418,9 +424,9 @@ engine::mesh_core *opengles_graphics::gen_mesh (engine::mesh_core::data *v, unsi
   glBindBuffer (GL_ARRAY_BUFFER, r->vbo);
   glBufferData (GL_ARRAY_BUFFER, r->vertex_len * sizeof (engine::mesh_core::data), (void *)r->vertex, GL_STATIC_DRAW);
   glEnableVertexAttribArray (0);
-  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), NULL);
+  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, pos));
   glEnableVertexAttribArray (1);
-  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)(3 * sizeof (float)));
+  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, color));
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, r->ibo);
   glBufferData (GL_ELEMENT_ARRAY_BUFFER, r->index_len * sizeof (unsigned short), (void *)r->index, GL_STATIC_DRAW);
   glBindVertexArray (0);
