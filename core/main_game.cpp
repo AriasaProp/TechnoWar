@@ -67,29 +67,18 @@ Main::Main () {
   mdata->mp = engine::graph->gen_mesh (vert, 24, indices, 36);
   
   //add texture regions
-  uistage::texture_region reg;
-  reg.pos = {0,0};
-  reg.patch = {10,10,10,10};
   {
     int x, y;
     unsigned char *t = stbi_load_from_assets ("btn1.png", &x, &y, nullptr, STBI_rgb_alpha);
     engine::texture_core *tex = engine::graph->gen_texture (x, y, t);
-    reg.size = {tex.width(),tex.height()};
-    uistage::addTextureRegion("btn1",tex, reg);
+    uistage::addTextureRegion("btn1",tex, uistage::texture_region{{0,0}, {tex.width(),tex.height()}, {10,10,10,10}});
     stbi_image_free (t);
     t = stbi_load_from_assets ("btn1_.png", &x, &y, nullptr, STBI_rgb_alpha);
     engine::texture_core *tex = engine::graph->gen_texture (x, y, t);
-    reg.size = {tex.width(),tex.height()};
-    uistage::addTextureRegion("btn1_", tex, reg);
+    uistage::addTextureRegion("btn1_", tex, {{0,0}, uistage::texture_region{tex.width(),tex.height()}, {10,10,10,10}});
     stbi_image_free (t);
   }
-  
-  
-  mdata->button1 = new uistage::actor{
-    .texKey = "btn1",
-    .pos = {300.f,150.f},
-    .size = {200.f,200.f}
-  };
+  mdata->button1 = new uistage::actor({300.f,150.f},{200.f,200.f}, {}, "btn1");
   resume();
 }
 void Main::resume () {
