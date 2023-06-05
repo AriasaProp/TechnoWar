@@ -19,7 +19,7 @@ struct mMainData {
       {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
   engine::texture_core *myTex;
   bmfont *fnt;
-  uistage::actor *btn1, btn2;
+  uistage::actor *btn1, *btn2;
 };
 
 Main::Main () {
