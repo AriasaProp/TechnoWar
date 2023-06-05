@@ -50,7 +50,8 @@ void uistage::draw () {
     const unsigned int *split = ta.region.patch;
     
     bool patched = (split[0] || split[1] || split[2] || split[3]);
-    unsigned char cl[4]{0xff, 0xff,patched?0xff:0x00  ,0xff};
+    unsigned char cl[4]{0xff,0xff,0x00,0xff};
+    if (patched) cl[2] = 0xff;
     //bottom - left
     *(verts++) = {x1, y1, {cl[0], cl[1], cl[2], cl[3]}, 0, 1};
     if (patched) {
