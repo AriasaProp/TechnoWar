@@ -19,7 +19,7 @@ struct mMainData {
       {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
   engine::texture_core *myTex;
   bmfont *fnt;
-  uistage::actor *button1;
+  uistage::actor *btn1, btn2;
 };
 
 Main::Main () {
@@ -78,12 +78,18 @@ Main::Main () {
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
   }
-  uistage::actor *btn = mdata->button1 = new uistage::actor;
+  uistage::actor *btn = mdata->btn1 = new uistage::actor;
   btn->pos[0] = 300.f;
   btn->pos[1] = 150.f;
   btn->size[0] = 200.f;
   btn->size[1] = 200.f;
   btn->texKey =  "btn1";
+  btn = mdata->btn2 = new uistage::actor;
+  btn->pos[0] = 500.f;
+  btn->pos[1] = 150.f;
+  btn->size[0] = 200.f;
+  btn->size[1] = 200.f;
+  btn->texKey =  "btn1_";
   resume();
 }
 void Main::resume () {
@@ -105,7 +111,7 @@ void Main::render () {
   
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
   mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "4/06/2023");
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "5/06/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "feature/ui");
   clock_count::render();
 }
@@ -113,7 +119,8 @@ void Main::pause () {
 }
 Main::~Main () {
   clock_count::end();
-  delete mdata->button1;
+  delete mdata->btn1;
+  delete mdata->btn2;
   uistage::clear();
   
   engine::graph->delete_mesh (mdata->mp);
