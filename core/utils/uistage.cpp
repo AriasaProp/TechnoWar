@@ -50,9 +50,9 @@ void uistage::draw () {
     umin = float(ta.region.pos[0])/float(tex->width()), vmin = float(ta.region.pos[1])/float(tex->height()), umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width()), vmax = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
     
     float columnList[3]{ymin+split[3], ymax-split[1], ymax};
-    float vList[3]{vmin-float(split[3])/float(ta.region.size[1]), vmax+float(split[1])/float(ta.region.size[1]), vmax};
+    float vList[3]{vmin-float(split[3])/float(tex->height()), vmax+float(split[1])/float(tex->height()), vmax};
     float rowList[3]{xmin+split[0], xmax-split[2], xmax};
-    float uList[3]{umin+float(split[0])/float(ta.region.size[0]), umax-float(split[2])/float(ta.region.size[0]), umax};
+    float uList[3]{umin+float(split[0])/float(tex->width()), umax-float(split[2])/float(tex->width()), umax};
     size_t quadCount = 0;
     for (size_t i = 0; i < 3; i++) { //vertical list
       ymax = columnList[i];
