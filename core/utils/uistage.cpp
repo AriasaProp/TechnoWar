@@ -34,77 +34,50 @@ void uistage::act (float) {
 }
 static engine::flat_vertex vert[1024];
 void uistage::draw () {
-  float x1, y1, x2, y2;
+  float xmin, ymin, xmax, ymax;
+  float umin, vmin, umax, vmax;
+  engine::flat_vertex v_;
   for (auto i = actors.begin(), j = actors.end(); i != j; i++) {
     engine::flat_vertex *verts = vert;
     actor &a = **i;
-    x1 = a.pos[0];
-    y1 = a.pos[1];
-    x2 = x1 + a.size[0];
-    y2 = y1 + a.size[1];
-    
     textureAtlas &ta = regions[a.texKey];
     engine::texture_core *tex = ta.tex;
-    
     // left , top, right, bottom
     const unsigned int *split = ta.region.patch;
     
-    bool patched = (split[0] || split[1] || split[2] || split[3]);
-    unsigned char cl[4]{0xff,0xff,0x00,0xff};
-    if (patched) cl[0] = 0x00;
-    //bottom - left
-    *(verts++) = {x1, y1, {cl[0], cl[1], cl[2], cl[3]}, 0, 1};
-    if (patched) {
-      *(verts++) = {x1, y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 0, 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y1, {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1};
-      *(verts++) = {x1+split[0], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-    //center - left
-      *(verts++) = {x1, y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 0, 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x1, y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 0, float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-    //top - left
-      *(verts++) = {x1, y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 0, float(split[1])/float(ta.region.size[1])};
-    }
-    *(verts++) = {x1, y2, {cl[0], cl[1], cl[2], cl[3]}, 0, 0};
-    if (patched) {
-      *(verts++) = {x1+split[0], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y2, {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 0};
-    //bottom - center
-      *(verts++) = {x1+split[0], y1, {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1};
-      *(verts++) = {x1+split[0], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y1, {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 1};
-      *(verts++) = {x2-split[2], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-    //center
-      *(verts++) = {x1+split[0], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[2])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[2])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-    //top - center
-      *(verts++) = {x1+split[0], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x1+split[0], y2, {cl[0], cl[1], cl[2], cl[3]}, float(split[0])/float(ta.region.size[0]), 0};
-      *(verts++) = {x2-split[2], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[2])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y2, {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[2])/float(ta.region.size[0]), 0};
-    //bottom - right
-      *(verts++) = {x2-split[2], y1, {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 1};
-      *(verts++) = {x2-split[2], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-    }
-    *(verts++) = {x2, y1, {cl[0], cl[1], cl[2], cl[3]}, 1, 1};
-    if (patched) {
-      *(verts++) = {x2, y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1, 1-float(split[3])/float(ta.region.size[1])};
-    //center - right
-      *(verts++) = {x2-split[2], y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x2, y1+split[3], {cl[0], cl[1], cl[2], cl[3]}, 1, 1-float(split[3])/float(ta.region.size[1])};
-      *(verts++) = {x2, y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1, float(split[1])/float(ta.region.size[1])};
-    //top - right
-      *(verts++) = {x2-split[2], y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), float(split[1])/float(ta.region.size[1])};
-      *(verts++) = {x2-split[2], y2, {cl[0], cl[1], cl[2], cl[3]}, 1-float(split[1])/float(ta.region.size[0]), 0};
-      *(verts++) = {x2, y2-split[1], {cl[0], cl[1], cl[2], cl[3]}, 1, float(split[1])/float(ta.region.size[1])};
-    }
-    *(verts++) = {x2, y2, {cl[0], cl[1], cl[2], cl[3]}, 1, 0};
+    memcpy(&v_.color, a.color, sizeof(v_.color));
+    xmin = a.pos[0], ymin = a.pos[1], xmax = xmin+a.size[0], ymax = ymin+a.size[1];
+    umin = float(ta.region.pos[0])/float(tex->width()), vmin = float(ta.region.pos[1])/float(tex->height()), umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width()), vmax = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
     
-    engine::graph->flat_render(tex,vert,patched?9:1);
+    float columnList[3]{ymin+split[3], ymax-split[1], ymax};
+    float vList[3]{vmin-float(split[3])/float(ta.region.size[1]), vmax+float(split[1])/float(ta.region.size[1]), vmax};
+    float rowList[3]{xmin+split[0], xmax-split[2], xmax};
+    float uList[3]{umin+float(split[0])/float(ta.region.size[0]), umax-float(split[2])/float(ta.region.size[0]), umax};
+    size_t quadCount = 0;
+    for (size_t i = 0; i < 3; i++) { //vertical list
+      ymax = columnList[i];
+      if (ymax == ymin) continue;
+      vmax = vList[i];
+      for (size_t j = 0; j < 3; j++) { //horizontal lost
+        xmax = rowList[j];
+        if (xmax == xmin) continue;
+        umax = uList[j];
+        v_.x = xmin, v_.u = umin;
+        v_.y = ymin, v_.v = vmin;
+        memcpy(verts++, &v_, sizeof(v_));
+        v_.y = ymax, v_.v = vmax;
+        memcpy(verts++, &v_, sizeof(v_));
+        v_.x = xmax, v_.u = umax;
+        v_.y = ymin, v_.v = vmin;
+        memcpy(verts++, &v_, sizeof(v_));
+        v_.y = ymax, v_.v = vmax;
+        memcpy(verts++, &v_, sizeof(v_));
+        xmin = xmax, umin = umax;
+        quadCount++;
+      }
+      ymin = ymax, vmin = vmax;
+    }
+    engine::graph->flat_render(tex,vert,quadCount);
   }
 }
 void uistage::clear() {
