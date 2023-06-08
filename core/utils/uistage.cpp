@@ -52,20 +52,23 @@ void uistage::draw () {
     vmin = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
     vmax = float(ta.region.pos[1])/float(tex->height());
     
-    float columnList[3]{ymin+split[3], ymax-split[1], ymax};
-    float vList[3]{vmin-float(split[3])/float(tex->height()), vmax+float(split[1])/float(tex->height()), vmax};
-    float rowList[3]{xmin+split[0], xmax-split[2], xmax};
-    float uList[3]{umin+float(split[0])/float(tex->width()), umax-float(split[2])/float(tex->width()), umax};
+    const float columnList[4]{ymin ,ymin+split[3], ymax-split[1], ymax};
+    const float vList[4]{vmin ,vmin-float(split[3])/float(tex->height()), vmax+float(split[1])/float(tex->height()), vmax};
+    const float rowList[4]{xmin ,xmin+split[0], xmax-split[2], xmax};
+    const float uList[4]{umin ,umin+float(split[0])/float(tex->width()), umax-float(split[2])/float(tex->width()), umax};
     size_t quadCount = 0;
     for (size_t i = 0; i < 3; i++) { //vertical list
-      if (columnList[i] == ymin) continue;
-      ymax = columnList[i];
-      vmax = vList[i];
-      xmin = a.pos[0], umin = float(ta.region.pos[0])/float(tex->width());
+      ymin = columnList[i];
+      ymax = columnList[i+1];
+      if (ymax == ymin) continue;
+      vmin = vList[i];
+      vmax = vList[i+1];
       for (size_t j = 0; j < 3; j++) { //horizontal list
-        if (rowList[j] == xmin) continue;
-        xmax = rowList[j];
-        umax = uList[j];
+        xmin = rowList[j];
+        xmax = rowList[j+1];
+        if (xmax == xmin) continue;
+        umin = uList[j];
+        umax = uList[j+1];
         v_.x = xmin, v_.u = umin;
         v_.y = ymin, v_.v = vmin;
         memcpy(verts++, &v_, sizeof(v_));
@@ -76,10 +79,8 @@ void uistage::draw () {
         memcpy(verts++, &v_, sizeof(v_));
         v_.y = ymax, v_.v = vmax;
         memcpy(verts++, &v_, sizeof(v_));
-        xmin = xmax, umin = umax;
         quadCount++;
       }
-      ymin = ymax, vmin = vmax;
     }
     engine::graph->flat_render(tex,vert,quadCount);
   }
