@@ -46,8 +46,11 @@ void uistage::draw () {
     const unsigned int *split = ta.region.patch;
     
     memcpy(&v_.color, a.color, sizeof(v_.color));
-    xmin = a.pos[0], ymin = a.pos[1], xmax = xmin+a.size[0], ymax = ymin+a.size[1];
-    umin = float(ta.region.pos[0])/float(tex->width()), vmin = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height()), umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width()), vmax = float(ta.region.pos[1])/float(tex->height());
+    ymin = a.pos[1], ymax = ymin+a.size[1];
+    xmax = xmin+a.size[0];
+    umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+    vmin = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
+    vmax = float(ta.region.pos[1])/float(tex->height());
     
     float columnList[3]{ymin+split[3], ymax-split[1], ymax};
     float vList[3]{vmin-float(split[3])/float(tex->height()), vmax+float(split[1])/float(tex->height()), vmax};
@@ -55,12 +58,13 @@ void uistage::draw () {
     float uList[3]{umin+float(split[0])/float(tex->width()), umax-float(split[2])/float(tex->width()), umax};
     size_t quadCount = 0;
     for (size_t i = 0; i < 3; i++) { //vertical list
+      if (columnList[i] == ymin) continue;
       ymax = columnList[i];
-      if (ymax == ymin) continue;
       vmax = vList[i];
-      for (size_t j = 0; j < 3; j++) { //horizontal lost
+      xmin = a.pos[0], umin = float(ta.region.pos[0])/float(tex->width());
+      for (size_t j = 0; j < 3; j++) { //horizontal list
+        if (rowList[j] == xmin) continue;
         xmax = rowList[j];
-        if (xmax == xmin) continue;
         umax = uList[j];
         v_.x = xmin, v_.u = umin;
         v_.y = ymin, v_.v = vmin;
