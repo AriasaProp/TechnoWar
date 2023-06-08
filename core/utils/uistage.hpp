@@ -7,7 +7,7 @@
 namespace uistage {
   struct actor {
     float pos[2], size[2];
-    unsigned char color[4];
+    unsigned char color[4] = {0xff,0xff,0xff,0xff};
     std::string texKey;
     actor();
     ~actor();
