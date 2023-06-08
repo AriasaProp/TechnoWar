@@ -63,7 +63,7 @@ void uistage::draw () {
     
     uList[0] = float(ta.region.pos[0])/float(tex->width());
     uList[3] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
-    uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width())
+    uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
     uList[2] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
     
     size_t quadCount = 0;
