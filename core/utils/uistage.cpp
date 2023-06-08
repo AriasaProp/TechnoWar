@@ -42,12 +42,12 @@ void uistage::draw () {
     actor &a = **i;
     textureAtlas &ta = regions[a.texKey];
     engine::texture_core *tex = ta.tex;
-    // left , top, right, bottom
+    // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
     
     memcpy(&v_.color, a.color, sizeof(v_.color));
     xmin = a.pos[0], ymin = a.pos[1], xmax = xmin+a.size[0], ymax = ymin+a.size[1];
-    umin = float(ta.region.pos[0])/float(tex->width()), vmin = float(ta.region.pos[1])/float(tex->height()), umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width()), vmax = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
+    umin = float(ta.region.pos[0])/float(tex->width()), vmin = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height()), umax = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width()), vmax = float(ta.region.pos[1])/float(tex->height());
     
     float columnList[3]{ymin+split[3], ymax-split[1], ymax};
     float vList[3]{vmin-float(split[3])/float(tex->height()), vmax+float(split[1])/float(tex->height()), vmax};
