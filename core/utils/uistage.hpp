@@ -3,14 +3,13 @@
 
 #include <string>
 #include "../engine.hpp"
+#include "math.hpp"
 
 namespace uistage {
   struct actor {
-    float pos[2], size[2];
+    Rect rectangle; 
     unsigned char color[4] = {0xff,0xff,0xff,0xff};
     std::string texKey;
-    actor();
-    ~actor();
   };
   struct texture_region {
     unsigned int pos[2], size[2];
@@ -20,6 +19,9 @@ namespace uistage {
   void act(float);
   void draw();
   void clear();
+  
+  //all actor types
+  actor makeImage(std::string,const Rect&);
 }
 
 #endif //Included_UISTAGE_

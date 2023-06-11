@@ -1,6 +1,8 @@
 #ifndef Included_MATH_
 #define Included_MATH_
 
+//unsafe thread math
+
 #include <cstdint>
 
 // xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)
@@ -29,6 +31,12 @@ namespace clock_count {
   size_t getFPS();
   float getDelta();
 }
+
+struct Rect {
+public:
+  float xmin, ymin, xmax, ymax;
+  Rect(float, float, const Align&, float, float);
+};
 
 namespace matrix4 {
   void idt (float *);

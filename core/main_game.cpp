@@ -12,12 +12,6 @@
 
 struct mMainData {
   engine::mesh_core *mp;
-  engine::flat_vertex fV[4] = {
-      {120.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 0, 1},
-      {120.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 0, 0},
-      {520.f, 120.f, {0xff, 0xf0, 0x01, 0xff}, 1, 1},
-      {520.f, 520.f, {0xff, 0xf0, 0x01, 0xff}, 1, 0}};
-  engine::texture_core *myTex;
   bmfont *fnt;
   uistage::actor *btn1, *btn2;
 };
@@ -25,12 +19,6 @@ struct mMainData {
 Main::Main () {
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
-  {
-    int x, y;
-    unsigned char *tD = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
-    mdata->myTex = engine::graph->gen_texture (x, y, tD);
-    stbi_image_free (tD);
-  }
   engine::mesh_core::data vert[24] = {
       // front red
       {{+350.0f, +350.0f, -350.0f}, {0xff, 0x00, 0x00, 0xff}},
@@ -69,27 +57,25 @@ Main::Main () {
   //add texture regions
   {
     int x, y;
-    unsigned char *t = stbi_load_from_assets ("btn1.png", &x, &y, nullptr, STBI_rgb_alpha);
-    engine::texture_core *tex = engine::graph->gen_texture (x, y, t);
+    unsigned char *t;
+    t = stbi_load_from_assets ("btn1.png", &x, &y, nullptr, STBI_rgb_alpha);
+    engine::texture_core *tex;
+    tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("btn1" ,tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
     t = stbi_load_from_assets ("btn1_.png", &x, &y, nullptr, STBI_rgb_alpha);
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
+    t = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
+    tex = engine::graph->gen_texture (x, y, t);
+    uistage::addTextureRegion("test",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {}});
+    stbi_image_free (t);
   }
-  uistage::actor *btn = mdata->btn1 = new uistage::actor;
-  btn->pos[0] = 300.f;
-  btn->pos[1] = 150.f;
-  btn->size[0] = 200.f;
-  btn->size[1] = 200.f;
-  btn->texKey =  "btn1";
-  btn = mdata->btn2 = new uistage::actor;
-  btn->pos[0] = 500.f;
-  btn->pos[1] = 150.f;
-  btn->size[0] = 200.f;
-  btn->size[1] = 200.f;
-  btn->texKey =  "btn1_";
+  uistage::makeImage("btn1",Rect(600,200,ALIGN_CENTER, 400, 100));
+  uistage::makeImage("btn1_",Rect(600,300,ALIGN_CENTER, 400, 100));
+  uistage::makeImage("test",Rect(700,200,ALIGN_CENTER, 100, 100));
+  
   resume();
 }
 void Main::resume () {
@@ -105,13 +91,12 @@ void Main::render () {
                    M_PI / 3.0f * delta  // 60° /s
   );
   engine::graph->mesh_render (&mdata->mp, 1);
-  engine::graph->flat_render (mdata->myTex, mdata->fV, 1);
   
   uistage::draw();
   
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
   mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
-  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "8/06/2023");
+  mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "10/06/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "feature/ui");
   clock_count::render();
 }
@@ -119,12 +104,9 @@ void Main::pause () {
 }
 Main::~Main () {
   clock_count::end();
-  delete mdata->btn1;
-  delete mdata->btn2;
   uistage::clear();
   
   engine::graph->delete_mesh (mdata->mp);
-  delete mdata->myTex;
   delete mdata->fnt;
   delete mdata;
 }

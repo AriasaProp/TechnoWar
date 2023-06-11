@@ -1,5 +1,4 @@
 #include "uistage.hpp"
-#include "math.hpp"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -9,15 +8,6 @@ struct textureAtlas {
 };
 static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<uistage::actor*> actors;
-
-uistage::actor::actor(){
-  actors.insert(this);
-}
-uistage::actor::~actor() {
-  auto it = actors.find(this);
-  if (it != actors.end())
-    actors.erase(it);
-}
 
 /*
 void uistage::loadoutSkin(const char *filename) {
@@ -46,8 +36,8 @@ void uistage::draw () {
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
     memcpy(&v_.color, act->color, sizeof(v_.color));
-    cList[0] = act->pos[1];
-    cList[3] = cList[0] + act->size[1];
+    cList[0] = act->rectangle.ymin;
+    cList[3] = act->rectangle.ymax;
     cList[1] = cList[0] + split[3];
     cList[2] = cList[3] - split[1];
     
@@ -56,8 +46,8 @@ void uistage::draw () {
     vList[1] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
     vList[2] = float(ta.region.pos[1]+split[1])/float(tex->height());
     
-    rList[0] = act->pos[0];
-    rList[3] = rList[0] + act->size[0];
+    rList[0] = act->rectangle.xmin;
+    rList[3] = act->rectangle.xmax;
     rList[1] = rList[0] + split[0];
     rList[2] = rList[3] - split[2];
     
@@ -100,4 +90,14 @@ void uistage::clear() {
     delete i->second.tex;
   }
   regions.clear();
+  for (uistage::actor *a : actors)
+    delete a;
+  actors.clear();
+}
+
+uistage::actor makeImage(std::string texKey, const Rect &r) {
+  actors.insert(new actor{
+    .rectangle = r,
+    .texKey = texKey
+  });
 }

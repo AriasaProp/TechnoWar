@@ -5,10 +5,20 @@
 #include <cstring>
 #include <sys/resource.h>
 
-static struct rusage myusage;
+//global temporary for not safe thread
+static union {
+    float mtx[16];
+    struct {
+        float x, y, w, h;
+    } rct;
+    struct {
+        float x, y;
+    } vec;
+    struct rusage myusage;
+} tmp;
 
 unsigned long memory_usage::mem_usage () {
-  getrusage(RUSAGE_SELF, &myusage);
+  getrusage(RUSAGE_SELF, &tmp.myusage);
   return myusage.ru_maxrss;
 }
 
@@ -48,58 +58,90 @@ size_t clock_count::getFPS() {
 float clock_count::getDelta() {
   return delta_result;
 }
+//Rect definition
 
-static float tmp[16]{};
+Rect::Rect(float x, float y, const Align &a, float sx, float sy) {
+  unsigned char vert = a & 3;
+  switch (vert) {
+    default:
+      xmin = x;
+      xmax = x+sx;
+      break;
+    case 1:
+      xmin = x-sx*0.5f;
+      xmax = xmin+sx;
+      break;
+    case 2:
+      xmin = x-sx;
+      xmax = x;
+      break;
+  }
+  unsigned char hor = (a >> 2) & 3;
+  switch (hor) {
+    default:
+      ymin = y;
+      ymax = y+sy;
+      break;
+    case 1:
+      ymin = y-sy*0.5f;
+      ymax = ymin+sy;
+      break;
+    case 2:
+      ymin = y-sy;
+      ymax = y;
+      break;
+  }
+}
 
 //matrix4 definition
 void matrix4::idt (float *a) {
-  memset (a, 0, sizeof (tmp));
+  memset (a, 0, sizeof (tmp.mtx));
   a[0] = a[5] = a[10] = a[15] = 1;
 }
 void matrix4::mul (float *a, float *b) {
-  tmp[0] = a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3];
-  tmp[4] = a[0] * b[4] + a[4] * b[5] + a[8] * b[6] + a[12] * b[7];
-  tmp[8] = a[0] * b[8] + a[4] * b[9] + a[8] * b[10] + a[12] * b[11];
-  tmp[12] = a[0] * b[12] + a[4] * b[13] + a[8] * b[14] + a[12] * b[15];
-  tmp[1] = a[1] * b[0] + a[5] * b[1] + a[9] * b[2] + a[13] * b[3];
-  tmp[5] = a[1] * b[4] + a[5] * b[5] + a[9] * b[6] + a[13] * b[7];
-  tmp[9] = a[1] * b[8] + a[5] * b[9] + a[9] * b[10] + a[13] * b[11];
-  tmp[13] = a[1] * b[12] + a[5] * b[13] + a[9] * b[14] + a[13] * b[15];
-  tmp[2] = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3];
-  tmp[6] = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7];
-  tmp[10] = a[2] * b[8] + a[6] * b[9] + a[10] * b[10] + a[14] * b[11];
-  tmp[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
-  tmp[3] = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3];
-  tmp[7] = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7];
-  tmp[11] = a[3] * b[8] + a[7] * b[9] + a[11] * b[10] + a[15] * b[11];
-  tmp[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
-  memcpy (a, tmp, sizeof (tmp));
+  tmp.mtx[0] = a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3];
+  tmp.mtx[4] = a[0] * b[4] + a[4] * b[5] + a[8] * b[6] + a[12] * b[7];
+  tmp.mtx[8] = a[0] * b[8] + a[4] * b[9] + a[8] * b[10] + a[12] * b[11];
+  tmp.mtx[12] = a[0] * b[12] + a[4] * b[13] + a[8] * b[14] + a[12] * b[15];
+  tmp.mtx[1] = a[1] * b[0] + a[5] * b[1] + a[9] * b[2] + a[13] * b[3];
+  tmp.mtx[5] = a[1] * b[4] + a[5] * b[5] + a[9] * b[6] + a[13] * b[7];
+  tmp.mtx[9] = a[1] * b[8] + a[5] * b[9] + a[9] * b[10] + a[13] * b[11];
+  tmp.mtx[13] = a[1] * b[12] + a[5] * b[13] + a[9] * b[14] + a[13] * b[15];
+  tmp.mtx[2] = a[2] * b[0] + a[6] * b[1] + a[10] * b[2] + a[14] * b[3];
+  tmp.mtx[6] = a[2] * b[4] + a[6] * b[5] + a[10] * b[6] + a[14] * b[7];
+  tmp.mtx[10] = a[2] * b[8] + a[6] * b[9] + a[10] * b[10] + a[14] * b[11];
+  tmp.mtx[14] = a[2] * b[12] + a[6] * b[13] + a[10] * b[14] + a[14] * b[15];
+  tmp.mtx[3] = a[3] * b[0] + a[7] * b[1] + a[11] * b[2] + a[15] * b[3];
+  tmp.mtx[7] = a[3] * b[4] + a[7] * b[5] + a[11] * b[6] + a[15] * b[7];
+  tmp.mtx[11] = a[3] * b[8] + a[7] * b[9] + a[11] * b[10] + a[15] * b[11];
+  tmp.mtx[15] = a[3] * b[12] + a[7] * b[13] + a[11] * b[14] + a[15] * b[15];
+  memcpy (a, tmp.mtx, sizeof (tmp.mtx));
 }
 void matrix4::rotate (float *a, float yaw, float pitch, float roll) {
   const float ycos = cos (yaw), ysin = sin (yaw), pcos = cos (pitch), psin = sin (pitch), rcos = cos (roll), rsin = sin (roll);
-  memcpy (tmp, a, sizeof (tmp));
-  a[0] = tmp[0] * pcos * rcos + tmp[4] * (ysin * psin * rcos - ycos * rsin) + tmp[8] * (ycos * psin * rcos + ysin * rsin);
-  a[1] = tmp[1] * pcos * rcos + tmp[5] * (ysin * psin * rcos - ycos * rsin) + tmp[9] * (ycos * psin * rcos + ysin * rsin);
-  a[2] = tmp[2] * pcos * rcos + tmp[6] * (ysin * psin * rcos - ycos * rsin) + tmp[10] * (ycos * psin * rcos + ysin * rsin);
-  a[3] = tmp[3] * pcos * rcos + tmp[7] * (ysin * psin * rcos - ycos * rsin) + tmp[11] * (ycos * psin * rcos + ysin * rsin);
-  a[4] = tmp[0] * pcos * rsin + tmp[4] * (ysin * psin * rsin + ycos * rcos) + tmp[8] * (ycos * psin * rsin - ysin * rcos);
-  a[5] = tmp[1] * pcos * rsin + tmp[5] * (ysin * psin * rsin + ycos * rcos) + tmp[9] * (ycos * psin * rsin - ysin * rcos);
-  a[6] = tmp[2] * pcos * rsin + tmp[6] * (ysin * psin * rsin + ycos * rcos) + tmp[10] * (ycos * psin * rsin - ysin * rcos);
-  a[7] = tmp[3] * pcos * rsin + tmp[7] * (ysin * psin * rsin + ycos * rcos) + tmp[11] * (ycos * psin * rsin - ysin * rcos);
-  a[8] = (tmp[4] * ysin + tmp[8] * ycos) * pcos - tmp[0] * psin;
-  a[9] = (tmp[5] * ysin + tmp[9] * ycos) * pcos - tmp[1] * psin;
-  a[10] = (tmp[6] * ysin + tmp[10] * ycos) * pcos - tmp[2] * psin;
-  a[11] = (tmp[7] * ysin + tmp[11] * ycos) * pcos - tmp[3] * psin;
+  memcpy (tmp.mtx, a, sizeof (tmp.mtx));
+  a[0] = tmp.mtx[0] * pcos * rcos + tmp.mtx[4] * (ysin * psin * rcos - ycos * rsin) + tmp.mtx[8] * (ycos * psin * rcos + ysin * rsin);
+  a[1] = tmp.mtx[1] * pcos * rcos + tmp.mtx[5] * (ysin * psin * rcos - ycos * rsin) + tmp.mtx[9] * (ycos * psin * rcos + ysin * rsin);
+  a[2] = tmp.mtx[2] * pcos * rcos + tmp.mtx[6] * (ysin * psin * rcos - ycos * rsin) + tmp.mtx[10] * (ycos * psin * rcos + ysin * rsin);
+  a[3] = tmp.mtx[3] * pcos * rcos + tmp.mtx[7] * (ysin * psin * rcos - ycos * rsin) + tmp.mtx[11] * (ycos * psin * rcos + ysin * rsin);
+  a[4] = tmp.mtx[0] * pcos * rsin + tmp.mtx[4] * (ysin * psin * rsin + ycos * rcos) + tmp.mtx[8] * (ycos * psin * rsin - ysin * rcos);
+  a[5] = tmp.mtx[1] * pcos * rsin + tmp.mtx[5] * (ysin * psin * rsin + ycos * rcos) + tmp.mtx[9] * (ycos * psin * rsin - ysin * rcos);
+  a[6] = tmp.mtx[2] * pcos * rsin + tmp.mtx[6] * (ysin * psin * rsin + ycos * rcos) + tmp.mtx[10] * (ycos * psin * rsin - ysin * rcos);
+  a[7] = tmp.mtx[3] * pcos * rsin + tmp.mtx[7] * (ysin * psin * rsin + ycos * rcos) + tmp.mtx[11] * (ycos * psin * rsin - ysin * rcos);
+  a[8] = (tmp.mtx[4] * ysin + tmp.mtx[8] * ycos) * pcos - tmp.mtx[0] * psin;
+  a[9] = (tmp.mtx[5] * ysin + tmp.mtx[9] * ycos) * pcos - tmp.mtx[1] * psin;
+  a[10] = (tmp.mtx[6] * ysin + tmp.mtx[10] * ycos) * pcos - tmp.mtx[2] * psin;
+  a[11] = (tmp.mtx[7] * ysin + tmp.mtx[11] * ycos) * pcos - tmp.mtx[3] * psin;
 }
 void matrix4::toOrtho (float *a, float left, float right, float bottom, float top, float near, float far) {
-  memset (a, 0, sizeof (tmp));
+  memset (a, 0, sizeof (tmp.mtx));
   a[0] = 2 / (right - left);
   a[5] = 2 / (top - bottom);
   a[10] = 2 / (near - far);
   a[15] = 1;
 }
 void matrix4::toOrtho2D (float *a, float width, float height) {
-  memset (a, 0, sizeof (tmp));
+  memset (a, 0, sizeof (tmp.mtx));
   a[0] = 2 / width;
   a[5] = 2 / height;
   a[10] = 1;
