@@ -8,7 +8,7 @@
 namespace uistage {
   struct actor {
     Rect rectangle; 
-    unsigned char color[4] = {0xff,0xff,0xff,0xff};
+    unsigned char color[4];
     std::string texKey;
   };
   struct texture_region {
