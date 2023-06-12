@@ -13,7 +13,6 @@
 struct mMainData {
   engine::mesh_core *mp;
   bmfont *fnt;
-  uistage::actor *btn1, *btn2;
 };
 
 Main::Main () {

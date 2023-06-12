@@ -95,7 +95,7 @@ void uistage::clear() {
   actors.clear();
 }
 
-uistage::actor *makeImage(std::string texKey, const Rect &r) {
+uistage::actor *makeImage(std::string texKey, Rect &r) {
   uistage::actor *ua = new uistage::actor{
     .rectangle = r,
     .color = {0xff,0xff,0xff,0xff},

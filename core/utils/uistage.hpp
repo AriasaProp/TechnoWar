@@ -21,7 +21,7 @@ namespace uistage {
   void clear();
   
   //all actor types
-  actor *makeImage(std::string,const Rect&);
+  actor *makeImage(std::string,Rect&);
 }
 
 #endif //Included_UISTAGE_
