@@ -19,7 +19,7 @@ static union {
 
 unsigned long memory_usage::mem_usage () {
   getrusage(RUSAGE_SELF, &tmp.myusage);
-  return myusage.ru_maxrss;
+  return tmp.myusage.ru_maxrss;
 }
 
 static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock;
