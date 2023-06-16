@@ -15,7 +15,7 @@ namespace uistage {
     unsigned int pos[2], size[2];
     unsigned int patch[4];
   };
-  void addBMFont()
+  //void addBMFont();
   void addTextureRegion(std::string,engine::texture_core*, const texture_region &);
   void act(float);
   void draw();
