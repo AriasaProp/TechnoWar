@@ -15,7 +15,6 @@ struct CharDescriptor {
   short Height = 0;
   short XOffset = 0, YOffset = 0;
   short XAdvance = 0;
-  short Page = 0;
 };
 
 // Todo: Add buffer overflow checking.
@@ -26,8 +25,7 @@ bool bmfont::ParseFont (const char *fontfile) {
   const char *as = (const char *)engine::asset->asset_buffer (fontfile, &asl);
   std::string buffer (as, asl);
   std::stringstream buffer_stream (buffer);
-  std::string Line;
-  std::string Read, Key, Value;
+  std::string Line, Read, Key, Value;
   unsigned int i;
 
   CharDescriptor C;
@@ -39,7 +37,7 @@ bool bmfont::ParseFont (const char *fontfile) {
 
     // read the line's type
     LineStream >> Read;
-    /*if (Read == "info") {
+    if (Read == "info") {
       // this holds info data
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -51,13 +49,10 @@ bool bmfont::ParseFont (const char *fontfile) {
         // assign the correct value
         Converter << Value;
         if (Key == "size") {
-          short fontSize;
-          Converter >> fontSize;
-          fscale = fontSize;
+          Converter >> fontSizeBase;
         }
       }
-    } else */
-    if (Read == "common") {
+    } else if (Read == "common") {
       // this holds common data
       while (!LineStream.eof ()) {
         std::stringstream Converter;
@@ -76,8 +71,6 @@ bool bmfont::ParseFont (const char *fontfile) {
           Converter >> Width;
         } else if (Key == "scaleH") {
           Converter >> Height;
-        } else if (Key == "pages") {
-          Converter >> Pages;
         } else if (Key == "outline") {
           Converter >> Outline;
         }
@@ -104,25 +97,22 @@ bool bmfont::ParseFont (const char *fontfile) {
         Value = Read.substr (i + 1);
         // Assign the correct value
         Converter << Value;
-        if (Key == "id") {
+        if (Key == "id")
           Converter >> CharID;
-        } else if (Key == "x") {
+        else if (Key == "x")
           Converter >> C.x;
-        } else if (Key == "y") {
+        else if (Key == "y")
           Converter >> C.y;
-        } else if (Key == "width") {
+        else if (Key == "width")
           Converter >> C.Width;
-        } else if (Key == "height") {
+        else if (Key == "height")
           Converter >> C.Height;
-        } else if (Key == "xoffset") {
+        else if (Key == "xoffset")
           Converter >> C.XOffset;
-        } else if (Key == "yoffset") {
+        else if (Key == "yoffset")
           Converter >> C.YOffset;
-        } else if (Key == "xadvance") {
+        else if (Key == "xadvance")
           Converter >> C.XAdvance;
-        } else if (Key == "page") {
-          Converter >> C.Page;
-        }
       }
       Chars[CharID] = C;
     } else if (Read == "kernings") { // only 1 value
@@ -169,6 +159,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   vsprintf (text, fmt, ap); // And Converts Symbols To Actual Numbers
   va_end (ap);
   unsigned char xpivot = align & 3;
+  float F = fscale();
   switch (xpivot) {
   default: // left
     break;
@@ -178,7 +169,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       if (Chars.find (*t) == Chars.end ()) continue;
       total += Chars[*t].XAdvance;
     }
-    x -= total * 0.5f * fscale;
+    x -= total * 0.5f * F;
     ;
     break;
   }
@@ -188,7 +179,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       if (Chars.find (*t) == Chars.end ()) continue;
       total += Chars[*t].XAdvance;
     }
-    x -= total * fscale;
+    x -= total * F;
     ;
     break;
   }
@@ -198,10 +189,10 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   default:
     break;
   case 1:
-    y += LineHeight * fscale * 0.5f;
+    y += LineHeight * F * 0.5f;
     break;
   case 2:
-    y += LineHeight * fscale;
+    y += LineHeight * F;
     break;
   }
   float x1, y1, x2, y2, u1, v1, u2, v2;
@@ -212,10 +203,10 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     if (Chars.find (*t) == Chars.end ()) continue;
     const CharDescriptor &f = Chars[*t];
     // max, min
-    x1 = x + (f.XOffset * fscale); // minx
-    y1 = y - (f.YOffset * fscale); // maxy
-    x2 = x1 + (f.Width * fscale);  // maxx
-    y2 = y1 - (f.Height * fscale); // miny
+    x1 = x + (f.XOffset * F); // minx
+    y1 = y - (f.YOffset * F); // maxy
+    x2 = x1 + (f.Width * F);  // maxx
+    y2 = y1 - (f.Height * F); // miny
     u1 = f.x / (float)Width;
     v1 = f.y / (float)Height;
     u2 = (f.x + f.Width) / (float)Width;
@@ -259,21 +250,22 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       auto it = Kearn.find (*((unsigned int *)key));
       if (it != Kearn.end ())
         nX += it->second;
-      x += nX * fscale;
+      x += nX * F;
     }
   }
   engine::graph->flat_render (ftexid, texlst, n);
 }
+float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
   memcpy (&fcolor, (unsigned char[]){r, g, b, a}, sizeof (unsigned char) * 4);
 }
-void bmfont::SetScale (float scale) {
-  fscale = scale;
+void bmfont::setFontSize (float size) { //px
+  fontSizeUsed = size;
 }
 float bmfont::GetHeight () {
-  return (float)LineHeight * fscale;
+  return (float)LineHeight * fscale();
 }
-bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr), fscale (1.9f) {
+bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   int x, y;
   unsigned int datRI;
   ParseFont (fontfile);

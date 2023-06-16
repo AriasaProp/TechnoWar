@@ -12,7 +12,7 @@ struct CharDescriptor;
 struct bmfont {
 public:
   void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
-  void SetScale (float);
+  void setFontSize (float);//px
   float GetHeight ();
   void draw_text (float, float, Align, const char *, ...);
   bmfont (const char *);
@@ -23,14 +23,14 @@ private:
   short Base;
   short Width;
   short Height;
-  short Pages;
   short Outline;
   std::unordered_map<int, CharDescriptor> Chars;
   std::unordered_map<unsigned int, float> Kearn;
   int fcolor;
   engine::texture_core *ftexid;
-  float fscale;
-
+  float fontSizeBase, fontSizeUsed;
+  
+  float fscale ();
   bool ParseFont (const char *);
 };
 

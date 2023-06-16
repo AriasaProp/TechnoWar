@@ -73,7 +73,7 @@ Main::Main () {
   }
   uistage::makeImage("btn1",Rect(600,200,ALIGN_CENTER, 400, 100));
   uistage::makeImage("btn1_",Rect(600,300,ALIGN_CENTER, 400, 100));
-  uistage::makeImage("test",Rect(700,200,ALIGN_CENTER, 100, 100));
+  uistage::makeImage("test",Rect(1000,200,ALIGN_CENTER, 300, 300));
   
   resume();
 }
