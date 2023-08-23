@@ -3,17 +3,25 @@ name: Build & Publish Android Artifacts
 on:
   workflow_dispatch:
     inputs:
-      build-type:
-        description: 'Build type (release/debug)'
-        required: true
+      format_java:
+        default: false
+        required: false
+        type: boolean
+      format_cpp:
+        default: false
+        required: false
+        type: boolean
+      build_type:
         default: 'debug'
+        required: false
+        options:
+          - debug
+          - release
+        type: choice
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      #If the input isn't make sense, it will be 'debug'.
-      buildType: ${{ github.event.inputs.build-type == 'release' && 'release' || 'debug'}}
     steps:
     - name: Check
       uses: actions/checkout@v3.5.2
@@ -23,13 +31,30 @@ jobs:
         java-version: '11'
         distribution: 'temurin'
         cache: 'gradle'
-    - name: Setup Gradle
+    - name: Java Format
+      if:  ${{ inputs.format_java }}
+      uses: axel-op/googlejavaformat-action@v3.6.0
+      with:
+        files: "android/src/**/*.java"
+        args: "-r -a"
+    - name: Global Cpp Format
+      if:  ${{ inputs.format_cpp }}
+      run: |
+        git config --global user.email "ikomangwidiadaariasa12@gmail.com"
+        git config --global user.name "AriasaProp"
+        sudo apt-get install -y clang-format
+        find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+        git add .
+        git commit -m "reformating cpp"
+        git push
+    - name: Gradle Build ${{ inputs.build_type }}
       uses: gradle/gradle-build-action@v2.4.2
       with:
         gradle-version: 8.1.1
-        arguments: :android:build -P${{ env.buildType }}
+        arguments: :android:build -P${{ inputs.build_type }}
     - name: Publish Artifacts
       uses: actions/upload-artifact@v3.1.2
       with:
         name: buildAPK
-        path: ${{ github.workspace }}/android/build/outputs/apk/${{ env.buildType }}/android-${{ env.buildType }}.apk
+        path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
+

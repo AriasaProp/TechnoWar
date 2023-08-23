@@ -22,6 +22,7 @@ android {
         multiDexEnabled true
         buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
         proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        testCoverageEnabled true
     }
     
     buildTypes {
@@ -32,6 +33,13 @@ android {
             minifyEnabled true
         }
     }
+    testOptions.unitTests.all {
+        testLogging {
+            events "passed", "skipped", "failed", "standardOut", "standardError"
+            showStandardStreams true
+            exceptionFormat 'full'
+        }
+    }
     externalNativeBuild {
         cmake {
             path "src/main/cpp/CMakeLists.txt"
@@ -39,4 +47,11 @@ android {
     }
 }
 
-dependencies {}
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}

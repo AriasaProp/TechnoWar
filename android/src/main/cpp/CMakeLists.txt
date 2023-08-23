@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -DVK_USE_PLATFORM_ANDROID_KHR \
     -DVK_NO_PROTOTYPES \
     -fexceptions -frtti")
-set(CORE_SRC "../../../../core")
+set(CORE_SRC "../../../../core/src/main")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
