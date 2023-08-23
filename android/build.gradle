@@ -20,19 +20,21 @@ android {
         versionName "0"
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
-        buildConfigField "String", "CMAKE_VERSION", "\"" + System.getenv("CMAKE_VERSION") + "\""
-        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        testCoverageEnabled true
+        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
     
     buildTypes {
         debug {
             minifyEnabled false
+            testCoverageEnabled true
         }
         release {
             minifyEnabled true
+            testCoverageEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
     testOptions.unitTests.all {
         testLogging {
             events "passed", "skipped", "failed", "standardOut", "standardError"
