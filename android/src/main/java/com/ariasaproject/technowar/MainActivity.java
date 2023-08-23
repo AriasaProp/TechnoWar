@@ -1,6 +1,5 @@
 package com.ariasaproject.technowar;
 
-
 import android.app.NativeActivity;
 import android.os.Build;
 import android.os.Bundle;
