@@ -39,7 +39,7 @@ jobs:
         distribution: 'temurin'
         cache: 'gradle'
     - name: Java Format
-      if:  ${{ inputs.format_java }} && ${{ inputs.platform_type == 'android' }} 
+      if:  ${{ inputs.format_java && (inputs.platform_type == 'android') }} 
       uses: axel-op/googlejavaformat-action@v3.6.0
       with:
         files: "android/src/**/*.java"

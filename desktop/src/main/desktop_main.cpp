@@ -72,6 +72,12 @@ LRESULT CALLBACK WindowProc (HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   return DefWindowProc (hwnd, uMsg, wParam, lParam);
 }
+int main () {
+  int a = 7;
+  a -= 3;
+  std::cout << "Hello there! in Windows" << std::endl;
+  return 0;
+}
 #elif __unix__ // all unices, not all compilers
 #include <iostream>
 int main () {
