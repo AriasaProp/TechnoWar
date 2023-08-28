@@ -11,7 +11,6 @@
 #include <string>
 #include <sys/resource.h>
 #include <unistd.h>
-#include <cassert>
 
 #include <android/configuration.h>
 #include <android/looper.h>
@@ -283,7 +282,7 @@ static void onDestroy (ANativeActivity *activity) {
   activity->instance = nullptr;
   
   jclass mainActivity = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
-  if (activity->env->UnegisterNatives(mainActivity) != JNI_OK) throw("Failed unload JNI method!");
+  if (activity->env->UnregisterNatives(mainActivity) != JNI_OK) throw("Failed unload JNI method!");
 }
 
 void insetNative (JNIEnv*, jobject, jint, jint, jint, jint);
