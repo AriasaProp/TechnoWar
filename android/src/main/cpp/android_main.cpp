@@ -11,6 +11,7 @@
 #include <string>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <cassert>
 
 #include <android/configuration.h>
 #include <android/looper.h>
@@ -280,17 +281,20 @@ static void onDestroy (ANativeActivity *activity) {
   pthread_mutex_destroy (&app->mutex);
   delete app;
   activity->instance = nullptr;
+  
+  jclass mainActivity = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
+  if (activity->env->UnegisterNatives(mainActivity) != JNI_OK) throw("Failed unload JNI method!");
 }
 
-void insetNative (JNIEnv *, jobject, jint, jint, jint, jint);
+void insetNative (JNIEnv*, jobject, jint, jint, jint, jint);
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
-  jclass c = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
-  if (c == nullptr) throw ("JNI cannot find class MainActivity");
+  jclass mainActivity = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
+  if (mainActivity == nullptr) throw ("JNI cannot find class MainActivity");
   static const JNINativeMethod metnat[] = {
     {"setInsets", "(IIII)V", reinterpret_cast<void*>(insetNative)}
   };
-  if (activity->env->RegisterNatives(c, metnat, 1) != JNI_OK) throw("Failed load JNI method!");
+  if (activity->env->RegisterNatives(mainActivity, metnat, 1) != JNI_OK) LOGE("Failed load JNI method!");
   
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
