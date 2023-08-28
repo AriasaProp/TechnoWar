@@ -82,7 +82,7 @@ public class MainActivity extends NativeActivity {
                                     // unsuported ?
                                     // cause floating window
                                 }
-                                setInsets(insetsL, insetsT, insetsR, insetsB);
+                                insetNative(insetsL, insetsT, insetsR, insetsB);
                                 return insets;
                             }
                         });
