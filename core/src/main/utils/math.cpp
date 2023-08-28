@@ -22,22 +22,22 @@ unsigned long memory_usage::mem_usage () {
   return tmp.myusage.ru_maxrss;
 }
 
-static std::chrono::time_point<std::chrono::high_resolution_clock> start_clock;
-static std::chrono::time_point<std::chrono::high_resolution_clock> end_clock;
+static std::chrono::time_point<std::chrono::steady_clock> start_clock;
+static std::chrono::time_point<std::chrono::steady_clock> end_clock;
 static float delta_result;
 static float delta_count;
 static size_t FPS_result;
 static size_t frame_count;
 
 void clock_count::start() {
-  start_clock = std::chrono::high_resolution_clock::now ();
+  start_clock = std::chrono::steady_clock::now ();
   frame_count = 0;
   FPS_result = 0;
   delta_count = 0;
   delta_result = 0;
 }
 void clock_count::render() {
-  end_clock = std::chrono::high_resolution_clock::now ();
+  end_clock = std::chrono::steady_clock::now ();
   delta_result = float (std::chrono::duration_cast<std::chrono::microseconds> (end_clock - start_clock).count ()) / 1000000.f;
   delta_count += delta_result;
   frame_count++;

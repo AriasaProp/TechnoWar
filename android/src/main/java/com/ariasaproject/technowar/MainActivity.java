@@ -86,7 +86,6 @@ public class MainActivity extends NativeActivity {
                                 return insets;
                             }
                         });
-        // callToast("Create done!");
     }
 
     @Override
@@ -97,38 +96,31 @@ public class MainActivity extends NativeActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // callToast("On Resume");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        // callToast("On Pause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        // callToast("On Stop");
     }
 
     @Override
     protected void onDestroy() {
-        // callToast("On Destroy");
         super.onDestroy();
-        // callToast("Destroyed");
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         getWindow().getDecorView().requestApplyInsets();
         super.surfaceCreated(holder);
-        // callToast("Surface Created");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        // callToast("on Surface Changed!");
         super.surfaceChanged(holder, format, width, height);
     }
 
@@ -141,10 +133,5 @@ public class MainActivity extends NativeActivity {
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
-        // callToast("Surface Destroyed");
-    }
-
-    void callToast(CharSequence msg) {
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     }
 }

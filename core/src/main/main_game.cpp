@@ -80,7 +80,6 @@ Main::Main () {
 void Main::resume () {
   clock_count::start();
 }
-//AtomicCounter averagefps(10);
 void Main::render () {
   float delta = clock_count::getDelta();
   engine::graph->clear (7);
