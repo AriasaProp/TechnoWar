@@ -287,7 +287,7 @@ void setInsets (JNIEnv *, jobject, jint, jint, jint, jint);
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   JNIEnv *env = activity->env;
   jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
-  if (c == nullptr) return JNI_ERR;
+  if (c == nullptr) throw ("JNI cannot find class MainActivity");
 
   // Register your class' native methods.
   static const JNINativeMethod metnat {"setInsets", "(IIII)V", reinterpret_cast<void*>(setInsets)};
