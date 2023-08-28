@@ -13,7 +13,7 @@ public class MainActivity extends NativeActivity {
         System.loadLibrary("ext");
     }
 
-    static native void setInsets(int left, int top, int right, int bottom);
+    native void setInsets(int left, int top, int right, int bottom);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

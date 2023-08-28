@@ -20,6 +20,7 @@
 #include "engine.hpp"
 #include "log.hpp"
 #include "main_game.hpp"
+#include <jni.h>
 
 #include "android_asset/android_asset.hpp"
 #include "android_input/android_input.hpp"
@@ -281,7 +282,21 @@ static void onDestroy (ANativeActivity *activity) {
   activity->instance = nullptr;
 }
 
+void setInsets (JNIEnv *, jobject, jint, jint, jint, jint);
+
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
+  JNIEnv *env = activity->env;
+  // Find your class. JNI_OnLoad is called from the correct class loader context for this to work.
+  jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
+  if (c == nullptr) return JNI_ERR;
+
+  // Register your class' native methods.
+  static const JNINativeMethod method {"setInsets", "(IIII)V", reinterpret_cast<void*>(setInsets)};
+  if (env->RegisterNatives(c, &methods, 1) != JNI_OK) throw("Failed load JNI method!");
+  /*
+  
+
+  */
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
@@ -313,9 +328,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 }
 
 // native MainActivity.java
-#include <jni.h>
 
-extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_setInsets (JNIEnv *, jclass, jint left, jint top, jint right, jint bottom) {
+void setInsets (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;
   a_graphics->cur_safe_insets[1] = top;
