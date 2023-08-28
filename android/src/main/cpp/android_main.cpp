@@ -280,23 +280,9 @@ static void onDestroy (ANativeActivity *activity) {
   pthread_mutex_destroy (&app->mutex);
   delete app;
   activity->instance = nullptr;
-  /*
-  jclass mainActivity = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
-  if (activity->env->UnregisterNatives(mainActivity) != JNI_OK) throw("Failed unload JNI method!");
-  */
 }
 
-JNIEXPORT void JNICALL insetNative (JNIEnv*, jobject, jint, jint, jint, jint);
-
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
-  
-  jclass mainActivity = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
-  if (mainActivity == nullptr) LOGE("JNI cannot find class MainActivity");
-  static const JNINativeMethod metnat[] = {
-    {"insetNative", "(IIII)V", reinterpret_cast<void*>(insetNative)}
-  };
-  if (activity->env->RegisterNatives(mainActivity, metnat, 1) != JNI_OK) LOGE("Failed load JNI method!");
-  
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
@@ -329,8 +315,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 // native MainActivity.java
 
-//extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
-JNIEXPORT void JNICALL insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
+extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;
   a_graphics->cur_safe_insets[1] = top;
