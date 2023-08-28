@@ -282,20 +282,16 @@ static void onDestroy (ANativeActivity *activity) {
   activity->instance = nullptr;
 }
 
-void setInsets (JNIEnv *, jobject, jint, jint, jint, jint);
+void insetNative (JNIEnv *, jobject, jint, jint, jint, jint);
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
-  JNIEnv *env = activity->env;
-  jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
+  jclass c = activity->env->FindClass("com/ariasaproject/technowar/MainActivity");
   if (c == nullptr) throw ("JNI cannot find class MainActivity");
-
-  // Register your class' native methods.
-  static const JNINativeMethod metnat {"setInsets", "(IIII)V", reinterpret_cast<void*>(setInsets)};
-  if (env->RegisterNatives(c, &metnat, 1) != JNI_OK) throw("Failed load JNI method!");
-  /*
+  static const JNINativeMethod metnat[] = {
+    {"setInsets", "(IIII)V", reinterpret_cast<void*>(insetNative)}
+  };
+  if (activity->env->RegisterNatives(c, metnat, 1) != JNI_OK) throw("Failed load JNI method!");
   
-
-  */
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
@@ -328,7 +324,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 // native MainActivity.java
 
-void setInsets (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
+void insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;
   a_graphics->cur_safe_insets[1] = top;
