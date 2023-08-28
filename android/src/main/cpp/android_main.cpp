@@ -286,7 +286,7 @@ static void onDestroy (ANativeActivity *activity) {
   */
 }
 
-static void insetNative (JNIEnv*, jobject, jint, jint, jint, jint);
+JNIEXPORT void JNICALL insetNative (JNIEnv*, jobject, jint, jint, jint, jint);
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   
@@ -330,7 +330,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 // native MainActivity.java
 
 //extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
-static void insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void JNICALL insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;
   a_graphics->cur_safe_insets[1] = top;
