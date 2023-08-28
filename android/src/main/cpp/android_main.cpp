@@ -286,13 +286,12 @@ void setInsets (JNIEnv *, jobject, jint, jint, jint, jint);
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   JNIEnv *env = activity->env;
-  // Find your class. JNI_OnLoad is called from the correct class loader context for this to work.
   jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
   if (c == nullptr) return JNI_ERR;
 
   // Register your class' native methods.
-  static const JNINativeMethod method {"setInsets", "(IIII)V", reinterpret_cast<void*>(setInsets)};
-  if (env->RegisterNatives(c, &methods, 1) != JNI_OK) throw("Failed load JNI method!");
+  static const JNINativeMethod metnat {"setInsets", "(IIII)V", reinterpret_cast<void*>(setInsets)};
+  if (env->RegisterNatives(c, &metnat, 1) != JNI_OK) throw("Failed load JNI method!");
   /*
   
 
