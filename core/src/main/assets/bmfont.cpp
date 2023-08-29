@@ -200,12 +200,16 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     const CharDescriptor &f = Chars[*t];
-    engine::graph->clearcolor(1,0,0,1);
     // max, min
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
     x2 = x1 + (f.Width * F);  // maxx
     y2 = y1 - (f.Height * F); // miny
+    float r, g;
+    if ((x2-x1) > 0) r = 1;
+    if ((y1-y2) > 0) g = 1;
+    engine::graph->clearcolor(r,g,0,1);
+    
     u1 = f.x / (float)Width;
     v1 = f.y / (float)Height;
     u2 = (f.x + f.Width) / (float)Width;
