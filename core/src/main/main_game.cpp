@@ -104,7 +104,7 @@ void Main::render () {
     {300,0, { 0xff,0xff,0xff,0xff }, 1, 0},
     {300, 500, { 0xff,0xff,0xff,0xff }, 1, 1}
   };
-  engine::graph->flat_render(tc, vers, 1);
+  engine::graph->flat_render(mdata->tc, vers, 1);
 }
 void Main::pause () {
 }
