@@ -1,5 +1,5 @@
 #include "math.hpp"
-
+// math is not multithread safe.
 #include <cmath>
 #include <chrono>
 #include <cstring>

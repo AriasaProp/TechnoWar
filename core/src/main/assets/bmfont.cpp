@@ -11,8 +11,7 @@
 
 struct CharDescriptor {
   short x = 0, y = 0;
-  short Width = 0;
-  short Height = 0;
+  short Width = 0, Height = 0;
   short XOffset = 0, YOffset = 0;
   short XAdvance = 0;
 };
@@ -202,9 +201,6 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     CharDescriptor &f = Chars[*t];
-    if (f.Width <= 0) f.Width = 10;
-    if (f.Height <= 0) f.Height = 10;
-    
     // max, min
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
@@ -261,7 +257,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (nullptr/*ftexid*/, texlst, n);
+  engine::graph->flat_render (ftexid, texlst, n);
   delete[] texlst;
 }
 float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}

@@ -102,10 +102,10 @@ void Main::render () {
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   clock_count::render();
   engine::flat_vertex vers[] {
-    {0,0, { 0xff,0xff,0xff,0xff }, 0.814453125f, 0.03125f},
-    {0, 500, { 0xff,0xff,0xff,0xff }, 0.814453125f, 0.f},
-    {300,0, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.03125f},
-    {300, 500, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.f}
+    {0,0, { 0xff,0xff,0xff,0xff }, 0, 1},
+    {0, 500, { 0xff,0xff,0xff,0xff }, 0, 0},
+    {300,0, { 0xff,0xff,0xff,0xff }, 1, 1},
+    {300, 500, { 0xff,0xff,0xff,0xff }, 1, 0}
   };
   engine::graph->flat_render(mdata->tc, vers, 1);
 }
