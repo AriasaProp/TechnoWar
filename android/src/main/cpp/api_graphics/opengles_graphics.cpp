@@ -99,8 +99,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
       // made root for null texture test
       {
         glGenTextures (1, &mgl_data->nullTextureId);
-        unsigned char data[16]{
-            0xff, 0xff, 0xff, 0xff, 0x11, 0x11, 0x11, 0xff, 0x11, 0x11, 0x11, 0xff, 0xff, 0xff, 0xff, 0xff};
+        unsigned char data[16]{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
         glBindTexture (GL_TEXTURE_2D, mgl_data->nullTextureId);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -183,6 +182,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
           indexs[j + 2] = indexs[j + 4] = k++;
           indexs[j + 3] = k++;
         }
+        // 0, 1, 2, 3, 2, 1
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mgl_data->ui_ibo);
         glBufferData (GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof (unsigned short), (void *)indexs, GL_STATIC_DRAW);
         glBindBuffer (GL_ARRAY_BUFFER, mgl_data->ui_vbo);

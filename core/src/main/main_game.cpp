@@ -12,6 +12,7 @@
 
 struct mMainData {
   engine::mesh_core *mp;
+  engine::texture_core *tc;
   bmfont *fnt;
 };
 
@@ -67,7 +68,7 @@ Main::Main () {
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
     t = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
-    tex = engine::graph->gen_texture (x, y, t);
+    tc = tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("test",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {}});
     stbi_image_free (t);
   }
@@ -99,11 +100,11 @@ void Main::render () {
   clock_count::render();
   engine::flat_vertex vers[] {
     {0,0, { 0xff,0xff,0xff,0xff }, 0, 0},
-    {300,0, { 0xff,0xff,0xff,0xff }, 0, 0},
-    {0, 500, { 0xff,0xff,0xff,0xff }, 0, 0},
-    {300, 500, { 0xff,0xff,0xff,0xff }, 0, 0}
+    {0, 500, { 0xff,0xff,0xff,0xff }, 0, 1},
+    {300,0, { 0xff,0xff,0xff,0xff }, 1, 0},
+    {300, 500, { 0xff,0xff,0xff,0xff }, 1, 1}
   };
-  engine::graph->flat_render(nullptr, vers, 1);
+  engine::graph->flat_render(tc, vers, 1);
 }
 void Main::pause () {
 }
