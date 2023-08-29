@@ -221,21 +221,21 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
 
     cur_tex++;
     
-    // 1,1 Texture Coord, maxx miny
-    cur_tex->x = x2;
-    cur_tex->y = y2;
-    memcpy (&cur_tex->color, &fcolor, 4);
-    cur_tex->u = u2;
-    cur_tex->v = v2;
-
-    cur_tex++;
-    
     // 0,0 Texture Coord, minx maxy
     cur_tex->x = x1;
     cur_tex->y = y1;
     memcpy (&cur_tex->color, &fcolor, 4);
     cur_tex->u = u1;
     cur_tex->v = v1;
+
+    cur_tex++;
+    
+    // 1,1 Texture Coord, maxx miny
+    cur_tex->x = x2;
+    cur_tex->y = y2;
+    memcpy (&cur_tex->color, &fcolor, 4);
+    cur_tex->u = u2;
+    cur_tex->v = v2;
 
     cur_tex++;
     
@@ -257,7 +257,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (nullptr/*ftexid*/, texlst, n);
+  engine::graph->flat_render (ftexid, texlst, n);
   delete[] texlst;
 }
 float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}
