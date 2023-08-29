@@ -67,7 +67,7 @@ Main::Main () {
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
-    t = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
+    t = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
     mdata->tc = tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("test",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {}});
     stbi_image_free (t);
