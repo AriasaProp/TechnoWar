@@ -67,7 +67,7 @@ Main::Main () {
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("btn1_",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {10,10,10,10}});
     stbi_image_free (t);
-    t = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
+    t = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
     mdata->tc = tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("test",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {}});
     stbi_image_free (t);
@@ -76,6 +76,9 @@ Main::Main () {
   uistage::makeImage("btn1_",Rect(600,300,ALIGN_CENTER, 400, 100));
   uistage::makeImage("test",Rect(1000,200,ALIGN_CENTER, 300, 300));
   
+  unsigned char *t = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
+  mdata->tc = engine::graph->gen_texture (x, y, t);
+  stbi_image_free (t);
   resume();
 }
 void Main::resume () {
@@ -99,10 +102,10 @@ void Main::render () {
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   clock_count::render();
   engine::flat_vertex vers[] {
-    {0,0, { 0xff,0xff,0xff,0xff }, 0, 1},
-    {0, 500, { 0xff,0xff,0xff,0xff }, 0, 0},
-    {300,0, { 0xff,0xff,0xff,0xff }, 1, 1},
-    {300, 500, { 0xff,0xff,0xff,0xff }, 1, 0}
+    {0,0, { 0xff,0xff,0xff,0xff }, 0.814453125f, 0.03125f},
+    {0, 500, { 0xff,0xff,0xff,0xff }, 0.814453125f, 0.f},
+    {300,0, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.03125f},
+    {300, 500, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.f}
   };
   engine::graph->flat_render(mdata->tc, vers, 1);
 }
