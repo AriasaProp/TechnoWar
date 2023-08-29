@@ -199,7 +199,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   engine::flat_vertex *cur_tex = texlst;
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
-    const CharDescriptor &f = Chars[*t];
+    CharDescriptor &f = Chars[*t];
     // max, min
     if (f.Width <= 0) f.Width = 10;
     if (f.Height <= 0) f.Height = 10;
