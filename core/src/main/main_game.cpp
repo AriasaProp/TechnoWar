@@ -97,12 +97,11 @@ void Main::render () {
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "10/06/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   clock_count::render();
-  unsigned char clT[] { 0xff,0xff,0xff,0xff };
   engine::flat_vertex vers[] {
-    {0,0, clT, 0, 0},
-    {300,0, clT, 0, 0},
-    {0, 500, clT, 0, 0},
-    {300, 500, clT, 0, 0}
+    {0,0, { 0xff,0xff,0xff,0xff }, 0, 0},
+    {300,0, { 0xff,0xff,0xff,0xff }, 0, 0},
+    {0, 500, { 0xff,0xff,0xff,0xff }, 0, 0},
+    {300, 500, { 0xff,0xff,0xff,0xff }, 0, 0}
   };
   engine::graph->flat_render(nullptr, vers, 1);
 }
