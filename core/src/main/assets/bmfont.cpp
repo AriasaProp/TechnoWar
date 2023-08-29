@@ -197,7 +197,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   }
   float x1, y1, x2, y2, u1, v1, u2, v2;
   unsigned int n = strlen (text);
-  engine::flat_vertex *texlst = (engine::flat_vertex *)alloca (n * 4 * sizeof (engine::flat_vertex));
+  engine::flat_vertex *texlst = new engine::flat_vertex[n * 4];
   engine::flat_vertex *cur_tex = texlst;
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
@@ -220,6 +220,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     cur_tex->v = v2;
 
     cur_tex++;
+    
     // 0,0 Texture Coord, minx maxy
     cur_tex->x = x1;
     cur_tex->y = y1;
@@ -228,20 +229,22 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     cur_tex->v = v1;
 
     cur_tex++;
-    // 1,1 Texture Coord, maxxy
-    cur_tex->x = x2;
-    cur_tex->y = y2;
-    memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-    cur_tex->u = u2;
-    cur_tex->v = v2;
-
-    cur_tex++;
+    
     // 1,0 Texture Coord, maxx miny
     cur_tex->x = x2;
     cur_tex->y = y1;
     memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
     cur_tex->u = u2;
     cur_tex->v = v1;
+
+    cur_tex++;
+    
+    // 1,1 Texture Coord, maxxy
+    cur_tex->x = x2;
+    cur_tex->y = y2;
+    memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u2;
+    cur_tex->v = v2;
 
     cur_tex++;
     if (*(t + 1)) {
