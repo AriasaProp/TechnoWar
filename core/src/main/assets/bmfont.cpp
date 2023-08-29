@@ -253,7 +253,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (ftexid, texlst, n);
+  engine::graph->flat_render (nullptr/*ftexid*/, texlst, n);
 }
 float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {

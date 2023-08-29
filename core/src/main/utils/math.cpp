@@ -98,6 +98,12 @@ void matrix4::idt (float *a) {
   memset (a, 0, sizeof (tmp.mtx));
   a[0] = a[5] = a[10] = a[15] = 1;
 }
+/*
+a    b    c    d       q    r    s    t       aq+er+is+mt   bq+fr+js+nt   cq+gr+ks+ot   dq+hr+ls+pt
+e    f    g    h   *   u    v    w    x   *   au+ev+iw+mx    bq+fr+js+nt   cq+gr+ks+ot   dq+hr+ls+pt
+i    j    k    l   *   y    z    A    B   *    aq+er+is+mt   bq+fr+js+nt   cq+gr+ks+ot   dq+hr+ls+pt
+m    n    o    p       C    D    E    F        aq+er+is+mt   bq+fr+js+nt   cq+gr+ks+ot   dq+hr+ls+pt
+*/
 void matrix4::mul (float *a, float *b) {
   tmp.mtx[0] = a[0] * b[0] + a[4] * b[1] + a[8] * b[2] + a[12] * b[3];
   tmp.mtx[4] = a[0] * b[4] + a[4] * b[5] + a[8] * b[6] + a[12] * b[7];
