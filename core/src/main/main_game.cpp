@@ -107,7 +107,7 @@ void Main::render () {
     {300,0, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.03125f},
     {300, 500, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.f}
   };
-  engine::graph->flat_render(mdata->tc, vers, 1);
+  engine::graph->flat_render(nullptr, vers, 1);
 }
 void Main::pause () {
 }
@@ -117,5 +117,6 @@ Main::~Main () {
   
   engine::graph->delete_mesh (mdata->mp);
   delete mdata->fnt;
+  delete mdata->tc;
   delete mdata;
 }

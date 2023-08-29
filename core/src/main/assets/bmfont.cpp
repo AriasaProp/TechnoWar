@@ -170,7 +170,6 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       total += Chars[*t].XAdvance;
     }
     x -= total * 0.5f * F;
-    ;
     break;
   }
   case 2: { // right
@@ -180,18 +179,17 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       total += Chars[*t].XAdvance;
     }
     x -= total * F;
-    ;
     break;
   }
   }
   unsigned char ypivot = (align >> 2);
   switch (ypivot) {
-  default:
+  default: // top
     break;
-  case 1:
+  case 1: // center
     y += LineHeight * F * 0.5f;
     break;
-  case 2:
+  case 2: // bottom
     y += LineHeight * F;
     break;
   }
@@ -202,6 +200,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     const CharDescriptor &f = Chars[*t];
+    opengles_graphics::clearcolor(1,0,0,1);
     // max, min
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
