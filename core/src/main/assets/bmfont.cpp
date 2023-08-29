@@ -200,7 +200,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     const CharDescriptor &f = Chars[*t];
-    opengles_graphics::clearcolor(1,0,0,1);
+    engine::graph->clearcolor(1,0,0,1);
     // max, min
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
