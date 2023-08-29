@@ -50,7 +50,9 @@ bool bmfont::ParseFont (const char *fontfile) {
         Converter << Value;
         if (Key == "size") {
           Converter >> fontSizeBase;
+          fontSizeUsed = fontSizeBase;
         }
+        
       }
     } else if (Read == "common") {
       // this holds common data
@@ -200,10 +202,10 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     CharDescriptor &f = Chars[*t];
-    // max, min
     if (f.Width <= 0) f.Width = 10;
     if (f.Height <= 0) f.Height = 10;
     
+    // max, min
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
     x2 = x1 + (f.Width * F);  // maxx

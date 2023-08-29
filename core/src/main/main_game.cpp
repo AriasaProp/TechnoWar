@@ -71,7 +71,7 @@ Main::Main () {
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion("test",tex, uistage::texture_region{{0,0}, {(unsigned int)x,(unsigned int)y}, {}});
     stbi_image_free (t);
-    t = stbi_load_from_assets ("default.png", &x, &y, nullptr, STBI_rgb_alpha);
+    t = stbi_load_from_assets ("test1.jpg", &x, &y, nullptr, STBI_rgb_alpha);
     mdata->tc = engine::graph->gen_texture (x, y, t);
     stbi_image_free (t);
   }
@@ -107,7 +107,7 @@ void Main::render () {
     {300,0, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.03125f},
     {300, 500, { 0xff,0xff,0xff,0xff }, 0.837890625f, 0.f}
   };
-  engine::graph->flat_render(nullptr, vers, 1);
+  engine::graph->flat_render(mdata->tc, vers, 1);
 }
 void Main::pause () {
 }
