@@ -221,20 +221,20 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
 
     cur_tex++;
     
-    // 0,0 Texture Coord, minx maxy
-    cur_tex->x = x1;
-    cur_tex->y = y1;
-    memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
-    cur_tex->u = u1;
-    cur_tex->v = v1;
-
-    cur_tex++;
-    
     // 1,0 Texture Coord, maxx miny
     cur_tex->x = x2;
     cur_tex->y = y1;
     memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
     cur_tex->u = u2;
+    cur_tex->v = v1;
+
+    cur_tex++;
+    
+    // 0,0 Texture Coord, minx maxy
+    cur_tex->x = x1;
+    cur_tex->y = y1;
+    memcpy (&cur_tex->color, &fcolor, 4 * sizeof (unsigned char));
+    cur_tex->u = u1;
     cur_tex->v = v1;
 
     cur_tex++;
@@ -247,6 +247,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     cur_tex->v = v2;
 
     cur_tex++;
+    
     if (*(t + 1)) {
       float nX = f.XAdvance;
       short key[2] = {*t, *(t + 1)};

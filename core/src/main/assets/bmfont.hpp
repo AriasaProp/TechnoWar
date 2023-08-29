@@ -26,7 +26,7 @@ private:
   short Outline;
   std::unordered_map<int, CharDescriptor> Chars;
   std::unordered_map<unsigned int, float> Kearn;
-  int fcolor;
+  uint32_t fcolor;
   engine::texture_core *ftexid;
   float fontSizeBase, fontSizeUsed;
   
