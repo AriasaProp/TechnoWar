@@ -24,8 +24,8 @@ namespace uistage {
   };
   typedef _color unsigned char[4];
   struct actor {
-    Rect getRect() const = 0; 
-    std::string texKey() const = 0;
+    virtual Rect getRect() const = 0; 
+    virtual std::string texKey() const = 0;
   };
   struct texture_region {
     unsigned int pos[2], size[2];
