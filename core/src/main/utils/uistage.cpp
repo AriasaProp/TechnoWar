@@ -124,7 +124,7 @@ struct button_actor: public uistage::actor {
     return keys[0];
   }
 };
-uistage::actor *uistage::makeButton(uistage::texKey_state []keys, Rect r) {
+uistage::actor *uistage::makeButton(uistage::texKey_state keys[], Rect r) {
   std::unordered_map<unsigned int, std::string> K;
   for (uistage::texKey_state &e : keys) {
     K[e.mState] = e.key;
