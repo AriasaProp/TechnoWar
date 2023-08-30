@@ -10,14 +10,6 @@
 struct CharDescriptor;
 
 struct bmfont {
-public:
-  void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
-  void setFontSize (float);//px
-  float GetHeight ();
-  void draw_text (float, float, Align, const char *, ...);
-  bmfont (const char *);
-  ~bmfont ();
-
 private:
   short LineHeight;
   short Base;
@@ -29,9 +21,17 @@ private:
   uint32_t fcolor;
   engine::texture_core *ftexid;
   float fontSizeBase, fontSizeUsed;
-  
   float fscale ();
   bool ParseFont (const char *);
+  
+public:
+  void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
+  void setFontSize (float);//px
+  float GetHeight ();
+  void draw_text (float, float, Align, const char *, ...);
+  bmfont (const char *);
+  ~bmfont ();
+
 };
 
 #endif

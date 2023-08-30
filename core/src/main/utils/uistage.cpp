@@ -5,24 +5,22 @@
 struct textureAtlas {
   engine::texture_core *tex;
   uistage::texture_region region;
+  uistage::_color clr;
 };
 static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<uistage::actor*> actors;
 
-/*
-void uistage::loadoutSkin(const char *filename) {
-  
-}
-*/
-
 void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
-  regions[key] = textureAtlas{tex, reg};
+  regions[key] = textureAtlas{tex, reg, {0xff,0xff,0xff,0xff}};
+}
+void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const uistage::_color clr) {
+  regions[key] = textureAtlas{tex, reg, clr};
 }
 
 void uistage::act (float) {
   //nothing to do
 }
-static engine::flat_vertex vert[1024];
+static engine::flat_vertex vert[1024*1024]; //1024 MB
 static engine::flat_vertex v_;
 static float cList[4];
 static float vList[4];
@@ -31,13 +29,14 @@ static float uList[4];
 void uistage::draw () {
   for (actor *act : actors) {
     engine::flat_vertex *verts = vert;
-    textureAtlas &ta = regions[act->texKey];
+    textureAtlas &ta = regions[act->texKey()];
     engine::texture_core *tex = ta.tex;
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
-    memcpy(&v_.color, act->color, sizeof(v_.color));
-    cList[0] = act->rectangle.ymin;
-    cList[3] = act->rectangle.ymax;
+    memcpy(&v_.color, ta.clr, sizeof(v_.color));
+    Rect &rectangle = act->getRect();
+    cList[0] = rectangle.ymin;
+    cList[3] = rectangle.ymax;
     cList[1] = cList[0] + split[3];
     cList[2] = cList[3] - split[1];
     
@@ -46,8 +45,8 @@ void uistage::draw () {
     vList[1] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
     vList[2] = float(ta.region.pos[1]+split[1])/float(tex->height());
     
-    rList[0] = act->rectangle.xmin;
-    rList[3] = act->rectangle.xmax;
+    rList[0] = rectangle.xmin;
+    rList[3] = rectangle.xmax;
     rList[1] = rList[0] + split[0];
     rList[2] = rList[3] - split[2];
     
@@ -95,11 +94,44 @@ void uistage::clear() {
   actors.clear();
 }
 
+struct image_actor: public uistage::actor {
+  std::string texKey;
+  Rect mRect;
+  
+  Rect getRect() const override {
+    return mRect;
+  }
+  std::string texKey() const override {
+    return texKey;
+  }
+};
 uistage::actor *uistage::makeImage(std::string texKey, Rect r) {
-  uistage::actor *ua = new uistage::actor{
-    .rectangle = r,
-    .color = {0xff,0xff,0xff,0xff},
+  uistage::actor *ua = new image_actor{
+    .mRect = r,
     .texKey = texKey
+  };
+  actors.insert(ua);
+  return ua;
+}
+struct button_actor: public uistage::actor {
+  std::unordered_map<unsigned int, std::string> keys;
+  Rect mRect;
+  
+  Rect getRect() const override {
+    return mRect;
+  }
+  std::string texKey() const override {
+    return keys[0];
+  }
+};
+uistage::actor *uistage::makeButton(uistage::texKey_state []keys, Rect r) {
+  std::unordered_map<unsigned int, std::string> K;
+  for (uistage::texKey_state &e : keys) {
+    K[e.mState] = e.key;
+  };
+  uistage::actor *ua = new button_actor{
+    .mRect = r,
+    .keys = K
   };
   actors.insert(ua);
   return ua;

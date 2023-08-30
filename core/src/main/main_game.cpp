@@ -25,7 +25,7 @@ struct mMainData {
 Main::Main () {
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
-  mdata->fnt->setFontSize(25.f);
+  mdata->fnt->setFontSize(32.f);
   engine::mesh_core::data vert[24] = {
       // front red
       {{+350.0f, +350.0f, -350.0f}, {0xff, 0x00, 0x00, 0xff}},
