@@ -5,15 +5,15 @@
 struct textureAtlas {
   engine::texture_core *tex;
   uistage::texture_region region;
-  uistage::_color clr;
+  uint32_t clr;
 };
 static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<uistage::actor*> actors;
 
 void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
-  regions[key] = textureAtlas{tex, reg, {0xff,0xff,0xff,0xff}};
+  regions[key] = textureAtlas{tex, reg, 0xffffffff};
 }
-void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const uistage::_color clr) {
+void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const size_t clr) {
   regions[key] = textureAtlas{tex, reg, clr};
 }
 
@@ -33,7 +33,7 @@ void uistage::draw () {
     engine::texture_core *tex = ta.tex;
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
-    memcpy(&v_.color, ta.clr, sizeof(v_.color));
+    v_.color = ta.clr;
     Rect &rectangle = act->getRect();
     cList[0] = rectangle.ymin;
     cList[3] = rectangle.ymax;
@@ -130,8 +130,8 @@ uistage::actor *uistage::makeButton(uistage::texKey_state keys[], Rect r) {
     K[e.mState] = e.key;
   };
   uistage::actor *ua = new button_actor{
-    .mRect = r,
-    .keys = K
+    .keys = K,
+    .mRect = r
   };
   actors.insert(ua);
   return ua;

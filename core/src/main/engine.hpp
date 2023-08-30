@@ -5,6 +5,8 @@
 // maximum output log message in char
 #define MAX_GL_MSG 1024
 
+#include <cstdint>
+
 namespace engine {
 // texture core
 struct texture_core {
@@ -15,7 +17,7 @@ struct texture_core {
 // ui_core
 struct flat_vertex {
   float x, y;
-  unsigned char color[4];
+  uint32_t color;
   float u, v;
 };
 // mesh core
@@ -25,7 +27,7 @@ struct mesh_core {
   unsigned int vertex_len, index_len;
   struct data {
     float pos[3];
-    unsigned char color[4];
+    uint32_t color;
   } *vertex = nullptr;
   unsigned short *index = nullptr;
   float trans[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};

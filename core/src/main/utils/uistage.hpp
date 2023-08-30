@@ -1,9 +1,10 @@
 #ifndef Included_UISTAGE_
 #define Included_UISTAGE_
 
-#include <string>
 #include "../engine.hpp"
 #include "math.hpp"
+#include <string>
+#include <cstdint>
 
 namespace uistage {
   struct texKey_state {
@@ -22,7 +23,6 @@ namespace uistage {
     } mState;
     std::string key;
   };
-  typedef unsigned char _color[4];
   struct actor {
     virtual Rect getRect() const = 0; 
     virtual std::string texKey() const = 0;
@@ -33,7 +33,7 @@ namespace uistage {
   };
   //void addBMFont();
   void addTextureRegion(std::string,engine::texture_core*, const texture_region &);
-  void addTextureRegion(std::string,engine::texture_core*, const texture_region &, const _color);
+  void addTextureRegion(std::string,engine::texture_core*, const texture_region &, const size_t);
   void act(float);
   void draw();
   void clear();
