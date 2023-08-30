@@ -22,7 +22,7 @@ namespace uistage {
     } mState;
     std::string key;
   };
-  typedef _color unsigned char[4];
+  typedef unsigned char[4] _color;
   struct actor {
     virtual Rect getRect() const = 0; 
     virtual std::string texKey() const = 0;
