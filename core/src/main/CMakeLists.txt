@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSION OFF)
 
-execute_process(COMMAND date "+%d/%m/%Y" OUTPUT_VARIABLE Build_Date OUTPUT_STRIP_TRAILING_WHITESPACE)
+execute_process(COMMAND date "\"+%d/%m/%Y\"" OUTPUT_VARIABLE Build_Date OUTPUT_STRIP_TRAILING_WHITESPACE)
 message("Release date is: ${Build_Date}")
 add_definitions(-DBuild_Date=${Build_Date})
 
