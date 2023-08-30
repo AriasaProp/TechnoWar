@@ -215,7 +215,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     // 0,1 Texture Coord, minxy
     cur_tex->x = x1;
     cur_tex->y = y2;
-    cur_tex->color = color;
+    cur_tex->color = fcolor;
     cur_tex->u = u1;
     cur_tex->v = v2;
 
@@ -224,7 +224,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     // 0,0 Texture Coord, minx maxy
     cur_tex->x = x1;
     cur_tex->y = y1;
-    cur_tex->color = color;
+    cur_tex->color = fcolor;
     cur_tex->u = u1;
     cur_tex->v = v1;
 
@@ -233,7 +233,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     // 1,1 Texture Coord, maxx miny
     cur_tex->x = x2;
     cur_tex->y = y2;
-    cur_tex->color = color;
+    cur_tex->color = fcolor;
     cur_tex->u = u2;
     cur_tex->v = v2;
 
@@ -242,7 +242,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     // 1,0 Texture Coord, maxxy
     cur_tex->x = x2;
     cur_tex->y = y1;
-    cur_tex->color = color;
+    cur_tex->color = fcolor;
     cur_tex->u = u2;
     cur_tex->v = v1;
 
