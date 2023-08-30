@@ -13,7 +13,7 @@ static std::unordered_set<uistage::actor*> actors;
 void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
   regions[key] = textureAtlas{tex, reg, 0xffffffff};
 }
-void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const size_t clr) {
+void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const uint32_t clr) {
   regions[key] = textureAtlas{tex, reg, clr};
 }
 
@@ -34,7 +34,7 @@ void uistage::draw () {
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
     v_.color = ta.clr;
-    Rect &rectangle = act->getRect();
+    Rect rectangle = act->getRect();
     cList[0] = rectangle.ymin;
     cList[3] = rectangle.ymax;
     cList[1] = cList[0] + split[3];
