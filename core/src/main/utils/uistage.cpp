@@ -95,20 +95,20 @@ void uistage::clear() {
 }
 
 struct image_actor: public uistage::actor {
-  std::string texKey;
+  std::string key;
   Rect mRect;
   
   Rect getRect() const override {
     return mRect;
   }
   std::string texKey() const override {
-    return texKey;
+    return key;
   }
 };
-uistage::actor *uistage::makeImage(std::string texKey, Rect r) {
+uistage::actor *uistage::makeImage(std::string k, Rect r) {
   uistage::actor *ua = new image_actor{
     .mRect = r,
-    .texKey = texKey
+    .key = k
   };
   actors.insert(ua);
   return ua;
@@ -124,10 +124,11 @@ struct button_actor: public uistage::actor {
     return keys[0];
   }
 };
-uistage::actor *uistage::makeButton(uistage::texKey_state keys[], Rect r) {
+uistage::actor *uistage::makeButton(uistage::texKey_state *k, Rect r) {
   std::unordered_map<unsigned int, std::string> K;
-  for (uistage::texKey_state &e : keys) {
-    K[e.mState] = e.key;
+  while (*k) {
+    K[k->mState] = k->key;
+    ++k;
   };
   uistage::actor *ua = new button_actor{
     .keys = K,

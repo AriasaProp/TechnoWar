@@ -40,7 +40,7 @@ namespace uistage {
   
   //all actor types
   actor *makeImage(std::string,Rect);
-  actor *makeButton(texKey_state[],Rect);
+  actor *makeButton(texKey_state*,Rect);
 }
 
 #endif //Included_UISTAGE_
