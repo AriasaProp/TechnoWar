@@ -35,11 +35,22 @@ struct ainput {
 };
 // funct
 engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
-int android_input::getX (unsigned int p = 0) { return minput->input_pointer_cache[p].x; }
-int android_input::getDeltaX (unsigned int p = 0) { return minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs; }
-int android_input::getY (unsigned int p = 0) { return minput->input_pointer_cache[p].y; }
-int android_input::getDeltaY (unsigned int p = 0) { return minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys; }
+void android_input::getPointerPos (unsigned int p = 0, float *out) {
+  out[0] = minput->input_pointer_cache[p].x;
+  out[1] = minput->input_pointer_cache[p].y;
+}
+void android_input::getPointerDelta (unsigned int p = 0, float *out) {
+  out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
+  out[1] = minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys;
+}
 bool android_input::justTouched () { return false; }
+bool android_input::onTouched () {
+  for(size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
+    if (minput->input_pointer_cache[i].active)
+      return true;
+  }
+  return false;
+}
 bool android_input::isTouched (unsigned int p = 0) { return minput->input_pointer_cache[p].active; }
 float android_input::getPressure (unsigned int) { return false; }
 bool android_input::isButtonPressed (int) { return false; }

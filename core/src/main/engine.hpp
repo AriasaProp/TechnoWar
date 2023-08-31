@@ -51,11 +51,10 @@ struct sensor_value {
 };
 struct input_core {
   virtual sensor_value getSensorValue (const char *) const = 0;
-  virtual int getX (unsigned int) = 0;
-  virtual int getDeltaX (unsigned int) = 0;
-  virtual int getY (unsigned int) = 0;
-  virtual int getDeltaY (unsigned int) = 0;
+  virtual void getPointerPos (unsigned int, float *) = 0;
+  virtual void getPointerDelta (unsigned int, float *) = 0;
   virtual bool justTouched () = 0;
+  virtual bool onTouched () = 0;
   virtual bool isTouched (unsigned int) = 0;
   virtual float getPressure (unsigned int) = 0;
   virtual bool isButtonPressed (int button) = 0;

@@ -5,6 +5,7 @@
 #include "math.hpp"
 #include <string>
 #include <cstdint>
+#include <initializer_list>
 
 namespace uistage {
   struct texKey_state {
@@ -26,6 +27,7 @@ namespace uistage {
   struct actor {
     virtual Rect &getRect() = 0; 
     virtual std::string texKey() = 0;
+    virtual size_t getType() const = 0;
     virtual ~actor() {}
   };
   struct texture_region {
@@ -35,13 +37,12 @@ namespace uistage {
   //void addBMFont();
   void addTextureRegion(std::string,engine::texture_core*, const texture_region &);
   void addTextureRegion(std::string,engine::texture_core*, const texture_region &, const uint32_t);
-  void act(float);
-  void draw();
+  void draw(float);
   void clear();
   
   //all actor types
   actor *makeImage(std::string,Rect);
-  //actor *makeButton(texKey_state*,Rect);
+  actor *makeButton(std::initializer_list<std::string>,Rect);
 }
 
 #endif //Included_UISTAGE_

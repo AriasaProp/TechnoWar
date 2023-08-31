@@ -5,6 +5,7 @@
 #include <android/looper.h>
 #include <android/native_activity.h>
 #include <android/sensor.h>
+#include <cstdint>
 
 // define input engine extern
 #define MAX_TOUCH_POINTERS_COUNT 30
@@ -14,11 +15,10 @@ private:
 
 public:
   engine::sensor_value getSensorValue (const char *) const override;
-  int getX (unsigned int) override;
-  int getDeltaX (unsigned int) override;
-  int getY (unsigned int) override;
-  int getDeltaY (unsigned int) override;
+  void getPointerPos (unsigned int, int*) override;
+  void getPointerDelta (unsigned int, int*) override;
   bool justTouched () override;
+  bool onTouched () override;
   bool isTouched (unsigned int) override;
   float getPressure (unsigned int) override;
   bool isButtonPressed (int) override;

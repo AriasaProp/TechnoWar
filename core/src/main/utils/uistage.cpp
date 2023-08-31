@@ -2,6 +2,43 @@
 #include <unordered_map>
 #include <unordered_set>
 
+enum Actor_Type: size_t{
+  None = 0,
+  Image,
+  Button
+};
+
+struct image_actor: public uistage::actor {
+  std::string key;
+  Rect mRect;
+  
+  image_actor(std::string k, Rect r): key(k), mRect(r) {}
+  
+  Rect &getRect() override {
+    return mRect;
+  }
+  std::string texKey() override {
+    return key;
+  }
+  size_t getType() const override { return Actor_Type::Image; }
+  ~image_actor() override {}
+};
+struct button_actor: public uistage::actor {
+  std::string *keys;
+  Rect mRect;
+  
+  button_actor(std::string *k, Rect r): keys(k), mRect(r) {}
+  
+  Rect &getRect() const override {
+    return mRect;
+  }
+  std::string texKey() const override {
+    return keys[0];
+  }
+  size_t getType() const override { return Actor_Type::Button; }
+  ~button_actor() override {delete[] keys;}
+};
+
 struct textureAtlas {
   engine::texture_core *tex;
   uistage::texture_region region;
@@ -17,19 +54,22 @@ void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const
   regions[key] = textureAtlas{tex, reg, clr};
 }
 
-void uistage::act (float) {
-  //nothing to do
-}
 static engine::flat_vertex vert[1024*1024]; //1024 MB
 static engine::flat_vertex v_;
 static float cList[4];
 static float vList[4];
 static float rList[4];
 static float uList[4];
-void uistage::draw () {
+void uistage::draw (float delta) {
+  //hit by touches / click
+  //draw
   for (actor *act : actors) {
     engine::flat_vertex *verts = vert;
-    textureAtlas &ta = regions[act->texKey()];
+    std::string texKey = act->texKey();
+    if (engine::inpt->onTouched() && (act->getType()==Actor_Type::Button)) {
+      texKey = ((button_actor *)act)->keys[1];
+    }
+    textureAtlas &ta = regions[texKey];
     engine::texture_core *tex = ta.tex;
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
@@ -94,48 +134,23 @@ void uistage::clear() {
   actors.clear();
 }
 
-struct image_actor: public uistage::actor {
-  std::string key;
-  Rect mRect;
-  
-  image_actor(std::string k, Rect r): key(k), mRect(r) {}
-  
-  Rect &getRect() override {
-    return mRect;
-  }
-  std::string texKey() override {
-    return key;
-  }
-  ~image_actor() override {}
-};
 uistage::actor *uistage::makeImage(std::string k, Rect r) {
   uistage::actor *ua = new image_actor(k, r);
   actors.insert(ua);
   return ua;
 }
-/*
-struct button_actor: public uistage::actor {
-  std::unordered_map<unsigned int, std::string> keys;
-  Rect mRect;
-  
-  Rect &getRect() const override {
-    return mRect;
+
+uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r) {
+  if (!k.size()) throw("button must have a key texture");
+  std::string *K = new std::string[k.size()];
+  size_t i = 0;
+  const std::string *it = k.begin(), *end = k.end();
+  while (it != end) {
+    K[i] = *it;
+    ++it;
+    ++i;
   }
-  std::string texKey() const override {
-    return keys[0];
-  }
-};
-uistage::actor *uistage::makeButton(uistage::texKey_state *k, Rect r) {
-  std::unordered_map<unsigned int, std::string> K;
-  while (*k) {
-    K[k->mState] = k->key;
-    ++k;
-  };
-  uistage::actor *ua = new button_actor{
-    .keys = K,
-    .mRect = r
-  };
+  uistage::actor *ua = new button_actor(K,r);
   actors.insert(ua);
   return ua;
 }
-*/

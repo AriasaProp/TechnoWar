@@ -25,7 +25,7 @@ struct mMainData {
 Main::Main () {
   mdata = new mMainData{};
   mdata->fnt = new bmfont ("default.fnt");
-  mdata->fnt->setFontSize(32.f);
+  mdata->fnt->setFontSize(84.f);
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -83,9 +83,8 @@ Main::Main () {
     mdata->tc = engine::graph->gen_texture (x, y, t);
     stbi_image_free (t);
   }
-  uistage::makeImage("btn1",Rect(600,200,ALIGN_CENTER, 400, 100));
-  uistage::makeImage("btn1_",Rect(600,300,ALIGN_CENTER, 400, 100));
   uistage::makeImage("test",Rect(1000,200,ALIGN_CENTER, 300, 300));
+  uistage::makeButton({"btn1","btn1_"},Rect(600,200,ALIGN_CENTER, 400, 100));
   
   resume();
 }
