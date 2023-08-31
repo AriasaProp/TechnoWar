@@ -24,7 +24,7 @@ namespace uistage {
     std::string key;
   };
   struct actor {
-    virtual Rect getRect() const = 0; 
+    virtual Rect &getRect() const = 0; 
     virtual std::string texKey() const = 0;
     ~actor() {}
   };
@@ -41,7 +41,7 @@ namespace uistage {
   
   //all actor types
   actor *makeImage(std::string,Rect);
-  actor *makeButton(texKey_state*,Rect);
+  //actor *makeButton(texKey_state*,Rect);
 }
 
 #endif //Included_UISTAGE_

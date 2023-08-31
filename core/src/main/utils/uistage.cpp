@@ -98,7 +98,7 @@ struct image_actor: public uistage::actor {
   std::string key;
   Rect mRect;
   
-  Rect getRect() const override {
+  Rect &getRect() const override {
     return mRect;
   }
   std::string texKey() const override {
@@ -113,11 +113,12 @@ uistage::actor *uistage::makeImage(std::string k, Rect r) {
   actors.insert(ua);
   return ua;
 }
+/*
 struct button_actor: public uistage::actor {
   std::unordered_map<unsigned int, std::string> keys;
   Rect mRect;
   
-  Rect getRect() const override {
+  Rect &getRect() const override {
     return mRect;
   }
   std::string texKey() const override {
@@ -137,3 +138,4 @@ uistage::actor *uistage::makeButton(uistage::texKey_state *k, Rect r) {
   actors.insert(ua);
   return ua;
 }
+*/
