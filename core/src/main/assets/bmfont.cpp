@@ -198,29 +198,30 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   float x1, y1, x2, y2, u1, v1, u2, v2;
   engine::flat_vertex *cur_tex = temp_vertex;
   for (const char *t = text; *t; t++) {
-    auto f = Chars.find (*t);
-    if (f == Chars.end ()) continue;
-    x1 = x + (f->XOffset * F); // minx
-    y1 = y - (f->YOffset * F); // maxy
-    x2 = x1 + (f->Width * F);  // maxx
-    y2 = y1 - (f->Height * F); // miny
+    auto itf= Chars.find (*t);
+    if (itf == Chars.end ()) continue;
+    CharDescriptor &f = *itf;
+    x1 = x + (f.XOffset * F); // minx
+    y1 = y - (f.YOffset * F); // maxy
+    x2 = x1 + (f.Width * F);  // maxx
+    y2 = y1 - (f.Height * F); // miny
     
-    u1 = f->x / (float)Width;
-    v1 = f->y / (float)Height;
-    u2 = (f->x + f->Width) / (float)Width;
-    v2 = (f->y + f->Height) / (float)Height;
+    u1 = f.x / (float)Width;
+    v1 = f.y / (float)Height;
+    u2 = (f.x + f.Width) / (float)Width;
+    v2 = (f.y + f.Height) / (float)Height;
 
     // 0,1 Texture Coord, minxy
-    (cur_tex++) = {x1,y2,fcolor,u1,v2};
+    *(cur_tex++) = {x1,y2,fcolor,u1,v2};
     // 0,0 Texture Coord, minx maxy
-    (cur_tex++) = {x1,y1,fcolor,u1,v1};
+    *(cur_tex++) = {x1,y1,fcolor,u1,v1};
     // 1,1 Texture Coord, maxx miny
-    (cur_tex++) = {x2,y2,fcolor,u2,v2};
+    *(cur_tex++) = {x2,y2,fcolor,u2,v2};
     // 1,0 Texture Coord, maxxy
-    (cur_tex++) = {x2,y1,fcolor,u2,v1};
+    *(cur_tex++) = {x2,y1,fcolor,u2,v1};
     
     if (*(t + 1)) {
-      float nX = f->XAdvance;
+      float nX = f.XAdvance;
       short key[2] = {*t, *(t + 1)};
       auto it = Kearn.find (*((unsigned int *)key));
       if (it != Kearn.end ())
