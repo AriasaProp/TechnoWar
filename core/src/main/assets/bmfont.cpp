@@ -200,7 +200,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   for (const char *t = text; *t; t++) {
     auto itf= Chars.find (*t);
     if (itf == Chars.end ()) continue;
-    CharDescriptor &f = *itf;
+    CharDescriptor &f = itf->second;
     x1 = x + (f.XOffset * F); // minx
     y1 = y - (f.YOffset * F); // maxy
     x2 = x1 + (f.Width * F);  // maxx

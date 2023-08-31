@@ -103,10 +103,10 @@ void uistage::draw (float delta) {
         float &xmin = rList[ q ];
         float &xmax = rList[q+1];
         if (xmax == xmin) continue;
-        (verts++) = {xmin, ymin, ta.clr, uList[ q ], vList[ p ]};
-        (verts++) = {xmin, ymax, ta.clr, uList[ q ], vList[p+1]};
-        (verts++) = {xmax, ymin, ta.clr, uList[q+1], vList[ p ]};
-        (verts++) = {xmax, ymax, ta.clr, uList[q+1], vList[p+1]};
+        *(verts++) = {xmin, ymin, ta.clr, uList[ q ], vList[ p ]};
+        *(verts++) = {xmin, ymax, ta.clr, uList[ q ], vList[p+1]};
+        *(verts++) = {xmax, ymin, ta.clr, uList[q+1], vList[ p ]};
+        *(verts++) = {xmax, ymax, ta.clr, uList[q+1], vList[p+1]};
         quadCount++;
       }
     }
