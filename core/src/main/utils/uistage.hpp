@@ -24,8 +24,8 @@ namespace uistage {
     std::string key;
   };
   struct actor {
-    virtual Rect &getRect() const = 0; 
-    virtual std::string texKey() const = 0;
+    virtual Rect &getRect() = 0; 
+    virtual std::string texKey() = 0;
     ~actor() {}
   };
   struct texture_region {

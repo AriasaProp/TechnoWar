@@ -98,12 +98,13 @@ struct image_actor: public uistage::actor {
   std::string key;
   Rect mRect;
   
-  Rect &getRect() const override {
+  Rect &getRect() override {
     return mRect;
   }
-  std::string texKey() const override {
+  std::string texKey() override {
     return key;
   }
+  ~image_actor() {};
 };
 uistage::actor *uistage::makeImage(std::string k, Rect r) {
   uistage::actor *ua = new image_actor{
