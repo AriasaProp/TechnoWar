@@ -28,8 +28,8 @@ struct mesh_core {
   struct data {
     float pos[3];
     uint32_t color;
-  } *vertex = nullptr;
-  unsigned short *index = nullptr;
+  } *vertex;
+  unsigned short *index;
   float trans[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 };
 struct graphics_core {
