@@ -96,9 +96,9 @@ void Main::render () {
   float delta = clock_count::getDelta();
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
-                   M_PI / 12.f * delta, // 15° /s
-                   M_PI / 6.f * delta,  // 30° /s
-                   M_PI / 3.0f * delta  // 60° /s
+                   M_PI / 2.f * delta, // 90° /s
+                   M_PI / 10.f * delta,  // 18° /s
+                   M_PI / 18.0f * delta  // 10° /s
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   
