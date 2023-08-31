@@ -26,7 +26,7 @@ namespace uistage {
   struct actor {
     virtual Rect &getRect() = 0; 
     virtual std::string texKey() = 0;
-    ~actor() {}
+    virtual ~actor() {}
   };
   struct texture_region {
     unsigned int pos[2], size[2];
@@ -34,7 +34,7 @@ namespace uistage {
   };
   //void addBMFont();
   void addTextureRegion(std::string,engine::texture_core*, const texture_region &);
-  void addTextureRegion(std::string,engine::texture_core*, const texture_region &, const size_t);
+  void addTextureRegion(std::string,engine::texture_core*, const texture_region &, const uint32_t);
   void act(float);
   void draw();
   void clear();

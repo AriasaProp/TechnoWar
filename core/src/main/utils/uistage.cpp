@@ -104,7 +104,7 @@ struct image_actor: public uistage::actor {
   std::string texKey() override {
     return key;
   }
-  ~image_actor() {};
+  ~image_actor() override {};
 };
 uistage::actor *uistage::makeImage(std::string k, Rect r) {
   uistage::actor *ua = new image_actor{
