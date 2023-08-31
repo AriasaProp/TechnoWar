@@ -101,7 +101,7 @@ void Main::render () {
   );
   engine::graph->mesh_render (&mdata->mp, 1);
   
-  uistage::draw();
+  uistage::draw(delta);
   
   mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
   mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
