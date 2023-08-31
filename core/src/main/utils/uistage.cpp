@@ -14,10 +14,10 @@ struct image_actor: public uistage::actor {
   
   image_actor(std::string k, Rect r): key(k), mRect(r) {}
   
-  Rect &getRect() override {
+  Rect &getRect() const override {
     return mRect;
   }
-  std::string texKey() override {
+  std::string texKey() const override {
     return key;
   }
   size_t getType() const override { return Actor_Type::Image; }
