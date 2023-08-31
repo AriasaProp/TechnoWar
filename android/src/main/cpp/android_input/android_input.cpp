@@ -35,11 +35,11 @@ struct ainput {
 };
 // funct
 engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
-void android_input::getPointerPos (unsigned int p = 0, float *out) {
+void android_input::getPointerPos (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x;
   out[1] = minput->input_pointer_cache[p].y;
 }
-void android_input::getPointerDelta (unsigned int p = 0, float *out) {
+void android_input::getPointerDelta (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
   out[1] = minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys;
 }

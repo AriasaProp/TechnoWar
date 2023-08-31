@@ -51,8 +51,8 @@ struct sensor_value {
 };
 struct input_core {
   virtual sensor_value getSensorValue (const char *) const = 0;
-  virtual void getPointerPos (unsigned int, float *) = 0;
-  virtual void getPointerDelta (unsigned int, float *) = 0;
+  virtual void getPointerPos (float *, unsigned int) = 0;
+  virtual void getPointerDelta (float *,unsigned int) = 0;
   virtual bool justTouched () = 0;
   virtual bool onTouched () = 0;
   virtual bool isTouched (unsigned int) = 0;
