@@ -98,19 +98,18 @@ struct image_actor: public uistage::actor {
   std::string key;
   Rect mRect;
   
+  image_actor(std::string k, Rect r): key(k), mRect(r) {}
+  
   Rect &getRect() override {
     return mRect;
   }
   std::string texKey() override {
     return key;
   }
-  ~image_actor() override {};
+  ~image_actor() override {}
 };
 uistage::actor *uistage::makeImage(std::string k, Rect r) {
-  uistage::actor *ua = new image_actor{
-    .mRect = r,
-    .key = k
-  };
+  uistage::actor *ua = new image_actor(k, r);
   actors.insert(ua);
   return ua;
 }
