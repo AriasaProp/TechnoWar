@@ -14,10 +14,10 @@ struct image_actor: public uistage::actor {
   
   image_actor(std::string k, Rect r): key(k), mRect(r) {}
   
-  Rect &getRect() const override {
+  Rect &getRect() override {
     return mRect;
   }
-  std::string texKey() const override {
+  std::string texKey() override {
     return key;
   }
   size_t getType() const override { return Actor_Type::Image; }
@@ -29,10 +29,10 @@ struct button_actor: public uistage::actor {
   
   button_actor(std::string *k, Rect r): keys(k), mRect(r) {}
   
-  Rect &getRect() const override {
+  Rect &getRect() override {
     return mRect;
   }
-  std::string texKey() const override {
+  std::string texKey() override {
     return keys[0];
   }
   size_t getType() const override { return Actor_Type::Button; }
@@ -61,6 +61,7 @@ static float vList[4];
 static float rList[4];
 static float uList[4];
 void uistage::draw (float delta) {
+  (void)delta;
   //hit by touches / click
   //draw
   for (actor *act : actors) {
