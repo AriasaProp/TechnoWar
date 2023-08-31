@@ -10,10 +10,10 @@
 #include <string>
 
 struct CharDescriptor {
-  short x = 0, y = 0;
-  short Width = 0, Height = 0;
-  short XOffset = 0, YOffset = 0;
-  short XAdvance = 0;
+  short x, y;
+  short Width, Height;
+  short XOffset, YOffset;
+  short XAdvance;
 };
 
 // Todo: Add buffer overflow checking.
@@ -151,12 +151,13 @@ bool bmfont::ParseFont (const char *fontfile) {
   return true;
 }
 
+engine::flat_vertex temp_vertex[1024*1024]; //1 MB, temporary vertex
+char text[1024*1024] = "";                  // 1MB, temporary for hold string
 void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   if (fmt == NULL)          // If There's No Text
     return;                 // Do Nothing
   va_list ap;               // Pointer To List Of Arguments
   va_start (ap, fmt);       // Parses The String For Variables
-  char text[1024] = "";     // Holds Our String
   vsprintf (text, fmt, ap); // And Converts Symbols To Actual Numbers
   va_end (ap);
   unsigned char xpivot = align & 3;
@@ -195,61 +196,31 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     break;
   }
   float x1, y1, x2, y2, u1, v1, u2, v2;
-  unsigned int n = strlen (text);
-  engine::flat_vertex *texlst = new engine::flat_vertex[n * 4];
-  engine::flat_vertex *cur_tex = texlst;
+  engine::flat_vertex *cur_tex = temp_vertex;
   for (const char *t = text; *t; t++) {
-    if (Chars.find (*t) == Chars.end ()) continue;
-    CharDescriptor &f = Chars[*t];
-    // max, min
-    x1 = x + (f.XOffset * F); // minx
-    y1 = y - (f.YOffset * F); // maxy
-    x2 = x1 + (f.Width * F);  // maxx
-    y2 = y1 - (f.Height * F); // miny
+    auto f = Chars.find (*t);
+    if (f == Chars.end ()) continue;
+    x1 = x + (f->XOffset * F); // minx
+    y1 = y - (f->YOffset * F); // maxy
+    x2 = x1 + (f->Width * F);  // maxx
+    y2 = y1 - (f->Height * F); // miny
     
-    u1 = f.x / (float)Width;
-    v1 = f.y / (float)Height;
-    u2 = (f.x + f.Width) / (float)Width;
-    v2 = (f.y + f.Height) / (float)Height;
+    u1 = f->x / (float)Width;
+    v1 = f->y / (float)Height;
+    u2 = (f->x + f->Width) / (float)Width;
+    v2 = (f->y + f->Height) / (float)Height;
 
     // 0,1 Texture Coord, minxy
-    cur_tex->x = x1;
-    cur_tex->y = y2;
-    cur_tex->color = fcolor;
-    cur_tex->u = u1;
-    cur_tex->v = v2;
-
-    cur_tex++;
-    
+    (cur_tex++) = {x1,y2,fcolor,u1,v2};
     // 0,0 Texture Coord, minx maxy
-    cur_tex->x = x1;
-    cur_tex->y = y1;
-    cur_tex->color = fcolor;
-    cur_tex->u = u1;
-    cur_tex->v = v1;
-
-    cur_tex++;
-    
+    (cur_tex++) = {x1,y1,fcolor,u1,v1};
     // 1,1 Texture Coord, maxx miny
-    cur_tex->x = x2;
-    cur_tex->y = y2;
-    cur_tex->color = fcolor;
-    cur_tex->u = u2;
-    cur_tex->v = v2;
-
-    cur_tex++;
-    
+    (cur_tex++) = {x2,y2,fcolor,u2,v2};
     // 1,0 Texture Coord, maxxy
-    cur_tex->x = x2;
-    cur_tex->y = y1;
-    cur_tex->color = fcolor;
-    cur_tex->u = u2;
-    cur_tex->v = v1;
-
-    cur_tex++;
+    (cur_tex++) = {x2,y1,fcolor,u2,v1};
     
     if (*(t + 1)) {
-      float nX = f.XAdvance;
+      float nX = f->XAdvance;
       short key[2] = {*t, *(t + 1)};
       auto it = Kearn.find (*((unsigned int *)key));
       if (it != Kearn.end ())
@@ -257,8 +228,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (ftexid, texlst, n);
-  delete[] texlst;
+  engine::graph->flat_render (ftexid, temp_vertex, strlen(text));
 }
 float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {

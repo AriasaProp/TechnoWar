@@ -472,13 +472,16 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
 }
 
 inline void opengles_graphics::update_layout () {
-  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / mgl_data->wWidth;
-  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / mgl_data->wHeight;
+  const float fixedWidth = mgl_data->wWidth;
+  const float fixedHeight = mgl_data->wHeight;
+  
+  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
+  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
   // ui safe insets update
-  mgl_data->uiProj[12] = -float (mgl_data->wWidth - 2 * cur_safe_insets[0]) / float (mgl_data->wWidth);
-  mgl_data->uiProj[13] = -float (mgl_data->wHeight - 2 * cur_safe_insets[3]) / float (mgl_data->wHeight);
-  mgl_data->game_width = float (mgl_data->wWidth - cur_safe_insets[0] - cur_safe_insets[2]);
-  mgl_data->game_height = float (mgl_data->wHeight - cur_safe_insets[1] - cur_safe_insets[3]);
+  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f ;
+  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3]  / fixedHeight) - 1.0f;
+  mgl_data->game_width = fixedWidth - cur_safe_insets[0] - cur_safe_insets[2];
+  mgl_data->game_height = fixedHeight - cur_safe_insets[1] - cur_safe_insets[3];
   mgl_data->dirty_uiProj = true;
   mgl_data->dirty_worldProj = true;
 }

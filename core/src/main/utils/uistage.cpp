@@ -55,7 +55,6 @@ void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const
 }
 
 static engine::flat_vertex vert[1024*1024]; //1024 MB
-static engine::flat_vertex v_;
 static float cList[4];
 static float vList[4];
 static float rList[4];
@@ -65,7 +64,6 @@ void uistage::draw (float delta) {
   //hit by touches / click
   //draw
   for (actor *act : actors) {
-    engine::flat_vertex *verts = vert;
     std::string texKey = act->texKey();
     if (engine::inpt->onTouched() && (act->getType()==Actor_Type::Button)) {
       texKey = ((button_actor *)act)->keys[1];
@@ -74,7 +72,6 @@ void uistage::draw (float delta) {
     engine::texture_core *tex = ta.tex;
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
-    v_.color = ta.clr;
     Rect rectangle = act->getRect();
     cList[0] = rectangle.ymin;
     cList[3] = rectangle.ymax;
@@ -97,28 +94,19 @@ void uistage::draw (float delta) {
     uList[2] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
     
     size_t quadCount = 0;
+    engine::flat_vertex *verts = vert;
     for (size_t p = 0; p < 3; p++) { //vertical list
-      float &ymin  = cList[p];
+      float &ymin = cList[ p ];
       float &ymax = cList[p+1];
       if (ymax == ymin) continue;
-      float &vmin = vList[p];
-      float &vmax = vList[p+1];
       for (size_t q = 0; q < 3; q++) { //horizontal list
-        float &xmin = rList[q];
+        float &xmin = rList[ q ];
         float &xmax = rList[q+1];
         if (xmax == xmin) continue;
-        float &umin = uList[q];
-        float &umax = uList[q+1];
-        v_.x = xmin, v_.u = umin;
-        v_.y = ymin, v_.v = vmin;
-        memcpy(verts++, &v_, sizeof(v_));
-        v_.y = ymax, v_.v = vmax;
-        memcpy(verts++, &v_, sizeof(v_));
-        v_.x = xmax, v_.u = umax;
-        v_.y = ymin, v_.v = vmin;
-        memcpy(verts++, &v_, sizeof(v_));
-        v_.y = ymax, v_.v = vmax;
-        memcpy(verts++, &v_, sizeof(v_));
+        (verts++) = {xmin, ymin, ta.clr, uList[ q ], vList[ p ]};
+        (verts++) = {xmin, ymax, ta.clr, uList[ q ], vList[p+1]};
+        (verts++) = {xmax, ymin, ta.clr, uList[q+1], vList[ p ]};
+        (verts++) = {xmax, ymax, ta.clr, uList[q+1], vList[p+1]};
         quadCount++;
       }
     }
