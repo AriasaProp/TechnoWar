@@ -54,11 +54,8 @@ void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const
   regions[key] = textureAtlas{tex, reg, clr};
 }
 
-static engine::flat_vertex vert[1024*1024]; //1024 MB
-static float cList[4];
-static float vList[4];
-static float rList[4];
-static float uList[4];
+static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
+static float cList[4], vList[4], xList[2], uList[2];
 void uistage::draw (float delta) {
   (void)delta;
   //hit by touches / click
@@ -74,40 +71,56 @@ void uistage::draw (float delta) {
     const unsigned int *split = ta.region.patch;
     Rect rectangle = act->getRect();
     cList[0] = rectangle.ymin;
+    cList[1] = rectangle.ymin + split[3];
+    cList[2] = rectangle.ymax - split[1];
     cList[3] = rectangle.ymax;
-    cList[1] = cList[0] + split[3];
-    cList[2] = cList[3] - split[1];
     
     vList[0] = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
     vList[3] = float(ta.region.pos[1])/float(tex->height());
     vList[1] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
     vList[2] = float(ta.region.pos[1]+split[1])/float(tex->height());
     
-    rList[0] = rectangle.xmin;
-    rList[3] = rectangle.xmax;
-    rList[1] = rList[0] + split[0];
-    rList[2] = rList[3] - split[2];
-    
-    uList[0] = float(ta.region.pos[0])/float(tex->width());
-    uList[3] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
-    uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
-    uList[2] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-    
     size_t quadCount = 0;
     engine::flat_vertex *verts = vert;
     for (size_t p = 0; p < 3; p++) { //vertical list
       float &ymin = cList[ p ];
       float &ymax = cList[p+1];
-      if (ymax == ymin) continue;
-      for (size_t q = 0; q < 3; q++) { //horizontal list
-        float &xmin = rList[ q ];
-        float &xmax = rList[q+1];
-        if (xmax == xmin) continue;
-        *(verts++) = {xmin, ymin, ta.clr, uList[ q ], vList[ p ]};
-        *(verts++) = {xmin, ymax, ta.clr, uList[ q ], vList[p+1]};
-        *(verts++) = {xmax, ymin, ta.clr, uList[q+1], vList[ p ]};
-        *(verts++) = {xmax, ymax, ta.clr, uList[q+1], vList[p+1]};
-        quadCount++;
+      if (ymax > ymin) { //horizontally
+        float &vmin = vList[ p ];
+        float &vmax = vList[p+1];
+        if (split[0]) {
+          xList[0] = rectangle.xmin;
+          xList[1] = rectangle.xmin + split[0];
+          uList[0] = float(ta.region.pos[0])/float(tex->width());
+          uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+          *(verts++) = {xList[0], ymin, ta.clr, uList[0], vmin};
+          *(verts++) = {xList[0], ymax, ta.clr, uList[0], vmax};
+          *(verts++) = {xList[1], ymin, ta.clr, uList[1], vmin};
+          *(verts++) = {xList[1], ymax, ta.clr, uList[1], vmax};
+          quadCount++;
+        }
+        xList[0] = rectangle.xmin + split[0];
+        xList[1] = rectangle.xmax - split[2];
+        if (xList[1] > xList[0]) {
+          uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
+          uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+          *(verts++) = {xList[0], ymin, ta.clr, uList[0], vmin};
+          *(verts++) = {xList[0], ymax, ta.clr, uList[0], vmax};
+          *(verts++) = {xList[1], ymin, ta.clr, uList[1], vmin};
+          *(verts++) = {xList[1], ymax, ta.clr, uList[1], vmax};
+          quadCount++;
+        }
+        if (split[2]) {
+          xList[0] = rectangle.xmax - split[2];
+          xList[1] = rectangle.xmax;
+          uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+          uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+          *(verts++) = {xList[0], ymin, ta.clr, uList[0], vmin};
+          *(verts++) = {xList[0], ymax, ta.clr, uList[0], vmax};
+          *(verts++) = {xList[1], ymin, ta.clr, uList[1], vmin};
+          *(verts++) = {xList[1], ymax, ta.clr, uList[1], vmax};
+          quadCount++;
+        }
       }
     }
     engine::graph->flat_render(tex,vert,quadCount);

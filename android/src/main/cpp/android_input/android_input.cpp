@@ -107,6 +107,8 @@ void android_input::process_input () {
       break;
     case AKEY_EVENT_ACTION_MULTIPLE:
       break;
+    default:
+      break;
     }
     break;
   }
@@ -116,7 +118,7 @@ void android_input::process_input () {
     case AMOTION_EVENT_ACTION_POINTER_DOWN:
     case AMOTION_EVENT_ACTION_DOWN:
       if (AMotionEvent_getEdgeFlags (minput->i_event) == 0) {
-        const int8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+        const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
         if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
           break;
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
@@ -136,7 +138,7 @@ void android_input::process_input () {
     case AMOTION_EVENT_ACTION_POINTER_UP:
     case AMOTION_EVENT_ACTION_UP:
     case AMOTION_EVENT_ACTION_OUTSIDE: {
-      const int8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+      const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
       if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
         break;
       touch_pointer &ip = minput->input_pointer_cache[pointer_index];
@@ -156,7 +158,8 @@ void android_input::process_input () {
       break;
     }
     handled = 1;
-  } break;
+    break;
+  }
   }
   AInputQueue_finishEvent (minput->inputQueue, minput->i_event, handled);
 }
