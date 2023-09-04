@@ -112,15 +112,15 @@ void Main::render () {
   uint32_t clr_ptr2 = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
   engine::flat_vertex vers[] {
     //ptr 1
-    {engine::graph->getWidth () * 0.5f - 100.0f, engine::graph->getHeight () * 0.5f - 100.0f,clr_ptr1 , 0, 1},
-    {engine::graph->getWidth () * 0.5f - 100.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr1, 0, 0},
+    {engine::graph->getWidth () * 0.5f - 200.0f, engine::graph->getHeight () * 0.5f - 100.0f,clr_ptr1 , 0, 1},
+    {engine::graph->getWidth () * 0.5f - 200.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr1, 0, 0},
     {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr1, 1, 1},
     {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr1, 1, 0},
     //ptr2
     {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr2, 0, 1},
     {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr2, 0, 0},
-    {engine::graph->getWidth () * 0.5f + 100.0f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr2, 1, 1},
-    {engine::graph->getWidth () * 0.5f + 100.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr2, 1, 0}
+    {engine::graph->getWidth () * 0.5f + 200.0f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr2, 1, 1},
+    {engine::graph->getWidth () * 0.5f + 200.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr2, 1, 0}
   };
   engine::graph->flat_render(nullptr, vers, 3);
 }

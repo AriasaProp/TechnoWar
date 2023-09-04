@@ -92,7 +92,9 @@ Rect::Rect(float x, float y, const Align &a, float sx, float sy) {
       break;
   }
 }
-
+bool Rect::insetOf(float x, float y) {
+  return (x > xmin) && (x < max) && (y > ymin) && (y < ymax);
+}
 //matrix4 definition
 void matrix4::idt (float *a) {
   memset (a, 0, sizeof (tmp.mtx));

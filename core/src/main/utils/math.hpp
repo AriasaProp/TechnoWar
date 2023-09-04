@@ -36,6 +36,7 @@ struct Rect {
 public:
   float xmin, ymin, xmax, ymax;
   Rect(float, float, const Align&, float, float);
+  bool insetOf(float, float);
 };
 
 namespace matrix4 {
