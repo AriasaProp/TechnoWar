@@ -56,6 +56,7 @@ void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const
 
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float cList[4], vList[4], xList[2], uList[2];
+static float touch_pos[2];
 void uistage::draw (float delta) {
   (void)delta;
   //hit by touches / click
