@@ -142,10 +142,11 @@ void android_input::process_input () {
       if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
         break;
       touch_pointer &ip = minput->input_pointer_cache[pointer_index];
-      if (!ip.active) break;
-      ip.active = false;
-      ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
-      ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+      if (ip.active) {
+        ip.active = false;
+        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
+        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+      }
     } break;
     case AMOTION_EVENT_ACTION_CANCEL:
       for (touch_pointer &input_pointer_item : minput->input_pointer_cache)

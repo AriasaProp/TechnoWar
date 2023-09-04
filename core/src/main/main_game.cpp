@@ -108,13 +108,21 @@ void Main::render () {
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "30/08/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   clock_count::render();
+  uin32_t clr_ptr1 = engine::inpt->isTouched(0)? 0xff00ff00 : 0xff0000ff;
+  uin32_t clr_ptr2 = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
   engine::flat_vertex vers[] {
-    {0,0, 0xffffffff, 0, 1},
-    {0, 500, 0xffffffff, 0, 0},
-    {300,0, 0xffffffff, 1, 1},
-    {300, 500, 0xffffffff, 1, 0}
+    //ptr 1
+    {engine::graph->getWidth () * 0.5f - 100.0f, engine::graph->getHeight () * 0.5f - 100.0f,clr_ptr1 , 0, 1},
+    {engine::graph->getWidth () * 0.5f - 100.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr1, 0, 0},
+    {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr1, 1, 1},
+    {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr1, 1, 0},
+    //ptr2
+    {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr2, 0, 1},
+    {engine::graph->getWidth () * 0.5f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr2, 0, 0},
+    {engine::graph->getWidth () * 0.5f + 100.0f, engine::graph->getHeight () * 0.5f - 100.0f, clr_ptr2, 1, 1},
+    {engine::graph->getWidth () * 0.5f + 100.0f, engine::graph->getHeight () * 0.5f + 100.0f, clr_ptr2, 1, 0}
   };
-  engine::graph->flat_render(mdata->tc, vers, 1);
+  engine::graph->flat_render(nullptr, vers, 3);
 }
 void Main::pause () {
 }

@@ -62,7 +62,7 @@ void uistage::draw (float delta) {
   //draw
   for (actor *act : actors) {
     std::string texKey = act->texKey();
-    if (engine::inpt->onTouched() && (act->getType()==Actor_Type::Button)) {
+    if (engine::inpt->isTouched() && (act->getType()==Actor_Type::Button)) {
       texKey = ((button_actor *)act)->keys[1];
     }
     textureAtlas &ta = regions[texKey];
