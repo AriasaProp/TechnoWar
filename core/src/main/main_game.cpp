@@ -108,8 +108,8 @@ void Main::render () {
   mdata->fnt->draw_text (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "30/08/2023");
   mdata->fnt->draw_text (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   clock_count::render();
-  uin32_t clr_ptr1 = engine::inpt->isTouched(0)? 0xff00ff00 : 0xff0000ff;
-  uin32_t clr_ptr2 = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
+  uint32_t clr_ptr1 = engine::inpt->isTouched(0)? 0xff00ff00 : 0xff0000ff;
+  uint32_t clr_ptr2 = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
   engine::flat_vertex vers[] {
     //ptr 1
     {engine::graph->getWidth () * 0.5f - 100.0f, engine::graph->getHeight () * 0.5f - 100.0f,clr_ptr1 , 0, 1},
