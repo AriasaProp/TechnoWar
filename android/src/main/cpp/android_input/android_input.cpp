@@ -126,16 +126,22 @@ void android_input::process_input () {
           break;
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
         ip.active = true;
-        ip.xs = ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
-        ip.ys = ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        int real[2];
+        android_graphics *ag = (android_graphics*)engine::graph;
+        ag->realSize(real);
+        ip.xs = ip.x = AMotionEvent_getX (minput->i_event, pointer_index) - ag->cur_safe_insets[0];
+        ip.ys = ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, pointer_index) - ag->cur_safe_insets[3];
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:
       for (size_t i = 0, j = AMotionEvent_getPointerCount (minput->i_event); (i < j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
         touch_pointer &ip = minput->input_pointer_cache[i];
         if (!ip.active) continue;
-        ip.x = AMotionEvent_getX (minput->i_event, i);
-        ip.y = AMotionEvent_getY (minput->i_event, i);
+        int real[2];
+        android_graphics *ag = (android_graphics*)engine::graph;
+        ag->realSize(real);
+        ip.x = AMotionEvent_getX (minput->i_event, i) - ag->cur_safe_insets[0];
+        ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, i) - ag->cur_safe_insets[3];
       }
       break;
     case AMOTION_EVENT_ACTION_POINTER_UP:
@@ -147,8 +153,11 @@ void android_input::process_input () {
       touch_pointer &ip = minput->input_pointer_cache[pointer_index];
       if (ip.active) {
         ip.active = false;
-        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
-        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        int real[2];
+        android_graphics *ag = (android_graphics*)engine::graph;
+        ag->realSize(real);
+        ip.x = AMotionEvent_getX (minput->i_event, pointer_index) - ag->cur_safe_insets[0];
+        ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, pointer_index) - ag->cur_safe_insets[3];
       }
     } break;
     case AMOTION_EVENT_ACTION_CANCEL:
