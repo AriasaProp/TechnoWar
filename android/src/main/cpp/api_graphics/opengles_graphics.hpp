@@ -10,6 +10,7 @@ public:
   // android
   void preRender (ANativeWindow*, unsigned int&) override;
   void postRender (bool) override;
+  void realSize(int *) override;
   void onWindowTerm () override;
   // core
   float getWidth () override;

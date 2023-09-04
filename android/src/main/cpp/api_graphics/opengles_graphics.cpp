@@ -344,6 +344,10 @@ void opengles_graphics::postRender (bool isDestroy) {
     }
   }
 }
+void opengles_graphics::realSize(int *out) {
+  out[0] = mgl_data->wWidth;
+  out[1] = mgl_data->wHeight;
+}
 void opengles_graphics::onWindowTerm () {
   if (!mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
