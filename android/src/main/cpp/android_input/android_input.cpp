@@ -38,9 +38,7 @@ struct ainput {
 engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
 void android_input::getPointerPos (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x;
-  int real[2];
-  ((android_graphics*)engine::graph)->realSize(real);
-  out[1] = real[1] - minput->input_pointer_cache[p].y;
+  out[1] = minput->input_pointer_cache[p].y;
 }
 void android_input::getPointerDelta (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
