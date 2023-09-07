@@ -1,5 +1,6 @@
 #include "android_input.hpp"
 #include "../api_graphics/android_graphics.hpp"
+#include "../utils/uistage.hpp"
 
 #include <cstring>
 #include <string>
@@ -175,7 +176,7 @@ void android_input::process_input () {
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if ((ip.id != pointer_id) || !ip.active) continue
+        if ((ip.id != pointer_id) || !ip.active) continue;
         ip.active = false;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
@@ -190,7 +191,7 @@ void android_input::process_input () {
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if ((ip.id != pointer_id) || !ip.active) continue
+        if ((ip.id != pointer_id) || !ip.active) continue;
         ip.active = false;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
