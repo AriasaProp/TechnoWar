@@ -43,6 +43,12 @@ namespace uistage {
   //all actor types
   actor *makeImage(std::string,Rect);
   actor *makeButton(std::initializer_list<std::string>,Rect);
+  
+  void touchDown(float,float,int,int);
+  void touchMove(float,float,float,float,int,int);
+  void touchUp(float,float,int,int);
+  void touchCanceled(float,float,int,int);
+
 }
 
 #endif //Included_UISTAGE_
