@@ -226,7 +226,7 @@ uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r
   return ua;
 }
 
-actor *focused_actor[100]{};
+uistage::actor *focused_actor[100]{};
 void uistage::touchDown(float x, float y, int pointer, int button) {
   for (actor *act : actors) {
     if ((act->getType()==Actor_Type::Button) && (act->getRect().insetOf(x, y))) {
