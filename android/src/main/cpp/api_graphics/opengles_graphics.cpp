@@ -473,7 +473,7 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
 
 void opengles_graphics::to_flat_coordinate(float &x, float &y) {
   x -= cur_safe_insets[0];
-  y = mgl_data->wHeight - y + cur_safe_insets[3];
+  y = mgl_data->wHeight - y - cur_safe_insets[3];
 }
 
 inline void opengles_graphics::update_layout () {

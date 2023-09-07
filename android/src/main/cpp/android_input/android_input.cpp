@@ -131,6 +131,7 @@ void android_input::process_input () {
         engine::graph->to_flat_coordinate(ip.x, ip.y);
         ip.xs = ip.x;
         ip.ys = ip.y;
+        ip.id = pointer_id;
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:

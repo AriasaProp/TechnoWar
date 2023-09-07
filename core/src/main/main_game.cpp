@@ -116,42 +116,42 @@ void Main::render () {
   uint32_t clr_ptr6 = engine::inpt->isTouched(5)? 0xff00ff00 : 0xff0000ff;
   engine::flat_vertex vers[] {
     //background
-    { 39.5f, 649.5f, 0xfffafafa, 0, 1},
-    { 39.5f, 700.5f, 0xfffafafa, 0, 0},
-    {450.5f, 649.5f, 0xfffafafa, 1, 1},
-    {450.5f, 700.5f, 0xfffafafa, 1, 0},
+    { 39.5f, 849.5f, 0xff999999, 0, 1},
+    { 39.5f, 900.5f, 0xff999999, 0, 0},
+    {450.5f, 849.5f, 0xff999999, 1, 1},
+    {450.5f, 900.5f, 0xff999999, 1, 0},
     //ptr 1
-    { 40.0f, 650.0f, clr_ptr1, 0, 1},
-    { 40.0f, 700.0f, clr_ptr1, 0, 0},
-    { 90.0f, 650.0f, clr_ptr1, 1, 1},
-    { 90.0f, 700.0f, clr_ptr1, 1, 0},
+    { 40.0f, 850.0f, clr_ptr1, 0, 1},
+    { 40.0f, 900.0f, clr_ptr1, 0, 0},
+    { 90.0f, 850.0f, clr_ptr1, 1, 1},
+    { 90.0f, 900.0f, clr_ptr1, 1, 0},
     //ptr 2
-    {150.0f, 650.0f, clr_ptr2, 0, 1},
-    {150.0f, 700.0f, clr_ptr2, 0, 0},
-    {200.0f, 650.0f, clr_ptr2, 1, 1},
-    {200.0f, 700.0f, clr_ptr2, 1, 0},
+    {150.0f, 850.0f, clr_ptr2, 0, 1},
+    {150.0f, 900.0f, clr_ptr2, 0, 0},
+    {200.0f, 850.0f, clr_ptr2, 1, 1},
+    {200.0f, 900.0f, clr_ptr2, 1, 0},
     //ptr 3
-    {210.0f, 650.0f, clr_ptr3, 0, 1},
-    {210.0f, 700.0f, clr_ptr3, 0, 0},
-    {260.0f, 650.0f, clr_ptr3, 1, 1},
-    {260.0f, 700.0f, clr_ptr3, 1, 0},
+    {210.0f, 850.0f, clr_ptr3, 0, 1},
+    {210.0f, 900.0f, clr_ptr3, 0, 0},
+    {260.0f, 850.0f, clr_ptr3, 1, 1},
+    {260.0f, 900.0f, clr_ptr3, 1, 0},
     //ptr 4
-    {280.0f, 650.0f, clr_ptr4, 0, 1},
-    {280.0f, 700.0f, clr_ptr4, 0, 0},
-    {330.0f, 650.0f, clr_ptr4, 1, 1},
-    {330.0f, 700.0f, clr_ptr4, 1, 0},
+    {280.0f, 850.0f, clr_ptr4, 0, 1},
+    {280.0f, 900.0f, clr_ptr4, 0, 0},
+    {330.0f, 850.0f, clr_ptr4, 1, 1},
+    {330.0f, 900.0f, clr_ptr4, 1, 0},
     //ptr 5
-    {340.0f, 650.0f, clr_ptr5, 0, 1},
-    {340.0f, 700.0f, clr_ptr5, 0, 0},
-    {390.0f, 650.0f, clr_ptr5, 1, 1},
-    {390.0f, 700.0f, clr_ptr5, 1, 0},
-    //ptr 5
-    {400.0f, 650.0f, clr_ptr6, 0, 1},
-    {400.0f, 700.0f, clr_ptr6, 0, 0},
-    {450.0f, 650.0f, clr_ptr6, 1, 1},
-    {450.0f, 700.0f, clr_ptr6, 1, 0}
+    {340.0f, 850.0f, clr_ptr5, 0, 1},
+    {340.0f, 900.0f, clr_ptr5, 0, 0},
+    {390.0f, 850.0f, clr_ptr5, 1, 1},
+    {390.0f, 900.0f, clr_ptr5, 1, 0},
+    //ptr 6
+    {400.0f, 850.0f, clr_ptr6, 0, 1},
+    {400.0f, 900.0f, clr_ptr6, 0, 0},
+    {450.0f, 850.0f, clr_ptr6, 1, 1},
+    {450.0f, 900.0f, clr_ptr6, 1, 0}
   };
-  engine::graph->flat_render(nullptr, vers, 5);
+  engine::graph->flat_render(nullptr, vers, 7);
 }
 void Main::pause () {
 }
