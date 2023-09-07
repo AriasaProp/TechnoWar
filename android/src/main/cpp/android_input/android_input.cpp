@@ -8,7 +8,7 @@
 
 struct touch_pointer {
   bool active;
-  int32_t id
+  int32_t id;
   float xs, ys;
   float x, y;
 };
