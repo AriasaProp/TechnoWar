@@ -45,6 +45,7 @@ struct graphics_core {
   virtual mesh_core *gen_mesh (mesh_core::data *, unsigned int, unsigned short *, unsigned int) = 0;
   virtual void mesh_render (mesh_core **, const unsigned int &) = 0;
   virtual void delete_mesh (mesh_core *) = 0;
+  virtual void to_flat_coordinate(float &, float &);
 };
 struct sensor_value {
   float x, y, z;

@@ -344,10 +344,6 @@ void opengles_graphics::postRender (bool isDestroy) {
     }
   }
 }
-void opengles_graphics::realSize(int *out) {
-  out[0] = mgl_data->wWidth;
-  out[1] = mgl_data->wHeight;
-}
 void opengles_graphics::onWindowTerm () {
   if (!mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -473,6 +469,11 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
   delete[] m->vertex;
   delete[] m->index;
   delete m;
+}
+
+void opengles_graphics::to_flat_coordinate(float &x, float &y) {
+  x -= cur_safe_insets[0];
+  y = mgl_data->wHeight - y + cur_safe_insets[3];
 }
 
 inline void opengles_graphics::update_layout () {

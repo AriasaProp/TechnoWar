@@ -10,7 +10,6 @@ public:
   // android
   void preRender (ANativeWindow*, unsigned int&) override;
   void postRender (bool) override;
-  void realSize(int *) override;
   void onWindowTerm () override;
   // core
   float getWidth () override;
@@ -25,6 +24,7 @@ public:
   engine::mesh_core *gen_mesh (engine::mesh_core::data *, unsigned int, unsigned short *, unsigned int) override;
   void mesh_render (engine::mesh_core **, const unsigned int &) override;
   void delete_mesh (engine::mesh_core *) override;
+  void to_flat_coordinate(float &, float &) override;
   inline void update_layout ();
 
   opengles_graphics ();

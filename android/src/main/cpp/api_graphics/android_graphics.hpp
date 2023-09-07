@@ -9,7 +9,6 @@ struct android_graphics : public engine::graphics_core {
   // android
   virtual void preRender (ANativeWindow *, unsigned int&) = 0;
   virtual void postRender (bool) = 0;
-  virtual void realSize(int *) = 0;
   virtual void onWindowTerm () = 0;
   virtual ~android_graphics () = 0;
 };

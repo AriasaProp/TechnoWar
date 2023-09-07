@@ -8,6 +8,7 @@
 
 struct touch_pointer {
   bool active;
+  int32_t id
   float xs, ys;
   float x, y;
 };
@@ -115,47 +116,41 @@ void android_input::process_input () {
   }
   case AINPUT_EVENT_TYPE_MOTION: {
     const int32_t motion = AMotionEvent_getAction (minput->i_event);
+    const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+    if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
+      break;
+    const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
     switch (motion & AMOTION_EVENT_ACTION_MASK) {
     case AMOTION_EVENT_ACTION_POINTER_DOWN:
     case AMOTION_EVENT_ACTION_DOWN:
       if (AMotionEvent_getEdgeFlags (minput->i_event) == 0) {
-        const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-        if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
-          break;
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
         ip.active = true;
-        int real[2];
-        android_graphics *ag = (android_graphics*)engine::graph;
-        ag->realSize(real);
-        ip.xs = ip.x = AMotionEvent_getX (minput->i_event, pointer_index) - ag->cur_safe_insets[0];
-        ip.ys = ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, pointer_index) - ag->cur_safe_insets[3];
+        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
+        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        engine::graph->to_flat_coordinate(ip.x, ip.y);
+        ip.xs = ip.x;
+        ip.ys = ip.y;
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:
       for (size_t i = 0, j = AMotionEvent_getPointerCount (minput->i_event); (i < j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
         touch_pointer &ip = minput->input_pointer_cache[i];
         if (!ip.active) continue;
-        int real[2];
-        android_graphics *ag = (android_graphics*)engine::graph;
-        ag->realSize(real);
-        ip.x = AMotionEvent_getX (minput->i_event, i) - ag->cur_safe_insets[0];
-        ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, i) - ag->cur_safe_insets[3];
+        ip.x = AMotionEvent_getX (minput->i_event, i);
+        ip.y = AMotionEvent_getY (minput->i_event, i);
+        engine::graph->to_flat_coordinate(ip.x, ip.y);
       }
       break;
     case AMOTION_EVENT_ACTION_POINTER_UP:
     case AMOTION_EVENT_ACTION_UP:
     case AMOTION_EVENT_ACTION_OUTSIDE: {
-      const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-      if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
-        break;
       touch_pointer &ip = minput->input_pointer_cache[pointer_index];
       if (ip.active) {
         ip.active = false;
-        int real[2];
-        android_graphics *ag = (android_graphics*)engine::graph;
-        ag->realSize(real);
-        ip.x = AMotionEvent_getX (minput->i_event, pointer_index) - ag->cur_safe_insets[0];
-        ip.y = float(real[1]) - AMotionEvent_getY (minput->i_event, pointer_index) - ag->cur_safe_insets[3];
+        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
+        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        engine::graph->to_flat_coordinate(ip.x, ip.y);
       }
     } break;
     case AMOTION_EVENT_ACTION_CANCEL:
