@@ -65,14 +65,7 @@ void uistage::draw (float delta) {
   //hit by touches / click
   //draw
   for (actor *act : actors) {
-    std::string texKey = act->texKey();
-    if (engine::inpt->isTouched(0) && (act->getType()==Actor_Type::Button)) {
-      engine::inpt->getPointerPos(touch_pos, 0);
-      if (act->getRect().insetOf(touch_pos[0], touch_pos[1])) {
-        texKey = ((button_actor *)act)->keys[1];
-      }
-    }
-    textureAtlas &ta = regions[texKey];
+    textureAtlas &ta = regions[act->texKey()];
     engine::texture_core *tex = ta.tex;
     // left, top, right, bottom
     const unsigned int *split = ta.region.patch;
@@ -242,18 +235,32 @@ void uistage::touchDown(float x, float y, int pointer, int button) {
       return;
     }
   }
+  (void)button;
 }
 void uistage::touchMove(float x, float y, float xs, float ys, int pointer, int button) {
   
+  (void)x;
+  (void)y;
+  (void)xs;
+  (void)ys;
+  (void)pointer;
+  (void)button;
 }
 void uistage::touchUp(float x, float y, int pointer, int button) {
   if (focused_actor[pointer]) {
+    actor *act = focused_actor[pointer];
     if (act->getType()==Actor_Type::Button) {
       ((button_actor *)act)->setState(0);
     }
     focused_actor[pointer] = nullptr;
   }
+  (void)x;
+  (void)y;
+  (void)button;
 }
 void uistage::touchCanceled(float x, float y, int pointer, int button) {
-  
+  (void)x;
+  (void)y;
+  (void)pointer;
+  (void)button;
 }
