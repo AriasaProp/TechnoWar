@@ -169,7 +169,7 @@ void android_input::process_input () {
     case AMOTION_EVENT_ACTION_UP:
     case AMOTION_EVENT_ACTION_OUTSIDE: {
       const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
         if (!ip.active || (ip.id != pointer_id)) continue;
@@ -183,7 +183,7 @@ void android_input::process_input () {
     } break;
     case AMOTION_EVENT_ACTION_CANCEL: {
       const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
         if (!ip.active || (ip.id != pointer_id)) continue;
