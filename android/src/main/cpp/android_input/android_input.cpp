@@ -9,7 +9,7 @@
 
 struct touch_pointer {
   bool active;
-  int32_t index, id, button;
+  int32_t id, button;
   float xs, ys;
   float x, y;
 };
@@ -122,42 +122,36 @@ void android_input::process_input () {
     case AMOTION_EVENT_ACTION_DOWN:
       if (AMotionEvent_getEdgeFlags (minput->i_event) == 0) {
         const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-        const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
-        for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
-          touch_pointer &ip = minput->input_pointer_cache[i];
-          if (ip.active) continue;
-          ip.active = true;
-          ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
-          ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
-          engine::graph->to_flat_coordinate(ip.x, ip.y);
-          ip.xs = ip.x;
-          ip.ys = ip.y;
-          ip.id = pointer_id;
-          ip.index = pointer_index;
-          switch (AMotionEvent_getButtonState(minput->i_event)) {
-          default:
-            ip.button = -1;
-            break;
-          case 0:
-          case 1:
-            ip.button = 0;
-            break;
-          case 2:
-            ip.button = 1;
-            break;
-          case 4:
-            ip.button = 2;
-            break;
-          case 8:
-            ip.button = 3;
-            break;
-          case 16:
-            ip.button = 4;
-            break;
-          }
-          uistage::touchDown(ip.x, ip.y, pointer_index, ip.button);
+        touch_pointer &ip = minput->input_pointer_cache[pointer_index];
+        ip.id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
+        ip.active = true;
+        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
+        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        engine::graph->to_flat_coordinate(ip.x, ip.y);
+        ip.xs = ip.x;
+        ip.ys = ip.y;
+        switch (AMotionEvent_getButtonState(minput->i_event)) {
+        default:
+          ip.button = -1;
+          break;
+        case 0:
+        case 1:
+          ip.button = 0;
+          break;
+        case 2:
+          ip.button = 1;
+          break;
+        case 4:
+          ip.button = 2;
+          break;
+        case 8:
+          ip.button = 3;
+          break;
+        case 16:
+          ip.button = 4;
           break;
         }
+        uistage::touchDown(ip.x, ip.y, pointer_index, ip.button);
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:
@@ -165,7 +159,7 @@ void android_input::process_input () {
         const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
         for (size_t k = 0; k < MAX_TOUCH_POINTERS_COUNT; ++k) {
           touch_pointer &ip = minput->input_pointer_cache[k];
-          if ((ip.id != pointer_id) || !ip.active) continue;
+          if (ip.id != pointer_id) continue;
           ip.x = AMotionEvent_getX (minput->i_event, k);
           ip.y = AMotionEvent_getY (minput->i_event, k);
           engine::graph->to_flat_coordinate(ip.x, ip.y);
@@ -182,8 +176,9 @@ void android_input::process_input () {
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if ((ip.id != pointer_id) || !ip.active) continue;
+        if (ip.id != pointer_id) continue;
         ip.active = false;
+        ip.id = -1;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
