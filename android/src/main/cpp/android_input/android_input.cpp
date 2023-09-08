@@ -158,13 +158,16 @@ void android_input::process_input () {
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:
-      for (size_t i = 0, j = AMotionEvent_getPointerCount (minput->i_event); (i < j) && (i < MAX_TOUCH_POINTERS_COUNT); ++i) {
-        touch_pointer &ip = minput->input_pointer_cache[i];
-        if (!ip.active) continue;
-        ip.x = AMotionEvent_getX (minput->i_event, i);
-        ip.y = AMotionEvent_getY (minput->i_event, i);
-        engine::graph->to_flat_coordinate(ip.x, ip.y);
-        uistage::touchMove(ip.x, ip.y, ip.xs-ip.x, ip.ys-ip.y, i, ip.button);
+      for (size_t i = 0, j = AMotionEvent_getPointerCount (minput->i_event); (i < j); ++i) {
+        const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+        for (size_t k = 0; k < MAX_TOUCH_POINTERS_COUNT; ++k) {
+          touch_pointer &ip = minput->input_pointer_cache[k];
+          if ((ip.id != pointer_id) || !ip.active) continue;
+          ip.x = AMotionEvent_getX (minput->i_event, k);
+          ip.y = AMotionEvent_getY (minput->i_event, k);
+          engine::graph->to_flat_coordinate(ip.x, ip.y);
+          uistage::touchMove(ip.x, ip.y, ip.xs-ip.x, ip.ys-ip.y, k, ip.button);
+        }
       }
       break;
     case AMOTION_EVENT_ACTION_POINTER_UP:

@@ -259,8 +259,14 @@ void uistage::touchUp(float x, float y, int pointer, int button) {
   (void)button;
 }
 void uistage::touchCanceled(float x, float y, int pointer, int button) {
+  if (focused_actor[pointer]) {
+    actor *act = focused_actor[pointer];
+    if (act->getType()==Actor_Type::Button) {
+      ((button_actor *)act)->setState(0);
+    }
+    focused_actor[pointer] = nullptr;
+  }
   (void)x;
   (void)y;
-  (void)pointer;
   (void)button;
 }
