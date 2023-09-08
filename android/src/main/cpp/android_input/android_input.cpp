@@ -9,7 +9,7 @@
 
 struct touch_pointer {
   bool active;
-  int32_t id;
+  int32_t id, button;
   float xs, ys;
   float x, y;
 };
@@ -117,52 +117,84 @@ void android_input::process_input () {
   }
   case AINPUT_EVENT_TYPE_MOTION: {
     const int32_t motion = AMotionEvent_getAction (minput->i_event);
-    const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
-    if (pointer_index >= MAX_TOUCH_POINTERS_COUNT)
-      break;
-    const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
     switch (motion & AMOTION_EVENT_ACTION_MASK) {
     case AMOTION_EVENT_ACTION_POINTER_DOWN:
     case AMOTION_EVENT_ACTION_DOWN:
       if (AMotionEvent_getEdgeFlags (minput->i_event) == 0) {
+        const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
         ip.active = true;
+        ip.id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
         ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
         ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
         ip.xs = ip.x;
         ip.ys = ip.y;
-        uistage::touchDown(ip.x, ip.y, pointer_index, 0);
+        switch (AMotionEvent_getButtonState(minput->i_event)) {
+        case 0:
+        case 1:
+          ip.button = 0;
+          break;
+        case 2:
+          ip.button = 1;
+          break;
+        case 4:
+          ip.button = 2;
+          break;
+        case 8:
+          ip.button = 3;
+          break;
+        case 16:
+          ip.button = 4;
+          break;
+        default:
+          ip.button = -1;
+          break;
+        }
+        uistage::touchDown(ip.x, ip.y, pointer_index, ip.button);
       }
       break;
     case AMOTION_EVENT_ACTION_MOVE:
       for (size_t i = 0, j = AMotionEvent_getPointerCount (minput->i_event); (i < j) && (i < MAX_TOUCH_POINTERS_COUNT); i++) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if (!ip.active) continue;
+        const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+        if (!ip.active || (ip.id != pointer_id)) continue;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
-        uistage::touchMove(ip.x, ip.y, ip.xs-ip.x, ip.ys-ip.y, pointer_index, 0);
+        uistage::touchMove(ip.x, ip.y, ip.xs-ip.x, ip.ys-ip.y, i, ip.button);
       }
       break;
     case AMOTION_EVENT_ACTION_POINTER_UP:
     case AMOTION_EVENT_ACTION_UP:
     case AMOTION_EVENT_ACTION_OUTSIDE: {
-      touch_pointer &ip = minput->input_pointer_cache[pointer_index];
-      if (ip.active) {
+      const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+      for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
+        touch_pointer &ip = minput->input_pointer_cache[i];
+        if (!ip.active || (ip.id != pointer_id)) continue;
         ip.active = false;
-        ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
-        ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
+        ip.x = AMotionEvent_getX (minput->i_event, i);
+        ip.y = AMotionEvent_getY (minput->i_event, i);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
-        uistage::touchUp(ip.x, ip.y, pointer_index, 0);
+        uistage::touchUp(ip.x, ip.y, i, ip.button);
+        break;
       }
     } break;
-    case AMOTION_EVENT_ACTION_CANCEL:
-      for (touch_pointer &input_pointer_item : minput->input_pointer_cache)
-        input_pointer_item = touch_pointer{};
-      touch_pointer &ip = minput->input_pointer_cache[pointer_index];
-      uistage::touchCanceled(ip.x, ip.y, pointer_index, 0);
-      break;
+    case AMOTION_EVENT_ACTION_CANCEL: {
+      const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+      const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, i);
+      for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
+        touch_pointer &ip = minput->input_pointer_cache[i];
+        if (!ip.active || (ip.id != pointer_id)) continue;
+        ip.active = false;
+        ip.x = AMotionEvent_getX (minput->i_event, i);
+        ip.y = AMotionEvent_getY (minput->i_event, i);
+        engine::graph->to_flat_coordinate(ip.x, ip.y);
+        uistage::touchUp(ip.x, ip.y, i, ip.button);
+        break;
+      }
+    } break;
     case AMOTION_EVENT_ACTION_SCROLL:
     case AMOTION_EVENT_ACTION_HOVER_ENTER:
     case AMOTION_EVENT_ACTION_HOVER_MOVE:
