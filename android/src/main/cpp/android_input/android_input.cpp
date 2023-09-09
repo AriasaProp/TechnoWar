@@ -172,7 +172,7 @@ void android_input::process_input () {
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if (!ip.active || (ip.id != pointer_id)) continue;
+        if (ip.id != pointer_id) continue;
         ip.active = false;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
@@ -186,12 +186,12 @@ void android_input::process_input () {
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
       for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
         touch_pointer &ip = minput->input_pointer_cache[i];
-        if (!ip.active || (ip.id != pointer_id)) continue;
+        if (ip.id != pointer_id) continue;
         ip.active = false;
         ip.x = AMotionEvent_getX (minput->i_event, i);
         ip.y = AMotionEvent_getY (minput->i_event, i);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
-        uistage::touchUp(ip.x, ip.y, i, ip.button);
+        uistage::touchCanceled(ip.x, ip.y, i, ip.button);
         break;
       }
     } break;
