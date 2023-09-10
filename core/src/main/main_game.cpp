@@ -83,8 +83,10 @@ Main::Main () {
     mdata->tc = engine::graph->gen_texture (x, y, t);
     stbi_image_free (t);
   }
-  uistage::makeImage("test",Rect(1000,200,ALIGN_CENTER, 300, 300));
-  uistage::makeButton({"btn1","btn1_"},Rect(600,200,ALIGN_CENTER, 300, 300));
+  uistage::makeButton({"btn1","btn1_"},Rect(400,200,ALIGN_CENTER, 200, 200));
+  uistage::makeImage("test",Rect(550,200,ALIGN_CENTER, 200, 200));
+  uistage::makeButton({"btn1","btn1_"},Rect(700,200,ALIGN_CENTER, 200, 200));
+  uistage::makeButton({"btn1","btn1_"},Rect(850,200,ALIGN_CENTER, 200, 200));
   
   resume();
 }

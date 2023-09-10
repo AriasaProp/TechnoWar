@@ -86,6 +86,25 @@ void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
   if (minput->inputQueue)
     AInputQueue_attachLooper (minput->inputQueue, looper, 2, NULL, nullptr);
 }
+static int inline android_button_type(int32_t btn){
+  switch (btn){
+  case AMOTION_EVENT_BUTTON_PRIMARY:
+  case AMOTION_EVENT_BUTTON_SECONDARY:
+    return 0;
+  case AMOTION_EVENT_BUTTON_TERTIARY:
+    return 1;
+  case AMOTION_EVENT_BUTTON_BACK:
+    return 2;
+  case AMOTION_EVENT_BUTTON_FORWARD:
+    return 3;
+  case AMOTION_EVENT_BUTTON_STYLUS_PRIMARY:
+    return 4;
+  case AMOTION_EVENT_BUTTON_STYLUS_SECONDARY:
+    return 5;
+  default:
+    return -1;
+  }
+}
 void android_input::process_input () {
   if (!minput->inputQueue) return;
   if (AInputQueue_getEvent (minput->inputQueue, &minput->i_event) < 0) return;
@@ -125,32 +144,12 @@ void android_input::process_input () {
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
         ip.active = true;
         ip.id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
+        ip.button = android_button_type(AMotionEvent_getButtonState(pointer_index));
         ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
         ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
         ip.xs = ip.x;
         ip.ys = ip.y;
-        switch (AMotionEvent_getButtonState(minput->i_event)) {
-        case 0:
-        case 1:
-          ip.button = 0;
-          break;
-        case 2:
-          ip.button = 1;
-          break;
-        case 4:
-          ip.button = 2;
-          break;
-        case 8:
-          ip.button = 3;
-          break;
-        case 16:
-          ip.button = 4;
-          break;
-        default:
-          ip.button = -1;
-          break;
-        }
         uistage::touchDown(ip.x, ip.y, pointer_index, ip.button);
       }
       break;
@@ -165,8 +164,8 @@ void android_input::process_input () {
         uistage::touchMove(ip.x, ip.y, ip.xs-ip.x, ip.ys-ip.y, i, ip.button);
       }
       break;
-    case AMOTION_EVENT_ACTION_POINTER_UP:
     case AMOTION_EVENT_ACTION_UP:
+    case AMOTION_EVENT_ACTION_POINTER_UP:
     case AMOTION_EVENT_ACTION_OUTSIDE: {
       const uint8_t pointer_index = (motion & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
       const int32_t pointer_id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
@@ -199,6 +198,9 @@ void android_input::process_input () {
     case AMOTION_EVENT_ACTION_HOVER_ENTER:
     case AMOTION_EVENT_ACTION_HOVER_MOVE:
     case AMOTION_EVENT_ACTION_HOVER_EXIT:
+      break;
+    case AMOTION_EVENT_ACTION_BUTTON_PRESS:
+    case AMOTION_EVENT_ACTION_BUTTON_RELEASE:
       break;
     }
     handled = 1;
