@@ -144,7 +144,7 @@ void android_input::process_input () {
         touch_pointer &ip = minput->input_pointer_cache[pointer_index];
         ip.active = true;
         ip.id = AMotionEvent_getPointerId(minput->i_event, pointer_index);
-        ip.button = android_button_type(AMotionEvent_getButtonState(pointer_index));
+        ip.button = android_button_type(AMotionEvent_getButtonState(minput->i_event));
         ip.x = AMotionEvent_getX (minput->i_event, pointer_index);
         ip.y = AMotionEvent_getY (minput->i_event, pointer_index);
         engine::graph->to_flat_coordinate(ip.x, ip.y);
