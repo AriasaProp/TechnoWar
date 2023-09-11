@@ -89,19 +89,19 @@ struct text_actor: public uistage::actor {
       if (itf == Chars.end ()) continue;
       CharDescriptor &f = itf->second;
       xList[0] = x + (f.XOffset * F); // minx
-      yList[0] = rectangle.ymin + (f.YOffset * F); // maxy
+      yList[1] = rectangle.ymax - (f.YOffset * F); // maxy
       xList[1] = xList[0] + (f.Width * F);  // maxx
-      yList[1] = yList[0] + (f.Height * F); // miny
+      yList[0] = yList[1] - (f.Height * F); // miny
       
       uList[0] = f.x / (float)font->Width;
       vList[0] = f.y / (float)font->Height;
       uList[1] = (f.x + f.Width) / (float)font->Width;
       vList[1] = (f.y + f.Height) / (float)font->Height;
     
-      *(cur_tex++) = {xList[0],yList[1],font->fcolor,uList[0],vList[1]};
-      *(cur_tex++) = {xList[0],yList[0],font->fcolor,uList[0],vList[0]};
-      *(cur_tex++) = {xList[1],yList[1],font->fcolor,uList[1],vList[1]};
-      *(cur_tex++) = {xList[1],yList[0],font->fcolor,uList[1],vList[0]};
+      *(cur_tex++) = {xList[0],yList[0],font->fcolor,uList[0],vList[1]};
+      *(cur_tex++) = {xList[0],yList[1],font->fcolor,uList[0],vList[0]};
+      *(cur_tex++) = {xList[1],yList[0],font->fcolor,uList[1],vList[1]};
+      *(cur_tex++) = {xList[1],yList[1],font->fcolor,uList[1],vList[0]};
       
       if (*(t + 1)) {
         float nX = f.XAdvance;
