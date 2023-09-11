@@ -1,24 +1,24 @@
 #include "math.hpp"
 // math is not multithread safe.
-#include <cmath>
 #include <chrono>
+#include <cmath>
 #include <cstring>
 #include <sys/resource.h>
 
-//global temporary for not safe thread
+// global temporary for not safe thread
 static union {
-    float mtx[16];
-    struct {
-        float x, y, w, h;
-    } rct;
-    struct {
-        float x, y;
-    } vec;
-    struct rusage myusage;
+  float mtx[16];
+  struct {
+    float x, y, w, h;
+  } rct;
+  struct {
+    float x, y;
+  } vec;
+  struct rusage myusage;
 } tmp;
 
 unsigned long memory_usage::mem_usage () {
-  getrusage(RUSAGE_SELF, &tmp.myusage);
+  getrusage (RUSAGE_SELF, &tmp.myusage);
   return tmp.myusage.ru_maxrss;
 }
 
@@ -29,14 +29,14 @@ static float delta_count;
 static size_t FPS_result;
 static size_t frame_count;
 
-void clock_count::start() {
+void clock_count::start () {
   start_clock = std::chrono::steady_clock::now ();
   frame_count = 0;
   FPS_result = 0;
   delta_count = 0;
   delta_result = 0;
 }
-void clock_count::render() {
+void clock_count::render () {
   end_clock = std::chrono::steady_clock::now ();
   delta_result = float (std::chrono::duration_cast<std::chrono::microseconds> (end_clock - start_clock).count ()) / 1000000.f;
   delta_count += delta_result;
@@ -48,54 +48,54 @@ void clock_count::render() {
   }
   start_clock = end_clock;
 }
-void clock_count::end() {
+void clock_count::end () {
   frame_count = 0;
   delta_count = 0;
 }
-size_t clock_count::getFPS() {
+size_t clock_count::getFPS () {
   return FPS_result;
 }
-float clock_count::getDelta() {
+float clock_count::getDelta () {
   return delta_result;
 }
-//Rect definition
-Rect::Rect() : xmin(0.0f), ymin(0.0f), xmax(0.0f), ymax(0.0f) {}
-Rect::Rect(float x, float y, const Align &a, float sx, float sy) {
+// Rect definition
+Rect::Rect () : xmin (0.0f), ymin (0.0f), xmax (0.0f), ymax (0.0f) {}
+Rect::Rect (float x, float y, const Align &a, float sx, float sy) {
   unsigned char vert = a & 3;
   switch (vert) {
-    default:
-      xmin = x;
-      xmax = x+sx;
-      break;
-    case 1:
-      xmin = x-sx*0.5f;
-      xmax = xmin+sx;
-      break;
-    case 2:
-      xmin = x-sx;
-      xmax = x;
-      break;
+  default:
+    xmin = x;
+    xmax = x + sx;
+    break;
+  case 1:
+    xmin = x - sx * 0.5f;
+    xmax = xmin + sx;
+    break;
+  case 2:
+    xmin = x - sx;
+    xmax = x;
+    break;
   }
   unsigned char hor = (a >> 2) & 3;
   switch (hor) {
-    default:
-      ymin = y;
-      ymax = y+sy;
-      break;
-    case 1:
-      ymin = y-sy*0.5f;
-      ymax = ymin+sy;
-      break;
-    case 2:
-      ymin = y-sy;
-      ymax = y;
-      break;
+  default:
+    ymin = y;
+    ymax = y + sy;
+    break;
+  case 1:
+    ymin = y - sy * 0.5f;
+    ymax = ymin + sy;
+    break;
+  case 2:
+    ymin = y - sy;
+    ymax = y;
+    break;
   }
 }
-bool Rect::insetOf(float x, float y) {
+bool Rect::insetOf (float x, float y) {
   return (x > xmin) && (x < xmax) && (y > ymin) && (y < ymax);
 }
-//matrix4 definition
+// matrix4 definition
 void matrix4::idt (float *a) {
   memset (a, 0, sizeof (tmp.mtx));
   a[0] = a[5] = a[10] = a[15] = 1;

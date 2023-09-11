@@ -10,8 +10,8 @@
 namespace engine {
 // texture core
 struct texture_core {
-  virtual unsigned int width() = 0;
-  virtual unsigned int height() = 0;
+  virtual unsigned int width () = 0;
+  virtual unsigned int height () = 0;
   virtual ~texture_core (){};
 };
 // ui_core
@@ -28,9 +28,9 @@ struct mesh_core {
   struct data {
     float pos[3];
     uint32_t color;
-  } *vertex;
+  } * vertex;
   unsigned short *index;
-  float trans[16]{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  float trans[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 };
 struct graphics_core {
   virtual float getWidth () = 0;
@@ -45,7 +45,7 @@ struct graphics_core {
   virtual mesh_core *gen_mesh (mesh_core::data *, unsigned int, unsigned short *, unsigned int) = 0;
   virtual void mesh_render (mesh_core **, const unsigned int &) = 0;
   virtual void delete_mesh (mesh_core *) = 0;
-  virtual void to_flat_coordinate(float &, float &) = 0;
+  virtual void to_flat_coordinate (float &, float &) = 0;
 };
 struct sensor_value {
   float x, y, z;
@@ -53,7 +53,7 @@ struct sensor_value {
 struct input_core {
   virtual sensor_value getSensorValue (const char *) const = 0;
   virtual void getPointerPos (float *, unsigned int) = 0;
-  virtual void getPointerDelta (float *,unsigned int) = 0;
+  virtual void getPointerDelta (float *, unsigned int) = 0;
   virtual bool justTouched () = 0;
   virtual bool onTouched () = 0;
   virtual bool isTouched (unsigned int) = 0;

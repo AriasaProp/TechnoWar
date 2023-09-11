@@ -15,8 +15,8 @@ private:
 
 public:
   engine::sensor_value getSensorValue (const char *) const override;
-  void getPointerPos (float*, unsigned int) override;
-  void getPointerDelta (float*, unsigned int) override;
+  void getPointerPos (float *, unsigned int) override;
+  void getPointerDelta (float *, unsigned int) override;
   bool justTouched () override;
   bool onTouched () override;
   bool isTouched (unsigned int) override;

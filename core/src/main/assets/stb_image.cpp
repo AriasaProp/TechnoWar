@@ -249,7 +249,8 @@ static void stbi__rewind (stbi__context *s) {
   s->img_buffer_end = s->img_buffer_original_end;
 }
 
-enum { STBI_ORDER_RGB, STBI_ORDER_BGR };
+enum { STBI_ORDER_RGB,
+       STBI_ORDER_BGR };
 
 struct stbi__result_info {
   int bits_per_channel;

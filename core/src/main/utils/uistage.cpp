@@ -1,11 +1,8 @@
 #include "uistage.hpp"
+#include "../assets/stb_image.hpp"
 #include "../engine.hpp"
 #include "math.hpp"
-#include "../assets/stb_image.hpp"
 
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -13,6 +10,9 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
 struct CharDescriptor {
   short x, y;
@@ -35,99 +35,99 @@ struct bmfont {
   float fscale ();
   bool ParseFont (const char *);
   void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
-  void setFontSize (float);//px
+  void setFontSize (float); // px
   float GetHeight ();
-  //void draw_text (float, float, Align, const char *);
-  //void draw_text (float, float, Align, const char *, ...);
+  // void draw_text (float, float, Align, const char *);
+  // void draw_text (float, float, Align, const char *, ...);
   bmfont (const char *);
   ~bmfont ();
 
 } *font = nullptr;
-//BMFONT STATE end
+// BMFONT STATE end
 struct textureAtlas {
   engine::texture_core *tex;
   uistage::texture_region region;
   uint32_t clr;
 };
 static std::unordered_map<std::string, textureAtlas> regions;
-//static engine::texture_core *binded = nullptr;
-static std::unordered_set<uistage::actor*> actors;
+// static engine::texture_core *binded = nullptr;
+static std::unordered_set<uistage::actor *> actors;
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type: size_t{
+enum Actor_Type : size_t {
   None = 0,
   Static,
   Button
 };
 
-struct text_actor: public uistage::actor {
+struct text_actor : public uistage::actor {
   const char *text;
   Rect rectangle;
-  
-  text_actor(float x, float y, Align a, const char *ti): text(ti) {
+
+  text_actor (float x, float y, Align a, const char *ti) : text (ti) {
     float width = 0;
     auto &Chars = font->Chars;
     for (const char *t = text; *t; t++) {
       if (Chars.find (*t) == Chars.end ()) continue;
       width += Chars[*t].XAdvance;
     }
-    rectangle = Rect(x,y, a, width*font->fscale(), font->LineHeight*font->fscale());
+    rectangle = Rect (x, y, a, width * font->fscale (), font->LineHeight * font->fscale ());
   }
-  
-  Rect &getRect() override {
+
+  Rect &getRect () override {
     return rectangle;
   }
-  void draw(float delta, engine::flat_vertex *vert) override {
+  void draw (float delta, engine::flat_vertex *vert) override {
     (void)delta;
-    float F = font->fscale();
+    float F = font->fscale ();
     auto &Chars = font->Chars;
     engine::flat_vertex *cur_tex = vert;
     auto &Kearn = font->Kearn;
     float x = rectangle.xmin;
     for (const char *t = text; *t; t++) {
-      auto itf= Chars.find (*t);
+      auto itf = Chars.find (*t);
       if (itf == Chars.end ()) continue;
       CharDescriptor &f = itf->second;
-      xList[0] = x + (f.XOffset * F); // minx
+      xList[0] = x + (f.XOffset * F);              // minx
       yList[1] = rectangle.ymax - (f.YOffset * F); // maxy
-      xList[1] = xList[0] + (f.Width * F);  // maxx
-      yList[0] = yList[1] - (f.Height * F); // miny
-      
+      xList[1] = xList[0] + (f.Width * F);         // maxx
+      yList[0] = yList[1] - (f.Height * F);        // miny
+
       uList[0] = f.x / (float)font->Width;
       vList[0] = f.y / (float)font->Height;
       uList[1] = (f.x + f.Width) / (float)font->Width;
       vList[1] = (f.y + f.Height) / (float)font->Height;
-    
-      *(cur_tex++) = {xList[0],yList[0],font->fcolor,uList[0],vList[1]};
-      *(cur_tex++) = {xList[0],yList[1],font->fcolor,uList[0],vList[0]};
-      *(cur_tex++) = {xList[1],yList[0],font->fcolor,uList[1],vList[1]};
-      *(cur_tex++) = {xList[1],yList[1],font->fcolor,uList[1],vList[0]};
-      
+
+      *(cur_tex++) = {xList[0], yList[0], font->fcolor, uList[0], vList[1]};
+      *(cur_tex++) = {xList[0], yList[1], font->fcolor, uList[0], vList[0]};
+      *(cur_tex++) = {xList[1], yList[0], font->fcolor, uList[1], vList[1]};
+      *(cur_tex++) = {xList[1], yList[1], font->fcolor, uList[1], vList[0]};
+
       if (*(t + 1)) {
         float nX = f.XAdvance;
-        uint16_t key[2] = {static_cast<uint16_t>(*t), static_cast<uint16_t>(*(t + 1))};
+        uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
         auto it = Kearn.find (*(uint32_t *)key);
         if (it != Kearn.end ())
           nX += it->second;
         x += nX * F;
       }
+    }
+    engine::graph->flat_render (font->ftexid, vert, strlen (text));
   }
-    engine::graph->flat_render (font->ftexid, vert, strlen(text));
-  }
-  size_t getType() const override { return Actor_Type::Static; }
-  ~text_actor() override {}
+  size_t getType () const override { return Actor_Type::Static; }
+  ~text_actor () override {}
 };
-struct image_actor: public uistage::actor {
+struct image_actor : public uistage::actor {
   std::string key;
   Rect rectangle;
-  
-  image_actor(std::string k, Rect r): key(k), rectangle(r) {}
-  
-  Rect &getRect() override {
+
+  image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
+
+  Rect &getRect () override {
     return rectangle;
   }
-  size_t getType() const override { return Actor_Type::Static; }
-  void draw(float delta, engine::flat_vertex *vert) override {
+  size_t getType () const override { return Actor_Type::Static; }
+  void draw (float delta, engine::flat_vertex *vert) override {
     (void)delta;
     textureAtlas &ta = regions[key];
     engine::texture_core *tex = ta.tex;
@@ -135,17 +135,17 @@ struct image_actor: public uistage::actor {
     const unsigned int *split = ta.region.patch;
     size_t quadCount = 0;
     engine::flat_vertex *verts = vert;
-    //vertically 1
-    if (split[3]) { //horizontally
+    // vertically 1
+    if (split[3]) { // horizontally
       yList[0] = rectangle.ymin;
       yList[1] = rectangle.ymin + split[3];
-      vList[0] = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
-      vList[1] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
+      vList[0] = float (ta.region.pos[1] + ta.region.size[1]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -155,8 +155,8 @@ struct image_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -166,8 +166,8 @@ struct image_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -175,17 +175,17 @@ struct image_actor: public uistage::actor {
         quadCount++;
       }
     }
-    //vertically 2
+    // vertically 2
     yList[0] = rectangle.ymin + split[3];
     yList[1] = rectangle.ymax - split[1];
-    if (yList[1] > yList[0]) { //horizontally
-      vList[0] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
-      vList[1] = float(ta.region.pos[1]+split[1])/float(tex->height());
+    if (yList[1] > yList[0]) { // horizontally
+      vList[0] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -195,8 +195,8 @@ struct image_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -206,8 +206,8 @@ struct image_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -215,17 +215,17 @@ struct image_actor: public uistage::actor {
         quadCount++;
       }
     }
-    //vertically 3
-    if (split[1]) { //horizontally
+    // vertically 3
+    if (split[1]) { // horizontally
       yList[0] = rectangle.ymax - split[1];
       yList[1] = rectangle.ymax;
-      vList[0] = float(ta.region.pos[1]+split[1])/float(tex->height());
-      vList[1] = float(ta.region.pos[1])/float(tex->height());
+      vList[0] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -235,8 +235,8 @@ struct image_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -246,8 +246,8 @@ struct image_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -255,27 +255,27 @@ struct image_actor: public uistage::actor {
         quadCount++;
       }
     }
-    engine::graph->flat_render(tex,vert,quadCount);
+    engine::graph->flat_render (tex, vert, quadCount);
   }
-  ~image_actor() override {}
+  ~image_actor () override {}
 };
-struct button_actor: public uistage::actor {
+struct button_actor : public uistage::actor {
   std::string *keys;
   size_t mstate = 0;
   Rect rectangle;
-  void (*onClick)();
-  
-  button_actor(std::string *k, Rect r, void(*onclick)()): keys(k), rectangle(r), onClick(onclick) {}
-  
-  Rect &getRect() override {
+  void (*onClick) ();
+
+  button_actor (std::string *k, Rect r, void (*onclick) ()) : keys (k), rectangle (r), onClick (onclick) {}
+
+  Rect &getRect () override {
     return rectangle;
   }
-  void setState(size_t state) {
+  void setState (size_t state) {
     mstate = state;
   }
-  size_t getType() const override { return Actor_Type::Button; }
-  
-  void draw(float delta, engine::flat_vertex *vert) override {
+  size_t getType () const override { return Actor_Type::Button; }
+
+  void draw (float delta, engine::flat_vertex *vert) override {
     (void)delta;
     textureAtlas &ta = regions[keys[mstate]];
     engine::texture_core *tex = ta.tex;
@@ -283,17 +283,17 @@ struct button_actor: public uistage::actor {
     const unsigned int *split = ta.region.patch;
     size_t quadCount = 0;
     engine::flat_vertex *verts = vert;
-    //vertically 1
-    if (split[3]) { //horizontally
+    // vertically 1
+    if (split[3]) { // horizontally
       yList[0] = rectangle.ymin;
       yList[1] = rectangle.ymin + split[3];
-      vList[0] = float(ta.region.pos[1]+ta.region.size[1])/float(tex->height());
-      vList[1] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
+      vList[0] = float (ta.region.pos[1] + ta.region.size[1]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -303,8 +303,8 @@ struct button_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -314,8 +314,8 @@ struct button_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -323,17 +323,17 @@ struct button_actor: public uistage::actor {
         quadCount++;
       }
     }
-    //vertically 2
+    // vertically 2
     yList[0] = rectangle.ymin + split[3];
     yList[1] = rectangle.ymax - split[1];
-    if (yList[1] > yList[0]) { //horizontally
-      vList[0] = float(ta.region.pos[1]+ta.region.size[1]-split[3])/float(tex->height());
-      vList[1] = float(ta.region.pos[1]+split[1])/float(tex->height());
+    if (yList[1] > yList[0]) { // horizontally
+      vList[0] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -343,8 +343,8 @@ struct button_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -354,8 +354,8 @@ struct button_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -363,17 +363,17 @@ struct button_actor: public uistage::actor {
         quadCount++;
       }
     }
-    //vertically 3
-    if (split[1]) { //horizontally
+    // vertically 3
+    if (split[1]) { // horizontally
       yList[0] = rectangle.ymax - split[1];
       yList[1] = rectangle.ymax;
-      vList[0] = float(ta.region.pos[1]+split[1])/float(tex->height());
-      vList[1] = float(ta.region.pos[1])/float(tex->height());
+      vList[0] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
+      vList[1] = float (ta.region.pos[1]) / float (tex->height ());
       if (split[0]) {
         xList[0] = rectangle.xmin;
         xList[1] = rectangle.xmin + split[0];
-        uList[0] = float(ta.region.pos[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+split[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -383,8 +383,8 @@ struct button_actor: public uistage::actor {
       xList[0] = rectangle.xmin + split[0];
       xList[1] = rectangle.xmax - split[2];
       if (xList[1] > xList[0]) {
-        uList[0] = float(ta.region.pos[0]+split[0])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -394,8 +394,8 @@ struct button_actor: public uistage::actor {
       if (split[2]) {
         xList[0] = rectangle.xmax - split[2];
         xList[1] = rectangle.xmax;
-        uList[0] = float(ta.region.pos[0]+ta.region.size[0]-split[2])/float(tex->width());
-        uList[1] = float(ta.region.pos[0]+ta.region.size[0])/float(tex->width());
+        uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
+        uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
         *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
         *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
         *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
@@ -403,79 +403,79 @@ struct button_actor: public uistage::actor {
         quadCount++;
       }
     }
-    engine::graph->flat_render(tex,vert,quadCount);
+    engine::graph->flat_render (tex, vert, quadCount);
   }
-  
-  ~button_actor() override {delete[] keys;}
+
+  ~button_actor () override { delete[] keys; }
 };
 
-void uistage::loadBMFont(const char *fontFile) {
-  font = new bmfont(fontFile);
-  font->setFontSize(40.f);
+void uistage::loadBMFont (const char *fontFile) {
+  font = new bmfont (fontFile);
+  font->setFontSize (40.f);
 }
-void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
+void uistage::addTextureRegion (std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
   regions[key] = textureAtlas{tex, reg, 0xffffffff};
 }
-void uistage::addTextureRegion(std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const uint32_t clr) {
+void uistage::addTextureRegion (std::string key, engine::texture_core *tex, const uistage::texture_region &reg, const uint32_t clr) {
   regions[key] = textureAtlas{tex, reg, clr};
 }
 void uistage::draw (float delta) {
-  //hit by touches / click
-  //draw
+  // hit by touches / click
+  // draw
   for (actor *act : actors) {
-    act->draw(delta, vert);
+    act->draw (delta, vert);
   }
 }
-void uistage::clear() {
-  for (auto i = regions.begin(), j = regions.end(); i != j; i++) {
+void uistage::clear () {
+  for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
     delete i->second.tex;
   }
-  regions.clear();
+  regions.clear ();
   for (uistage::actor *a : actors)
     delete a;
-  actors.clear();
+  actors.clear ();
   delete font;
 }
 
-uistage::actor *uistage::makeImage(std::string k, Rect r) {
-  uistage::actor *ua = new image_actor(k, r);
-  actors.insert(ua);
+uistage::actor *uistage::makeImage (std::string k, Rect r) {
+  uistage::actor *ua = new image_actor (k, r);
+  actors.insert (ua);
   return ua;
 }
 
-uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r, void(*onclick)()) {
-  if (!k.size()) throw("button must have a key texture");
-  std::string *K = new std::string[k.size()];
+uistage::actor *uistage::makeButton (std::initializer_list<std::string> k, Rect r, void (*onclick) ()) {
+  if (!k.size ()) throw ("button must have a key texture");
+  std::string *K = new std::string[k.size ()];
   size_t i = 0;
-  const std::string *it = k.begin(), *end = k.end();
+  const std::string *it = k.begin (), *end = k.end ();
   while (it != end) {
     K[i] = *it;
     ++it;
     ++i;
   }
-  uistage::actor *ua = new button_actor(K, r, onclick);
-  actors.insert(ua);
+  uistage::actor *ua = new button_actor (K, r, onclick);
+  actors.insert (ua);
   return ua;
 }
-uistage::actor *uistage::makeText(float x, float y, Align a, std::string k) {
-  uistage::actor *ua = new text_actor(x, y, a, k.c_str());
-  actors.insert(ua);
+uistage::actor *uistage::makeText (float x, float y, Align a, std::string k) {
+  uistage::actor *ua = new text_actor (x, y, a, k.c_str ());
+  actors.insert (ua);
   return ua;
 }
 
 uistage::actor *focused_actor[100]{};
-void uistage::touchDown(float x, float y, int pointer, int button) {
+void uistage::touchDown (float x, float y, int pointer, int button) {
   for (actor *act : actors) {
-    if ((act->getType()==Actor_Type::Button) && (act->getRect().insetOf(x, y))) {
-      ((button_actor *)act)->setState(1);
+    if ((act->getType () == Actor_Type::Button) && (act->getRect ().insetOf (x, y))) {
+      ((button_actor *)act)->setState (1);
       focused_actor[pointer] = act;
       return;
     }
   }
   (void)button;
 }
-void uistage::touchMove(float x, float y, float xs, float ys, int pointer, int button) {
-  
+void uistage::touchMove (float x, float y, float xs, float ys, int pointer, int button) {
+
   (void)x;
   (void)y;
   (void)xs;
@@ -483,14 +483,14 @@ void uistage::touchMove(float x, float y, float xs, float ys, int pointer, int b
   (void)pointer;
   (void)button;
 }
-void uistage::touchUp(float x, float y, int pointer, int button) {
+void uistage::touchUp (float x, float y, int pointer, int button) {
   if (focused_actor[pointer]) {
     actor *act = focused_actor[pointer];
-    if (act->getType()==Actor_Type::Button) {
+    if (act->getType () == Actor_Type::Button) {
       button_actor *bact = (button_actor *)act;
-      bact->setState(0);
-      if (bact->onClick!=NULL)
-        bact->onClick();
+      bact->setState (0);
+      if (bact->onClick != NULL)
+        bact->onClick ();
     }
     focused_actor[pointer] = nullptr;
   }
@@ -498,11 +498,11 @@ void uistage::touchUp(float x, float y, int pointer, int button) {
   (void)y;
   (void)button;
 }
-void uistage::touchCanceled(float x, float y, int pointer, int button) {
+void uistage::touchCanceled (float x, float y, int pointer, int button) {
   if (focused_actor[pointer]) {
     actor *act = focused_actor[pointer];
-    if (act->getType()==Actor_Type::Button) {
-      ((button_actor *)act)->setState(0);
+    if (act->getType () == Actor_Type::Button) {
+      ((button_actor *)act)->setState (0);
     }
     focused_actor[pointer] = nullptr;
   }
@@ -511,8 +511,7 @@ void uistage::touchCanceled(float x, float y, int pointer, int button) {
   (void)button;
 }
 
-
-//define bmfont source
+// define bmfont source
 
 bool bmfont::ParseFont (const char *fontfile) {
   unsigned int asl;
@@ -546,7 +545,6 @@ bool bmfont::ParseFont (const char *fontfile) {
           Converter >> fontSizeBase;
           fontSizeUsed = fontSizeBase;
         }
-        
       }
     } else if (Read == "common") {
       // this holds common data
@@ -640,7 +638,7 @@ bool bmfont::ParseFont (const char *fontfile) {
         else if (Key == "amount")
           Converter >> amount;
       }
-      Kearn[*((uint32_t*)id)] = amount;
+      Kearn[*((uint32_t *)id)] = amount;
     }
   }
   return true;
@@ -698,7 +696,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     y1 = y - (f.YOffset * F); // maxy
     x2 = x1 + (f.Width * F);  // maxx
     y2 = y1 - (f.Height * F); // miny
-    
+
     u1 = f.x / (float)Width;
     v1 = f.y / (float)Height;
     u2 = (f.x + f.Width) / (float)Width;
@@ -712,7 +710,7 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
     *(cur_tex++) = {x2,y2,fcolor,u2,v2};
     // 1,0 Texture Coord, maxxy
     *(cur_tex++) = {x2,y1,fcolor,u2,v1};
-    
+
     if (*(t + 1)) {
       float nX = f.XAdvance;
       short key[2] = {*t, *(t + 1)};
@@ -725,15 +723,15 @@ void bmfont::draw_text (float x, float y, Align align, const char *fmt, ...) {
   engine::graph->flat_render (ftexid, temp_vertex, strlen(text));
 }
 */
-float bmfont::fscale() { return fontSizeUsed/fontSizeBase;}
+float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
   memcpy (&fcolor, (unsigned char[]){r, g, b, a}, sizeof (unsigned char) * 4);
 }
-void bmfont::setFontSize (float size) { //px
+void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
 }
 float bmfont::GetHeight () {
-  return (float)LineHeight * fscale();
+  return (float)LineHeight * fscale ();
 }
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   int x, y;

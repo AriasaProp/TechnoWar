@@ -13,10 +13,10 @@ struct opengles_texture : public engine::texture_core {
     d = new unsigned char[w * h * sizeof (unsigned char)];
     memcpy (d, dt, w * h * sizeof (unsigned char));
   }
-  unsigned int width() override {
+  unsigned int width () override {
     return w;
   }
-  unsigned int height() override {
+  unsigned int height () override {
     return h;
   }
   ~opengles_texture () {
@@ -43,11 +43,11 @@ struct gl_data {
   EGLSurface surface = EGL_NO_SURFACE;
   EGLContext context = EGL_NO_CONTEXT;
   EGLConfig eConfig;
-  EGLint wWidth, wHeight; // platform full display
+  EGLint wWidth, wHeight;        // platform full display
   float game_width, game_height; // display after safe insets
   //
-  float uiProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
-  float worldProj[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
+  float uiProj[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  float worldProj[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
   std::unordered_set<opengles_texture *> managedTexture;
   std::unordered_set<engine::mesh_core *> managedMesh;
 };
@@ -91,7 +91,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
     }
     while (!mgl_data->surface)
       mgl_data->surface = eglCreateWindowSurface (mgl_data->display, mgl_data->eConfig, window, nullptr);
-    
+
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
@@ -110,7 +110,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
         glBindTexture (GL_TEXTURE_2D, 0);
       }
       // validating gles resources
-      //cullface to front
+      // cullface to front
       glEnable (GL_CULL_FACE);
       glCullFace (GL_FRONT);
       // enable depth
@@ -250,9 +250,9 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
         glBindBuffer (GL_ARRAY_BUFFER, i->vbo);
         glBufferData (GL_ARRAY_BUFFER, i->vertex_len * sizeof (engine::mesh_core::data), (void *)i->vertex, GL_STATIC_DRAW);
         glEnableVertexAttribArray (0);
-        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, pos));
+        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, pos));
         glEnableVertexAttribArray (1);
-        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, color));
+        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, color));
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, i->ibo);
         glBufferData (GL_ELEMENT_ARRAY_BUFFER, i->index_len * sizeof (unsigned short), (void *)i->index, GL_STATIC_DRAW);
       }
@@ -273,7 +273,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
   } else if (resize) {
-    if (resize&2) {
+    if (resize & 2) {
       eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
       eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
       eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
@@ -285,7 +285,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
   resize = 0;
 }
 void opengles_graphics::postRender (bool isDestroy) {
-  unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY: 0;
+  unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;
   if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
     case EGL_BAD_SURFACE:
@@ -425,9 +425,9 @@ engine::mesh_core *opengles_graphics::gen_mesh (engine::mesh_core::data *v, unsi
   glBindBuffer (GL_ARRAY_BUFFER, r->vbo);
   glBufferData (GL_ARRAY_BUFFER, r->vertex_len * sizeof (engine::mesh_core::data), (void *)r->vertex, GL_STATIC_DRAW);
   glEnableVertexAttribArray (0);
-  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, pos));
+  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, pos));
   glEnableVertexAttribArray (1);
-  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof(engine::mesh_core::data, color));
+  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, color));
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, r->ibo);
   glBufferData (GL_ELEMENT_ARRAY_BUFFER, r->index_len * sizeof (unsigned short), (void *)r->index, GL_STATIC_DRAW);
   glBindVertexArray (0);
@@ -471,7 +471,7 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
   delete m;
 }
 
-void opengles_graphics::to_flat_coordinate(float &x, float &y) {
+void opengles_graphics::to_flat_coordinate (float &x, float &y) {
   x -= cur_safe_insets[0];
   y = mgl_data->wHeight - y - cur_safe_insets[3];
 }
@@ -479,12 +479,12 @@ void opengles_graphics::to_flat_coordinate(float &x, float &y) {
 inline void opengles_graphics::update_layout () {
   const float fixedWidth = mgl_data->wWidth;
   const float fixedHeight = mgl_data->wHeight;
-  
+
   mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
   mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
   // ui safe insets update
-  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f ;
-  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3]  / fixedHeight) - 1.0f;
+  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f;
+  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3] / fixedHeight) - 1.0f;
   mgl_data->game_width = fixedWidth - cur_safe_insets[0] - cur_safe_insets[2];
   mgl_data->game_height = fixedHeight - cur_safe_insets[1] - cur_safe_insets[3];
   mgl_data->dirty_uiProj = true;

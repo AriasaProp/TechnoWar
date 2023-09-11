@@ -118,25 +118,25 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_PAUSE:
           if (window) {
-            a_graphics->preRender(window, resize);
+            a_graphics->preRender (window, resize);
             // core
             if (!m_Main)
               m_Main = new Main;
             m_Main->pause ();
-            a_graphics->postRender(false);
+            a_graphics->postRender (false);
           }
           running = false;
           break;
         case APP_CMD_DESTROY:
           if (window) {
-            a_graphics->preRender(window, resize);
+            a_graphics->preRender (window, resize);
             // core
             if (m_Main) {
               delete m_Main;
               m_Main = nullptr;
             }
           }
-          a_graphics->postRender(true);
+          a_graphics->postRender (true);
           break;
         default:
           // ?
@@ -166,7 +166,7 @@ static void *android_app_entry (void *param) {
         if (!running) break;
         a_input.process_event ();
         if (!window) break;
-        a_graphics->preRender(window, resize);
+        a_graphics->preRender (window, resize);
         // core
         if (!m_Main) {
           m_Main = new Main;
@@ -176,7 +176,7 @@ static void *android_app_entry (void *param) {
           resume = false;
         }
         m_Main->render ();
-        a_graphics->postRender(false);
+        a_graphics->postRender (false);
         break;
       }
     }
