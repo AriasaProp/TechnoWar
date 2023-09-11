@@ -72,6 +72,7 @@ struct text_actor: public uistage::actor {
     return mRect;
   }
   void draw(float delta, engine::flat_vertex *vert) override {
+    (void)delta;
     if (!font) return;
     const char *text = stext.c_str();
     unsigned char xpivot = align & 3;
@@ -124,15 +125,15 @@ struct text_actor: public uistage::actor {
       xList[1] = xList[0] + (f.Width * F);  // maxx
       yList[1] = yList[0] - (f.Height * F); // miny
       
-      uList[0] = f.x / (float)Width;
-      vList[0] = f.y / (float)Height;
-      uList[1] = (f.x + f.Width) / (float)Width;
-      vList[1] = (f.y + f.Height) / (float)Height;
+      uList[0] = f.x / (float)font->Width;
+      vList[0] = f.y / (float)font->Height;
+      uList[1] = (f.x + f.Width) / (float)font->Width;
+      vList[1] = (f.y + f.Height) / (float)font->Height;
     
-      *(cur_tex++) = {xList[0],yList[1],fcolor,uList[0],vList[1]};
-      *(cur_tex++) = {xList[0],yList[0],fcolor,uList[0],vList[0]};
-      *(cur_tex++) = {xList[1],yList[1],fcolor,uList[1],vList[1]};
-      *(cur_tex++) = {xList[1],yList[0],fcolor,uList[1],vList[0]};
+      *(cur_tex++) = {xList[0],yList[1],font->fcolor,uList[0],vList[1]};
+      *(cur_tex++) = {xList[0],yList[0],font->fcolor,uList[0],vList[0]};
+      *(cur_tex++) = {xList[1],yList[1],font->fcolor,uList[1],vList[1]};
+      *(cur_tex++) = {xList[1],yList[0],font->fcolor,uList[1],vList[0]};
       
       if (*(t + 1)) {
         float nX = f.XAdvance;
@@ -152,7 +153,7 @@ struct image_actor: public uistage::actor {
   std::string key;
   Rect rectangle;
   
-  image_actor(std::string k, Rect r): key(k), mRect(r) {}
+  image_actor(std::string k, Rect r): key(k), rectangle(r) {}
   
   Rect &getRect() override {
     return rectangle;
@@ -296,7 +297,7 @@ struct button_actor: public uistage::actor {
   void (*onClick)();
   Rect rectangle;
   
-  button_actor(std::string *k, Rect r): keys(k), mRect(r) {}
+  button_actor(std::string *k, Rect r): keys(k), rectangle(r) {}
   
   Rect &getRect() override {
     return rectangle;
