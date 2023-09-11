@@ -85,11 +85,11 @@ Main::Main () {
   uistage::makeText(engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "08/09/2023");
   uistage::makeText(engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   
-  uistage::makeButton({"btn1","btn1_"},Rect(150,200,ALIGN_CENTER, 200, 200));
-  uistage::makeButton({"btn1","btn1_"},Rect(400,200,ALIGN_CENTER, 200, 200));
+  uistage::makeButton({"btn1","btn1_"},Rect(150,200,ALIGN_CENTER, 200, 200), NULL);
+  uistage::makeButton({"btn1","btn1_"},Rect(400,200,ALIGN_CENTER, 200, 200), NULL);
   uistage::makeImage("test",Rect(650,200,ALIGN_CENTER, 200, 200));
-  uistage::makeButton({"btn1","btn1_"},Rect(900,200,ALIGN_CENTER, 200, 200));
-  uistage::makeButton({"btn1","btn1_"},Rect(1150,200,ALIGN_CENTER, 200, 200));
+  uistage::makeButton({"btn1","btn1_"},Rect(900,200,ALIGN_CENTER, 200, 200), NULL);
+  uistage::makeButton({"btn1","btn1_"},Rect(1150,200,ALIGN_CENTER, 200, 200), NULL);
   
   resume();
 }
@@ -149,18 +149,18 @@ void Main::render () {
   mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
   */
   clock_count::render();
-  tch[4] = engine::inpt->isTouched(0)? 0xff00ff00 : 0xff0000ff;
-  tch[5] = tch[6] = tch[7] = tch[4];
-  tch[8] = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
-  tch[9] = tch[10] = tch[11] = tch[8];
-  tch[12] = engine::inpt->isTouched(2)? 0xff00ff00 : 0xff0000ff;
-  tch[13] = tch[14] = tch[15] = tch[12];
-  tch[16] = engine::inpt->isTouched(3)? 0xff00ff00 : 0xff0000ff;
-  tch[17] = tch[18] = tch[19] = tch[16];
-  tch[20] = engine::inpt->isTouched(4)? 0xff00ff00 : 0xff0000ff;
-  tch[21] = tch[22] = tch[23] = tch[20];
-  tch[24] = engine::inpt->isTouched(5)? 0xff00ff00 : 0xff0000ff;
-  tch[25] = tch[26] = tch[27] = tch[24];
+  tch[4].color = engine::inpt->isTouched(0)? 0xff00ff00 : 0xff0000ff;
+  tch[5].color = tch[6].color = tch[7].color = tch[4].color;
+  tch[8].color = engine::inpt->isTouched(1)? 0xff00ff00 : 0xff0000ff;
+  tch[9].color = tch[10].color = tch[11].color = tch[8].color;
+  tch[12].color = engine::inpt->isTouched(2)? 0xff00ff00 : 0xff0000ff;
+  tch[13].color = tch[14].color = tch[15].color = tch[12].color;
+  tch[16].color = engine::inpt->isTouched(3)? 0xff00ff00 : 0xff0000ff;
+  tch[17].color = tch[18].color = tch[19].color = tch[16].color;
+  tch[20].color = engine::inpt->isTouched(4)? 0xff00ff00 : 0xff0000ff;
+  tch[21].color = tch[22].color = tch[23].color = tch[20].color;
+  tch[24].color = engine::inpt->isTouched(5)? 0xff00ff00 : 0xff0000ff;
+  tch[25].color = tch[26].color = tch[27].color = tch[24].color;
   engine::graph->flat_render(nullptr, tch, 7);
 }
 void Main::pause () {
