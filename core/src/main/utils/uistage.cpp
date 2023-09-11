@@ -61,59 +61,26 @@ enum Actor_Type: size_t{
 };
 
 struct text_actor: public uistage::actor {
-  std::string stext;
-  float xPos, yPos;
-  Align align;
-  Rect mRect;
+  const char *text;
+  Rect rectangle;
   
-  text_actor(float x, float y, Align a, std::string t): stext(t), xPos(x), yPos(y), align(a) {}
+  text_actor(float x, float y, Align a, const char *ti): text(ti) {
+    float width = 0;
+    auto &Chars = font->Chars;
+    for (const char *t = text; *t; t++) {
+      if (Chars.find (*t) == Chars.end ()) continue;
+      width += Chars[*t].XAdvance;
+    }
+    rectangle = Rect(x,y, a, width*font->fscale(), font->LineHeight*font->fscale());
+  }
   
   Rect &getRect() override {
-    return mRect;
+    return rectangle;
   }
   void draw(float delta, engine::flat_vertex *vert) override {
     (void)delta;
-    if (!font) return;
-    const char *text = stext.c_str();
-    unsigned char xpivot = align & 3;
-    float x = xPos;
-    float y = yPos;
     float F = font->fscale();
     auto &Chars = font->Chars;
-    switch (xpivot) {
-    default: // left
-      break;
-    case 1: { // center
-      float total = 0;
-      for (const char *t = text; *t; t++) {
-        if (Chars.find (*t) == Chars.end ()) continue;
-        total += Chars[*t].XAdvance;
-      }
-      x -= total * 0.5f * F;
-      break;
-    }
-    case 2: { // right
-      float total = 0;
-      for (const char *t = text; *t; t++) {
-        if (Chars.find (*t) == Chars.end ()) continue;
-        total += Chars[*t].XAdvance;
-      }
-      x -= total * F;
-      break;
-    }
-    }
-    float &LineHeight = font->LineHeight;
-    unsigned char ypivot = (align >> 2);
-    switch (ypivot) {
-    default: // top
-      break;
-    case 1: // center
-      y += LineHeight * F * 0.5f;
-      break;
-    case 2: // bottom
-      y += LineHeight * F;
-      break;
-    }
     engine::flat_vertex *cur_tex = vert;
     auto &Kearn = font->Kearn;
     for (const char *t = text; *t; t++) {
@@ -138,7 +105,7 @@ struct text_actor: public uistage::actor {
       if (*(t + 1)) {
         float nX = f.XAdvance;
         uint16_t key[2] = {*t, *(t + 1)};
-        auto it = Kearn.find (*(uint32_t *)key));
+        auto it = Kearn.find (*(uint32_t *)key);
         if (it != Kearn.end ())
           nX += it->second;
         x += nX * F;
@@ -490,7 +457,9 @@ uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r
   return ua;
 }
 uistage::actor *uistage::makeText(float x, float y, Align a, std::string k) {
-  
+  uistage::actor *ua = new text_actor(x, y, a, k.c_str());
+  actors.insert(ua);
+  return ua;
 }
 
 uistage::actor *focused_actor[100]{};
