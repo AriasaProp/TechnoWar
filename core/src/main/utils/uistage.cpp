@@ -262,8 +262,8 @@ struct image_actor: public uistage::actor {
 struct button_actor: public uistage::actor {
   std::string *keys;
   size_t mstate = 0;
-  void (*onClick)();
   Rect rectangle;
+  void (*onClick)();
   
   button_actor(std::string *k, Rect r, void(*onclick)): keys(k), rectangle(r), onClick(onclick) {}
   
@@ -453,7 +453,7 @@ uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r
     ++it;
     ++i;
   }
-  uistage::actor *ua = new button_actor(K,r, onclick);
+  uistage::actor *ua = new button_actor(K, r, onclick);
   actors.insert(ua);
   return ua;
 }
