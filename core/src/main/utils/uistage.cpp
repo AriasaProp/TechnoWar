@@ -89,9 +89,9 @@ struct text_actor: public uistage::actor {
       if (itf == Chars.end ()) continue;
       CharDescriptor &f = itf->second;
       xList[0] = x + (f.XOffset * F); // minx
-      yList[0] = rectangle.ymax - (f.YOffset * F); // maxy
+      yList[0] = rectangle.ymin + (f.YOffset * F); // maxy
       xList[1] = xList[0] + (f.Width * F);  // maxx
-      yList[1] = yList[0] - (f.Height * F); // miny
+      yList[1] = yList[0] + (f.Height * F); // miny
       
       uList[0] = f.x / (float)font->Width;
       vList[0] = f.y / (float)font->Height;
