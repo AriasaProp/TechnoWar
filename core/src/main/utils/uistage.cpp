@@ -14,7 +14,12 @@
 #include <sstream>
 #include <string>
 
-struct CharDescriptor;
+struct CharDescriptor {
+  short x, y;
+  short Width, Height;
+  short XOffset, YOffset;
+  short XAdvance;
+};
 
 struct bmfont {
   short LineHeight;
@@ -537,16 +542,6 @@ void uistage::touchCanceled(float x, float y, int pointer, int button) {
 
 
 //define bmfont source
-
-struct CharDescriptor {
-  short x, y;
-  short Width, Height;
-  short XOffset, YOffset;
-  short XAdvance;
-};
-
-// Todo: Add buffer overflow checking.
-//#define MAX_BUFFER 256
 
 bool bmfont::ParseFont (const char *fontfile) {
   unsigned int asl;
