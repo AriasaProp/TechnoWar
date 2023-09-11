@@ -83,12 +83,13 @@ struct text_actor: public uistage::actor {
     auto &Chars = font->Chars;
     engine::flat_vertex *cur_tex = vert;
     auto &Kearn = font->Kearn;
+    float x = rectangle.xmin;
     for (const char *t = text; *t; t++) {
       auto itf= Chars.find (*t);
       if (itf == Chars.end ()) continue;
       CharDescriptor &f = itf->second;
       xList[0] = x + (f.XOffset * F); // minx
-      yList[0] = y - (f.YOffset * F); // maxy
+      yList[0] = rectangle.ymax - (f.YOffset * F); // maxy
       xList[1] = xList[0] + (f.Width * F);  // maxx
       yList[1] = yList[0] - (f.Height * F); // miny
       
@@ -114,7 +115,7 @@ struct text_actor: public uistage::actor {
     engine::graph->flat_render (font->ftexid, vert, strlen(text));
   }
   size_t getType() const override { return Actor_Type::Static; }
-  ~image_actor() override {}
+  ~text_actor() override {}
 };
 struct image_actor: public uistage::actor {
   std::string key;
@@ -264,7 +265,7 @@ struct button_actor: public uistage::actor {
   void (*onClick)();
   Rect rectangle;
   
-  button_actor(std::string *k, Rect r): keys(k), rectangle(r) {}
+  button_actor(std::string *k, Rect r, void(*onclick)): keys(k), rectangle(r), onClick(onclick) {}
   
   Rect &getRect() override {
     return rectangle;
@@ -452,7 +453,7 @@ uistage::actor *uistage::makeButton(std::initializer_list<std::string> k, Rect r
     ++it;
     ++i;
   }
-  uistage::actor *ua = new button_actor(K,r);
+  uistage::actor *ua = new button_actor(K,r, onclick);
   actors.insert(ua);
   return ua;
 }
