@@ -1,7 +1,6 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-#include "assets/bmfont.hpp"
 #include "assets/stb_image.hpp"
 #include "utils/math.hpp"
 #include "utils/uistage.hpp"
@@ -171,7 +170,6 @@ Main::~Main () {
   uistage::clear();
   
   engine::graph->delete_mesh (mdata->mp);
-  delete mdata->fnt;
   delete mdata->tc;
   delete mdata;
 }
