@@ -105,7 +105,7 @@ struct text_actor: public uistage::actor {
       
       if (*(t + 1)) {
         float nX = f.XAdvance;
-        uint16_t key[2] = {*t, *(t + 1)};
+        uint16_t key[2] = {static_cast<uint16_t>(*t), static_cast<uint16_t>(*(t + 1))};
         auto it = Kearn.find (*(uint32_t *)key);
         if (it != Kearn.end ())
           nX += it->second;
