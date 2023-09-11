@@ -265,7 +265,7 @@ struct button_actor: public uistage::actor {
   Rect rectangle;
   void (*onClick)();
   
-  button_actor(std::string *k, Rect r, void(*onclick)): keys(k), rectangle(r), onClick(onclick) {}
+  button_actor(std::string *k, Rect r, void(*onclick)()): keys(k), rectangle(r), onClick(onclick) {}
   
   Rect &getRect() override {
     return rectangle;
