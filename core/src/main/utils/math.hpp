@@ -35,6 +35,7 @@ namespace clock_count {
 struct Rect {
 public:
   float xmin, ymin, xmax, ymax;
+  Rect();
   Rect(float, float, const Align&, float, float);
   bool insetOf(float, float);
 };

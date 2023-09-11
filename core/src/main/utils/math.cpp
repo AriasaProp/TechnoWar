@@ -59,7 +59,7 @@ float clock_count::getDelta() {
   return delta_result;
 }
 //Rect definition
-
+Rect::Rect() : xmin(0.0f), ymin(0.0f), xmax(0.0f), ymax(0.0f) {}
 Rect::Rect(float x, float y, const Align &a, float sx, float sy) {
   unsigned char vert = a & 3;
   switch (vert) {
