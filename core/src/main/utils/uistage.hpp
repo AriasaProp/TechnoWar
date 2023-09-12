@@ -34,10 +34,10 @@ struct actor {
 
 struct text_actor : public actor {
 private:
-  std::string *text;
+  std::string text;
   Rect rectangle;
 public:
-  text_actor (float, float, Align, const char *);
+  text_actor (float, float, Align, std::string);
   Rect &getRect () override;
   std::string getKey () override;
   void draw (float) override;

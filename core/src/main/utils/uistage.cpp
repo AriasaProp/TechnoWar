@@ -529,10 +529,10 @@ void uistage::actor::draw (float delta) {
   engine::graph->flat_render (tex, vert, quadCount);
 }
 
-uistage::text_actor::text_actor (float x, float y, Align a, const char *ti) : text (ti) {
+uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : text (ti) {
   float width = 0;
   auto &Chars = font->Chars;
-  for (const char *t = text; *t; t++) {
+  for (const char *t = text.c_str(); *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     width += Chars[*t].XAdvance;
   }
