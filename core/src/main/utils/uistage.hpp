@@ -36,7 +36,6 @@ struct text_actor : public actor {
 private:
   const char *text;
   Rect rectangle;
-
 public:
   text_actor (float, float, Align, const char *);
   Rect &getRect () override;
@@ -49,12 +48,12 @@ struct image_actor : public actor {
 private:
   std::string key;
   Rect rectangle;
-
 public:
   image_actor (std::string, Rect);
   Rect &getRect () override;
   std::string getKey () override;
   size_t getType () const override;
+  void draw (float) override;
   ~image_actor () override;
 };
 struct button_actor : public uistage::actor {
@@ -62,10 +61,9 @@ private:
   std::string *keys;
   size_t mstate = 0;
   Rect rectangle;
-
 public:
   void (*onClick) ();
-  button_actor (std::string *, Rect, void (*) ());
+  button_actor (std::string *, Rect, void(*)());
   Rect &getRect () override;
   std::string getKey () override;
   void setState (size_t);
