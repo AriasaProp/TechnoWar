@@ -413,7 +413,7 @@ void uistage::actor::draw (float delta) {
 <<<<<<< HEAD
   Rect &rectangel = getRect ();
 =======
-  Rect &rectangle = getRect();
+  Rect &rectangle = getRect ();
 >>>>>>> d9a13c7 (update input reset)
   // vertically 1
   if (split[3]) { // horizontally
