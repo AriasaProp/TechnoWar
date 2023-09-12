@@ -26,10 +26,51 @@ struct texKey_state {
 };
 struct actor {
   virtual Rect &getRect () = 0;
+  virtual std::string getKey () = 0;
   virtual size_t getType () const = 0;
-  virtual void draw (float, engine::flat_vertex *) = 0;
+  virtual void draw (float);
   virtual ~actor () {}
 };
+
+struct text_actor : public actor {
+private:
+  const char *text;
+  Rect rectangle;
+public:
+  text_actor (float, float, Align, const char *);
+  Rect &getRect () override;
+  std::string getKey () override;
+  void draw (float) override;
+  size_t getType () const override;
+  ~text_actor () override;
+};
+struct image_actor : public actor {
+private:
+  std::string key;
+  Rect rectangle;
+public:
+  image_actor (std::string, Rect);
+  Rect &getRect () override;
+  std::string getKey () override;
+  size_t getType () const override;
+  ~image_actor () override;
+};
+struct button_actor : public uistage::actor {
+private:
+  std::string *keys;
+  size_t mstate = 0;
+  Rect rectangle;
+public:
+  void (*onClick) ();
+  button_actor (std::string *, Rect, void(*)());
+  Rect &getRect () override;
+  std::string getKey () override;
+  void setState (size_t);
+  size_t getType () const override;
+  void draw (float) override;
+  ~button_actor () override;
+};
+
 struct texture_region {
   unsigned int pos[2], size[2];
   unsigned int patch[4];

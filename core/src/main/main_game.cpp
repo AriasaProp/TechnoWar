@@ -17,11 +17,49 @@
 struct mMainData {
   engine::mesh_core *mp;
   engine::texture_core *tc;
+  engine::flat_vertex *touch_ptr;
 };
 
 Main::Main () {
   mdata = new mMainData{};
   uistage::loadBMFont ("default.fnt");
+  mdata->touch_ptr = new engine::flat_vertex[]{
+      // background
+      {35.5f, 845.0f, 0xff999999, 0, 1},
+      {35.5f, 905.0f, 0xff999999, 0, 0},
+      {405.5f, 845.0f, 0xff999999, 1, 1},
+      {405.5f, 905.0f, 0xff999999, 1, 0},
+      // ptr 1
+      {40.0f, 850.0f, 0xff00ff00, 0, 1},
+      {40.0f, 900.0f, 0xff00ff00, 0, 0},
+      {90.0f, 850.0f, 0xff00ff00, 1, 1},
+      {90.0f, 900.0f, 0xff00ff00, 1, 0},
+      // ptr 2
+      {100.0f, 850.0f, 0xff00ff00, 0, 1},
+      {100.0f, 900.0f, 0xff00ff00, 0, 0},
+      {150.0f, 850.0f, 0xff00ff00, 1, 1},
+      {150.0f, 900.0f, 0xff00ff00, 1, 0},
+      // ptr 3
+      {160.0f, 850.0f, 0xff00ff00, 0, 1},
+      {160.0f, 900.0f, 0xff00ff00, 0, 0},
+      {210.0f, 850.0f, 0xff00ff00, 1, 1},
+      {210.0f, 900.0f, 0xff00ff00, 1, 0},
+      // ptr 4
+      {220.0f, 850.0f, 0xff00ff00, 0, 1},
+      {220.0f, 900.0f, 0xff00ff00, 0, 0},
+      {270.0f, 850.0f, 0xff00ff00, 1, 1},
+      {270.0f, 900.0f, 0xff00ff00, 1, 0},
+      // ptr 5
+      {280.0f, 850.0f, 0xff00ff00, 0, 1},
+      {280.0f, 900.0f, 0xff00ff00, 0, 0},
+      {330.0f, 850.0f, 0xff00ff00, 1, 1},
+      {330.0f, 900.0f, 0xff00ff00, 1, 0},
+      // ptr 6
+      {340.0f, 850.0f, 0xff00ff00, 0, 1},
+      {340.0f, 900.0f, 0xff00ff00, 0, 0},
+      {390.0f, 850.0f, 0xff00ff00, 1, 1},
+      {390.0f, 900.0f, 0xff00ff00, 1, 0}
+  };
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -75,7 +113,6 @@ Main::Main () {
     uistage::addTextureRegion ("test", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {}});
     stbi_image_free (t);
     t = stbi_load_from_assets ("test1.jpg", &x, &y, nullptr, STBI_rgb_alpha);
-    mdata->tc = engine::graph->gen_texture (x, y, t);
     stbi_image_free (t);
   }
 
@@ -93,42 +130,6 @@ Main::Main () {
 void Main::resume () {
   clock_count::start ();
 }
-engine::flat_vertex tch[]{
-    // background
-    {35.5f, 845.0f, 0xff999999, 0, 1},
-    {35.5f, 905.0f, 0xff999999, 0, 0},
-    {405.5f, 845.0f, 0xff999999, 1, 1},
-    {405.5f, 905.0f, 0xff999999, 1, 0},
-    // ptr 1
-    {40.0f, 850.0f, 0xff00ff00, 0, 1},
-    {40.0f, 900.0f, 0xff00ff00, 0, 0},
-    {90.0f, 850.0f, 0xff00ff00, 1, 1},
-    {90.0f, 900.0f, 0xff00ff00, 1, 0},
-    // ptr 2
-    {100.0f, 850.0f, 0xff00ff00, 0, 1},
-    {100.0f, 900.0f, 0xff00ff00, 0, 0},
-    {150.0f, 850.0f, 0xff00ff00, 1, 1},
-    {150.0f, 900.0f, 0xff00ff00, 1, 0},
-    // ptr 3
-    {160.0f, 850.0f, 0xff00ff00, 0, 1},
-    {160.0f, 900.0f, 0xff00ff00, 0, 0},
-    {210.0f, 850.0f, 0xff00ff00, 1, 1},
-    {210.0f, 900.0f, 0xff00ff00, 1, 0},
-    // ptr 4
-    {220.0f, 850.0f, 0xff00ff00, 0, 1},
-    {220.0f, 900.0f, 0xff00ff00, 0, 0},
-    {270.0f, 850.0f, 0xff00ff00, 1, 1},
-    {270.0f, 900.0f, 0xff00ff00, 1, 0},
-    // ptr 5
-    {280.0f, 850.0f, 0xff00ff00, 0, 1},
-    {280.0f, 900.0f, 0xff00ff00, 0, 0},
-    {330.0f, 850.0f, 0xff00ff00, 1, 1},
-    {330.0f, 900.0f, 0xff00ff00, 1, 0},
-    // ptr 6
-    {340.0f, 850.0f, 0xff00ff00, 0, 1},
-    {340.0f, 900.0f, 0xff00ff00, 0, 0},
-    {390.0f, 850.0f, 0xff00ff00, 1, 1},
-    {390.0f, 900.0f, 0xff00ff00, 1, 0}};
 void Main::render () {
   float delta = clock_count::getDelta ();
   engine::graph->clear (7);
@@ -145,6 +146,7 @@ void Main::render () {
   mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
   */
   clock_count::render ();
+  engine::flat_vertex *tch = mdata->touch_ptr;
   tch[4].color = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;
   tch[5].color = tch[6].color = tch[7].color = tch[4].color;
   tch[8].color = engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff;
@@ -166,6 +168,6 @@ Main::~Main () {
   uistage::clear ();
 
   engine::graph->delete_mesh (mdata->mp);
-  delete mdata->tc;
+  delete[] mdata->touch_ptr;
   delete mdata;
 }
