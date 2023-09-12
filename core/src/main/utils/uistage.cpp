@@ -410,15 +410,7 @@ void uistage::actor::draw (float delta) {
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
   engine::flat_vertex *verts = vert;
-<<<<<<< HEAD
-<<<<<<< HEAD
-  Rect &rectangel = getRect ();
-=======
-  Rect &rectangle = getRect ();
->>>>>>> d9a13c7 (update input reset)
-=======
   Rect &rectangle = getRect();
->>>>>>> a29f9f1 (update input reset)
   // vertically 1
   if (split[3]) { // horizontally
     yList[0] = rectangle.ymin;
