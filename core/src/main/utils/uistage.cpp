@@ -50,11 +50,7 @@ static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-enum Actor_Type : size_t {
-  None = 0,
-  Static,
-  Button
-};
+enum Actor_Type : size_t { None = 0, Static, Button };
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
@@ -400,17 +396,16 @@ bmfont::~bmfont () {
 //{ redefine actor
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0, Static, Button };
 void uistage::actor::draw (float delta) {
   (void)delta;
-  if (!getKey () && getKey() == "") return;
-  textureAtlas &ta = regions[getKey ()];
+  if (getKey().empty()) return;
+  textureAtlas &ta = regions[getKey()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
   engine::flat_vertex *verts = vert;
-  Rect &rectangle = getRect ();
+  Rect &rectangle = getRect();
   // vertically 1
   if (split[3]) { // horizontally
     yList[0] = rectangle.ymin;
@@ -597,9 +592,9 @@ uistage::image_actor::~image_actor () {}
 uistage::button_actor::button_actor (std::string *k, Rect r, void (*onclick) ()) : keys (k), rectangle (r), onClick (onclick) {}
 Rect &uistage::button_actor::getRect () { return rectangle; }
 std::string uistage::button_actor::getKey () {
-  if (keys[mstate])
+  if (!keys[mstate].empty())
     return keys[mstate];
-  else if (keys[0])
+  else if (!keys[0].empty())
     return keys[0];
   else
     return "";
