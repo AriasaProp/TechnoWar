@@ -50,9 +50,11 @@ static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-struct text_actor;
-struct image_actor;
-struct button_actor;
+enum Actor_Type : size_t {
+  None = 0,
+  Static,
+  Button
+};
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
@@ -377,6 +379,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
       }
     }
   }
+  int x, y;
   unsigned int datRI;
   char *texfile = new char[strlen (fontfile)];
   memcpy (texfile, fontfile, strlen (fontfile));
@@ -385,7 +388,6 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   delete[] texfile;
   unsigned char *tD = stbi_load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
   free (datR);
-  int x, y;
   ftexid = engine::graph->gen_texture (x, y, tD);
   stbi_image_free (tD);
 }
@@ -398,12 +400,10 @@ bmfont::~bmfont () {
 //{ redefine actor
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0,
-                           Static,
-                           Button };
+enum Actor_Type : size_t { None = 0, Static, Button };
 void uistage::actor::draw (float delta) {
   (void)delta;
-  if (!getKey () && getKey == "") return;
+  if (!getKey () && getKey() == "") return;
   textureAtlas &ta = regions[getKey ()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
@@ -587,16 +587,16 @@ uistage::text_actor::~text_actor () {}
 
 uistage::image_actor::image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
 Rect &uistage::image_actor::getRect () { return rectangle; }
-std::string uistage::text_actor::getKey () { return key; }
+std::string uistage::image_actor::getKey () { return key; }
 size_t uistage::image_actor::getType () const { return Actor_Type::Static; }
-void uistage::button_actor::draw (float delta) {
+void uistage::image_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }
 uistage::image_actor::~image_actor () {}
 
 uistage::button_actor::button_actor (std::string *k, Rect r, void (*onclick) ()) : keys (k), rectangle (r), onClick (onclick) {}
 Rect &uistage::button_actor::getRect () { return rectangle; }
-std::string uistage::text_actor::getKey () {
+std::string uistage::button_actor::getKey () {
   if (keys[mstate])
     return keys[mstate];
   else if (keys[0])
