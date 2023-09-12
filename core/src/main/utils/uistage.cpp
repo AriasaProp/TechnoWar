@@ -547,7 +547,7 @@ void uistage::text_actor::draw (float delta) {
   engine::flat_vertex *verts = vert;
   auto &Kearn = font->Kearn;
   float x = rectangle.xmin;
-  for (const char *t = text; *t; t++) {
+  for (const char *t = text.c_str(); *t; t++) {
     auto itf = Chars.find (*t);
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
@@ -575,7 +575,7 @@ void uistage::text_actor::draw (float delta) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (font->ftexid, vert, strlen (text));
+  engine::graph->flat_render (font->ftexid, vert, text.size());
 }
 size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
 uistage::text_actor::~text_actor () {}

@@ -34,7 +34,7 @@ struct actor {
 
 struct text_actor : public actor {
 private:
-  const char *text;
+  std::string *text;
   Rect rectangle;
 public:
   text_actor (float, float, Align, const char *);
