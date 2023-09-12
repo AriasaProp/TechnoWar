@@ -247,7 +247,7 @@ void bmfont::setFontSize (float size) { // px
 }
 
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
-  //parse fnt
+  // parse fnt
   {
     unsigned int asl;
     const char *as = (const char *)engine::asset->asset_buffer (fontfile, &asl);
@@ -255,14 +255,14 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
     std::stringstream buffer_stream (buffer);
     std::string Line, Read, Key, Value;
     unsigned int i;
-  
+
     CharDescriptor C;
-  
+
     while (!buffer_stream.eof ()) {
       std::stringstream LineStream;
       std::getline (buffer_stream, Line);
       LineStream << Line;
-  
+
       // read the line's type
       LineStream >> Read;
       if (Read == "info") {
@@ -273,7 +273,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
           i = Read.find ('=');
           Key = Read.substr (0, i);
           Value = Read.substr (i + 1);
-  
+
           // assign the correct value
           Converter << Value;
           if (Key == "size") {
@@ -289,7 +289,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
           i = Read.find ('=');
           Key = Read.substr (0, i);
           Value = Read.substr (i + 1);
-  
+
           // assign the correct value
           Converter << Value;
           if (Key == "lineHeight") {
@@ -398,17 +398,19 @@ bmfont::~bmfont () {
 //{ redefine actor
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0, Static, Button };
+enum Actor_Type : size_t { None = 0,
+                           Static,
+                           Button };
 void uistage::actor::draw (float delta) {
   (void)delta;
-  if (!getKey() && getKey == "") return;
-  textureAtlas &ta = regions[getKey()];
+  if (!getKey () && getKey == "") return;
+  textureAtlas &ta = regions[getKey ()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
   engine::flat_vertex *verts = vert;
-  Rect &rectangel = getRect();
+  Rect &rectangel = getRect ();
   // vertically 1
   if (split[3]) { // horizontally
     yList[0] = rectangle.ymin;
@@ -531,7 +533,7 @@ void uistage::actor::draw (float delta) {
   }
   engine::graph->flat_render (tex, vert, quadCount);
 }
- 
+
 uistage::text_actor::text_actor (float x, float y, Align a, const char *ti) : text (ti) {
   float width = 0;
   auto &Chars = font->Chars;
@@ -542,9 +544,9 @@ uistage::text_actor::text_actor (float x, float y, Align a, const char *ti) : te
   rectangle = Rect (x, y, a, width * font->fscale (), font->LineHeight * font->fscale ());
 }
 Rect &uistage::text_actor::getRect () { return rectangle; }
-std::string uistage::text_actor::getKey () { return "";}
+std::string uistage::text_actor::getKey () { return ""; }
 void uistage::text_actor::draw (float delta) {
-  uistage::actor::draw(delta);
+  uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
   engine::flat_vertex *verts = vert;
@@ -585,10 +587,10 @@ uistage::text_actor::~text_actor () {}
 
 uistage::image_actor::image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
 Rect &uistage::image_actor::getRect () { return rectangle; }
-std::string uistage::text_actor::getKey () { return key;}
+std::string uistage::text_actor::getKey () { return key; }
 size_t uistage::image_actor::getType () const { return Actor_Type::Static; }
 void uistage::button_actor::draw (float delta) {
-  uistage::actor::draw(delta);
+  uistage::actor::draw (delta);
 }
 uistage::image_actor::~image_actor () {}
 
@@ -605,7 +607,7 @@ std::string uistage::text_actor::getKey () {
 void uistage::button_actor::setState (size_t state) { mstate = state; }
 size_t uistage::button_actor::getType () const { return Actor_Type::Button; }
 void uistage::button_actor::draw (float delta) {
-  uistage::actor::draw(delta);
+  uistage::actor::draw (delta);
 }
 uistage::button_actor::~button_actor () { delete[] keys; }
 

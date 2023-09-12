@@ -58,8 +58,7 @@ Main::Main () {
       {340.0f, 850.0f, 0xff00ff00, 0, 1},
       {340.0f, 900.0f, 0xff00ff00, 0, 0},
       {390.0f, 850.0f, 0xff00ff00, 1, 1},
-      {390.0f, 900.0f, 0xff00ff00, 1, 0}
-  };
+      {390.0f, 900.0f, 0xff00ff00, 1, 0}};
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
