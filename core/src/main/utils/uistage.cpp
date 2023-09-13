@@ -78,9 +78,9 @@ void uistage::draw (float delta) {
   }
   size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
   engine::flat_vertex *verts = vert, *verts2 = vert2;
-  for (size_t i = 10; i--;) {
+  for (size_t i = 0; i < 10; ++i) {
     tooltip &tlp = tooltips[i];
-    if (tlp.lifetime <= 0.000001f) {
+    if (tlp.lifetime <= 0.0f) {
       tlp.message = "";
       continue;
     }
@@ -100,7 +100,7 @@ void uistage::draw (float delta) {
     }
     auto &Kearn = font->Kearn;
     float x = (engine::graph->getWidth() - width) *.5f;
-    float y = engine::graph->getHeight() * .5f + font->LineHeight * F * (i + 1.5f) * 10.0f;
+    float y = engine::graph->getHeight() * .75f + (font->LineHeight * F + 10.0f) * i;
     
     //draw background
     {
@@ -195,7 +195,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
   vsprintf (global_temporary.char_buffer, fmt, ap);
   va_end (ap);
   for (size_t i = 9; i; --i) {
-    tooltips[i].lifetime = tooltips[i-1].lifetime;
+    tooltips[i].lifetime = tooltips[i-1].lifetime - 0.003f;
     tooltips[i].message = tooltips[i-1].message;
   }
   tooltips[0].lifetime = 4.5f;
