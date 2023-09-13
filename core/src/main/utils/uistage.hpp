@@ -87,6 +87,7 @@ void clear ();
 image_actor *makeImage (std::string, Rect);
 button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
 text_actor *makeText (float, float, Align, std::string);
+void temporaryTooltip(const char*, ...);
 
 void touchDown (float, float, int, int);
 void touchMove (float, float, float, float, int, int);

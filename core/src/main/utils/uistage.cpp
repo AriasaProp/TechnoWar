@@ -13,6 +13,10 @@
 #include <unordered_set>
 #include <utility>
 
+union global_temporary {
+  char char_buffer[1024]; // for 1 kB
+}
+
 struct CharDescriptor {
   short x, y;
   short Width, Height;
@@ -46,10 +50,16 @@ struct textureAtlas {
   uistage::texture_region region;
   uint32_t clr;
 };
+struct tooltip {
+  float lifetime; // in period 10000 of period as delta time
+  const char *message;
+} tooltips[10];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
+static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
+static float yList[2], vList[2], xList[2], uList[2];
 enum Actor_Type : size_t { None = 0, Static, Button };
 
 void uistage::loadBMFont (const char *fontFile) {
@@ -66,6 +76,57 @@ void uistage::draw (float delta) {
   // draw
   for (actor *act : actors) {
     act->draw (delta);
+  }
+  for (size_t i = 0; i < 10; ++i) {
+    tooltip &tlp = tooltips[i];
+    if (tlp.lifetime <= 0.0f) {
+      tlp.message = "";
+    }
+    float transitionAlpha = (tlp.lifetime-1000.0f)/3000000.0f;
+    transitionAlpha = (transitionAlpha > 1.0f) ? 1.0f : transitionAlpha;
+    float F = font->fscale ();
+    auto &Chars = font->Chars;
+    for (const char *t = tlp.message.c_str(); *t; t++) {
+      if (Chars.find (*t) == Chars.end ()) continue;
+      width += Chars[*t].XAdvance;
+    }
+    uint32_t hc = font->fcolor;
+    ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
+    engine::flat_vertex *verts = vert;
+    auto &Kearn = font->Kearn;
+    float x = (engine::graph->getWidth() - width) *.5f;
+    float y = (engine::graph->getHeight() - font->LineHeight * F) *.5f + (font->LineHeight * F * i);
+    for (const char *t = tlp.message.c_str(); *t; t++) {
+      auto itf = Chars.find (*t);
+      if (itf == Chars.end ()) continue;
+      CharDescriptor &f = itf->second;
+      xList[0] = x + (f.XOffset * F);              // minx
+      yList[1] = y - (f.YOffset * F); // maxy
+      xList[1] = xList[0] + (f.Width * F);         // maxx
+      yList[0] = yList[1] - (f.Height * F);        // miny
+    
+      uList[0] = f.x / (float)font->Width;
+      vList[0] = f.y / (float)font->Height;
+      uList[1] = (f.x + f.Width) / (float)font->Width;
+      vList[1] = (f.y + f.Height) / (float)font->Height;
+    
+      *(verts++) = {xList[0], yList[0], hc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], hc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], hc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
+    
+      if (*(t + 1)) {
+        float nX = f.XAdvance;
+        uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+        auto it = Kearn.find (*(uint32_t *)key);
+        if (it != Kearn.end ())
+          nX += it->second;
+        x += nX * F;
+      }
+    }
+    engine::graph->flat_render (font->ftexid, vert, tlp.message.size());
+    
+    tlp.lifetime -= delta;
   }
 }
 void uistage::clear () {
@@ -104,7 +165,20 @@ uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k
   actors.insert (ua);
   return ua;
 }
-
+void uistage::temporaryTooltip(const char *fmt, ...) {
+  if (fmt == NULL)
+    return;
+  va_list ap;
+  va_start (ap, fmt);
+  vsprintf (global_temporary.char_buffer, fmt, ap);
+  va_end (ap);
+  for (size_t i = 9; i; --i) {
+    tooltips[i].lifetime = tooltips[i-1].lifetime;
+    tooltips[i].message = tooltips[i-1].message;
+  }
+  tooltips[0].lifetime = 5000000;
+  tooltips[0].message = global_temporary.char_buffer;
+}
 uistage::actor *focused_actor[100]{};
 void uistage::touchDown (float x, float y, int pointer, int button) {
   for (actor *act : actors) {
@@ -394,8 +468,6 @@ bmfont::~bmfont () {
   engine::graph->delete_texture (ftexid);
 }
 //{ redefine actor
-static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
-static float yList[2], vList[2], xList[2], uList[2];
 void uistage::actor::draw (float delta) {
   (void)delta;
   if (getKey().empty()) return;
@@ -579,14 +651,13 @@ void uistage::text_actor::draw (float delta) {
 }
 size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
 void uistage::text_actor::setText(const char *fmt, ...) {
-  char t[1024];
-  if (fmt == NULL)          // If There's No Text
-    return;                 // Do Nothing
-  va_list ap;               // Pointer To List Of Arguments
-  va_start (ap, fmt);       // Parses The String For Variables
-  vsprintf (t, fmt, ap); // And Converts Symbols To Actual Numbers
+  if (fmt == NULL)
+    return;
+  va_list ap;
+  va_start (ap, fmt);
+  vsprintf (global_temporary.char_buffer, fmt, ap);
   va_end (ap);
-  text = t;
+  text = global_temporary.char_buffer;
 }
 uistage::text_actor::~text_actor () {}
 

@@ -121,9 +121,9 @@ Main::Main () {
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   
   
-  mdata->t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "#### FPS");
-  mdata->t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "#### sec");
-  mdata->t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_TOP_LEFT, "##### byte");
+  mdata->t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
+  mdata->t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
+  mdata->t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
   
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), NULL);
@@ -140,7 +140,7 @@ void Main::resume () {
 void Main::render () {
   mdata->t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
-  mdata->t_dlt->setText("%03d sec", delta);
+  mdata->t_dlt->setText("%03.3f sec", delta);
   mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
