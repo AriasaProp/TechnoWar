@@ -121,9 +121,9 @@ Main::Main () {
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
   
   
-  t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "#### FPS");
-  t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "#### sec");
-  t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_TOP_LEFT, "##### byte");
+  mdata->t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "#### FPS");
+  mdata->t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "#### sec");
+  mdata->t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_TOP_LEFT, "##### byte");
   
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), NULL);
