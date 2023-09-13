@@ -82,6 +82,7 @@ void uistage::draw (float delta) {
     tooltip &tlp = tooltips[i];
     if (tlp.lifetime <= 0.0f) {
       tlp.message = "";
+      continue;
     }
     float transitionAlpha = 1.0f;
     if (tlp.lifetime < 1.65f)
@@ -144,9 +145,9 @@ void uistage::draw (float delta) {
     text_tooltip_drawn += tlp.message.size();
     tooltip_drawn++;
   }
-  if (tooltip_drawn) {
-    engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
+  if (tooltip_drawn > 0) {
     engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
+    engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
   }
 }
 void uistage::clear () {
