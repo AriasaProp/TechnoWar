@@ -57,6 +57,7 @@ static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<uistage::actor *> actors;
 
 static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
+static engine::flat_vertex vert2[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
 enum Actor_Type : size_t { None = 0, Static, Button };
 
@@ -75,13 +76,16 @@ void uistage::draw (float delta) {
   for (actor *act : actors) {
     act->draw (delta);
   }
+  size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
+  engine::flat_vertex *verts = vert, *verts2 = vert2;
   for (size_t i = 0; i < 10; ++i) {
     tooltip &tlp = tooltips[i];
     if (tlp.lifetime <= 0.0f) {
       tlp.message = "";
     }
-    float transitionAlpha = (tlp.lifetime-.0001f)/3.0f;
-    transitionAlpha = (transitionAlpha > 1.0f) ? 1.0f : transitionAlpha;
+    float transitionAlpha = 1.0f;
+    if (tlp.lifetime < 1.65f)
+      transitionAlpha = (tlp.lifetime)/1.65f;
     float F = font->fscale ();
     auto &Chars = font->Chars;
     float width = 0;
@@ -89,12 +93,30 @@ void uistage::draw (float delta) {
       if (Chars.find (*t) == Chars.end ()) continue;
       width += Chars[*t].XAdvance;
     }
+    width *= F;
     uint32_t hc = font->fcolor;
     ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
-    engine::flat_vertex *verts = vert;
     auto &Kearn = font->Kearn;
     float x = (engine::graph->getWidth() - width) *.5f;
-    float y = (engine::graph->getHeight() - font->LineHeight * F) *.5f + (font->LineHeight * F * i);
+    float y = engine::graph->getHeight() * .5f + font->LineHeight * F * (i + 1.5f);
+    
+    //draw background
+    {
+      xList[0] = x - 5.0f; // minx
+      xList[1] = x + width + 5.0f; // maxx
+      yList[0] = y - font->LineHeight * F - 5.0f; // miny
+      yList[1] = y + 5.0f; // maxy
+    
+      uList[0] = f.x / (float)font->Width;
+      vList[0] = f.y / (float)font->Height;
+      uList[1] = (f.x + f.Width) / (float)font->Width;
+      vList[1] = (f.y + f.Height) / (float)font->Height;
+    
+      *(verts2++) = {xList[0], yList[0], 0x88000000, 0, 0};
+      *(verts2++) = {xList[0], yList[1], 0x88000000, 0, 0};
+      *(verts2++) = {xList[1], yList[0], 0x88000000, 0, 0};
+      *(verts2++) = {xList[1], yList[1], 0x88000000, 0, 0};
+    }
     for (const char *t = tlp.message.c_str(); *t; t++) {
       auto itf = Chars.find (*t);
       if (itf == Chars.end ()) continue;
@@ -123,9 +145,13 @@ void uistage::draw (float delta) {
         x += nX * F;
       }
     }
-    engine::graph->flat_render (font->ftexid, vert, tlp.message.size());
-    
     tlp.lifetime -= delta;
+    text_tooltip_drawn += tlp.message.size();
+    tooltip_drawn++;
+  }
+  if (tooltip_drawn) {
+    engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
+    engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
   }
 }
 void uistage::clear () {
@@ -175,7 +201,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
     tooltips[i].lifetime = tooltips[i-1].lifetime;
     tooltips[i].message = tooltips[i-1].message;
   }
-  tooltips[0].lifetime = 7.5f;
+  tooltips[0].lifetime = 4.5f;
   tooltips[0].message = global_temporary.char_buffer;
 }
 uistage::actor *focused_actor[100]{};
