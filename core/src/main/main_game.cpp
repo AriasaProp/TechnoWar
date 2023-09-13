@@ -18,6 +18,7 @@ struct mMainData {
   engine::mesh_core *mp;
   engine::texture_core *tc;
   engine::flat_vertex *touch_ptr;
+  uistage::text_actor *t_fps, *t_dlt, *t_mem;
 };
 
 Main::Main () {
@@ -58,7 +59,8 @@ Main::Main () {
       {340.0f, 850.0f, 0xff00ff00, 0, 1},
       {340.0f, 900.0f, 0xff00ff00, 0, 0},
       {390.0f, 850.0f, 0xff00ff00, 1, 1},
-      {390.0f, 900.0f, 0xff00ff00, 1, 0}};
+      {390.0f, 900.0f, 0xff00ff00, 1, 0}
+  };
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -117,6 +119,12 @@ Main::Main () {
 
   uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_TOP, "08/09/2023");
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_TOP_RIGHT, "Main");
+  
+  
+  t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
+  t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%03d sec", memory_usage::mem_usage());
+  t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
+  
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), NULL);
   uistage::makeButton ({"btn1", "btn1_"}, Rect (400, 200, ALIGN_CENTER, 200, 200), NULL);
@@ -130,7 +138,10 @@ void Main::resume () {
   clock_count::start ();
 }
 void Main::render () {
+  mdata->t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
+  mdata->t_dlt->setText("%03d sec", delta);
+  mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
@@ -140,10 +151,6 @@ void Main::render () {
   engine::graph->mesh_render (&mdata->mp, 1);
 
   uistage::draw (delta);
-  /*
-  mdata->fnt->draw_text (10, engine::graph->getHeight (), ALIGN_TOP_LEFT, "%03dFPS", clock_count::getFPS());
-  mdata->fnt->draw_text (10, engine::graph->getHeight () - 40, ALIGN_TOP_LEFT, "%011u byte", memory_usage::mem_usage());
-  */
   clock_count::render ();
   engine::flat_vertex *tch = mdata->touch_ptr;
   tch[4].color = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;

@@ -42,6 +42,7 @@ public:
   std::string getKey () override;
   void draw (float) override;
   size_t getType () const override;
+  void setText(const char *, ...);
   ~text_actor () override;
 };
 struct image_actor : public actor {
@@ -83,9 +84,9 @@ void draw (float);
 void clear ();
 
 // all actor types
-actor *makeImage (std::string, Rect);
-actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
-actor *makeText (float, float, Align, std::string);
+image_actor *makeImage (std::string, Rect);
+button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
+text_actor *makeText (float, float, Align, std::string);
 
 void touchDown (float, float, int, int);
 void touchMove (float, float, float, float, int, int);

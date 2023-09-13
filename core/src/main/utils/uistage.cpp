@@ -79,13 +79,13 @@ void uistage::clear () {
   delete font;
 }
 
-uistage::actor *uistage::makeImage (std::string k, Rect r) {
+uistage::image_actor *uistage::makeImage (std::string k, Rect r) {
   uistage::actor *ua = new image_actor (k, r);
   actors.insert (ua);
   return ua;
 }
 
-uistage::actor *uistage::makeButton (std::initializer_list<std::string> k, Rect r, void (*onclick) ()) {
+uistage::button_actor *uistage::makeButton (std::initializer_list<std::string> k, Rect r, void (*onclick) ()) {
   if (!k.size ()) throw ("button must have a key texture");
   std::string *K = new std::string[k.size ()];
   size_t i = 0;
@@ -99,7 +99,7 @@ uistage::actor *uistage::makeButton (std::initializer_list<std::string> k, Rect 
   actors.insert (ua);
   return ua;
 }
-uistage::actor *uistage::makeText (float x, float y, Align a, std::string k) {
+uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k) {
   uistage::actor *ua = new text_actor (x, y, a, k.c_str ());
   actors.insert (ua);
   return ua;
@@ -578,6 +578,16 @@ void uistage::text_actor::draw (float delta) {
   engine::graph->flat_render (font->ftexid, vert, text.size());
 }
 size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
+void uistage::text_actor::setText(const char *fmt, ...) {
+  char t[1024];
+  if (fmt == NULL)          // If There's No Text
+    return;                 // Do Nothing
+  va_list ap;               // Pointer To List Of Arguments
+  va_start (ap, fmt);       // Parses The String For Variables
+  vsprintf (t, fmt, ap); // And Converts Symbols To Actual Numbers
+  va_end (ap);
+  text = t;
+}
 uistage::text_actor::~text_actor () {}
 
 uistage::image_actor::image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
