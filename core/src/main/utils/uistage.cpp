@@ -94,13 +94,13 @@ void uistage::draw (float delta) {
     width *= F;
     uint32_t hc = font->fcolor, bc = 0x88000000;
     if (tlp.lifetime < 1.65f) {
-      float transitionAlpha = (tlp.lifetime)/1.65f;
+      float transitionAlpha = tlp.lifetime/1.65f;
       ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
       ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
     }
     auto &Kearn = font->Kearn;
     float x = (engine::graph->getWidth() - width) *.5f;
-    float y = engine::graph->getHeight() * .75f + (font->LineHeight * F + 10.0f) * i;
+    float y = engine::graph->getHeight() * 0.75f + (font->LineHeight * F + 10.0f) * i;
     
     //draw background
     {
