@@ -13,9 +13,9 @@
 #include <unordered_set>
 #include <utility>
 
-union global_temporary {
+union glb_tmp {
   char char_buffer[1024]; // for 1 kB
-}
+} global_temporary;
 
 struct CharDescriptor {
   short x, y;
@@ -86,6 +86,7 @@ void uistage::draw (float delta) {
     transitionAlpha = (transitionAlpha > 1.0f) ? 1.0f : transitionAlpha;
     float F = font->fscale ();
     auto &Chars = font->Chars;
+    float width = 0;
     for (const char *t = tlp.message.c_str(); *t; t++) {
       if (Chars.find (*t) == Chars.end ()) continue;
       width += Chars[*t].XAdvance;
