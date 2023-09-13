@@ -52,7 +52,7 @@ struct textureAtlas {
 };
 struct tooltip {
   float lifetime; // in period 10000 of period as delta time
-  const char *message;
+  std::string message;
 } tooltips[10];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
