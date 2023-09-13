@@ -80,7 +80,7 @@ void uistage::clear () {
 }
 
 uistage::image_actor *uistage::makeImage (std::string k, Rect r) {
-  uistage::actor *ua = new image_actor (k, r);
+  uistage::image_actor *ua = new image_actor (k, r);
   actors.insert (ua);
   return ua;
 }
@@ -95,12 +95,12 @@ uistage::button_actor *uistage::makeButton (std::initializer_list<std::string> k
     ++it;
     ++i;
   }
-  uistage::actor *ua = new button_actor (K, r, onclick);
+  uistage::button_actor *ua = new button_actor (K, r, onclick);
   actors.insert (ua);
   return ua;
 }
 uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k) {
-  uistage::actor *ua = new text_actor (x, y, a, k.c_str ());
+  uistage::text_actor *ua = new text_actor (x, y, a, k.c_str ());
   actors.insert (ua);
   return ua;
 }
