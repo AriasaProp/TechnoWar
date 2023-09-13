@@ -80,7 +80,7 @@ void uistage::draw (float delta) {
     if (tlp.lifetime <= 0.0f) {
       tlp.message = "";
     }
-    float transitionAlpha = (tlp.lifetime-1000.0f)/3000000.0f;
+    float transitionAlpha = (tlp.lifetime-.0001f)/3.0f;
     transitionAlpha = (transitionAlpha > 1.0f) ? 1.0f : transitionAlpha;
     float F = font->fscale ();
     auto &Chars = font->Chars;
