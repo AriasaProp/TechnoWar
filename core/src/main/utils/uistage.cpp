@@ -107,11 +107,6 @@ void uistage::draw (float delta) {
       yList[0] = y - font->LineHeight * F - 5.0f; // miny
       yList[1] = y + 5.0f; // maxy
     
-      uList[0] = f.x / (float)font->Width;
-      vList[0] = f.y / (float)font->Height;
-      uList[1] = (f.x + f.Width) / (float)font->Width;
-      vList[1] = (f.y + f.Height) / (float)font->Height;
-    
       *(verts2++) = {xList[0], yList[0], 0x88000000, 0, 0};
       *(verts2++) = {xList[0], yList[1], 0x88000000, 0, 0};
       *(verts2++) = {xList[1], yList[0], 0x88000000, 0, 0};
