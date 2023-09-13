@@ -78,15 +78,12 @@ void uistage::draw (float delta) {
   }
   size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
   engine::flat_vertex *verts = vert, *verts2 = vert2;
-  for (size_t i = 0; i < 10; ++i) {
+  for (size_t i = 10; i--;) {
     tooltip &tlp = tooltips[i];
-    if (tlp.lifetime <= 0.0f) {
+    if (tlp.lifetime <= 0.000001f) {
       tlp.message = "";
       continue;
     }
-    float transitionAlpha = 1.0f;
-    if (tlp.lifetime < 1.65f)
-      transitionAlpha = (tlp.lifetime)/1.65f;
     float F = font->fscale ();
     auto &Chars = font->Chars;
     float width = 0;
@@ -95,11 +92,15 @@ void uistage::draw (float delta) {
       width += Chars[*t].XAdvance;
     }
     width *= F;
-    uint32_t hc = font->fcolor;
-    ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
+    uint32_t hc = font->fcolor, bc = 0x88000000;
+    if (tlp.lifetime < 1.65f) {
+      float transitionAlpha = (tlp.lifetime)/1.65f;
+      ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
+      ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
+    }
     auto &Kearn = font->Kearn;
     float x = (engine::graph->getWidth() - width) *.5f;
-    float y = engine::graph->getHeight() * .5f + font->LineHeight * F * (i + 1.5f);
+    float y = engine::graph->getHeight() * .5f + font->LineHeight * F * (i + 1.5f) * 10.0f;
     
     //draw background
     {
@@ -108,10 +109,10 @@ void uistage::draw (float delta) {
       yList[0] = y - font->LineHeight * F - 5.0f; // miny
       yList[1] = y + 5.0f; // maxy
     
-      *(verts2++) = {xList[0], yList[0], 0x88000000, 0, 0};
-      *(verts2++) = {xList[0], yList[1], 0x88000000, 0, 0};
-      *(verts2++) = {xList[1], yList[0], 0x88000000, 0, 0};
-      *(verts2++) = {xList[1], yList[1], 0x88000000, 0, 0};
+      *(verts2++) = {xList[0], yList[0], bc, 0, 0};
+      *(verts2++) = {xList[0], yList[1], bc, 0, 0};
+      *(verts2++) = {xList[1], yList[0], bc, 0, 0};
+      *(verts2++) = {xList[1], yList[1], bc, 0, 0};
     }
     for (const char *t = tlp.message.c_str(); *t; t++) {
       auto itf = Chars.find (*t);
