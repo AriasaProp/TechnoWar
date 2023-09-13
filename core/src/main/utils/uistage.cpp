@@ -38,8 +38,6 @@ struct bmfont {
   float fscale ();
   void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
   void setFontSize (float); // px
-  // void draw_text (float, float, Align, const char *);
-  // void draw_text (float, float, Align, const char *, ...);
   bmfont (const char *);
   ~bmfont ();
 
@@ -177,7 +175,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
     tooltips[i].lifetime = tooltips[i-1].lifetime;
     tooltips[i].message = tooltips[i-1].message;
   }
-  tooltips[0].lifetime = 5000000;
+  tooltips[0].lifetime = 7.5f;
   tooltips[0].message = global_temporary.char_buffer;
 }
 uistage::actor *focused_actor[100]{};
