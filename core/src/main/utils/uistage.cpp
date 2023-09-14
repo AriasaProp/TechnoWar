@@ -29,9 +29,9 @@ struct CharDescriptor {
 struct bmfont {
 private:
   short LineHeight;
+public:
   short Width;
   short Height;
-public:
   short Base;
   short Outline;
   std::unordered_map<int, CharDescriptor> Chars;
@@ -43,8 +43,6 @@ public:
   void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
   void setFontSize (float); // px
   float getLineHeight();
-  float getWidth();
-  float getHeight();
   bmfont (const char *);
   ~bmfont ();
 
@@ -269,12 +267,6 @@ void bmfont::setFontSize (float size) { // px
 }
 float bmfont::getLineHeight() {
   return static_cast<float>(LineHeight) * fontSizeUsed / fontSizeBase;
-}
-float bmfont::getWidth() {
-  return static_cast<float>(Width) * fontSizeUsed / fontSizeBase;
-}
-float bmfont::getHeight() {
-  return static_cast<float>(Height) * fontSizeUsed / fontSizeBase;
 }
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
