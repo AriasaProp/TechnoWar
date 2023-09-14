@@ -428,6 +428,7 @@ bmfont::~bmfont () {
 //{ redefine actor
 void uistage::actor::draw (float delta) {
   if (getKey().empty()) return;
+  (void)delta;
   textureAtlas &ta = regions[getKey()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
