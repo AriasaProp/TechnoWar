@@ -148,7 +148,7 @@ void uistage::draw (float delta) {
         *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
       
         if (*(t + 1)) {
-          x += f.XAdvance;
+          x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
           auto it = Kearn.find (*(uint32_t*)key);
@@ -566,6 +566,13 @@ uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : te
   for (const char *t = text.c_str(); *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     width += Chars[*t].XAdvance;
+    if (*(t + 1)) {
+      uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+      auto &Kearn = font->Kearn;
+      auto it = Kearn.find (*(uint32_t*)key);
+      if (it != Kearn.end ())
+        width += it->second;
+    }
   }
   rectangle = Rect (x, y, a, width * font->fscale (), font->getLineHeight());
 }
