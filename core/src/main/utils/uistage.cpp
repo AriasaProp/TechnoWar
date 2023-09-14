@@ -14,6 +14,7 @@
 #include <utility>
 
 #define TOOLTIP_DURATION 4.75f
+#define TEMP_SIZE 4095
 
 union glb_tmp {
   char char_buffer[1024]; // for 1 kB
@@ -61,8 +62,8 @@ static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-static engine::flat_vertex vert[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
-static engine::flat_vertex vert2[1024]; //= 20 KB, approximate 1024 actors can be drawn at once
+static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
+static engine::flat_vertex vert2[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
 enum Actor_Type : size_t { None = 0, Static, Button };
 
@@ -94,9 +95,16 @@ void uistage::draw (float delta) {
       auto &Chars = font->Chars;
       float width = 0;
       float F = font->fscale ();
-      for (const char *t = tlp.message.c_str(); *t; t++) {
+      for (const char *t = tlp.message.c_str(); *t; ++t) {
         if (Chars.find (*t) == Chars.end ()) continue;
         width += Chars[*t].XAdvance;
+        if (*(t + 1)) {
+          uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+          auto &Kearn = font->Kearn;
+          auto it = Kearn.find (*(uint32_t*)key);
+          if (it != Kearn.end ())
+            width += it->second;
+        }
       }
       width *= F;
       uint32_t hc = font->fcolor, bc = 0x88000000;
@@ -106,7 +114,7 @@ void uistage::draw (float delta) {
         ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
       float x = (engine::graph->getWidth() - width) *.5f;
-      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.0f) * i;
+      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i;
       
       //draw background
       {
@@ -124,10 +132,10 @@ void uistage::draw (float delta) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
         CharDescriptor &f = itf->second;
-        xList[0] = x + (f.XOffset * F);              // minx
+        xList[0] = x + (f.XOffset * F); // minx
         yList[1] = y - (f.YOffset * F); // maxy
-        xList[1] = xList[0] + (f.Width * F);         // maxx
-        yList[0] = yList[1] - (f.Height * F);        // miny
+        xList[1] = xList[0] + (f.Width * F); // maxx
+        yList[0] = yList[1] - (f.Height * F); // miny
       
         uList[0] = f.x / (float)font->Width;
         vList[0] = f.y / (float)font->Height;
@@ -143,7 +151,7 @@ void uistage::draw (float delta) {
           float nX = f.XAdvance;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*(uint32_t *)key);
+          auto it = Kearn.find (*(uint32_t*)key);
           if (it != Kearn.end ())
             nX += it->second;
           x += nX * F;
@@ -151,7 +159,7 @@ void uistage::draw (float delta) {
       }
       tlp.lifetime -= delta;
       text_tooltip_drawn += tlp.message.size();
-      tooltip_drawn++;
+      ++tooltip_drawn;
     }
     engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
     engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
@@ -419,7 +427,6 @@ bmfont::~bmfont () {
 }
 //{ redefine actor
 void uistage::actor::draw (float delta) {
-  (void)delta;
   if (getKey().empty()) return;
   textureAtlas &ta = regions[getKey()];
   engine::texture_core *tex = ta.tex;
