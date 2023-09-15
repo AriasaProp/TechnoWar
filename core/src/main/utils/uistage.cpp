@@ -2,6 +2,7 @@
 #include "../assets/stb_image.hpp"
 #include "../engine.hpp"
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
