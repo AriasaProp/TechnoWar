@@ -67,7 +67,7 @@ jobs:
         run: |
           cd desktop/windows
           dotnet restore
-          dotnet build -o ./bin-output -c Release|x86 --no-restore
+          dotnet build -o ./bin-output -c Release --no-restore
   upload_artifacts:
     needs: build
     runs-on: ubuntu-latest
