@@ -3,6 +3,7 @@
 
 // unsafe thread math
 
+#include <cstddef>
 #include <cstdint>
 
 // xaxis(0 left, 1 center, 2 right), yaxis (0 top, 1 center, 2 bottom)

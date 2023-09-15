@@ -5,6 +5,7 @@
 // maximum output log message in char
 #define MAX_GL_MSG 1024
 
+#include <cstddef>
 #include <cstdint>
 
 namespace engine {
