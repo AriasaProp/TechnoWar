@@ -98,6 +98,7 @@ jobs:
       - uses: actions/checkout@v3.5.2
       - name: Create Work Dir
         run: |
+          git config --global --add safe.directory ${{ github.workspace }}
           cd desktop/main/
           mkdir build
           cd build
