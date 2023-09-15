@@ -61,8 +61,7 @@ jobs:
         with:
           gradle-version: 8.1.1
           arguments: :android:build -P${{ inputs.build_type }}
-      - name: Upload Artifacts Android
-        uses: actions/upload-artifact@v3.1.2
+      - uses: actions/upload-artifact@v3.1.2
         with:
           name: android-${{ inputs.build_type }}
           path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
@@ -104,8 +103,7 @@ jobs:
           cd build
           cmake .. ${{ matrix.config.args }} -DCMAKE_BUILD_TYPE=${{ inputs.platform_type }}
           cmake --build . -j --config ${{ inputs.platform_type }}
-      - name: Upload Artifacts Android
-        uses: actions/upload-artifact@v3.1.2
+      - uses: actions/upload-artifact@v3.1.2
         with:
           name: desktop-${{ matrix.config.name }}-${{ inputs.build_type }}
           path: ${{ github.workspace }}/desktop/main/build
