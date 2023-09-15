@@ -3,11 +3,7 @@ name: Gradle Auto
 on:
   workflow_dispatch:
     inputs:
-      format_java:
-        default: false
-        required: false
-        type: boolean
-      format_cpp:
+      formating:
         default: false
         required: false
         type: boolean
@@ -16,7 +12,7 @@ on:
         required: true
         options:
           - android
-          - desktop
+          - windows
         type: choice
       build_type:
         default: 'debug'
@@ -27,41 +23,65 @@ on:
         type: choice
 
 jobs:
+  format:
+    if: ${{ inputs.formating }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Format Code C++
+        run: |
+          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
+          git config --global user.name "AriasaProp"
+          sudo apt-get install -y clang-format
+          find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
+          git add .
+          git commit -m "Reformatting cpp"
+          git push
+      - name: Setup JDK 11
+        uses: actions/setup-java@v3.11.0
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Format Java Code
+        uses: axel-op/googlejavaformat-action@v3.6.0
+        with:
+          files: "android/src/**/*.java"
+          args: "-r -a"
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Check
-      uses: actions/checkout@v3.5.2
-    - name: Setup JDK 11
-      uses: actions/setup-java@v3.11.0
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: 'gradle'
-    - name: Java Format
-      if:  ${{ inputs.format_java && (inputs.platform_type == 'android') }} 
-      uses: axel-op/googlejavaformat-action@v3.6.0
-      with:
-        files: "android/src/**/*.java"
-        args: "-r -a"
-    - name: Global Cpp Format
-      if:  ${{ inputs.format_cpp }}
-      run: |
-        git config --global user.email "ikomangwidiadaariasa12@gmail.com"
-        git config --global user.name "AriasaProp"
-        sudo apt-get install -y clang-format
-        find . -name "*.cpp" -o -name "*.hpp" | xargs clang-format -i
-        git add .
-        git commit -m "reformating cpp"
-        git push
-    - name: Gradle Build ${{ inputs.platform_type }} - ${{ inputs.build_type }}
-      uses: gradle/gradle-build-action@v2.4.2
-      with:
-        gradle-version: 8.1.1
-        arguments: :${{ inputs.platform_type }}:build -P${{ inputs.build_type }}
-    - name: Publish Artifacts
-      uses: actions/upload-artifact@v3.1.2
-      with:
-        name: ${{ inputs.platform_type }}-${{ inputs.build_type }}
-        path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
-
+      - uses: actions/checkout@v3.5.2
+      - name: Build Android APK
+        if: ${{ inputs.platform_type == 'android' }}
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.1.1
+          arguments: :android:build -P${{ inputs.build_type }}
+      - uses: actions/setup-dotnet@v1
+        if: ${{ inputs.platform_type == 'windows' }}
+        with:
+          dotnet-version: 4.8.1
+      - name: Build Windows EXE
+        if: ${{ inputs.platform_type == 'windows' }}
+        run: |
+          cd desktop/windows
+          dotnet restore
+          dotnet build -o ./bin-output -c Release|x86 --no-restore
+  upload_artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload Artifacts Android
+        if: ${{ inputs.platform_type == 'android' }}
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: android-${{ inputs.build_type }}
+          path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
+      - name: Upload Artifacts Windows
+        if: ${{ inputs.platform_type == 'windows' }}
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: windows-${{ inputs.build_type }}
+          path: ${{ github.workspace }}/desktop/windows/bin-output
+          
