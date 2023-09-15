@@ -286,7 +286,7 @@ void opengles_graphics::preRender (ANativeWindow *window, unsigned int &resize) 
 }
 void opengles_graphics::postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;
-  if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
+  if (mgl_data->surface && !eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
     case EGL_BAD_SURFACE:
     case EGL_BAD_NATIVE_WINDOW:

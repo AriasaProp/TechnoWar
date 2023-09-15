@@ -88,6 +88,36 @@ static void *android_app_entry (void *param) {
         break;
       case 1: // android activity queue
         if (read (app->msgread, &cmd, sizeof (cmd)) != sizeof (cmd)) break;
+        //cmd that affect window enable
+        if (window) {
+          switch (cmd) {
+          case APP_CMD_STOP:
+          case APP_CMD_TERM_WINDOW:
+            a_graphics->onWindowTerm ();
+            window = nullptr;
+            break;
+          case APP_CMD_PAUSE:
+            a_graphics->preRender (window, resize);
+            // core
+            if (!m_Main)
+              m_Main = new Main;
+            m_Main->pause ();
+            a_graphics->postRender (false);
+            break;
+          case APP_CMD_DESTROY:
+            a_graphics->preRender (window, resize);
+            // core
+            if (m_Main) {
+              delete m_Main;
+              m_Main = nullptr;
+            }
+            break;
+          default:
+            // ?
+            break;
+          }
+        }
+        //cmd maintain proccess
         switch (cmd) {
         case APP_CMD_INIT_WINDOW:
           pthread_mutex_lock (&app->mutex);
@@ -109,33 +139,10 @@ static void *android_app_entry (void *param) {
         case APP_CMD_LOST_FOCUS:
           a_input.detach_sensor ();
           break;
-        case APP_CMD_TERM_WINDOW:
-          a_graphics->onWindowTerm ();
-          window = nullptr;
-          break;
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
-        case APP_CMD_PAUSE:
-          if (window) {
-            a_graphics->preRender (window, resize);
-            // core
-            if (!m_Main)
-              m_Main = new Main;
-            m_Main->pause ();
-            a_graphics->postRender (false);
-          }
-          running = false;
-          break;
         case APP_CMD_DESTROY:
-          if (window) {
-            a_graphics->preRender (window, resize);
-            // core
-            if (m_Main) {
-              delete m_Main;
-              m_Main = nullptr;
-            }
-          }
           a_graphics->postRender (true);
           break;
         default:
@@ -146,10 +153,14 @@ static void *android_app_entry (void *param) {
         app->appCmdState = cmd;
         pthread_cond_broadcast (&app->cond);
         pthread_mutex_unlock (&app->mutex);
+        //cmd that affect condition
         switch (cmd) {
         case APP_CMD_RESUME:
           running = true;
           resume = true;
+          break;
+        case APP_CMD_PAUSE:
+          running = false;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
           resize |= 1;

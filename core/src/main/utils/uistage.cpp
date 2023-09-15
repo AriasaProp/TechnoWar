@@ -83,7 +83,7 @@ void uistage::draw (float delta) {
     act->draw (delta);
   }
   //tooltip drawn
-  {
+  if (tooltips[0].lifetime <= 0.0f) {
     size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
     engine::flat_vertex *verts = vert, *verts2 = vert2;
     for (size_t i = 0; i < 10; ++i) {
@@ -114,7 +114,7 @@ void uistage::draw (float delta) {
         ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
       float x = (engine::graph->getWidth() - width) *.5f;
-      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i;
+      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
       
       //draw background
       {
