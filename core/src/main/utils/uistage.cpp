@@ -148,7 +148,7 @@ void uistage::draw (float delta) {
         *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
       
         if (*(t + 1)) {
-          x += f.XAdvance;
+          x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
           auto it = Kearn.find (*(uint32_t*)key);
