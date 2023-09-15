@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-dotnet@v1
         if: ${{ inputs.platform_type == 'windows' }}
         with:
-          dotnet-version: 4.x
+          dotnet-version: 5.0.406
       - name: Build Windows EXE
         if: ${{ inputs.platform_type == 'windows' }}
         run: |
