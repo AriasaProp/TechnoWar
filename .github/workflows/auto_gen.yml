@@ -50,8 +50,8 @@ jobs:
         with:
           files: "android/src/**/*.java"
           args: "-r -a"
+
   build-android:
-    needs: format
     runs-on: ubuntu-latest
     if: ${{ inputs.platform_type == 'android' }}
     steps:
@@ -66,8 +66,8 @@ jobs:
         with:
           name: android-${{ inputs.build_type }}
           path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
+
   build-desktop:
-    needs: format
     if: ${{ inputs.platform_type == 'desktop' }}
     strategy:
       matrix:
