@@ -83,7 +83,7 @@ void uistage::draw (float delta) {
     act->draw (delta);
   }
   //tooltip drawn
-  if (tooltips[0].lifetime <= 0.0f) {
+  {
     size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
     engine::flat_vertex *verts = vert, *verts2 = vert2;
     for (size_t i = 0; i < 10; ++i) {
@@ -114,7 +114,7 @@ void uistage::draw (float delta) {
         ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
       float x = (engine::graph->getWidth() - width) *.5f;
-      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
+      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i;
       
       //draw background
       {
@@ -148,7 +148,7 @@ void uistage::draw (float delta) {
         *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
       
         if (*(t + 1)) {
-          x += f.XAdvance * F;
+          x += f.XAdvance;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
           auto it = Kearn.find (*(uint32_t*)key);
@@ -566,13 +566,6 @@ uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : te
   for (const char *t = text.c_str(); *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     width += Chars[*t].XAdvance;
-    if (*(t + 1)) {
-      uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-      auto &Kearn = font->Kearn;
-      auto it = Kearn.find (*(uint32_t*)key);
-      if (it != Kearn.end ())
-        width += it->second;
-    }
   }
   rectangle = Rect (x, y, a, width * font->fscale (), font->getLineHeight());
 }
