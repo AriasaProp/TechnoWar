@@ -4,6 +4,7 @@
 #include "assets/stb_image.hpp"
 #include "utils/math.hpp"
 #include "utils/uistage.hpp"
+#include <cstddef>
 #include <cmath>
 #include <cstdlib> /* srand, rand */
 #include <cstring>

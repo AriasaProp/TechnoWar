@@ -84,7 +84,7 @@ jobs:
           - {
             name: "Ubuntu_X64",
             os: ubuntu-latest,
-            args: "-DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10",
+            args: "",
           }
           - {
             name: "MacOSX_X64",
