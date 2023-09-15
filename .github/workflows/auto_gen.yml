@@ -69,32 +69,31 @@ jobs:
   build-desktop:
     needs: format
     if: ${{ inputs.platform_type == 'desktop' }}
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
     strategy:
-      fail-fast: false
       matrix:
         config:
           - {
             name: "Windows_X86",
-            os: windows-lastes,
+            os: windows-latest,
             args: -G "Visual Studio 16 2019" -A Win32,
           }
           - {
             name: "Windows_X64",
-            os: windows-lastes,
+            os: windows-latest,
             args: -G "Visual Studio 16 2019" -A x64,
           }
           - {
             name: "Ubuntu_X64",
-            os: ubuntu-lastes,
+            os: ubuntu-latest,
             args: "-DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10",
           }
           - {
             name: "MacOSX_X64",
-            os: macos-lastes,
+            os: macos-latest,
             args: "",
           }
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Create Work Dir
