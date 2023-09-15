@@ -12,7 +12,7 @@ on:
         required: true
         options:
           - android
-          - windows
+          - desktop
         type: choice
       build_type:
         default: 'debug'
@@ -38,50 +38,76 @@ jobs:
           git commit -m "Reformatting cpp"
           git push
       - name: Setup JDK 11
+        if: ${{ inputs.platform_type == 'android' }}
         uses: actions/setup-java@v3.11.0
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: 'gradle'
       - name: Format Java Code
+        if: ${{ inputs.platform_type == 'android' }}
         uses: axel-op/googlejavaformat-action@v3.6.0
         with:
           files: "android/src/**/*.java"
           args: "-r -a"
-  build:
+  build-android:
+    needs: format
     runs-on: ubuntu-latest
+    if: ${{ inputs.platform_type == 'android' }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Build Android APK
-        if: ${{ inputs.platform_type == 'android' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.1.1
           arguments: :android:build -P${{ inputs.build_type }}
-      - uses: actions/setup-dotnet@v1
-        if: ${{ inputs.platform_type == 'windows' }}
-        with:
-          dotnet-version: 5.0.406
-      - name: Build Windows EXE
-        if: ${{ inputs.platform_type == 'windows' }}
-        run: |
-          cd desktop/windows
-          dotnet restore
-          dotnet build -o ./bin-output
-  upload_artifacts:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - name: Upload Artifacts Android
-        if: ${{ inputs.platform_type == 'android' }}
         uses: actions/upload-artifact@v3.1.2
         with:
           name: android-${{ inputs.build_type }}
           path: ${{ github.workspace }}/android/build/outputs/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
-      - name: Upload Artifacts Windows
-        if: ${{ inputs.platform_type == 'windows' }}
+  build-desktop:
+    needs: format
+    if: ${{ inputs.platform_type == 'desktop' }}
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+            name: "Windows_X86",
+            os: windows-lastes,
+            args: -G "Visual Studio 16 2019" -A Win32,
+          }
+          - {
+            name: "Windows_X64",
+            os: windows-lastes,
+            args: -G "Visual Studio 16 2019" -A x64,
+          }
+          - {
+            name: "Ubuntu_X64",
+            os: ubuntu-lastes,
+            args: "-DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10",
+          }
+          - {
+            name: "MacOSX_X64",
+            os: macos-lastes,
+            args: "",
+          }
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Create Work Dir
+        run: |
+          cd desktop/main/
+          mkdir build
+          cd build
+          cmake .. ${{ matrix.config.args }} -DCMAKE_BUILD_TYPE=${{ inputs.platform_type }}
+          cmake --build . -j --config ${{ inputs.platform_type }}
+      - name: Upload Artifacts Android
         uses: actions/upload-artifact@v3.1.2
         with:
-          name: windows-${{ inputs.build_type }}
-          path: ${{ github.workspace }}/desktop/windows/bin-output
-          
+          name: desktop-${{ matrix.config.name }}-${{ inputs.build_type }}
+          path: ${{ github.workspace }}/desktop/main/build
+
+
