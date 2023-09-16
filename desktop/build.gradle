@@ -4,10 +4,10 @@ plugins {
 }
 
 application {
-    source.from file('src/main')
-    privateHeaders.from file('src/main')
+    source.from file('main')
+    privateHeaders.from file('main')
 }
 unitTest {
-    source.from file('src/test')
-    privateHeaders.from file('src/test')
+    source.from file('test')
+    privateHeaders.from file('test')
 }

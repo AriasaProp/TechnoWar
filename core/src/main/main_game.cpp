@@ -10,10 +10,12 @@
 #include <cstring>
 #include <ctime> /* time */
 
-#ifndef BUILD_DATE
-#define BUILD_DATE "No Build Date"
+#ifdef BUILD_DATE
+#define STR(x) #x
+#define DATESTR STR(BUILD_DATE)
+#else
+#define DATESTR "No Build Date"
 #endif // BUILD_DATE
-#define DATESTR #BUILD_DATE
 
 struct mMainData {
   engine::mesh_core *mp;

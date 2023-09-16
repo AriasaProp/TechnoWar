@@ -19,8 +19,6 @@ MACRO (TODAY BUILD_DATE)
 ENDMACRO (TODAY)
 
 TODAY(BUILD_DATE)
-message(STATUS "Build date = ${BUILD_DATE}")
-
 add_definitions(-DBUILD_DATE=${BUILD_DATE})
 
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
