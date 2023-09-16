@@ -11,7 +11,9 @@
 #include <ctime> /* time */
 
 #ifdef BUILD_DATE
-#define DATESTR "\"" BUILD_DATE "\""
+#define STRINGIZE(x) #x
+#define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
+#define DATESTR STRINGIZE_VALUE_OF(BUILD_DATE)
 #else
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
