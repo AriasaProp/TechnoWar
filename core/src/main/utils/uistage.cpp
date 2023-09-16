@@ -49,7 +49,7 @@ public:
   ~bmfont ();
 
 } *font = nullptr;
-// BMFONT STATE end
+
 struct textureAtlas {
   engine::texture_core *tex;
   uistage::texture_region region;
@@ -102,7 +102,7 @@ void uistage::draw (float delta) {
         if (*(t + 1)) {
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*(uint32_t*)key);
+          auto it = Kearn.find (static_cast<uint32_t>(*key));
           if (it != Kearn.end ())
             width += it->second;
         }
@@ -152,7 +152,7 @@ void uistage::draw (float delta) {
           x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*(uint32_t*)key);
+          auto it = Kearn.find (static_cast<uint32_t>(*key));
           if (it != Kearn.end ())
             x += it->second * F;
         }
@@ -601,7 +601,7 @@ void uistage::text_actor::draw (float delta) {
     if (*(t + 1)) {
       float nX = f.XAdvance;
       uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-      auto it = Kearn.find (*(uint32_t *)key);
+      auto it = Kearn.find (static_cast<uint32_t>(*key));
       if (it != Kearn.end ())
         nX += it->second;
       x += nX * F;
