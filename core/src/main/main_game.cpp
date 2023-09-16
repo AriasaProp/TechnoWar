@@ -11,8 +11,7 @@
 #include <ctime> /* time */
 
 #ifdef BUILD_DATE
-#define STR(x) #x
-#define DATESTR STR(BUILD_DATE)
+#define DATESTR "\"" BUILD_DATE "\""
 #else
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
