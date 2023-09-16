@@ -95,12 +95,20 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v3.5.2
-      - name: Create Work Dir
+      - name: File Work
         run: |
           git config --global --add safe.directory ${{ github.workspace }}
           cd desktop/main/
           mkdir build
           cd build
+      - name: Set up MSVC
+        if: ${{ matrix.config.os == windows-latest }}
+        uses: microsoft/setup-msvc@v1.0.2
+        with:
+          msvcVersion: 2016
+          architecture: x64
+      - name: CMakeBuild
+        run: |
           cmake .. ${{ matrix.config.args }} -DCMAKE_BUILD_TYPE=${{ inputs.platform_type }}
           cmake --build . -j --config ${{ inputs.platform_type }}
       - uses: actions/upload-artifact@v3.1.2
