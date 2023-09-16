@@ -102,7 +102,7 @@ void uistage::draw (float delta) {
         if (*(t + 1)) {
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (static_cast<uint32_t>(*key));
+          auto it = Kearn.find (*static_cast<uint32_t*>(key));
           if (it != Kearn.end ())
             width += it->second;
         }
@@ -152,7 +152,7 @@ void uistage::draw (float delta) {
           x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (static_cast<uint32_t>(*key));
+          auto it = Kearn.find (*static_cast<uint32_t*>(key));
           if (it != Kearn.end ())
             x += it->second * F;
         }
@@ -270,7 +270,11 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  memcpy (&fcolor, (unsigned char[]){r, g, b, a}, sizeof (unsigned char) * 4);
+  unsigned char *ucolor = static_cast<unsigned char*>(&fcolor);
+  ucolor[0] = r;
+  ucolor[1] = g;
+  ucolor[2] = b;
+  ucolor[3] = a;
 }
 void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
@@ -405,7 +409,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
           else if (Key == "amount")
             Converter >> amount;
         }
-        Kearn[*((uint32_t *)id)] = amount;
+        Kearn[*static_cast<uint32_t*>(id)] = amount;
       }
     }
   }
@@ -601,7 +605,7 @@ void uistage::text_actor::draw (float delta) {
     if (*(t + 1)) {
       float nX = f.XAdvance;
       uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-      auto it = Kearn.find (static_cast<uint32_t>(*key));
+      auto it = Kearn.find (*static_cast<uint32_t*>(key));
       if (it != Kearn.end ())
         nX += it->second;
       x += nX * F;
