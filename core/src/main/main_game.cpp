@@ -120,7 +120,7 @@ Main::Main () {
     stbi_image_free (t);
   }
 
-  uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_BOTTOM, "08/09/2023");
+  uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_BOTTOM, DATESTR);
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_BOTTOM_RIGHT, "Main");
   
   
