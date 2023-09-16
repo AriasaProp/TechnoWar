@@ -102,7 +102,7 @@ jobs:
           mkdir build
           cd build
       - name: Set up MSVC
-        if: ${{ matrix.config.os == "windows-latest" }}
+        if: matrix.config.os == 'windows-latest'
         uses: microsoft/setup-msvc@v1.0.2
         with:
           msvcVersion: 2016
