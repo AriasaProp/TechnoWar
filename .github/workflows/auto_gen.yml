@@ -103,10 +103,9 @@ jobs:
           cd build
       - name: Set up MSVC
         if: matrix.config.os == 'windows-latest'
-        uses: microsoft/setup-msvc@v1.0.2
+        uses: TheMrMilchmann/setup-msvc-dev@v2
         with:
-          msvcVersion: 2016
-          architecture: x64
+          arch: x64
       - name: CMakeBuild
         run: |
           cmake .. ${{ matrix.config.args }} -DCMAKE_BUILD_TYPE=${{ inputs.platform_type }}
