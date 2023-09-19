@@ -150,14 +150,16 @@ Main::Main () {
 static unsigned char fromResume = 0;
 void Main::resume () {
   clock_count::start ();
-  fromResume |= 1;
+  if (fromResume == 2)
+      fromResume = 1;
 }
 void Main::render () {
   mdata->t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
   mdata->t_dlt->setText("%03.3f sec", delta);
   mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
-  mdata->t_res->setText((fromResume & 3) ? " Resumed " : " Beginned ");
+  
+  mdata->t_res->setText((fromResume == 1) ? " Resumed " : " Beginned ");
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
