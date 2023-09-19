@@ -24,7 +24,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     }
     @Override
     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-        int insetsL = 0, insetsT = 0  insetsR = 0, insetsB = 0;
+        int insetsL = 0, insetsT = 0, insetsR = 0, insetsB = 0;
         try {
             if ((insets != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
