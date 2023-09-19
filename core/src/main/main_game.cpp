@@ -27,6 +27,7 @@ struct mMainData {
 
 Main::Main () {
   mdata = new mMainData{};
+  uistage::clear();
   uistage::loadBMFont ("default.fnt");
   mdata->touch_ptr = new engine::flat_vertex[]{
       // background
@@ -158,7 +159,6 @@ void Main::render () {
   float delta = clock_count::getDelta ();
   mdata->t_dlt->setText("%03.3f sec", delta);
   mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
-  
   mdata->t_res->setText((fromResume == 1) ? " Resumed " : " Beginned ");
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
