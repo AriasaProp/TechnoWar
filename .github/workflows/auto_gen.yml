@@ -60,14 +60,6 @@ jobs:
         with:
           gradle-version: 8.2
           arguments: :android:build -P${{ inputs.build_type }}
-      - name: Push
-        run: |
-          gradle wrapper --gradle-version 8.2
-          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
-          git config --global user.name "AriasaProp"
-          git add .
-          git commit -m "Reformatting cpp"
-          git push
 
   build-desktop:
     if: ${{ inputs.platform_type == 'desktop' }}
