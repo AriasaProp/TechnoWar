@@ -22,7 +22,7 @@ struct mMainData {
   engine::mesh_core *mp;
   engine::texture_core *tc;
   engine::flat_vertex *touch_ptr;
-  uistage::text_actor *t_fps, *t_dlt, *t_mem;
+  uistage::text_actor *t_fps, *t_dlt, *t_mem, *t_res;
 };
 
 Main::Main () {
@@ -128,6 +128,7 @@ Main::Main () {
   mdata->t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
   mdata->t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
   mdata->t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
+  mdata->t_res = uistage::makeText (10, engine::graph->getHeight () - 120, ALIGN_BOTTOM_LEFT, " Resumed ");
   
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), []() -> void {
@@ -146,14 +147,17 @@ Main::Main () {
 
   resume ();
 }
+static unsigned char fromResume = 0;
 void Main::resume () {
   clock_count::start ();
+  fromResume |= 1;
 }
 void Main::render () {
   mdata->t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
   mdata->t_dlt->setText("%03.3f sec", delta);
   mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
+  mdata->t_res->setText((fromResume & 3) ? " Resumed " : " Beginned ")
   engine::graph->clear (7);
   matrix4::rotate (mdata->mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
@@ -180,6 +184,7 @@ void Main::render () {
   engine::graph->flat_render (nullptr, tch, 7);
 }
 void Main::pause () {
+  fromResume = 2;
 }
 Main::~Main () {
   clock_count::end ();

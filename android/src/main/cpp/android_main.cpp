@@ -3,6 +3,7 @@
 #include <climits>
 #include <cstdlib>
 #include <cstring>
+#include <cstdio>
 #include <initializer_list>
 #include <memory>
 #include <poll.h>
@@ -61,7 +62,6 @@ struct android_app {
 };
 
 static android_graphics *a_graphics;
-#include <cstdio>
 
 static void *android_app_entry (void *param) {
   android_app *app = (android_app *)param;

@@ -18,7 +18,7 @@
 #define TEMP_SIZE 4095
 
 union glb_tmp {
-  char char_buffer[1024]; // for 1 kB
+  char char_buffer[1024]; // for 1 kB => 4 kbit
 } global_temporary;
 
 struct CharDescriptor {

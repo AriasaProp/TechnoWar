@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Toast;
 
-public class MainActivity extends NativeActivity {
+public class MainActivity extends NativeActivity implements View.OnApplyWindowInsetsListener {
     static {
         System.loadLibrary("ext");
     }
@@ -20,72 +20,65 @@ public class MainActivity extends NativeActivity {
         super.onCreate(savedInstanceState);
         getWindow()
                 .getDecorView()
-                .setOnApplyWindowInsetsListener(
-                        new View.OnApplyWindowInsetsListener() {
-                            @Override
-                            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-                                int insetsL = 0;
-                                int insetsT = 0;
-                                int insetsR = 0;
-                                int insetsB = 0;
-                                try {
-                                    if ((insets != null)
-                                            && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                            int tl =
-                                                    insets.getRoundedCorner(
-                                                                    android.view.RoundedCorner
-                                                                            .POSITION_TOP_LEFT)
-                                                            .getRadius();
-                                            int bl =
-                                                    insets.getRoundedCorner(
-                                                                    android.view.RoundedCorner
-                                                                            .POSITION_BOTTOM_LEFT)
-                                                            .getRadius();
-                                            insetsL = Math.max(tl, bl) / 3;
-                                            int tr =
-                                                    insets.getRoundedCorner(
-                                                                    android.view.RoundedCorner
-                                                                            .POSITION_TOP_RIGHT)
-                                                            .getRadius();
-                                            insetsT = Math.max(tl, tr) / 3;
-                                            int br =
-                                                    insets.getRoundedCorner(
-                                                                    android.view.RoundedCorner
-                                                                            .POSITION_BOTTOM_RIGHT)
-                                                            .getRadius();
-                                            insetsR = Math.max(tr, br) / 3;
-                                            insetsB = Math.max(bl, br) / 3;
-                                        }
-                                        final android.view.DisplayCutout displayCutout =
-                                                insets.getDisplayCutout();
-                                        if (displayCutout != null) {
-                                            insetsL =
-                                                    Math.max(
-                                                            insetsL,
-                                                            displayCutout.getSafeInsetLeft());
-                                            insetsT =
-                                                    Math.max(
-                                                            insetsT,
-                                                            displayCutout.getSafeInsetTop());
-                                            insetsR =
-                                                    Math.max(
-                                                            insetsR,
-                                                            displayCutout.getSafeInsetRight());
-                                            insetsB =
-                                                    Math.max(
-                                                            insetsB,
-                                                            displayCutout.getSafeInsetBottom());
-                                        }
-                                    }
-                                } catch (Exception e) {
-                                    // unsuported ?
-                                    // cause floating window
-                                }
-                                insetNative(insetsL, insetsT, insetsR, insetsB);
-                                return insets;
-                            }
-                        });
+                .setOnApplyWindowInsetsListener(this);
+    }
+    @Override
+    public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
+        int insetsL = 0, insetsT = 0  insetsR = 0, insetsB = 0;
+        try {
+            if ((insets != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    int tl =
+                            insets.getRoundedCorner(
+                                            android.view.RoundedCorner
+                                                    .POSITION_TOP_LEFT)
+                                    .getRadius();
+                    int bl =
+                            insets.getRoundedCorner(
+                                            android.view.RoundedCorner
+                                                    .POSITION_BOTTOM_LEFT)
+                                    .getRadius();
+                    insetsL = Math.max(tl, bl) / 3;
+                    int tr =
+                            insets.getRoundedCorner(
+                                            android.view.RoundedCorner
+                                                    .POSITION_TOP_RIGHT)
+                                    .getRadius();
+                    insetsT = Math.max(tl, tr) / 3;
+                    int br =
+                            insets.getRoundedCorner(
+                                            android.view.RoundedCorner
+                                                    .POSITION_BOTTOM_RIGHT)
+                                    .getRadius();
+                    insetsR = Math.max(tr, br) / 3;
+                    insetsB = Math.max(bl, br) / 3;
+                }
+                final android.view.DisplayCutout displayCutout = insets.getDisplayCutout();
+                if (displayCutout != null) {
+                    insetsL =
+                            Math.max(
+                                    insetsL,
+                                    displayCutout.getSafeInsetLeft());
+                    insetsT =
+                            Math.max(
+                                    insetsT,
+                                    displayCutout.getSafeInsetTop());
+                    insetsR =
+                            Math.max(
+                                    insetsR,
+                                    displayCutout.getSafeInsetRight());
+                    insetsB =
+                            Math.max(
+                                    insetsB,
+                                    displayCutout.getSafeInsetBottom());
+                }
+            }
+        } catch (Exception e) {
+            // unsuported ?
+            // cause floating window
+        }
+        insetNative(insetsL, insetsT, insetsR, insetsB);
+        return insets;
     }
 
     @Override
