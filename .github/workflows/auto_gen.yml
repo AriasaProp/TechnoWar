@@ -60,7 +60,10 @@ jobs:
         with:
           gradle-version: 8.2
           arguments: :android:build -P${{ inputs.build_type }}
-
+      - uses: actions/upload-artifact@v3.1.2
+        with:
+          name: android-${{ inputs.build_type }}
+          path: ${{ github.workspace }}/android/build/output/apk/${{ inputs.build_type }}/android-${{ inputs.build_type }}.apk
   build-desktop:
     if: ${{ inputs.platform_type == 'desktop' }}
     strategy:
