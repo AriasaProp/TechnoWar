@@ -166,7 +166,11 @@ void uistage::draw (float delta) {
   }
   
 }
+void uistage::cleartemp () {
+  memset(tooltips, 0, sizeof tooltips);
+}
 void uistage::clear () {
+  cleartemp();
   for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
     delete i->second.tex;
   }

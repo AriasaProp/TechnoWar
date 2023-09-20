@@ -80,7 +80,7 @@ static void *android_app_entry (void *param) {
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     while (cmd != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll (running ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ( (running && (window != nullptr)) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -147,8 +147,10 @@ static void *android_app_entry (void *param) {
         pthread_mutex_unlock (&app->mutex);
         switch (cmd) {
         case APP_CMD_RESUME:
-          running = true;
-          resume = true;
+          if (!running) {
+            running = true;
+            resume = true;
+          }
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
           resize |= 1;
@@ -156,15 +158,15 @@ static void *android_app_entry (void *param) {
         case APP_CMD_WINDOW_RESIZED:
           resize |= 2;
           break;
+        case APP_CMD_LOW_MEMORY:
+          break;
         default:
           // ?
           break;
         }
         break;
       default:
-        if (!running) break;
         a_input.process_event ();
-        if (!window) break;
         a_graphics->preRender (window, resize);
         // core
         if (!m_Main) {
