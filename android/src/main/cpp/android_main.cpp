@@ -118,7 +118,7 @@ static void *android_app_entry (void *param) {
           if (window) {
             a_graphics->preRender (window, resize);
             // core
-            assert(m_Main)
+            assert(m_Main);
             m_Main->pause ();
             a_graphics->postRender (false);
           }
