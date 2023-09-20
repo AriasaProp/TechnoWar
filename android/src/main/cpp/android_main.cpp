@@ -2,6 +2,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <cassert>
 #include <cstring>
 #include <cstdio>
 #include <initializer_list>
@@ -117,12 +118,9 @@ static void *android_app_entry (void *param) {
           if (window) {
             a_graphics->preRender (window, resize);
             // core
-            if (m_Main) {
-              m_Main->pause ();
-              delete m_Main;
-              m_Main = nullptr;
-            }
-            a_graphics->postRender (true);
+            assert(m_Main)
+            m_Main->pause ();
+            a_graphics->postRender (false);
           }
           running = false;
           break;
@@ -130,6 +128,14 @@ static void *android_app_entry (void *param) {
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
         case APP_CMD_DESTROY:
+          if (window) {
+            a_graphics->preRender (window, resize);
+            if (m_Main) {
+              delete m_Main;
+              m_Main = nullptr;
+            }
+          }
+          a_graphics->postRender (true);
           break;
         default:
           // ?
