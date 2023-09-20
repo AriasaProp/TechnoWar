@@ -82,7 +82,7 @@ void loadBMFont (const char *);
 void addTextureRegion (std::string, engine::texture_core *, const texture_region &);
 void addTextureRegion (std::string, engine::texture_core *, const texture_region &, const uint32_t);
 void draw (float);
-void clearTemp ();
+void cleartemp ();
 void clear ();
 
 // all actor types
