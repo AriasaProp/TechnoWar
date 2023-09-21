@@ -118,7 +118,7 @@ static void *android_app_entry (void *param) {
           if (window) {
             a_graphics->preRender (window, resize);
             // core
-            m_Main::pause ();
+            Main::pause ();
             a_graphics->postRender (false);
           }
           running = false;
@@ -129,7 +129,7 @@ static void *android_app_entry (void *param) {
         case APP_CMD_DESTROY:
           if (window) {
             a_graphics->preRender (window, resize);
-            m_Main::end();
+            Main::end();
           }
           created = false;
           a_graphics->postRender (true);
@@ -167,14 +167,14 @@ static void *android_app_entry (void *param) {
         a_graphics->preRender (window, resize);
         // core
         if (!created) {
-          m_Main.start();
+          Main.start();
           created = false;
           resume = false;
         } else if (resume) {
-          m_Main::resume ();
+          Main::resume ();
           resume = false;
         }
-        m_Main::render ();
+        Main::render ();
         a_graphics->postRender (false);
         break;
       }
