@@ -108,6 +108,9 @@ void uistage::draw (float delta) {
         }
       }
       width *= F;
+      float x = (engine::graph->getWidth() - width) *.5f;
+      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
+      
       xList[0] = x - 5.0f; // minx
       xList[1] = x + width + 5.0f; // maxx
       yList[0] = y - font->getLineHeight() - 5.0f; // miny
