@@ -50,7 +50,6 @@ enum APP_CMD : char {
 };
 struct android_app {
   bool destroyed;
-  char appCmdState = APP_CMD_CREATE;
   int msgread, msgwrite;
   ANativeActivity *activity;
   AConfiguration *config;
@@ -117,10 +116,9 @@ static void *android_app_entry (void *param) {
         case APP_CMD_PAUSE:
           if (window) {
             a_graphics->preRender (window, resize);
-            // core
             Main::pause ();
-            a_graphics->postRender (false);
           }
+          a_graphics->postRender (false);
           running = false;
           break;
         case APP_CMD_CONFIG_CHANGED:
@@ -134,20 +132,9 @@ static void *android_app_entry (void *param) {
           created = false;
           a_graphics->postRender (true);
           break;
-        default:
-          // ?
-          break;
-        }
-        pthread_mutex_lock (&app->mutex);
-        app->appCmdState = cmd;
-        pthread_cond_broadcast (&app->cond);
-        pthread_mutex_unlock (&app->mutex);
-        switch (cmd) {
         case APP_CMD_RESUME:
-          if (!running) {
-            running = true;
-            resume = true;
-          }
+          running = true;
+          resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
           resize |= 1;
@@ -158,7 +145,6 @@ static void *android_app_entry (void *param) {
         case APP_CMD_LOW_MEMORY:
           break;
         default:
-          // ?
           break;
         }
         break;
@@ -190,13 +176,9 @@ static void *android_app_entry (void *param) {
   return NULL;
 }
 static const size_t WRITEPIPE_SIZE = sizeof (char);
-static void write_android_cmd (android_app *app, char cmd) {
-  while (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->appCmdState != cmd)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+static inline void write_android_cmd (android_app *app, char cmd) {
+  if (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
+    LOGE ("cannot write on pipe , %s", strerror (errno)); 
 }
 static void onStart (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
