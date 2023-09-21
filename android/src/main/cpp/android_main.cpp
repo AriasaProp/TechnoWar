@@ -167,7 +167,7 @@ static void *android_app_entry (void *param) {
         a_graphics->preRender (window, resize);
         // core
         if (!created) {
-          Main.start();
+          Main::start();
           created = false;
           resume = false;
         } else if (resume) {
