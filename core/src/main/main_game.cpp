@@ -23,7 +23,7 @@ engine::texture_core *tc;
 engine::flat_vertex *touch_ptr;
 uistage::text_actor *t_fps, *t_dlt, *t_mem;
 
-void Main::create () {
+void Main::start () {
   uistage::clear();
   uistage::loadBMFont ("default.fnt");
   touch_ptr = new engine::flat_vertex[]{
@@ -181,10 +181,9 @@ void Main::pause () {
   uistage::cleartemp();
   clock_count::end ();
 }
-void Main::destroy () {
+void Main::end () {
   pause();
   uistage::clear ();
   engine::graph->delete_mesh (mp);
   delete[] touch_ptr;
-  delete mdata;
 }
