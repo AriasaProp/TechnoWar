@@ -72,10 +72,10 @@ static void *android_app_entry (void *param) {
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   a_graphics = new opengles_graphics{};
   {
+    bool created = false;
     bool running = false, resume = false;
     unsigned int resize = 0;
     char cmd = APP_CMD_CREATE;
-    Main *m_Main = nullptr;
     ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
@@ -118,8 +118,7 @@ static void *android_app_entry (void *param) {
           if (window) {
             a_graphics->preRender (window, resize);
             // core
-            assert(m_Main);
-            m_Main->pause ();
+            m_Main::pause ();
             a_graphics->postRender (false);
           }
           running = false;
@@ -130,11 +129,9 @@ static void *android_app_entry (void *param) {
         case APP_CMD_DESTROY:
           if (window) {
             a_graphics->preRender (window, resize);
-            if (m_Main) {
-              delete m_Main;
-              m_Main = nullptr;
-            }
+            m_Main::end();
           }
+          created = false;
           a_graphics->postRender (true);
           break;
         default:
@@ -169,14 +166,15 @@ static void *android_app_entry (void *param) {
         a_input.process_event ();
         a_graphics->preRender (window, resize);
         // core
-        if (!m_Main) {
-          m_Main = new Main;
+        if (!created) {
+          m_Main.start();
+          created = false;
           resume = false;
         } else if (resume) {
-          m_Main->resume ();
+          m_Main::resume ();
           resume = false;
         }
-        m_Main->render ();
+        m_Main::render ();
         a_graphics->postRender (false);
         break;
       }

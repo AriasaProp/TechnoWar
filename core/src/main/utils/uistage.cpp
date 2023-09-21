@@ -1,5 +1,5 @@
-#include "uistage.hpp"
 #include "../assets/stb_image.hpp"
+#include "uistage.hpp"
 #include "../engine.hpp"
 
 #include <cstdarg>
@@ -170,7 +170,6 @@ void uistage::cleartemp () {
   memset(tooltips, 0, sizeof tooltips);
 }
 void uistage::clear () {
-  cleartemp();
   for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
     delete i->second.tex;
   }

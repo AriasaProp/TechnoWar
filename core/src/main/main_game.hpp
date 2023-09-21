@@ -1,16 +1,12 @@
 #ifndef Included_MainListener
 #define Included_MainListener 1
 
-struct Main {
-private:
-  struct mMainData *mdata;
-
-public:
-  Main ();
+namespace Main {
+  void start ();
   void resume ();
   void render ();
   void pause ();
-  ~Main ();
-};
+  void end ();
+}
 
 #endif // Included_MainListener

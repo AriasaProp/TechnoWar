@@ -18,18 +18,15 @@
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
 
-struct mMainData {
-  engine::mesh_core *mp;
-  engine::texture_core *tc;
-  engine::flat_vertex *touch_ptr;
-  uistage::text_actor *t_fps, *t_dlt, *t_mem;
-};
+engine::mesh_core *mp;
+engine::texture_core *tc;
+engine::flat_vertex *touch_ptr;
+uistage::text_actor *t_fps, *t_dlt, *t_mem;
 
-Main::Main () {
-  mdata = new mMainData{};
+void Main::create () {
   uistage::clear();
   uistage::loadBMFont ("default.fnt");
-  mdata->touch_ptr = new engine::flat_vertex[]{
+  touch_ptr = new engine::flat_vertex[]{
       // background
       {435.5f, 1145.0f, 0xff999999, 0, 1},
       {435.5f, 1205.0f, 0xff999999, 0, 0},
@@ -99,7 +96,7 @@ Main::Main () {
       {{+350.0f, -350.0f, +350.0f}, 0xffff0000},
       {{+350.0f, +350.0f, +350.0f}, 0xff00ff00}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
-  mdata->mp = engine::graph->gen_mesh (vert, 24, indices, 36);
+  mp = engine::graph->gen_mesh (vert, 24, indices, 36);
 
   // add texture regions
   {
@@ -126,9 +123,9 @@ Main::Main () {
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_BOTTOM_RIGHT, "Main");
   
   
-  mdata->t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
-  mdata->t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
-  mdata->t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
+  t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
+  t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
+  t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
   
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), []() -> void {
@@ -151,21 +148,21 @@ void Main::resume () {
   clock_count::start ();
 }
 void Main::render () {
-  mdata->t_fps->setText("%03d FPS", clock_count::getFPS());
+  t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
-  mdata->t_dlt->setText("%03.3f sec", delta);
-  mdata->t_mem->setText("%011u byte", memory_usage::mem_usage());
+  t_dlt->setText("%03.3f sec", delta);
+  t_mem->setText("%011u byte", memory_usage::mem_usage());
   engine::graph->clear (7);
-  matrix4::rotate (mdata->mp->trans,
+  matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
                    M_PI / 10.f * delta, // 18° /s
                    M_PI / 18.0f * delta // 10° /s
   );
-  engine::graph->mesh_render (&mdata->mp, 1);
+  engine::graph->mesh_render (&mp, 1);
 
   uistage::draw (delta);
   clock_count::render ();
-  engine::flat_vertex *tch = mdata->touch_ptr;
+  engine::flat_vertex *tch = touch_ptr;
   tch[4].color = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;
   tch[5].color = tch[6].color = tch[7].color = tch[4].color;
   tch[8].color = engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff;
@@ -182,12 +179,12 @@ void Main::render () {
 }
 void Main::pause () {
   uistage::cleartemp();
-}
-Main::~Main () {
   clock_count::end ();
+}
+void Main::destroy () {
+  pause();
   uistage::clear ();
-
-  engine::graph->delete_mesh (mdata->mp);
-  delete[] mdata->touch_ptr;
+  engine::graph->delete_mesh (mp);
+  delete[] touch_ptr;
   delete mdata;
 }
