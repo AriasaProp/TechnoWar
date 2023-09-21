@@ -64,7 +64,6 @@ static std::unordered_map<std::string, textureAtlas> regions;
 static std::unordered_set<uistage::actor *> actors;
 
 static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
-static engine::flat_vertex vert2[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
 enum Actor_Type : size_t { None = 0, Static, Button };
 
@@ -85,8 +84,9 @@ void uistage::draw (float delta) {
   }
   //tooltip drawn
   {
-    size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
-    engine::flat_vertex *verts = vert, *verts2 = vert2;
+    size_t tooltip_drawn = 0;
+    engine::flat_vertex *verts = vert;
+    //background
     for (size_t i = 0; i < 10; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) {
@@ -108,27 +108,52 @@ void uistage::draw (float delta) {
         }
       }
       width *= F;
-      uint32_t hc = font->fcolor, bc = 0x88000000;
+      xList[0] = x - 5.0f; // minx
+      xList[1] = x + width + 5.0f; // maxx
+      yList[0] = y - font->getLineHeight() - 5.0f; // miny
+      yList[1] = y + 5.0f; // maxy
+      uint32_t bc = 0x88000000;
+      if (tlp.lifetime < 1.65f) {
+        float transitionAlpha = tlp.lifetime/1.65f;
+        ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
+      }
+      *(verts++) = {xList[0], yList[0], bc, 0, 0};
+      *(verts++) = {xList[0], yList[1], bc, 0, 0};
+      *(verts++) = {xList[1], yList[0], bc, 0, 0};
+      *(verts++) = {xList[1], yList[1], bc, 0, 0};
+      ++tooltip_drawn;
+    }
+    if (tooltip_drawn)
+      engine::graph->flat_render (nullptr, vert, tooltip_drawn);
+    //text
+    size_t text_tooltip_drawn = 0;
+    verts = vert;
+    for (size_t i = 0; i < 10; ++i) {
+      tooltip &tlp = tooltips[i];
+      if (tlp.lifetime <= 0.0f) break;
+      auto &Chars = font->Chars;
+      float width = 0;
+      float F = font->fscale ();
+      for (const char *t = tlp.message.c_str(); *t; ++t) {
+        if (Chars.find (*t) == Chars.end ()) continue;
+        width += Chars[*t].XAdvance;
+        if (*(t + 1)) {
+          uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+          auto &Kearn = font->Kearn;
+          auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+          if (it != Kearn.end ())
+            width += it->second;
+        }
+      }
+      width *= F;
+      uint32_t hc = font->fcolor;
       if (tlp.lifetime < 1.65f) {
         float transitionAlpha = tlp.lifetime/1.65f;
         ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
-        ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
       float x = (engine::graph->getWidth() - width) *.5f;
       float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
       
-      //draw background
-      {
-        xList[0] = x - 5.0f; // minx
-        xList[1] = x + width + 5.0f; // maxx
-        yList[0] = y - font->getLineHeight() - 5.0f; // miny
-        yList[1] = y + 5.0f; // maxy
-      
-        *(verts2++) = {xList[0], yList[0], bc, 0, 0};
-        *(verts2++) = {xList[0], yList[1], bc, 0, 0};
-        *(verts2++) = {xList[1], yList[0], bc, 0, 0};
-        *(verts2++) = {xList[1], yList[1], bc, 0, 0};
-      }
       for (const char *t = tlp.message.c_str(); *t; t++) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
@@ -159,12 +184,10 @@ void uistage::draw (float delta) {
       }
       tlp.lifetime -= delta;
       text_tooltip_drawn += tlp.message.size();
-      ++tooltip_drawn;
     }
-    engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
-    engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
+    if (text_tooltip_drawn)
+      engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
   }
-  
 }
 void uistage::cleartemp () {
   memset(tooltips, 0, sizeof tooltips);

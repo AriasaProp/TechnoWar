@@ -121,6 +121,8 @@ static void *android_app_entry (void *param) {
           a_graphics->postRender (false);
           running = false;
           break;
+        case APP_CMD_SAVE_STATE:
+          break;
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
