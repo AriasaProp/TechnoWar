@@ -168,7 +168,7 @@ static void *android_app_entry (void *param) {
         // core
         if (!created) {
           Main::start();
-          created = false;
+          created = true;
           resume = false;
         } else if (resume) {
           Main::resume ();
