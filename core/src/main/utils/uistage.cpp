@@ -15,7 +15,7 @@
 #include <utility>
 
 #define TOOLTIP_DURATION 4.75f
-#define TEMP_SIZE 4095
+#define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
 union glb_tmp {
   char char_buffer[1024]; // for 1 kB => 4 kbit
