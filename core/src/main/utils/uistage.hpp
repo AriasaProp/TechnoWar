@@ -9,22 +9,6 @@
 #include <string>
 
 namespace uistage {
-struct texKey_state {
-  enum State : unsigned int {
-    Idle = 0,
-    Hover,
-    Pressed,
-    Disabled,
-    Focused,
-    Selected,
-    Error,
-    Loading,
-    Checked,
-    Empty,
-    Active
-  } mState;
-  std::string key;
-};
 struct actor {
   virtual Rect &getRect () = 0;
   virtual std::string getKey () = 0;
@@ -96,6 +80,6 @@ void touchMove (float, float, float, float, int, int);
 void touchUp (float, float, int, int);
 void touchCanceled (float, float, int, int);
 
-} // namespace uistage
+} // uistage
 
 #endif // Included_UISTAGE_

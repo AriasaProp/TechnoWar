@@ -119,12 +119,10 @@ void uistage::draw (float delta) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) break;
       uint32_t hc = font->fcolor;
-      /*
       if (tlp.lifetime < 1.65f) {
         float transitionAlpha = tlp.lifetime/1.65f;
         ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
       }
-      */
       float x = (engine::graph->getWidth() - tlp.width) *.5f;
       float y = engine::graph->getHeight() * 0.75f + ((static_cast<float>(font->LineHeight) * font->fscale()) + 10.5f) * i + 10.5f;
       
@@ -231,8 +229,9 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
 uistage::actor *focused_actor[100]{};
 void uistage::touchDown (float x, float y, int pointer, int button) {
   for (actor *act : actors) {
-    if ((act->getType () == Actor_Type::Button) && (act->getRect ().insetOf (x, y))) {
-      ((button_actor *)act)->setState (1);
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act && act->getRect().insetOf(x,y)) {
+      button_act->setState (1);
       focused_actor[pointer] = act;
       return;
     }
