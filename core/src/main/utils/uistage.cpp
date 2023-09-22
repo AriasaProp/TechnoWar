@@ -225,7 +225,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
         width += it->second;
     }
   }
-  width *= F;
+  width *= font->fscale();
   tooltips[i].width = width;
 }
 uistage::actor *focused_actor[100]{};
