@@ -251,9 +251,9 @@ void uistage::touchUp (float x, float y, int pointer, int button) {
   if (act) {
     button_actor *button_act = dynamic_cast<button_actor*>(act);
     if (button_act) {
-      button_actor->setState (0);
-      if (button_actor->onClick != NULL)
-        button_actor->onClick ();
+      button_act->setState (0);
+      if (button_act->onClick != NULL)
+        button_act->onClick ();
     }
     focused_actor[pointer] = nullptr;
   }
@@ -265,7 +265,7 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
   actor *act = focused_actor[pointer];
   if (act) {
     button_actor *button_act = dynamic_cast<button_actor*>(act);
-    if (button_act) button_actor->setState (0);
+    if (button_act) button_act->setState (0);
     focused_actor[pointer] = nullptr;
   }
   (void)x;
