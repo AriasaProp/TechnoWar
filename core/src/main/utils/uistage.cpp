@@ -63,7 +63,6 @@ static std::unordered_set<uistage::actor *> actors;
 
 static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0, Static, Button };
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
@@ -248,13 +247,13 @@ void uistage::touchMove (float x, float y, float xs, float ys, int pointer, int 
   (void)button;
 }
 void uistage::touchUp (float x, float y, int pointer, int button) {
-  if (focused_actor[pointer]) {
-    actor *act = focused_actor[pointer];
-    if (act->getType () == Actor_Type::Button) {
-      button_actor *bact = (button_actor *)act;
-      bact->setState (0);
-      if (bact->onClick != NULL)
-        bact->onClick ();
+  actor *act = focused_actor[pointer];
+  if (act) {
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act) {
+      button_actor->setState (0);
+      if (button_actor->onClick != NULL)
+        button_actor->onClick ();
     }
     focused_actor[pointer] = nullptr;
   }
@@ -263,11 +262,10 @@ void uistage::touchUp (float x, float y, int pointer, int button) {
   (void)button;
 }
 void uistage::touchCanceled (float x, float y, int pointer, int button) {
-  if (focused_actor[pointer]) {
-    actor *act = focused_actor[pointer];
-    if (act->getType () == Actor_Type::Button) {
-      ((button_actor *)act)->setState (0);
-    }
+  actor *act = focused_actor[pointer];
+  if (act) {
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act) button_actor->setState (0);
     focused_actor[pointer] = nullptr;
   }
   (void)x;
@@ -620,7 +618,6 @@ void uistage::text_actor::draw (float delta) {
   }
   engine::graph->flat_render (font->ftexid, vert, text.size());
 }
-size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
 void uistage::text_actor::setText(const char *fmt, ...) {
   if (fmt == NULL)
     return;
@@ -635,7 +632,6 @@ uistage::text_actor::~text_actor () {}
 uistage::image_actor::image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
 Rect &uistage::image_actor::getRect () { return rectangle; }
 std::string uistage::image_actor::getKey () { return key; }
-size_t uistage::image_actor::getType () const { return Actor_Type::Static; }
 void uistage::image_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }
@@ -652,7 +648,6 @@ std::string uistage::button_actor::getKey () {
     return "";
 }
 void uistage::button_actor::setState (size_t state) { mstate = state; }
-size_t uistage::button_actor::getType () const { return Actor_Type::Button; }
 void uistage::button_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }

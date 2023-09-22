@@ -12,7 +12,6 @@ namespace uistage {
 struct actor {
   virtual Rect &getRect () = 0;
   virtual std::string getKey () = 0;
-  virtual size_t getType () const = 0;
   virtual void draw (float);
   virtual ~actor () {}
 };
@@ -26,7 +25,6 @@ public:
   Rect &getRect () override;
   std::string getKey () override;
   void draw (float) override;
-  size_t getType () const override;
   void setText(const char *, ...);
   ~text_actor () override;
 };
@@ -38,7 +36,6 @@ public:
   image_actor (std::string, Rect);
   Rect &getRect () override;
   std::string getKey () override;
-  size_t getType () const override;
   void draw (float) override;
   ~image_actor () override;
 };
@@ -53,7 +50,6 @@ public:
   Rect &getRect () override;
   std::string getKey () override;
   void setState (size_t);
-  size_t getType () const override;
   void draw (float) override;
   ~button_actor () override;
 };
