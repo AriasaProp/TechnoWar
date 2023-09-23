@@ -52,11 +52,9 @@ struct textureAtlas {
   uint32_t clr;
 };
 struct tooltip {
-  float
-    lifetime, // in period 10000 of period as delta time
-    width;
+  float lifetime, width;
   std::string message;
-} tooltips[10];
+} tooltips[7];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
@@ -84,7 +82,7 @@ void uistage::draw (float delta) {
     engine::flat_vertex *verts = global_temporary.vert;
     float F = font->fscale ();
     //background
-    for (size_t i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) {
         tlp.message = "";
@@ -113,7 +111,7 @@ void uistage::draw (float delta) {
     //text
     tooltip_drawn = 0;
     verts = global_temporary.vert;
-    for (size_t i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
       uint32_t hc = font->fcolor;
@@ -196,9 +194,10 @@ uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k
 void uistage::temporaryTooltip(const char *fmt, ...) {
   if (fmt == NULL)
     return;
-  size_t i = 9;
+  size_t i = 6;
   do {
     tooltips[i] = tooltips[i-1];
+    tooltips[i].lifetime -= 0.3f;
   } while (--i);
   tooltips[i].lifetime = TOOLTIP_DURATION;
   va_list ap;
