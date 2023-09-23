@@ -1,7 +1,7 @@
 #ifndef _Included_Engine
 #define _Included_Engine 1
 // maximum ui draws means 4 times quads can be drawn at once
-#define MAX_UI_DRAW 256
+#define MAX_UI_DRAW 128
 // maximum output log message in char
 #define MAX_GL_MSG 1024
 
