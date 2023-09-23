@@ -17,7 +17,8 @@
 #define TOOLTIP_DURATION 4.75f
 #define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
-union glb_tmp {
+static union {
+  engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
   char char_buffer[1024]; // for 1 kB => 4 kbit
 } global_temporary;
 
@@ -29,19 +30,17 @@ struct CharDescriptor {
 };
 
 struct bmfont {
-public:
   short LineHeight;
   short Width;
   short Height;
   short Base;
   short Outline;
+  uint32_t fcolor;
+  float fontSizeBase, fontSizeUsed;
   std::unordered_map<int, CharDescriptor> Chars;
   std::unordered_map<uint32_t, float> Kearn;
-  uint32_t fcolor;
   engine::texture_core *ftexid;
-  float fontSizeBase, fontSizeUsed;
   float fscale ();
-  void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
   void setFontSize (float); // px
   bmfont (const char *);
   ~bmfont ();
@@ -53,15 +52,15 @@ struct textureAtlas {
   uint32_t clr;
 };
 struct tooltip {
-  float lifetime; // in period 10000 of period as delta time
+  float
+    lifetime, // in period 10000 of period as delta time
+    width;
   std::string message;
-  float width;
 } tooltips[10];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
 
 void uistage::loadBMFont (const char *fontFile) {
@@ -82,7 +81,7 @@ void uistage::draw (float delta) {
   //tooltip drawn
   {
     size_t tooltip_drawn = 0;
-    engine::flat_vertex *verts = vert;
+    engine::flat_vertex *verts = global_temporary.vert;
     float F = font->fscale ();
     //background
     for (size_t i = 0; i < 10; ++i) {
@@ -110,13 +109,13 @@ void uistage::draw (float delta) {
       ++tooltip_drawn;
     }
     if (tooltip_drawn)
-      engine::graph->flat_render (nullptr, vert, tooltip_drawn);
+      engine::graph->flat_render (nullptr, global_temporary.vert, tooltip_drawn);
     //text
     tooltip_drawn = 0;
-    verts = vert;
+    verts = global_temporary.vert;
     for (size_t i = 0; i < 10; ++i) {
       tooltip &tlp = tooltips[i];
-      if (tlp.lifetime <= 0.0f) break;
+      if (tlp.lifetime < 0.0f) break;
       uint32_t hc = font->fcolor;
       if (tlp.lifetime < 1.65f) {
         float transitionAlpha = tlp.lifetime/1.65f;
@@ -158,7 +157,7 @@ void uistage::draw (float delta) {
       tooltip_drawn += tlp.message.size();
     }
     if (tooltip_drawn)
-      engine::graph->flat_render (font->ftexid, vert, tooltip_drawn);
+      engine::graph->flat_render (font->ftexid, global_temporary.vert, tooltip_drawn);
   }
 }
 void uistage::cleartemp () {
@@ -199,10 +198,8 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
     return;
   size_t i = 9;
   do {
-    tooltips[i].lifetime = tooltips[i-1].lifetime;
-    tooltips[i].message = tooltips[i-1].message;
-    tooltips[i].width = tooltips[i-1].width;
-  } while ((--i) != 0);
+    tooltips[i] = tooltips[i-1];
+  } while (--i);
   tooltips[i].lifetime = TOOLTIP_DURATION;
   va_list ap;
   va_start (ap, fmt);
@@ -276,13 +273,6 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 // define bmfont source
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
-void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  unsigned char *ucolor = reinterpret_cast<unsigned char*>(&fcolor);
-  ucolor[0] = r;
-  ucolor[1] = g;
-  ucolor[2] = b;
-  ucolor[3] = a;
-}
 void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
 }
@@ -445,7 +435,7 @@ void uistage::actor::draw (float delta) {
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
-  engine::flat_vertex *verts = vert;
+  engine::flat_vertex *verts = global_temporary.vert;
   Rect &rectangle = getRect();
   // vertically 1
   if (split[3]) { // horizontally
@@ -567,7 +557,7 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
   }
-  engine::graph->flat_render (tex, vert, quadCount);
+  engine::graph->flat_render (tex, global_temporary.vert, quadCount);
 }
 
 uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : text (ti) {
@@ -585,7 +575,7 @@ void uistage::text_actor::draw (float delta) {
   uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
-  engine::flat_vertex *verts = vert;
+  engine::flat_vertex *verts = global_temporary.vert;
   auto &Kearn = font->Kearn;
   float x = rectangle.xmin;
   for (const char *t = text.c_str(); *t; t++) {
@@ -616,7 +606,7 @@ void uistage::text_actor::draw (float delta) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (font->ftexid, vert, text.size());
+  engine::graph->flat_render (font->ftexid, global_temporary.vert, text.size());
 }
 void uistage::text_actor::setText(const char *fmt, ...) {
   if (fmt == NULL)
