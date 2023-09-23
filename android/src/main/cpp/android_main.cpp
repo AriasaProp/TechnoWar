@@ -29,7 +29,7 @@
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
-enum APP_CMD : char {
+enum APP_CMD : short {
   APP_CMD_CREATE = 0,
   APP_CMD_START,
   APP_CMD_RESUME,
@@ -49,8 +49,7 @@ enum APP_CMD : char {
   APP_CMD_DESTROY,
 };
 struct android_app {
-  bool request_to_communicate;
-  bool destroyed;
+  bool destroyed, wait_request = false;
   int msgread, msgwrite;
   ANativeActivity *activity;
   AConfiguration *config;
@@ -75,7 +74,7 @@ static void *android_app_entry (void *param) {
     bool created = false;
     bool running = false, resume = false;
     unsigned int resize = 0;
-    char cmd = APP_CMD_CREATE;
+    short cmd = APP_CMD_CREATE;
     ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
@@ -88,7 +87,7 @@ static void *android_app_entry (void *param) {
         a_input.process_sensor ();
         break;
       case 1: // android activity queue
-        if (read (app->msgread, &cmd, sizeof (cmd)) != sizeof (cmd)) break;
+        if (read (app->msgread, &cmd, sizeof cmd) != sizeof cmd) break;
         switch (cmd) {
         case APP_CMD_INIT_WINDOW:
           pthread_mutex_lock (&app->mutex);
@@ -102,10 +101,9 @@ static void *android_app_entry (void *param) {
           a_input.set_input_queue (app->looper, app->inputQueue);
           break;
         case APP_CMD_INPUT_TERM:
-          if (app->inputQueue != NULL) {
-            a_input.set_input_queue (app->looper, NULL);
-            app->inputQueue = NULL;
-          }
+          if (app->inputQueue == NULL) break;
+          a_input.set_input_queue (app->looper, NULL);
+          app->inputQueue = NULL;
           break;
         case APP_CMD_LOST_FOCUS:
           a_input.detach_sensor ();
@@ -150,9 +148,9 @@ static void *android_app_entry (void *param) {
         default:
           break;
         }
-        if (app->request_to_communicate) {
+        if (app->wait_request) {
           pthread_mutex_lock (&app->mutex);
-          app->request_to_communicate = false;
+          app->wait_request = false;
           pthread_cond_broadcast(&app->cond);
           pthread_mutex_unlock (&app->mutex);
         }
@@ -184,16 +182,16 @@ static void *android_app_entry (void *param) {
   pthread_mutex_unlock (&app->mutex);
   return NULL;
 }
-static const size_t WRITEPIPE_SIZE = sizeof (char);
-static void write_android_cmd (android_app *app, char cmd) {
-  while (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
+static void write_android_cmd (android_app *app, short cmd, bool req = false) {
+  app->wait_request = req;
+  if (write (app->msgwrite, &cmd, sizeof cmd) != sizeof cmd)
     LOGE ("cannot write on pipe , %s", strerror (errno));
-  /*
-  pthread_mutex_lock(&app->mutex);
-  while (!app->request_to_communicate)
-    pthread_cond_wait(&app->cond, &app->mutex);
-  pthread_mutex_unlock(&app->mutex);
-  */
+  if (req) {
+    pthread_mutex_lock (&app->mutex);
+    while (app->wait_request)
+      pthread_cond_wait(&app->cond, &app->mutex);
+    pthread_mutex_unlock (&app->mutex);
+  }
 }
 static void onStart (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -208,20 +206,14 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   if (app->window) // window should null when window create
     write_android_cmd (app, APP_CMD_TERM_WINDOW);
   app->window = window;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
-  write_android_cmd (app, APP_CMD_INIT_WINDOW);
+  write_android_cmd (app, APP_CMD_INIT_WINDOW, true);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
   android_app *app = (android_app *)activity->instance;
   if (app->inputQueue)
     write_android_cmd (app, APP_CMD_INPUT_TERM);
   app->inputQueue = queue;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
-  write_android_cmd (app, APP_CMD_INPUT_INIT);
+  write_android_cmd (app, APP_CMD_INPUT_INIT, true);
 }
 static void onConfigurationChanged (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -254,32 +246,20 @@ static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *)
   android_app *app = (android_app *)activity->instance;
   if (!app->window) return;
   app->window = nullptr;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
-  write_android_cmd (app, APP_CMD_TERM_WINDOW);
+  write_android_cmd (app, APP_CMD_TERM_WINDOW, true);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {
   android_app *app = (android_app *)activity->instance;
   if (!app->inputQueue) return;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_INPUT_TERM);
 }
 static void onPause (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
-  write_android_cmd (app, APP_CMD_PAUSE);
+  write_android_cmd (app, APP_CMD_PAUSE, true);
 }
 static void onStop (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
-  pthread_mutex_lock(&app->mutex);
-  app->request_to_communicate = true;
-  pthread_mutex_unlock(&app->mutex);
-  write_android_cmd (app, APP_CMD_STOP);
+  write_android_cmd (app, APP_CMD_STOP, true);
 }
 static void onDestroy (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -328,6 +308,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 }
 
 // native MainActivity.java
+
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;

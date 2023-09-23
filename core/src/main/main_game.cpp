@@ -122,24 +122,22 @@ void Main::start () {
   uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_BOTTOM, DATESTR);
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_BOTTOM_RIGHT, "Main");
   
-  
   t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
   t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
   t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
-  
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 1 from button 1. Hello!");
+    uistage::temporaryTooltip("Tooltip test 1 for button 1. Hello!");
   });
   uistage::makeButton ({"btn1", "btn1_"}, Rect (400, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 2 from button 2. Nothing happen?!");
+    uistage::temporaryTooltip("Tooltip test 2 for button 2. Nothing happen?!");
   });
   uistage::makeImage ("test", Rect (650, 200, ALIGN_CENTER, 200, 200));
   uistage::makeButton ({"btn1", "btn1_"}, Rect (900, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 3 from button 3. Yeah ;-)");
+    uistage::temporaryTooltip("Tooltip test 3 for button 3. Yeah ;-)");
   });
   uistage::makeButton ({"btn1", "btn1_"}, Rect (1150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 4 from button 4. Okay");
+    uistage::temporaryTooltip("Tooltip test 4 for button 4. Okay");
   });
 
   resume ();

@@ -81,7 +81,7 @@ void uistage::draw (float delta) {
     engine::flat_vertex *verts = global_temporary.vert;
     float F = font->fscale ();
     //background
-    for (size_t i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) {
         tlp.message = "";
@@ -110,7 +110,7 @@ void uistage::draw (float delta) {
     //text
     tooltip_drawn = 0;
     verts = global_temporary.vert;
-    for (size_t i = 0; i < 10; ++i) {
+    for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
       uint32_t hc = font->fcolor;
@@ -196,6 +196,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
   size_t i = 6;
   do {
     tooltips[i] = tooltips[i-1];
+    tooltips[i].lifetime -= 0.3f;
   } while (--i);
   tooltips[i].lifetime = TOOLTIP_DURATION;
   va_list ap;
