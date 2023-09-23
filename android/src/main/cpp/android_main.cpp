@@ -49,6 +49,7 @@ enum APP_CMD : char {
   APP_CMD_DESTROY,
 };
 struct android_app {
+  bool request_to_communicate;
   bool destroyed;
   int msgread, msgwrite;
   ANativeActivity *activity;
@@ -149,6 +150,12 @@ static void *android_app_entry (void *param) {
         default:
           break;
         }
+        if (app->request_to_communicate) {
+          pthread_mutex_lock (&app->mutex);
+          app->request_to_communicate = false;
+          pthread_cond_broadcast(&app->cond);
+          pthread_mutex_unlock (&app->mutex);
+        }
         break;
       default:
         a_input.process_event ();
@@ -178,9 +185,13 @@ static void *android_app_entry (void *param) {
   return NULL;
 }
 static const size_t WRITEPIPE_SIZE = sizeof (char);
-static inline void write_android_cmd (android_app *app, char cmd) {
-  if (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
-    LOGE ("cannot write on pipe , %s", strerror (errno)); 
+static void write_android_cmd (android_app *app, char cmd) {
+  while (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock(&app->mutex);
+  while (!app->request_to_communicate)
+    pthread_cond_wait(&app->cond, &app->mutex);
+  pthread_mutex_unlock(&app->mutex);
 }
 static void onStart (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -195,6 +206,9 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   if (app->window) // window should null when window create
     write_android_cmd (app, APP_CMD_TERM_WINDOW);
   app->window = window;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_INIT_WINDOW);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
@@ -202,6 +216,9 @@ static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) 
   if (app->inputQueue)
     write_android_cmd (app, APP_CMD_INPUT_TERM);
   app->inputQueue = queue;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_INPUT_INIT);
 }
 static void onConfigurationChanged (ANativeActivity *activity) {
@@ -235,19 +252,31 @@ static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *)
   android_app *app = (android_app *)activity->instance;
   if (!app->window) return;
   app->window = nullptr;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_TERM_WINDOW);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {
   android_app *app = (android_app *)activity->instance;
   if (!app->inputQueue) return;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_INPUT_TERM);
 }
 static void onPause (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_PAUSE);
 }
 static void onStop (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
+  pthread_mutex_lock(&app->mutex);
+  app->request_to_communicate = true;
+  pthread_mutex_unlock(&app->mutex);
   write_android_cmd (app, APP_CMD_STOP);
 }
 static void onDestroy (ANativeActivity *activity) {
@@ -297,7 +326,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 }
 
 // native MainActivity.java
-
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!a_graphics) return;
   a_graphics->cur_safe_insets[0] = left;
