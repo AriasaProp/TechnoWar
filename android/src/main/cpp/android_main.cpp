@@ -29,7 +29,7 @@
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
-enum APP_CMD : char {
+enum APP_CMD : short {
   APP_CMD_CREATE = 0,
   APP_CMD_START,
   APP_CMD_RESUME,
@@ -74,7 +74,7 @@ static void *android_app_entry (void *param) {
     bool created = false;
     bool running = false, resume = false;
     unsigned int resize = 0;
-    char cmd = APP_CMD_CREATE;
+    short cmd = APP_CMD_CREATE;
     ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
@@ -87,7 +87,7 @@ static void *android_app_entry (void *param) {
         a_input.process_sensor ();
         break;
       case 1: // android activity queue
-        if (read (app->msgread, &cmd, sizeof (cmd)) != sizeof (cmd)) break;
+        if (read (app->msgread, &cmd, sizeof cmd) != sizeof cmd) break;
         switch (cmd) {
         case APP_CMD_INIT_WINDOW:
           pthread_mutex_lock (&app->mutex);
@@ -101,10 +101,9 @@ static void *android_app_entry (void *param) {
           a_input.set_input_queue (app->looper, app->inputQueue);
           break;
         case APP_CMD_INPUT_TERM:
-          if (app->inputQueue != NULL) {
-            a_input.set_input_queue (app->looper, NULL);
-            app->inputQueue = NULL;
-          }
+          if (app->inputQueue == NULL) break;
+          a_input.set_input_queue (app->looper, NULL);
+          app->inputQueue = NULL;
           break;
         case APP_CMD_LOST_FOCUS:
           a_input.detach_sensor ();
@@ -183,12 +182,11 @@ static void *android_app_entry (void *param) {
   pthread_mutex_unlock (&app->mutex);
   return NULL;
 }
-static const size_t WRITEPIPE_SIZE = sizeof (char);
-static void write_android_cmd (android_app *app, char cmd, bool req = false) {
-  if (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
+static void write_android_cmd (android_app *app, short cmd, bool req = false) {
+  app->wait_request = req;
+  if (write (app->msgwrite, &cmd, sizeof cmd) != sizeof cmd)
     LOGE ("cannot write on pipe , %s", strerror (errno));
   if (req) {
-    app->wait_request = true;
     pthread_mutex_lock (&app->mutex);
     while (app->wait_request)
       pthread_cond_wait(&app->cond, &app->mutex);
