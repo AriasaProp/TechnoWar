@@ -129,17 +129,17 @@ void Main::start () {
   
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 1. Hello!");
+    uistage::temporaryTooltip("Tooltip 1 from button 1. Hello!");
   });
   uistage::makeButton ({"btn1", "btn1_"}, Rect (400, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 2. Nothing happen?!");
+    uistage::temporaryTooltip("Tooltip 2 from button 2. Nothing happen?!");
   });
   uistage::makeImage ("test", Rect (650, 200, ALIGN_CENTER, 200, 200));
   uistage::makeButton ({"btn1", "btn1_"}, Rect (900, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 3. Yeah ;-)");
+    uistage::temporaryTooltip("Tooltip 3 from button 3. Yeah ;-)");
   });
   uistage::makeButton ({"btn1", "btn1_"}, Rect (1150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip 4. Okay");
+    uistage::temporaryTooltip("Tooltip 4 from button 4. Okay");
   });
 
   resume ();

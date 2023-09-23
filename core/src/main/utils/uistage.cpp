@@ -17,7 +17,7 @@
 #define TOOLTIP_DURATION 4.75f
 
 static union {
-  engine::flat_vertex vert[256]; //= 256 * 20 bytes, means 5.12 kBytes means 1280 quad can be drawn at once
+  engine::flat_vertex vert[MAX_UI_DRAW*4];
   char char_buffer[1024]; // for 1 kB => 4 kbit
 } global_temporary;
 
@@ -51,11 +51,9 @@ struct textureAtlas {
   uint32_t clr;
 };
 struct tooltip {
-  float
-    lifetime, // in period 10000 of period as delta time
-    width;
+  float lifetime, width;
   std::string message;
-} tooltips[10];
+} tooltips[7];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
@@ -110,6 +108,8 @@ void uistage::draw (float delta) {
     if (tooltip_drawn)
       engine::graph->flat_render (nullptr, global_temporary.vert, tooltip_drawn);
     //text
+    tooltip_drawn = 0;
+    verts = global_temporary.vert;
     for (size_t i = 0; i < 10; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
@@ -122,7 +122,6 @@ void uistage::draw (float delta) {
       float y = engine::graph->getHeight() * 0.75f + ((static_cast<float>(font->LineHeight) * font->fscale()) + 10.5f) * i + 10.5f;
       
       auto &Chars = font->Chars;
-      verts = global_temporary.vert;
       for (const char *t = tlp.message.c_str(); *t; t++) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
@@ -152,8 +151,10 @@ void uistage::draw (float delta) {
         }
       }
       tlp.lifetime -= delta;
-      engine::graph->flat_render (font->ftexid, global_temporary.vert, tlp.message.size());
+      tooltip_drawn += tlp.message.size();
     }
+    if (tooltip_drawn)
+      engine::graph->flat_render (font->ftexid, global_temporary.vert, tooltip_drawn);
   }
 }
 void uistage::cleartemp () {
@@ -192,7 +193,7 @@ uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k
 void uistage::temporaryTooltip(const char *fmt, ...) {
   if (fmt == NULL)
     return;
-  size_t i = 9;
+  size_t i = 6;
   do {
     tooltips[i] = tooltips[i-1];
   } while (--i);
