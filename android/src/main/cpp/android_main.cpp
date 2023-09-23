@@ -49,7 +49,7 @@ enum APP_CMD : char {
   APP_CMD_DESTROY,
 };
 struct android_app {
-  bool destroyed;
+  bool destroyed, wait_request = false;
   int msgread, msgwrite;
   ANativeActivity *activity;
   AConfiguration *config;
@@ -149,6 +149,12 @@ static void *android_app_entry (void *param) {
         default:
           break;
         }
+        if (app->wait_request) {
+          pthread_mutex_lock (&app->mutex);
+          app->wait_request = false;
+          pthread_cond_broadcast(&app->cond);
+          pthread_mutex_unlock (&app->mutex);
+        }
         break;
       default:
         a_input.process_event ();
@@ -178,9 +184,16 @@ static void *android_app_entry (void *param) {
   return NULL;
 }
 static const size_t WRITEPIPE_SIZE = sizeof (char);
-static inline void write_android_cmd (android_app *app, char cmd) {
+static void write_android_cmd (android_app *app, char cmd, bool req = false) {
   if (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
-    LOGE ("cannot write on pipe , %s", strerror (errno)); 
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  if (req) {
+    app->wait_request = true;
+    pthread_mutex_lock (&app->mutex);
+    while (app->wait_request)
+      pthread_cond_wait(&app->cond, &app->mutex);
+    pthread_mutex_unlock (&app->mutex);
+  }
 }
 static void onStart (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -195,14 +208,14 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   if (app->window) // window should null when window create
     write_android_cmd (app, APP_CMD_TERM_WINDOW);
   app->window = window;
-  write_android_cmd (app, APP_CMD_INIT_WINDOW);
+  write_android_cmd (app, APP_CMD_INIT_WINDOW, true);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
   android_app *app = (android_app *)activity->instance;
   if (app->inputQueue)
     write_android_cmd (app, APP_CMD_INPUT_TERM);
   app->inputQueue = queue;
-  write_android_cmd (app, APP_CMD_INPUT_INIT);
+  write_android_cmd (app, APP_CMD_INPUT_INIT, true);
 }
 static void onConfigurationChanged (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
@@ -235,7 +248,7 @@ static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *)
   android_app *app = (android_app *)activity->instance;
   if (!app->window) return;
   app->window = nullptr;
-  write_android_cmd (app, APP_CMD_TERM_WINDOW);
+  write_android_cmd (app, APP_CMD_TERM_WINDOW, true);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {
   android_app *app = (android_app *)activity->instance;
@@ -244,11 +257,11 @@ static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {
 }
 static void onPause (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
-  write_android_cmd (app, APP_CMD_PAUSE);
+  write_android_cmd (app, APP_CMD_PAUSE, true);
 }
 static void onStop (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
-  write_android_cmd (app, APP_CMD_STOP);
+  write_android_cmd (app, APP_CMD_STOP, true);
 }
 static void onDestroy (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
