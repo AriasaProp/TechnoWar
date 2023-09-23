@@ -15,10 +15,9 @@
 #include <utility>
 
 #define TOOLTIP_DURATION 4.75f
-#define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
 static union {
-  engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
+  engine::flat_vertex vert[256]; //= 256 * 20 bytes, means 5.12 kBytes means 1280 quad can be drawn at once
   char char_buffer[1024]; // for 1 kB => 4 kbit
 } global_temporary;
 
@@ -111,7 +110,6 @@ void uistage::draw (float delta) {
     if (tooltip_drawn)
       engine::graph->flat_render (nullptr, global_temporary.vert, tooltip_drawn);
     //text
-    tooltip_drawn = 0;
     verts = global_temporary.vert;
     for (size_t i = 0; i < 10; ++i) {
       tooltip &tlp = tooltips[i];
@@ -154,10 +152,8 @@ void uistage::draw (float delta) {
         }
       }
       tlp.lifetime -= delta;
-      tooltip_drawn += tlp.message.size();
+      engine::graph->flat_render (font->ftexid, global_temporary.vert, tlp.message.size());
     }
-    if (tooltip_drawn)
-      engine::graph->flat_render (font->ftexid, global_temporary.vert, tooltip_drawn);
   }
 }
 void uistage::cleartemp () {
