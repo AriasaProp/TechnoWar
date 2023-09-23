@@ -188,10 +188,12 @@ static const size_t WRITEPIPE_SIZE = sizeof (char);
 static void write_android_cmd (android_app *app, char cmd) {
   while (write (app->msgwrite, &cmd, WRITEPIPE_SIZE) != WRITEPIPE_SIZE)
     LOGE ("cannot write on pipe , %s", strerror (errno));
+  /*
   pthread_mutex_lock(&app->mutex);
   while (!app->request_to_communicate)
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
+  */
 }
 static void onStart (ANativeActivity *activity) {
   android_app *app = (android_app *)activity->instance;
