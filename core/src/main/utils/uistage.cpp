@@ -15,11 +15,10 @@
 #include <utility>
 
 #define TOOLTIP_DURATION 4.75f
+#define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
-static union {
-  engine::flat_vertex vert[MAX_UI_DRAW*4];
-  char char_buffer[1024]; // for 1 kB => 4 kbit
-} global_temporary;
+engine::flat_vertex temp_vert[MAX_UI_DRAW*4]; //= 20 KB, approximate 1024 actors can be drawn at once
+char temp_char_buffer[1024]; // for 1 kB => 4 kbit
 
 struct CharDescriptor {
   short x, y;
@@ -78,7 +77,7 @@ void uistage::draw (float delta) {
   //tooltip drawn
   {
     size_t tooltip_drawn = 0;
-    engine::flat_vertex *verts = global_temporary.vert;
+    engine::flat_vertex *verts = temp_vert;
     float F = font->fscale ();
     //background
     for (size_t i = 0; i < 7; ++i) {
@@ -106,10 +105,10 @@ void uistage::draw (float delta) {
       ++tooltip_drawn;
     }
     if (tooltip_drawn)
-      engine::graph->flat_render (nullptr, global_temporary.vert, tooltip_drawn);
+      engine::graph->flat_render (nullptr, temp_vert, tooltip_drawn);
     //text
     tooltip_drawn = 0;
-    verts = global_temporary.vert;
+    verts = temp_vert;
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
@@ -154,7 +153,7 @@ void uistage::draw (float delta) {
       tooltip_drawn += tlp.message.size();
     }
     if (tooltip_drawn)
-      engine::graph->flat_render (font->ftexid, global_temporary.vert, tooltip_drawn);
+      engine::graph->flat_render (font->ftexid, temp_vert, tooltip_drawn);
   }
 }
 void uistage::cleartemp () {
@@ -201,9 +200,9 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
   tooltips[i].lifetime = TOOLTIP_DURATION;
   va_list ap;
   va_start (ap, fmt);
-  vsprintf (global_temporary.char_buffer, fmt, ap);
+  vsprintf (temp_char_buffer, fmt, ap);
   va_end (ap);
-  tooltips[i].message = global_temporary.char_buffer;
+  tooltips[i].message = temp_char_buffer;
   auto &Chars = font->Chars;
   float width = 0;
   for (const char *t = tooltips[i].message.c_str(); *t; ++t) {
@@ -433,7 +432,7 @@ void uistage::actor::draw (float delta) {
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
-  engine::flat_vertex *verts = global_temporary.vert;
+  engine::flat_vertex *verts = temp_vert;
   Rect &rectangle = getRect();
   // vertically 1
   if (split[3]) { // horizontally
@@ -555,7 +554,7 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
   }
-  engine::graph->flat_render (tex, global_temporary.vert, quadCount);
+  engine::graph->flat_render (tex, temp_vert, quadCount);
 }
 
 uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : text (ti) {
@@ -573,7 +572,7 @@ void uistage::text_actor::draw (float delta) {
   uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
-  engine::flat_vertex *verts = global_temporary.vert;
+  engine::flat_vertex *verts = temp_vert;
   auto &Kearn = font->Kearn;
   float x = rectangle.xmin;
   for (const char *t = text.c_str(); *t; t++) {
@@ -604,16 +603,16 @@ void uistage::text_actor::draw (float delta) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (font->ftexid, global_temporary.vert, text.size());
+  engine::graph->flat_render (font->ftexid, temp_vert, text.size());
 }
 void uistage::text_actor::setText(const char *fmt, ...) {
   if (fmt == NULL)
     return;
   va_list ap;
   va_start (ap, fmt);
-  vsprintf (global_temporary.char_buffer, fmt, ap);
+  vsprintf (temp_char_buffer, fmt, ap);
   va_end (ap);
-  text = global_temporary.char_buffer;
+  text = temp_char_buffer;
 }
 uistage::text_actor::~text_actor () {}
 

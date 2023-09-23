@@ -15,6 +15,7 @@ static union {
     float x, y;
   } vec;
   struct rusage myusage;
+  std::chrono::time_point<std::chrono::steady_clock> temp_clock;
 } tmp;
 
 unsigned long memory_usage::mem_usage () {
@@ -23,7 +24,6 @@ unsigned long memory_usage::mem_usage () {
 }
 
 static std::chrono::time_point<std::chrono::steady_clock> start_clock;
-static std::chrono::time_point<std::chrono::steady_clock> end_clock;
 static float delta_result;
 static float delta_count;
 static size_t FPS_result;
@@ -37,8 +37,8 @@ void clock_count::start () {
   delta_result = 0;
 }
 void clock_count::render () {
-  end_clock = std::chrono::steady_clock::now ();
-  delta_result = float (std::chrono::duration_cast<std::chrono::microseconds> (end_clock - start_clock).count ()) / 1000000.f;
+  tmp.temp_clock = std::chrono::steady_clock::now ();
+  delta_result = float (std::chrono::duration_cast<std::chrono::microseconds> (tmp.temp_clock - start_clock).count ()) / 1000000.f;
   delta_count += delta_result;
   frame_count++;
   if (delta_count >= 1.0f) {
@@ -46,7 +46,7 @@ void clock_count::render () {
     FPS_result = frame_count;
     frame_count = 0;
   }
-  start_clock = end_clock;
+  start_clock = tmp.temp_clock;
 }
 void clock_count::end () {
   frame_count = 0;
