@@ -110,7 +110,6 @@ void uistage::draw (float delta) {
     if (tooltip_drawn)
       engine::graph->flat_render (nullptr, global_temporary.vert, tooltip_drawn);
     //text
-    verts = global_temporary.vert;
     for (size_t i = 0; i < 10; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
@@ -123,6 +122,7 @@ void uistage::draw (float delta) {
       float y = engine::graph->getHeight() * 0.75f + ((static_cast<float>(font->LineHeight) * font->fscale()) + 10.5f) * i + 10.5f;
       
       auto &Chars = font->Chars;
+      verts = global_temporary.vert;
       for (const char *t = tlp.message.c_str(); *t; t++) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
