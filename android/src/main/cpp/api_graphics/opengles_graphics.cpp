@@ -65,7 +65,7 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
   }
   window = w;
 }
-static inline void killEGL(const unsigned int EGLTermReq) {
+void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
   if (EGLTermReq && mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (mgl_data->surface && (EGLTermReq & 5)) {
