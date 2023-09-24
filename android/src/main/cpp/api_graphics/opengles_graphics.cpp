@@ -65,8 +65,48 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
   }
   window = w;
 }
+static inline void killEGL(const unsigned int EGLTermReq) {
+  if (EGLTermReq && mgl_data->display) return;
+  eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  if (mgl_data->surface && (EGLTermReq & 5)) {
+    // invalidate Framebuffer, RenderBuffer
+    eglDestroySurface (mgl_data->display, mgl_data->surface);
+    mgl_data->surface = EGL_NO_SURFACE;
+  }
+  if (mgl_data->context && (EGLTermReq & 6)) {
+    // invalidating gles resources
+    // world draw
+    glDeleteProgram (mgl_data->world_shader);
+    // flat draw
+    glDeleteProgram (mgl_data->ui_shader);
+    glDeleteVertexArrays (1, &mgl_data->ui_vao);
+    glDeleteBuffers (2, &mgl_data->ui_vbo);
+    // mesh
+    for (engine::mesh_core *i : mgl_data->managedMesh) {
+      glDeleteVertexArrays (1, &i->vao);
+      glDeleteBuffers (2, &i->vbo);
+    }
+    // texture
+    for (opengles_texture *i : mgl_data->managedTexture) {
+      glDeleteTextures (1, &i->id);
+    }
+    // reset null texture
+    glDeleteTextures (1, &mgl_data->nullTextureId);
+    
+    eglDestroyContext (mgl_data->display, mgl_data->context);
+    mgl_data->context = EGL_NO_CONTEXT;
+  }
+  if (EGLTermReq & 4) {
+    eglTerminate (mgl_data->display);
+    mgl_data->display = EGL_NO_DISPLAY;
+  }
+}
 bool opengles_graphics::preRender (unsigned int &resize) {
   if (!window) return false;
+  if (resize & 2) {
+    resize = 0;
+    killEGL(2); //EGLContext destroy
+  }
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
@@ -284,13 +324,6 @@ bool opengles_graphics::preRender (unsigned int &resize) {
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
   } else if (resize) {
-    if (resize & 2) {
-      eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-      eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
-      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
-      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
-      glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    }
     update_layout ();
   }
   resize = 0;
@@ -317,44 +350,7 @@ void opengles_graphics::postRender (bool isDestroy) {
       break;
     }
   }
-  if (EGLTermReq && mgl_data->display) {
-    eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (mgl_data->surface && (EGLTermReq & 5)) {
-      {
-        // invalidate Framebuffer, RenderBuffer
-      }
-      eglDestroySurface (mgl_data->display, mgl_data->surface);
-      mgl_data->surface = EGL_NO_SURFACE;
-    }
-    if (mgl_data->context && (EGLTermReq & 6)) {
-      {
-        // invalidating gles resources
-        // world draw
-        glDeleteProgram (mgl_data->world_shader);
-        // flat draw
-        glDeleteProgram (mgl_data->ui_shader);
-        glDeleteVertexArrays (1, &mgl_data->ui_vao);
-        glDeleteBuffers (2, &mgl_data->ui_vbo);
-        // mesh
-        for (engine::mesh_core *i : mgl_data->managedMesh) {
-          glDeleteVertexArrays (1, &i->vao);
-          glDeleteBuffers (2, &i->vbo);
-        }
-        // texture
-        for (opengles_texture *i : mgl_data->managedTexture) {
-          glDeleteTextures (1, &i->id);
-        }
-        // reset null texture
-        glDeleteTextures (1, &mgl_data->nullTextureId);
-      }
-      eglDestroyContext (mgl_data->display, mgl_data->context);
-      mgl_data->context = EGL_NO_CONTEXT;
-    }
-    if (EGLTermReq & 4) {
-      eglTerminate (mgl_data->display);
-      mgl_data->display = EGL_NO_DISPLAY;
-    }
-  }
+  killEGL(EGLTermReq);
 }
 void opengles_graphics::onWindowTerm () {
   if (!window) return;

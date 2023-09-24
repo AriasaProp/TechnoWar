@@ -123,11 +123,8 @@ static void *android_app_entry (void *param) {
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
-        case APP_CMD_DESTROY:
-          continue;
         case APP_CMD_STOP:
           started = false;
-          
           break;
         case APP_CMD_START:
           started = true;
@@ -144,6 +141,8 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_LOW_MEMORY:
           break;
+        case APP_CMD_DESTROY:
+          continue;
         default:
           break;
         }
