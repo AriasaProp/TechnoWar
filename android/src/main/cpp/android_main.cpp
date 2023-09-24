@@ -76,7 +76,8 @@ static void *android_app_entry (void *param) {
     ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
-    while (cmd != APP_CMD_DESTROY) {
+    unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
+    while (read_cmd[0] != APP_CMD_DESTROY) {
       switch (ALooper_pollAll ( (started && running && (window != nullptr)) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
@@ -85,7 +86,6 @@ static void *android_app_entry (void *param) {
         a_input.process_sensor ();
         break;
       case 1: // android activity queue
-        static unsigned short read_cmd[2];
         if (read (app->msgread, read_cmd, sizeof read_cmd) != sizeof read_cmd) break;
         
         switch (read_cmd[0]) {
