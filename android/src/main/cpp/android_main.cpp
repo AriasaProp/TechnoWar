@@ -72,7 +72,6 @@ static void *android_app_entry (void *param) {
   {
     bool created = false;
     bool running = false, started = false, resume = false, hasWindow = false;
-    bool resize = 0;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
@@ -113,7 +112,7 @@ static void *android_app_entry (void *param) {
           hasWindow = false;
           break;
         case APP_CMD_PAUSE:
-          if (a_graphics->preRender (resize))
+          if (a_graphics->preRender ())
             Main::pause ();
           a_graphics->postRender (false);
           running = false;
@@ -134,10 +133,11 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          resize = true;
+          a_graphics->reqResize();
           break;
         case APP_CMD_WINDOW_RESIZED:
-          a_graphics->onWindowResize();
+          a_graphics->reqResize();
+          //a_graphics->onWindowResize();
           break;
         case APP_CMD_LOW_MEMORY:
           break;
@@ -153,7 +153,7 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
-        if (a_graphics->preRender (resize)) {
+        if (a_graphics->preRender ()) {
           // core
           if (!created) {
             Main::start();
@@ -170,7 +170,7 @@ static void *android_app_entry (void *param) {
       }
     }
     //when destroy
-    if (a_graphics->preRender (resize))
+    if (a_graphics->preRender ())
       Main::end();
     created = false;
     a_graphics->postRender (true);

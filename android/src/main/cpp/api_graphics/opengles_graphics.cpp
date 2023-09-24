@@ -29,6 +29,7 @@ struct opengles_texture : public engine::texture_core {
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 struct gl_data {
+  bool request_resize = false;
   bool dirty_uiProj;
   bool dirty_worldProj;
   GLint ui_shader;
@@ -99,7 +100,7 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
 void opengles_graphics::onWindowResize () {
   killEGL(TERM_EGL_CONTEXT);
 }
-bool opengles_graphics::preRender (bool &resize) {
+bool opengles_graphics::preRender () {
   if (!window) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
@@ -317,11 +318,14 @@ bool opengles_graphics::preRender (bool &resize) {
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (resize) {
+  } else if (mgl_data->request_resize) {
     update_layout ();
   }
-  resize = false;
+  mgl_data->request_resize = false;
   return true;
+}
+void opengles_graphics::reqResize () {
+  mgl_data->request_resize |= true;
 }
 void opengles_graphics::postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;
