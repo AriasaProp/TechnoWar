@@ -93,11 +93,10 @@ static void *android_app_entry (void *param) {
           hasWindow = true;
           break;
         case APP_CMD_FOCUS_CHANGED:
-          if (read_cmd[1] == 1) {
+          if (read_cmd[1] == 1)
             a_input.attach_sensor ();
-          } else {
+          else
             a_input.detach_sensor ();
-          }
           break;
         case APP_CMD_INPUT_INIT:
           a_input.set_input_queue (app->looper, app->inputQueue);
@@ -117,16 +116,25 @@ static void *android_app_entry (void *param) {
           a_graphics->postRender (false);
           running = false;
           break;
+        default:
+          break;
+        }
+        pthread_mutex_lock (&app->mutex);
+        app->wait_request = false;
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock (&app->mutex);
+        //no need wait
+        switch (read_cmd[0]) {
         case APP_CMD_SAVE_STATE:
           break;
         case APP_CMD_CONFIG_CHANGED:
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
         case APP_CMD_STOP:
-          //started = false;
+          started = false;
           break;
         case APP_CMD_START:
-          //started = true;
+          started = true;
           break;
         case APP_CMD_RESUME:
           running = true;
@@ -141,14 +149,10 @@ static void *android_app_entry (void *param) {
         case APP_CMD_LOW_MEMORY:
           break;
         case APP_CMD_DESTROY:
-          continue;
+          break;
         default:
           break;
         }
-        pthread_mutex_lock (&app->mutex);
-        app->wait_request = false;
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock (&app->mutex);
         break;
       default:
         a_input.process_event ();
