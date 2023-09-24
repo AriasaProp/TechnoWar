@@ -86,7 +86,6 @@ static void *android_app_entry (void *param) {
         break;
       case 1: // android activity queue
         if (read (app->msgread, read_cmd, sizeof read_cmd) != sizeof read_cmd) break;
-        
         switch (read_cmd[0]) {
         case APP_CMD_INIT_WINDOW:
           pthread_mutex_lock (&app->mutex);
@@ -125,11 +124,7 @@ static void *android_app_entry (void *param) {
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
         case APP_CMD_DESTROY:
-          if (a_graphics->preRender (resize))
-            Main::end();
-          created = false;
-          a_graphics->postRender (true);
-          break;
+          continue;
         case APP_CMD_STOP:
           started = false;
           
@@ -174,7 +169,13 @@ static void *android_app_entry (void *param) {
         break;
       }
     }
+    //when destroy
+    if (a_graphics->preRender (resize))
+      Main::end();
+    created = false;
+    a_graphics->postRender (true);
   }
+  // loop ends
   delete a_graphics;
   a_graphics = nullptr;
   pthread_mutex_lock (&app->mutex);
