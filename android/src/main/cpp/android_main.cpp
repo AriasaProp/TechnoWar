@@ -153,17 +153,18 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
-        a_graphics->preRender (resize);
-        // core
-        if (!created) {
-          Main::start();
-          created = true;
-          resume = false;
-        } else if (resume) {
-          Main::resume ();
-          resume = false;
+        if (a_graphics->preRender (resize)) {
+          // core
+          if (!created) {
+            Main::start();
+            created = true;
+            resume = false;
+          } else if (resume) {
+            Main::resume ();
+            resume = false;
+          }
+          Main::render ();
         }
-        Main::render ();
         a_graphics->postRender (false);
         break;
       }

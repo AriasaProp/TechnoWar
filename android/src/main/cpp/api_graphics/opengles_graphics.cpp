@@ -66,7 +66,7 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
 void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
-  if (EGLTermReq && mgl_data->display) return;
+  if (!EGLTermReq || !mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (mgl_data->surface && (EGLTermReq & 5)) {
     // invalidate Framebuffer, RenderBuffer
@@ -104,7 +104,6 @@ void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
 bool opengles_graphics::preRender (unsigned int &resize) {
   if (!window) return false;
   if (resize & 2) {
-    resize = 0;
     killEGL(2); //EGLContext destroy
   }
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
@@ -354,12 +353,7 @@ void opengles_graphics::postRender (bool isDestroy) {
 }
 void opengles_graphics::onWindowTerm () {
   if (!window) return;
-  if (!mgl_data->display) return;
-  eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  if (mgl_data->surface) {
-    eglDestroySurface (mgl_data->display, mgl_data->surface);
-    mgl_data->surface = EGL_NO_SURFACE;
-  }
+  killEGL(1); //EGLSurface destroy
   window = nullptr;
 }
 void opengles_graphics::clear (const unsigned int &m) {
