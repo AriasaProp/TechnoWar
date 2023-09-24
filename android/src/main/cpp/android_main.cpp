@@ -76,7 +76,7 @@ static void *android_app_entry (void *param) {
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (started && running && hasWindow) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ( (/*started && */running && hasWindow) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -123,10 +123,10 @@ static void *android_app_entry (void *param) {
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
         case APP_CMD_STOP:
-          started = false;
+          //started = false;
           break;
         case APP_CMD_START:
-          started = true;
+          //started = true;
           break;
         case APP_CMD_RESUME:
           running = true;
