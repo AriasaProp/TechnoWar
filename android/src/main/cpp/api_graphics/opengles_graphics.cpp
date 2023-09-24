@@ -55,7 +55,7 @@ struct gl_data {
 float opengles_graphics::getWidth () { return mgl_data->game_width; }
 float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
-void onWindowInit (ANativeWindow *w) {
+void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
 bool opengles_graphics::preRender (unsigned int &resize) {
