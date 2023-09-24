@@ -11,7 +11,8 @@ private:
 public:
   // android
   void onWindowInit (ANativeWindow *) override;
-  bool preRender (unsigned int &) override;
+  void onWindowResize () override;
+  bool preRender (bool &) override;
   void postRender (bool) override;
   void onWindowTerm () override;
   // core

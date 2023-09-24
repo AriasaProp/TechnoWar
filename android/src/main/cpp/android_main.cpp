@@ -72,7 +72,7 @@ static void *android_app_entry (void *param) {
   {
     bool created = false;
     bool running = false, started = false, resume = false, hasWindow = false;
-    unsigned int resize = 0;
+    bool resize = 0;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
@@ -134,10 +134,10 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          resize |= 1;
+          resize = true;
           break;
         case APP_CMD_WINDOW_RESIZED:
-          resize |= 2;
+          a_graphics->onWindowResize();
           break;
         case APP_CMD_LOW_MEMORY:
           break;
