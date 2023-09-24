@@ -6,7 +6,7 @@
 struct opengles_graphics : public android_graphics {
 private:
   struct gl_data *mgl_data;
-  ANativeWindow *window;
+  ANativeWindow *window = nullptr;
 
 public:
   // android
