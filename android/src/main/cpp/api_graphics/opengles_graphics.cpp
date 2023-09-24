@@ -57,11 +57,10 @@ float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
   if (window && mgl_data->display) {
-      eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-      if (mgl_data->surface) {
-        eglDestroySurface (mgl_data->display, mgl_data->surface);
-        mgl_data->surface = EGL_NO_SURFACE;
-      }
+    eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (mgl_data->surface) {
+      eglDestroySurface (mgl_data->display, mgl_data->surface);
+      mgl_data->surface = EGL_NO_SURFACE;
     }
   }
   window = w;
