@@ -89,7 +89,9 @@ static void *android_app_entry (void *param) {
         
         switch (read_cmd[0]) {
         case APP_CMD_INIT_WINDOW:
+          pthread_mutex_lock (&app->mutex);
           a_graphics->onWindowInit (app->window);
+          pthread_mutex_unlock (&app->mutex);
           hasWindow = true;
           break;
         case APP_CMD_FOCUS_CHANGED:
@@ -206,9 +208,9 @@ static void onResume (ANativeActivity *activity) {
 }
 static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *window) {
   android_app *app = (android_app *)activity->instance;
-  if (app->window) // window should null when window create
-    write_android_cmd (app, APP_CMD_TERM_WINDOW, 0);
+  pthread_mutex_lock (&app->mutex);
   app->window = window;
+  pthread_mutex_unlock (&app->mutex);
   write_android_cmd (app, APP_CMD_INIT_WINDOW, 0);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
@@ -247,8 +249,9 @@ static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
 }
 static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *) {
   android_app *app = (android_app *)activity->instance;
-  if (!app->window) return;
+  pthread_mutex_lock (&app->mutex);
   app->window = nullptr;
+  pthread_mutex_unlock (&app->mutex);
   write_android_cmd (app, APP_CMD_TERM_WINDOW, 0);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *) {
