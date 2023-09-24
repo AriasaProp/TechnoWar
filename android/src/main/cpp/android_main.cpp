@@ -71,7 +71,7 @@ static void *android_app_entry (void *param) {
   a_graphics = new opengles_graphics{};
   {
     bool created = false;
-    bool running = false, started = false, resume = false, hasWindow = false;
+    bool running = false/*, started = false*/, resume = false, hasWindow = false;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
