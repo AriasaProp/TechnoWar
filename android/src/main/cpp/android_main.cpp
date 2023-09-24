@@ -71,14 +71,14 @@ static void *android_app_entry (void *param) {
   a_graphics = new opengles_graphics{};
   {
     bool created = false;
-    bool running = false, started = false, resume = false;
+    bool running = false, started = false, resume = false, hasWindow = false;
     unsigned int resize = 0;
     ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (started && running && (window != nullptr)) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ( (started && running && hasWindow) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -90,9 +90,8 @@ static void *android_app_entry (void *param) {
         
         switch (read_cmd[0]) {
         case APP_CMD_INIT_WINDOW:
-          pthread_mutex_lock (&app->mutex);
-          window = app->window;
-          pthread_mutex_unlock (&app->mutex);
+          a_graphics->onWindowInit (app->window);
+          hasWindow = true;
           break;
         case APP_CMD_FOCUS_CHANGED:
           if (read_cmd[1] == 1) {
@@ -111,13 +110,11 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_TERM_WINDOW:
           a_graphics->onWindowTerm ();
-          window = nullptr;
+          hasWindow = false;
           break;
         case APP_CMD_PAUSE:
-          if (window) {
-            a_graphics->preRender (window, resize);
+          if (a_graphics->preRender (resize))
             Main::pause ();
-          }
           a_graphics->postRender (false);
           running = false;
           break;
@@ -127,10 +124,8 @@ static void *android_app_entry (void *param) {
           AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
           break;
         case APP_CMD_DESTROY:
-          if (window) {
-            a_graphics->preRender (window, resize);
+          if (a_graphics->preRender (resize))
             Main::end();
-          }
           created = false;
           a_graphics->postRender (true);
           break;
@@ -163,7 +158,7 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
-        a_graphics->preRender (window, resize);
+        a_graphics->preRender (resize);
         // core
         if (!created) {
           Main::start();
