@@ -98,7 +98,12 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
   window = w;
 }
 void opengles_graphics::onWindowResize () {
-  killEGL(TERM_EGL_CONTEXT);
+  if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) return;
+  eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
+  eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
+  eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
+  mgl_data->request_resize |= true;
 }
 bool opengles_graphics::preRender () {
   if (!window) return false;

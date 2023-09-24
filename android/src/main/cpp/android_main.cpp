@@ -136,8 +136,7 @@ static void *android_app_entry (void *param) {
           a_graphics->reqResize();
           break;
         case APP_CMD_WINDOW_RESIZED:
-          a_graphics->reqResize();
-          //a_graphics->onWindowResize();
+          a_graphics->onWindowResize();
           break;
         case APP_CMD_LOW_MEMORY:
           break;
