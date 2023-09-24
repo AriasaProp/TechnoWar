@@ -73,7 +73,6 @@ static void *android_app_entry (void *param) {
     bool created = false;
     bool running = false, started = false, resume = false, hasWindow = false;
     unsigned int resize = 0;
-    ANativeWindow *window = nullptr;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
