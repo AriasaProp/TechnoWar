@@ -61,7 +61,7 @@ float clock_count::getDelta () {
 }
 // Vector2 definition
 Vector2::Vector2(): x(0.0f), y(0.0f), pivot_align(ALIGN_BOTTOM_LEFT) {}
-Vector2::Vector2(float x_, float y_, const Align &a): x(x_), y(y_), main_align(a) {}
+Vector2::Vector2(float x_, float y_, const Align &a): x(x_), y(y_), pivot_align(a) {}
 void Vector2::getFloats(float *outFloats) {
   //pivot align
   unsigned char vert = pivot_align & 3;

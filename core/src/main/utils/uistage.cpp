@@ -567,7 +567,7 @@ uistage::text_actor::text_actor (Vector2 pos, std::string ti) : text (ti) {
   }
   float out[2];
   pos.getFloats(out);
-  rectangle = Rect (out[0], out[1], ALIGN_BOTTOM_LEFT, width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()));
+  rectangle = Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, ALIGN_BOTTOM_LEFT);
 }
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
