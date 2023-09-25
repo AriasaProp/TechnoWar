@@ -558,7 +558,8 @@ void uistage::actor::draw (float delta) {
   engine::graph->flat_render (tex, temp_vert, quadCount);
 }
 
-uistage::text_actor::text_actor (Vector2 pos, std::string ti) : text (ti) {
+uistage::text_actor::text_actor (Vector2 _pos, std::string ti) : text (ti), pos(_pos) {}
+Rect &uistage::text_actor::getRect () {
   float width = 0;
   auto &Chars = font->Chars;
   for (const char *t = text.c_str(); *t; t++) {
@@ -567,25 +568,31 @@ uistage::text_actor::text_actor (Vector2 pos, std::string ti) : text (ti) {
   }
   float out[2];
   pos.getFloats(out);
-  rectangle = Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, ALIGN_BOTTOM_LEFT);
+  return Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, ALIGN_BOTTOM_LEFT);
 }
-Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
 void uistage::text_actor::draw (float delta) {
   uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
+  /*
+  float width = 0;
+  for (const char *t = text.c_str(); *t; t++) {
+    if (Chars.find (*t) == Chars.end ()) continue;
+    width += Chars[*t].XAdvance;
+  }
+  */
   engine::flat_vertex *verts = temp_vert;
   auto &Kearn = font->Kearn;
-  float r[4];
-  rectangle.getFloats(r);
+  float r[2];
+  pos.getFloats(r);
   float x = r[0];
   for (const char *t = text.c_str(); *t; t++) {
     auto itf = Chars.find (*t);
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
     xList[0] = x + (f.XOffset * F);              // minx
-    yList[1] = r[3] - (f.YOffset * F); // maxy
+    yList[1] = r[1] + (static_cast<float>(font->LineHeight) - f.YOffset) * F; // maxy
     xList[1] = xList[0] + (f.Width * F);         // maxx
     yList[0] = yList[1] - (f.Height * F);        // miny
 
