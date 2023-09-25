@@ -121,8 +121,8 @@ void uistage::draw (float delta) {
     *(verts++) = {790.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
   }
   //tooltip background drawn
+  float F = font->fscale ();
   {
-    float F = font->fscale ();
     //background
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
