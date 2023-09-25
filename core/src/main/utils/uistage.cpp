@@ -184,8 +184,8 @@ uistage::button_actor *uistage::makeButton (std::initializer_list<std::string> k
   actors.insert (ua);
   return ua;
 }
-uistage::text_actor *uistage::makeText (Vector2 pos, std::string k) {
-  uistage::text_actor *ua = new text_actor (pos, k.c_str ());
+uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string k) {
+  uistage::text_actor *ua = new text_actor (pos, a, k.c_str ());
   actors.insert (ua);
   return ua;
 }
@@ -558,7 +558,7 @@ void uistage::actor::draw (float delta) {
   engine::graph->flat_render (tex, temp_vert, quadCount);
 }
 
-uistage::text_actor::text_actor (Vector2 _pos, std::string ti) : text (ti) {
+uistage::text_actor::text_actor (Vector2 _pos, const Align &a, std::string ti) : text (ti) {
   float width = 0;
   auto &Chars = font->Chars;
   auto &Kearn = font->Kearn;
@@ -573,8 +573,8 @@ uistage::text_actor::text_actor (Vector2 _pos, std::string ti) : text (ti) {
     }
   }
   float out[2];
-  pos.getFloats(out);
-  rectangle = Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, ALIGN_BOTTOM_LEFT);
+  _pos.getFloats(out);
+  rectangle = Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, a);
 }
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
@@ -585,7 +585,7 @@ void uistage::text_actor::draw (float delta) {
   engine::flat_vertex *verts = temp_vert;
   auto &Kearn = font->Kearn;
   float r[4];
-  reactangle.getFloats(r);
+  rectangle.getFloats(r);
   float x = r[0];
   for (const char *t = text.c_str(); *t; t++) {
     auto itf = Chars.find (*t);
