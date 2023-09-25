@@ -71,12 +71,12 @@ static void *android_app_entry (void *param) {
   a_graphics = new opengles_graphics{};
   {
     bool created = false;
-    bool running = false, started = false, resume = false, hasWindow = false;
+    bool running = false, started = false, resume = false;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (started && running && hasWindow) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ( (started && running && a_graphics->ready()) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -90,7 +90,6 @@ static void *android_app_entry (void *param) {
           pthread_mutex_lock (&app->mutex);
           a_graphics->onWindowInit (app->window);
           pthread_mutex_unlock (&app->mutex);
-          hasWindow = true;
           break;
         case APP_CMD_FOCUS_CHANGED:
           if (read_cmd[1] == 1)
@@ -108,11 +107,10 @@ static void *android_app_entry (void *param) {
           break;
         case APP_CMD_TERM_WINDOW:
           a_graphics->onWindowTerm ();
-          hasWindow = false;
           break;
         case APP_CMD_PAUSE:
-          if (a_graphics->preRender ())
-            Main::pause ();
+          if (!a_graphics->preRender ()) break;
+          Main::pause ();
           a_graphics->postRender (false);
           running = false;
           break;
@@ -156,18 +154,17 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
-        if (a_graphics->preRender ()) {
-          // core
-          if (!created) {
-            Main::start();
-            created = true;
-            resume = false;
-          } else if (resume) {
-            Main::resume ();
-            resume = false;
-          }
-          Main::render ();
+        if (!a_graphics->preRender ()) break;
+        // core
+        if (!created) {
+          Main::start();
+          created = true;
+          resume = false;
+        } else if (resume) {
+          Main::resume ();
+          resume = false;
         }
+        Main::render ();
         a_graphics->postRender (false);
         break;
       }

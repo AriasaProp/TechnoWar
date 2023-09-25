@@ -97,6 +97,9 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
     killEGL(TERM_EGL_SURFACE);
   window = w;
 }
+bool opengles_graphics::ready () {
+  return window != nullptr;
+}
 void opengles_graphics::onWindowResize () {
   mgl_data->request_window_resize |= true;
 }

@@ -8,6 +8,7 @@ struct android_graphics : public engine::graphics_core {
   float cur_safe_insets[4];
   // android
   virtual void onWindowInit (ANativeWindow *) = 0;
+  virtual bool ready () = 0;
   virtual void onWindowResize () = 0;
   virtual bool preRender () = 0;
   virtual void reqResize () = 0;

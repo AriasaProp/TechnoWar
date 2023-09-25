@@ -20,49 +20,11 @@
 
 engine::mesh_core *mp;
 engine::texture_core *tc;
-engine::flat_vertex *touch_ptr;
 uistage::text_actor *t_fps, *t_dlt, *t_mem;
 
 void Main::start () {
   uistage::clear();
   uistage::loadBMFont ("default.fnt");
-  touch_ptr = new engine::flat_vertex[]{
-      // background
-      {435.5f, 1145.0f, 0xff999999, 0, 1},
-      {435.5f, 1205.0f, 0xff999999, 0, 0},
-      {805.5f, 1145.0f, 0xff999999, 1, 1},
-      {805.5f, 1205.0f, 0xff999999, 1, 0},
-      // ptr 1
-      {440.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {440.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {490.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {490.0f, 1200.0f, 0xff00ff00, 1, 0},
-      // ptr 2
-      {500.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {500.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {550.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {550.0f, 1200.0f, 0xff00ff00, 1, 0},
-      // ptr 3
-      {560.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {560.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {610.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {610.0f, 1200.0f, 0xff00ff00, 1, 0},
-      // ptr 4
-      {620.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {620.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {670.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {670.0f, 1200.0f, 0xff00ff00, 1, 0},
-      // ptr 5
-      {680.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {680.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {730.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {730.0f, 1200.0f, 0xff00ff00, 1, 0},
-      // ptr 6
-      {740.0f, 1150.0f, 0xff00ff00, 0, 1},
-      {740.0f, 1200.0f, 0xff00ff00, 0, 0},
-      {790.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {790.0f, 1200.0f, 0xff00ff00, 1, 0}
-  };
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -160,7 +122,44 @@ void Main::render () {
 
   uistage::draw (delta);
   clock_count::render ();
-  engine::flat_vertex *tch = touch_ptr;
+  
+  engine::flat_vertex *tch = new engine::flat_vertex[]{
+      // background
+      {435.5f, 1145.0f, 0xff999999, 0, 1},
+      {435.5f, 1205.0f, 0xff999999, 0, 0},
+      {805.5f, 1145.0f, 0xff999999, 1, 1},
+      {805.5f, 1205.0f, 0xff999999, 1, 0},
+      // ptr 1
+      {440.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {440.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {490.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {490.0f, 1200.0f, 0xff00ff00, 1, 0},
+      // ptr 2
+      {500.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {500.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {550.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {550.0f, 1200.0f, 0xff00ff00, 1, 0},
+      // ptr 3
+      {560.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {560.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {610.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {610.0f, 1200.0f, 0xff00ff00, 1, 0},
+      // ptr 4
+      {620.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {620.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {670.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {670.0f, 1200.0f, 0xff00ff00, 1, 0},
+      // ptr 5
+      {680.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {680.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {730.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {730.0f, 1200.0f, 0xff00ff00, 1, 0},
+      // ptr 6
+      {740.0f, 1150.0f, 0xff00ff00, 0, 1},
+      {740.0f, 1200.0f, 0xff00ff00, 0, 0},
+      {790.0f, 1150.0f, 0xff00ff00, 1, 1},
+      {790.0f, 1200.0f, 0xff00ff00, 1, 0}
+  };
   tch[4].color = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;
   tch[5].color = tch[6].color = tch[7].color = tch[4].color;
   tch[8].color = engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff;
@@ -183,5 +182,4 @@ void Main::end () {
   pause();
   uistage::clear ();
   engine::graph->delete_mesh (mp);
-  delete[] touch_ptr;
 }
