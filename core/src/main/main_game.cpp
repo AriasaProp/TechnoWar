@@ -115,11 +115,13 @@ void Main::render () {
   t_mem->setText("%011u byte", memory_usage::mem_usage());
   
   engine::graph->clear (7);
+  /*
   matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
                    M_PI / 10.f * delta, // 18° /s
                    M_PI / 18.0f * delta // 10° /s
   );
+  */
   engine::graph->mesh_render (&mp, 1);
 
   uistage::draw (delta);
