@@ -585,7 +585,7 @@ void uistage::text_actor::draw (float delta) {
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
     xList[0] = x + (f.XOffset * F);              // minx
-    yList[1] = rectangle[3] - (f.YOffset * F); // maxy
+    yList[1] = r[3] - (f.YOffset * F); // maxy
     xList[1] = xList[0] + (f.Width * F);         // maxx
     yList[0] = yList[1] - (f.Height * F);        // miny
 
