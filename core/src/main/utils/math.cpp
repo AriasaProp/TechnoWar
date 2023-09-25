@@ -1,4 +1,5 @@
 #include "math.hpp"
+#include "../engine.hpp"
 // math is not multithread safe.
 #include <chrono>
 #include <cmath>
@@ -59,7 +60,7 @@ float clock_count::getDelta () {
   return delta_result;
 }
 // Vector2 definition
-Vector2::Vector2(): x(0.0f), y(0.0f), main_align(Align::ALIGN_TOP_LEFT) {}
+Vector2::Vector2(): x(0.0f), y(0.0f), pivot_align(ALIGN_BOTTOM_LEFT) {}
 Vector2::Vector2(float x_, float y_, const Align &a): x(x_), y(y_), main_align(a) {}
 void Vector2::getFloats(float *outFloats) {
   //pivot align
@@ -137,7 +138,7 @@ void Rect::getFloats(float *outFloats) {
       outFloats[2] += engine::graph->getWidth() * 0.5f;
       break;
     case 2: //right
-      float temp = outFloats[0], temp1 = outFloats[2];
+      static float temp = outFloats[0], temp1 = outFloats[2];
       outFloats[0] = engine::graph->getWidth() - temp1;
       outFloats[2] = engine::graph->getWidth() - temp;
       break;
@@ -145,7 +146,7 @@ void Rect::getFloats(float *outFloats) {
     unsigned char hor = (main_align >> 2) & 3;
     switch (hor) {
     default: //top
-      float temp = outFloats[1], temp1 = outFloats[3];
+      static float temp = outFloats[1], temp1 = outFloats[3];
       outFloats[1] = engine::graph->getHeight() - temp1;
       outFloats[3] = engine::graph->getHeight() - temp;
       break;

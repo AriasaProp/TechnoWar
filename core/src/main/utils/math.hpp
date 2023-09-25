@@ -36,7 +36,7 @@ float getDelta ();
 struct Vector2 {
 private:
   float x, y;
-  Align main_align;
+  Align pivot_align;
 public:
   Vector2();
   Vector2(float, float, const Align &);
