@@ -49,7 +49,7 @@ private:
   Align main_align, pivot_align;
 public:
   Rect ();
-  Rect (const Align &, float, float, const Align &, float, float);
+  Rect (float, float, float, float, const Align &, const Align &);
   void getFloats(float *);
   bool insetOf (float, float);
 };

@@ -89,7 +89,7 @@ void Vector2::getFloats(float *outFloats) {
   }
 }
 // Rect definition
-Rect::Rect () : x (0.0f), y (0.0f), sx (0.0f), sy (0.0f), main_align(Align::ALIGN_TOP_LEFT), pivot_align(Align::ALIGN_TOP_LEFT) {}
+Rect::Rect (): x (0.0f), y (0.0f), sx (0.0f), sy (0.0f), main_align(ALIGN_TOP_LEFT), pivot_align(ALIGN_TOP_LEFT) {}
 Rect::Rect (float x_, float y_, float sx_, float sy_, const Align &a, const Align &b) :  x (x_), y (y_), sx (sx_), sy (sy_), main_align(a), pivot_align(b) {}
 //format is {xmin, ymin, xmax, ymax }
 void Rect::getFloats(float *outFloats) {
