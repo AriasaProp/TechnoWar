@@ -28,35 +28,35 @@ void Main::start () {
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
-      {{+150.0f +150.0f -350.0f}, 0xff0000ff},
-      {{+150.0f -150.0f -350.0f}, 0xff0000ff},
-      {{-150.0f -150.0f -350.0f}, 0xff0000ff},
-      {{-150.0f +150.0f -350.0f}, 0xff0000ff},
+      {{+150.0f, +150.0f, -350.0f}, 0xff0000ff},
+      {{+150.0f, -150.0f, -350.0f}, 0xff0000ff},
+      {{-150.0f, -150.0f, -350.0f}, 0xff0000ff},
+      {{-150.0f, +150.0f, -350.0f}, 0xff0000ff},
       // left green
-      {{-150.0f +150.0f -350.0f}, 0xff00ff00},
-      {{-150.0f -150.0f -350.0f}, 0xff00ff00},
-      {{-150.0f -150.0f +350.0f}, 0xff00ff00},
-      {{-150.0f +150.0f +350.0f}, 0xff00ff00},
+      {{-150.0f, +150.0f, -350.0f}, 0xff00ff00},
+      {{-150.0f, -150.0f, -350.0f}, 0xff00ff00},
+      {{-150.0f, -150.0f, +350.0f}, 0xff00ff00},
+      {{-150.0f, +150.0f, +350.0f}, 0xff00ff00},
       // right blue
-      {{+150.0f +150.0f +350.0f}, 0xffff0000},
-      {{+150.0f -150.0f +350.0f}, 0xffff0000},
-      {{+150.0f -150.0f -350.0f}, 0xffff0000},
-      {{+150.0f +150.0f -350.0f}, 0xffff0000},
+      {{+150.0f, +150.0f, +350.0f}, 0xffff0000},
+      {{+150.0f, -150.0f, +350.0f}, 0xffff0000},
+      {{+150.0f, -150.0f, -350.0f}, 0xffff0000},
+      {{+150.0f, +150.0f, -350.0f}, 0xffff0000},
       // bot gray
-      {{+150.0f -150.0f -350.0f}, 0xff333333},
-      {{+150.0f -150.0f +350.0f}, 0xff333333},
-      {{-150.0f -150.0f +350.0f}, 0xff333333},
-      {{-150.0f -150.0f -350.0f}, 0xff333333},
+      {{+150.0f, -150.0f, -350.0f}, 0xff333333},
+      {{+150.0f, -150.0f, +350.0f}, 0xff333333},
+      {{-150.0f, -150.0f, +350.0f}, 0xff333333},
+      {{-150.0f, -150.0f, -350.0f}, 0xff333333},
       // top purple
-      {{+150.0f +150.0f +350.0f}, 0xff00ffff},
-      {{+150.0f +150.0f -350.0f}, 0xff00ffff},
-      {{-150.0f +150.0f -350.0f}, 0xff00ffff},
-      {{-150.0f +150.0f +350.0f}, 0xff00ffff},
+      {{+150.0f, +150.0f, +350.0f}, 0xff00ffff},
+      {{+150.0f, +150.0f, -350.0f}, 0xff00ffff},
+      {{-150.0f, +150.0f, -350.0f}, 0xff00ffff},
+      {{-150.0f, +150.0f, +350.0f}, 0xff00ffff},
       // back fulle
-      {{-150.0f +150.0f +350.0f}, 0xffffff00},
-      {{-150.0f -150.0f +350.0f}, 0xffffffff},
-      {{+150.0f -150.0f +350.0f}, 0xffff0000},
-      {{+150.0f +150.0f +350.0f}, 0xff00ff00}};
+      {{-150.0f, +150.0f, +350.0f}, 0xffffff00},
+      {{-150.0f, -150.0f, +350.0f}, 0xffffffff},
+      {{+150.0f, -150.0f, +350.0f}, 0xffff0000},
+      {{+150.0f, +150.0f, +350.0f}, 0xff00ff00}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mp = engine::graph->gen_mesh (vert, 24, indices, 36);
 
@@ -125,46 +125,6 @@ void Main::render () {
 
   uistage::draw (delta);
   clock_count::render ();
-  /*
-  engine::flat_vertex tch[28] = {
-      // background
-      {435.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 0, 1},
-      {435.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 0, 0},
-      {805.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 1, 1},
-      {805.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 1, 0},
-      // ptr 1
-      {440.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {440.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {490.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {490.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff, 1, 0},
-      // ptr 2
-      {500.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {500.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {550.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {550.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff, 1, 0},
-      // ptr 3
-      {560.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {560.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {610.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {610.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff, 1, 0},
-      // ptr 4
-      {620.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {620.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {670.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {670.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff, 1, 0},
-      // ptr 5
-      {680.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {680.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {730.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {730.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff, 1, 0},
-      // ptr 6
-      {740.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff, 0, 1},
-      {740.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff, 0, 0},
-      {790.0f, engine::graph->getHeight() - 150.0f, engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff, 1, 1},
-      {790.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff, 1, 0}
-  };
-  engine::graph->flat_render (nullptr, tch, 7);
-  */
 }
 void Main::pause () {
   uistage::cleartemp();

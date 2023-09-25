@@ -74,10 +74,54 @@ void uistage::draw (float delta) {
   for (actor *act : actors) {
     act->draw (delta);
   }
-  //tooltip drawn
+  size_t to_drawn = 7;
+  engine::flat_vertex *verts = temp_vert;
+  // touch pointer care
   {
-    size_t tooltip_drawn = 0;
-    engine::flat_vertex *verts = temp_vert;
+        // background
+    *(verts++) = {435.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 0, 1};
+    *(verts++) = {435.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 0, 0};
+    *(verts++) = {805.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 1, 1};
+    *(verts++) = {805.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 1, 0};
+        // ptr 1
+    uint32_t clr = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {440.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {440.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {490.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {490.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 2
+    clr = engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {500.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {500.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {550.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {550.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 3
+    clr = engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {560.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {560.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {610.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {610.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 4
+    clr = engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {620.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {620.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {670.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {670.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 5
+    clr = engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {680.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {680.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {730.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {730.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 6
+    clr = engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {740.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {740.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {790.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {790.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+  }
+  //tooltip background drawn
+  {
     float F = font->fscale ();
     //background
     for (size_t i = 0; i < 7; ++i) {
@@ -102,13 +146,15 @@ void uistage::draw (float delta) {
       *(verts++) = {xList[0], yList[1], bc, 0, 0};
       *(verts++) = {xList[1], yList[0], bc, 0, 0};
       *(verts++) = {xList[1], yList[1], bc, 0, 0};
-      ++tooltip_drawn;
+      ++to_drawn;
     }
-    if (tooltip_drawn)
-      engine::graph->flat_render (nullptr, temp_vert, tooltip_drawn);
-    //text
-    tooltip_drawn = 0;
-    verts = temp_vert;
+  }
+  if (to_drawn)
+    engine::graph->flat_render (nullptr, temp_vert, to_drawn);
+  to_drawn = 0;
+  verts = temp_vert;
+  {
+    //text tooltip
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
@@ -150,11 +196,11 @@ void uistage::draw (float delta) {
         }
       }
       tlp.lifetime -= delta;
-      tooltip_drawn += tlp.message.size();
+      to_drawn += tlp.message.size();
     }
-    if (tooltip_drawn)
-      engine::graph->flat_render (font->ftexid, temp_vert, tooltip_drawn);
   }
+  if (to_drawn)
+    engine::graph->flat_render (font->ftexid, temp_vert, to_drawn);
 }
 void uistage::cleartemp () {
   memset(tooltips, 0, sizeof tooltips);
@@ -195,7 +241,7 @@ void uistage::temporaryTooltip(const char *fmt, ...) {
   size_t i = 6;
   do {
     tooltips[i] = tooltips[i-1];
-    tooltips[i].lifetime -= 0.3f;
+    tooltips[i].lifetime -= 0.2f;
   } while (--i);
   tooltips[i].lifetime = TOOLTIP_DURATION;
   va_list ap;
