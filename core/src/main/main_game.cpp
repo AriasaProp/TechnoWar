@@ -81,12 +81,12 @@ void Main::start () {
     stbi_image_free (t);
   }
 
-  uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_BOTTOM, DATESTR);
-  uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_BOTTOM_RIGHT, "Main");
+  uistage::makeText (Vector2(0, 0, ALIGN_TOP, ALIGN_TOP), DATESTR);
+  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT, ALIGN_TOP_RIGHT), "Main");
   
-  t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
-  t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
-  t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
+  t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "#### FPS");
+  t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "#### sec");
+  t_mem = uistage::makeText (Vector2(10, 80, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "##### byte");
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 1 for button 1. Hello!");
@@ -94,11 +94,11 @@ void Main::start () {
   uistage::makeButton ({"btn1", "btn1_"}, Rect (350, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 2 for button 2. Nothing happen?!");
   });
-  uistage::makeImage ("test", Rect (650, 200, ALIGN_CENTER, 200, 200));
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (600, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
+  uistage::makeImage ("test", Rect (600, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER));
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (850, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 3 for button 3. Yeah ;-)");
   });
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (850, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (1100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 4 for button 4. Okay");
   });
 
