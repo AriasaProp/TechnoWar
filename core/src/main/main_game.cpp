@@ -81,12 +81,12 @@ void Main::start () {
     stbi_image_free (t);
   }
 
-  uistage::makeText (Vector2(0, 0, ALIGN_TOP, ALIGN_TOP), DATESTR);
-  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT, ALIGN_TOP_RIGHT), "Main");
+  uistage::makeText (Vector2(0, 0, ALIGN_TOP), DATESTR);
+  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT), "Main");
   
-  t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "#### FPS");
-  t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "#### sec");
-  t_mem = uistage::makeText (Vector2(10, 80, ALIGN_TOP_LEF, ALIGN_BOTTOM_LEFT), "##### byte");
+  t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEFT), "#### FPS");
+  t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEFT), "#### sec");
+  t_mem = uistage::makeText (Vector2(10, 80, ALIGN_TOP_LEFT), "##### byte");
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 1 for button 1. Hello!");
