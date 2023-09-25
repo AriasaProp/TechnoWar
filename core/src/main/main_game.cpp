@@ -80,9 +80,10 @@ void Main::start () {
     t = stbi_load_from_assets ("test1.jpg", &x, &y, nullptr, STBI_rgb_alpha);
     stbi_image_free (t);
   }
+  /*
 
-  uistage::makeText (Vector2(0, 0, ALIGN_TOP), DATESTR);
-  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT), "Main");
+  uistage::makeText (Vector2(0, 0, ALIGN_BOTTOM), DATESTR);
+  uistage::makeText (Vector2(10, 0, ALIGN_BOTTOM_LEFT), "Main");
   
   t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEFT), "#### FPS");
   t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEFT), "#### sec");
@@ -101,7 +102,7 @@ void Main::start () {
   uistage::makeButton ({"btn1", "btn1_"}, Rect (1100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
     uistage::temporaryTooltip("Tooltip test 4 for button 4. Okay");
   });
-
+  */
   resume ();
 }
 void Main::resume () {
@@ -110,8 +111,10 @@ void Main::resume () {
 void Main::render () {
   t_fps->setText("%03d FPS", clock_count::getFPS());
   float delta = clock_count::getDelta ();
+  /*
   t_dlt->setText("%03.3f sec", delta);
   t_mem->setText("%011u byte", memory_usage::mem_usage());
+  */
   engine::graph->clear (7);
   matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
@@ -122,7 +125,7 @@ void Main::render () {
 
   uistage::draw (delta);
   clock_count::render ();
-  
+  /*
   engine::flat_vertex tch[28] = {
       // background
       {435.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 0, 1},
@@ -161,6 +164,7 @@ void Main::render () {
       {790.0f, engine::graph->getHeight() - 100.0f, engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff, 1, 0}
   };
   engine::graph->flat_render (nullptr, tch, 7);
+  */
 }
 void Main::pause () {
   uistage::cleartemp();
