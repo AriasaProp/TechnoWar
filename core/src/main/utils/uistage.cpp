@@ -433,16 +433,17 @@ void uistage::actor::draw (float delta) {
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
   engine::flat_vertex *verts = temp_vert;
-  Rect &rectangle = getRect();
+  float rectangle[4];
+  getRect().getFloats(rectangle);
   // vertically 1
   if (split[3]) { // horizontally
-    yList[0] = rectangle.ymin;
-    yList[1] = rectangle.ymin + split[3];
+    yList[0] = rectangle[1];
+    yList[1] = rectangle[1] + split[3];
     vList[0] = float (ta.region.pos[1] + ta.region.size[1]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -451,8 +452,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -463,8 +464,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -475,14 +476,14 @@ void uistage::actor::draw (float delta) {
     }
   }
   // vertically 2
-  yList[0] = rectangle.ymin + split[3];
-  yList[1] = rectangle.ymax - split[1];
+  yList[0] = rectangle[1] + split[3];
+  yList[1] = rectangle[3] - split[1];
   if (yList[1] > yList[0]) { // horizontally
     vList[0] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -491,8 +492,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -503,8 +504,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -516,13 +517,13 @@ void uistage::actor::draw (float delta) {
   }
   // vertically 3
   if (split[1]) { // horizontally
-    yList[0] = rectangle.ymax - split[1];
-    yList[1] = rectangle.ymax;
+    yList[0] = rectangle[3] - split[1];
+    yList[1] = rectangle[3];
     vList[0] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -531,8 +532,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -543,8 +544,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -576,13 +577,15 @@ void uistage::text_actor::draw (float delta) {
   auto &Chars = font->Chars;
   engine::flat_vertex *verts = temp_vert;
   auto &Kearn = font->Kearn;
-  float x = rectangle.xmin;
+  float r[4];
+  rectangle.getFloats(r);
+  float x = r[0];
   for (const char *t = text.c_str(); *t; t++) {
     auto itf = Chars.find (*t);
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
     xList[0] = x + (f.XOffset * F);              // minx
-    yList[1] = rectangle.ymax - (f.YOffset * F); // maxy
+    yList[1] = rectangle[3] - (f.YOffset * F); // maxy
     xList[1] = xList[0] + (f.Width * F);         // maxx
     yList[0] = yList[1] - (f.Height * F);        // miny
 
