@@ -19,7 +19,7 @@ struct actor {
 struct text_actor : public actor {
 private:
   std::string text;
-  Vector2 pos;
+  Rect rectangle;
 public:
   text_actor (Vector2, std::string);
   Rect &getRect () override;
