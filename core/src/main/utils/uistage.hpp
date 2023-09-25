@@ -21,7 +21,7 @@ private:
   std::string text;
   Rect rectangle;
 public:
-  text_actor (float, float, Align, std::string);
+  text_actor (Vector2, std::string);
   Rect &getRect () override;
   std::string getKey () override;
   void draw (float) override;
@@ -68,7 +68,7 @@ void clear ();
 // all actor types
 image_actor *makeImage (std::string, Rect);
 button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
-text_actor *makeText (float, float, Align, std::string);
+text_actor *makeText (Vector2, std::string);
 void temporaryTooltip(const char*, ...);
 
 void touchDown (float, float, int, int);

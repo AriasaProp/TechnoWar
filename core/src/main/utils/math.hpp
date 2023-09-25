@@ -33,11 +33,24 @@ size_t getFPS ();
 float getDelta ();
 } // namespace clock_count
 
-struct Rect {
+struct Vector2 {
+private:
+  float x, y;
+  Align main_align;
 public:
-  float xmin, ymin, xmax, ymax;
+  Vector2();
+  Vector2(float, float, const Align &);
+  void getFloats(float *);
+};
+
+struct Rect {
+private:
+  float x, y, sx, sy;
+  Align main_align, pivot_align;
+public:
   Rect ();
-  Rect (float, float, const Align &, float, float);
+  Rect (const Align &, float, float, const Align &, float, float);
+  void getFloats(float *);
   bool insetOf (float, float);
 };
 

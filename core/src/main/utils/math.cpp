@@ -58,42 +58,110 @@ size_t clock_count::getFPS () {
 float clock_count::getDelta () {
   return delta_result;
 }
-// Rect definition
-Rect::Rect () : xmin (0.0f), ymin (0.0f), xmax (0.0f), ymax (0.0f) {}
-Rect::Rect (float x, float y, const Align &a, float sx, float sy) {
-  unsigned char vert = a & 3;
+// Vector2 definition
+Vector2::Vector2(): x(0.0f), y(0.0f), main_align(Align::ALIGN_TOP_LEFT) {}
+Vector2::Vector2(float x_, float y_, const Align &a): x(x_), y(y_), main_align(a) {}
+void Vector2::getFloats(float *outFloats) {
+  //pivot align
+  unsigned char vert = pivot_align & 3;
   switch (vert) {
-  default:
-    xmin = x;
-    xmax = x + sx;
+  default: //left
+    outFloats[0] = x;
     break;
-  case 1:
-    xmin = x - sx * 0.5f;
-    xmax = xmin + sx;
+  case 1: //center
+    outFloats[0] = (engine::graph->getWidth() * 0.5f) + x;
     break;
-  case 2:
-    xmin = x - sx;
-    xmax = x;
+  case 2: //right
+    outFloats[0] = engine::graph->getWidth() - x;
     break;
   }
-  unsigned char hor = (a >> 2) & 3;
+  unsigned char hor = (pivot_align >> 2) & 3;
   switch (hor) {
-  default:
-    ymin = y;
-    ymax = y + sy;
+  default: //top
+    outFloats[1] = engine::graph->getHeight() - y;
     break;
-  case 1:
-    ymin = y - sy * 0.5f;
-    ymax = ymin + sy;
+  case 1: //center
+    outFloats[1] = (engine::graph->getHeight() * 0.5f) + y;
     break;
-  case 2:
-    ymin = y - sy;
-    ymax = y;
+  case 2: //bottom
+    outFloats[1] = y;
     break;
   }
 }
+// Rect definition
+Rect::Rect () : x (0.0f), y (0.0f), sx (0.0f), sy (0.0f), main_align(Align::ALIGN_TOP_LEFT), pivot_align(Align::ALIGN_TOP_LEFT) {}
+Rect::Rect (float x_, float y_, float sx_, float sy_, const Align &a, const Align &b) :  x (x_), y (y_), sx (sx_), sy (sy_), main_align(a), pivot_align(b) {}
+//format is {xmin, ymin, xmax, ymax }
+void Rect::getFloats(float *outFloats) {
+  //pivot align
+  {
+    unsigned char vert = pivot_align & 3;
+    switch (vert) {
+    default: //left
+      outFloats[0] = x;
+      outFloats[2] = x + sx;
+      break;
+    case 1: //center
+      outFloats[0] = x - (sx * 0.5f);
+      outFloats[2] = x + (sx * 0.5f);
+      break;
+    case 2: //right
+      outFloats[0] = x - sx;
+      outFloats[2] = x;
+      break;
+    }
+    unsigned char hor = (pivot_align >> 2) & 3;
+    switch (hor) {
+    default: //top
+      outFloats[1] = y - sy;
+      outFloats[3] = y;
+      break;
+    case 1: //center
+      outFloats[1] = y - (sy * 0.5f);
+      outFloats[3] = y + (sy * 0.5f);
+      break;
+    case 2: //bottom
+      outFloats[1] = y;
+      outFloats[3] = y + sy;
+      break;
+    }
+  }
+  //main align
+  {
+    unsigned char vert = main_align & 3;
+    switch (vert) {
+    default: //left
+      break;
+    case 1: //center
+      outFloats[0] += engine::graph->getWidth() * 0.5f;
+      outFloats[2] += engine::graph->getWidth() * 0.5f;
+      break;
+    case 2: //right
+      float temp = outFloats[0], temp1 = outFloats[2];
+      outFloats[0] = engine::graph->getWidth() - temp1;
+      outFloats[2] = engine::graph->getWidth() - temp;
+      break;
+    }
+    unsigned char hor = (main_align >> 2) & 3;
+    switch (hor) {
+    default: //top
+      float temp = outFloats[1], temp1 = outFloats[3];
+      outFloats[1] = engine::graph->getHeight() - temp1;
+      outFloats[3] = engine::graph->getHeight() - temp;
+      break;
+    case 1: //center
+      outFloats[1] += engine::graph->getHeight() * 0.5f;
+      outFloats[3] += engine::graph->getHeight() * 0.5f;
+      break;
+    case 2: //bottom
+      break;
+    }
+  }
+}
 bool Rect::insetOf (float x, float y) {
-  return (x > xmin) && (x < xmax) && (y > ymin) && (y < ymax);
+  float te[4];
+  getFloats(te);
+  return (x > te[0]) && (x < te[2]) && (y > te[1]) && (y < te[3]);
 }
 // matrix4 definition
 void matrix4::idt (float *a) {
