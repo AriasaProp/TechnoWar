@@ -281,7 +281,6 @@ bool opengles_graphics::preRender () {
                          "\nlayout(location = 0) out vec4 fragColor;"
                          "\nvoid main() {"
                          "\n    fragColor = v_color;"
-                         "\n    fragColor.a = 0.0;"
                          "\n}";
         glShaderSource (fi, 1, &ft, 0);
         glCompileShader (fi);
