@@ -1,5 +1,5 @@
-#include "../assets/stb_image.hpp"
 #include "uistage.hpp"
+#include "../assets/stb_image.hpp"
 #include "../engine.hpp"
 
 #include <cstdarg>
@@ -31,6 +31,7 @@ struct CharDescriptor {
 struct bmfont {
 private:
   short LineHeight;
+
 public:
   short Width;
   short Height;
@@ -44,7 +45,7 @@ public:
   float fscale ();
   void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
   void setFontSize (float); // px
-  float getLineHeight();
+  float getLineHeight ();
   bmfont (const char *);
   ~bmfont ();
 
@@ -63,10 +64,12 @@ static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
+static engine::flat_vertex vert[TEMP_SIZE];  //= 20 KB, approximate 1024 actors can be drawn at once
 static engine::flat_vertex vert2[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0, Static, Button };
+enum Actor_Type : size_t { None = 0,
+                           Static,
+                           Button };
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
@@ -83,7 +86,7 @@ void uistage::draw (float delta) {
   for (actor *act : actors) {
     act->draw (delta);
   }
-  //tooltip drawn
+  // tooltip drawn
   {
     size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
     engine::flat_vertex *verts = vert, *verts2 = vert2;
@@ -96,13 +99,13 @@ void uistage::draw (float delta) {
       auto &Chars = font->Chars;
       float width = 0;
       float F = font->fscale ();
-      for (const char *t = tlp.message.c_str(); *t; ++t) {
+      for (const char *t = tlp.message.c_str (); *t; ++t) {
         if (Chars.find (*t) == Chars.end ()) continue;
         width += Chars[*t].XAdvance;
         if (*(t + 1)) {
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+          auto it = Kearn.find (*reinterpret_cast<uint32_t *> (key));
           if (it != Kearn.end ())
             width += it->second;
         }
@@ -110,64 +113,63 @@ void uistage::draw (float delta) {
       width *= F;
       uint32_t hc = font->fcolor, bc = 0x88000000;
       if (tlp.lifetime < 1.65f) {
-        float transitionAlpha = tlp.lifetime/1.65f;
-        ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
-        ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
+        float transitionAlpha = tlp.lifetime / 1.65f;
+        ((uint8_t *)&hc)[3] = static_cast<uint8_t> (static_cast<float> (((uint8_t *)&hc)[3]) * transitionAlpha);
+        ((uint8_t *)&bc)[3] = static_cast<uint8_t> (static_cast<float> (((uint8_t *)&bc)[3]) * transitionAlpha);
       }
-      float x = (engine::graph->getWidth() - width) *.5f;
-      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
-      
-      //draw background
+      float x = (engine::graph->getWidth () - width) * .5f;
+      float y = engine::graph->getHeight () * 0.75f + (font->getLineHeight () + 10.5f) * i + 10.5f;
+
+      // draw background
       {
-        xList[0] = x - 5.0f; // minx
-        xList[1] = x + width + 5.0f; // maxx
-        yList[0] = y - font->getLineHeight() - 5.0f; // miny
-        yList[1] = y + 5.0f; // maxy
-      
+        xList[0] = x - 5.0f;                          // minx
+        xList[1] = x + width + 5.0f;                  // maxx
+        yList[0] = y - font->getLineHeight () - 5.0f; // miny
+        yList[1] = y + 5.0f;                          // maxy
+
         *(verts2++) = {xList[0], yList[0], bc, 0, 0};
         *(verts2++) = {xList[0], yList[1], bc, 0, 0};
         *(verts2++) = {xList[1], yList[0], bc, 0, 0};
         *(verts2++) = {xList[1], yList[1], bc, 0, 0};
       }
-      for (const char *t = tlp.message.c_str(); *t; t++) {
+      for (const char *t = tlp.message.c_str (); *t; t++) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
         CharDescriptor &f = itf->second;
-        xList[0] = x + (f.XOffset * F); // minx
-        yList[1] = y - (f.YOffset * F); // maxy
-        xList[1] = xList[0] + (f.Width * F); // maxx
+        xList[0] = x + (f.XOffset * F);       // minx
+        yList[1] = y - (f.YOffset * F);       // maxy
+        xList[1] = xList[0] + (f.Width * F);  // maxx
         yList[0] = yList[1] - (f.Height * F); // miny
-      
+
         uList[0] = f.x / (float)font->Width;
         vList[0] = f.y / (float)font->Height;
         uList[1] = (f.x + f.Width) / (float)font->Width;
         vList[1] = (f.y + f.Height) / (float)font->Height;
-      
+
         *(verts++) = {xList[0], yList[0], hc, uList[0], vList[1]};
         *(verts++) = {xList[0], yList[1], hc, uList[0], vList[0]};
         *(verts++) = {xList[1], yList[0], hc, uList[1], vList[1]};
         *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
-      
+
         if (*(t + 1)) {
           x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+          auto it = Kearn.find (*reinterpret_cast<uint32_t *> (key));
           if (it != Kearn.end ())
             x += it->second * F;
         }
       }
       tlp.lifetime -= delta;
-      text_tooltip_drawn += tlp.message.size();
+      text_tooltip_drawn += tlp.message.size ();
       ++tooltip_drawn;
     }
     engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
     engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
   }
-  
 }
 void uistage::cleartemp () {
-  memset(tooltips, 0, sizeof tooltips);
+  memset (tooltips, 0, sizeof tooltips);
 }
 void uistage::clear () {
   for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
@@ -205,16 +207,16 @@ uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k
   actors.insert (ua);
   return ua;
 }
-void uistage::temporaryTooltip(const char *fmt, ...) {
+void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
     return;
   size_t i = 9;
   do {
-    tooltips[i].lifetime = tooltips[i-1].lifetime;
-    tooltips[i].message = tooltips[i-1].message;
+    tooltips[i].lifetime = tooltips[i - 1].lifetime;
+    tooltips[i].message = tooltips[i - 1].message;
   } while ((--i) != 0);
   tooltips[i].lifetime = TOOLTIP_DURATION;
-  
+
   va_list ap;
   va_start (ap, fmt);
   vsprintf (global_temporary.char_buffer, fmt, ap);
@@ -273,7 +275,7 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  unsigned char *ucolor = reinterpret_cast<unsigned char*>(&fcolor);
+  unsigned char *ucolor = reinterpret_cast<unsigned char *> (&fcolor);
   ucolor[0] = r;
   ucolor[1] = g;
   ucolor[2] = b;
@@ -282,8 +284,8 @@ void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsign
 void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
 }
-float bmfont::getLineHeight() {
-  return static_cast<float>(LineHeight) * fontSizeUsed / fontSizeBase;
+float bmfont::getLineHeight () {
+  return static_cast<float> (LineHeight) * fontSizeUsed / fontSizeBase;
 }
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
@@ -412,7 +414,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
           else if (Key == "amount")
             Converter >> amount;
         }
-        Kearn[*reinterpret_cast<uint32_t*>(id)] = amount;
+        Kearn[*reinterpret_cast<uint32_t *> (id)] = amount;
       }
     }
   }
@@ -436,15 +438,15 @@ bmfont::~bmfont () {
 }
 //{ redefine actor
 void uistage::actor::draw (float delta) {
-  if (getKey().empty()) return;
+  if (getKey ().empty ()) return;
   (void)delta;
-  textureAtlas &ta = regions[getKey()];
+  textureAtlas &ta = regions[getKey ()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
   engine::flat_vertex *verts = vert;
-  Rect &rectangle = getRect();
+  Rect &rectangle = getRect ();
   // vertically 1
   if (split[3]) { // horizontally
     yList[0] = rectangle.ymin;
@@ -571,11 +573,11 @@ void uistage::actor::draw (float delta) {
 uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : text (ti) {
   float width = 0;
   auto &Chars = font->Chars;
-  for (const char *t = text.c_str(); *t; t++) {
+  for (const char *t = text.c_str (); *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     width += Chars[*t].XAdvance;
   }
-  rectangle = Rect (x, y, a, width * font->fscale (), font->getLineHeight());
+  rectangle = Rect (x, y, a, width * font->fscale (), font->getLineHeight ());
 }
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
@@ -586,7 +588,7 @@ void uistage::text_actor::draw (float delta) {
   engine::flat_vertex *verts = vert;
   auto &Kearn = font->Kearn;
   float x = rectangle.xmin;
-  for (const char *t = text.c_str(); *t; t++) {
+  for (const char *t = text.c_str (); *t; t++) {
     auto itf = Chars.find (*t);
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
@@ -608,16 +610,16 @@ void uistage::text_actor::draw (float delta) {
     if (*(t + 1)) {
       float nX = f.XAdvance;
       uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-      auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+      auto it = Kearn.find (*reinterpret_cast<uint32_t *> (key));
       if (it != Kearn.end ())
         nX += it->second;
       x += nX * F;
     }
   }
-  engine::graph->flat_render (font->ftexid, vert, text.size());
+  engine::graph->flat_render (font->ftexid, vert, text.size ());
 }
 size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
-void uistage::text_actor::setText(const char *fmt, ...) {
+void uistage::text_actor::setText (const char *fmt, ...) {
   if (fmt == NULL)
     return;
   va_list ap;
@@ -640,9 +642,9 @@ uistage::image_actor::~image_actor () {}
 uistage::button_actor::button_actor (std::string *k, Rect r, void (*onclick) ()) : keys (k), rectangle (r), onClick (onclick) {}
 Rect &uistage::button_actor::getRect () { return rectangle; }
 std::string uistage::button_actor::getKey () {
-  if (!keys[mstate].empty())
+  if (!keys[mstate].empty ())
     return keys[mstate];
-  else if (!keys[0].empty())
+  else if (!keys[0].empty ())
     return keys[0];
   else
     return "";

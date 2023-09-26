@@ -4,8 +4,8 @@
 #include "assets/stb_image.hpp"
 #include "utils/math.hpp"
 #include "utils/uistage.hpp"
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib> /* srand, rand */
 #include <cstring>
 #include <ctime> /* time */
@@ -13,7 +13,7 @@
 #ifdef BUILD_DATE
 #define STRINGIZE(x) #x
 #define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
-#define DATESTR STRINGIZE_VALUE_OF(BUILD_DATE)
+#define DATESTR STRINGIZE_VALUE_OF (BUILD_DATE)
 #else
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
@@ -24,7 +24,7 @@ engine::flat_vertex *touch_ptr;
 uistage::text_actor *t_fps, *t_dlt, *t_mem;
 
 void Main::start () {
-  uistage::clear();
+  uistage::clear ();
   uistage::loadBMFont ("default.fnt");
   touch_ptr = new engine::flat_vertex[]{
       // background
@@ -61,8 +61,7 @@ void Main::start () {
       {740.0f, 1150.0f, 0xff00ff00, 0, 1},
       {740.0f, 1200.0f, 0xff00ff00, 0, 0},
       {790.0f, 1150.0f, 0xff00ff00, 1, 1},
-      {790.0f, 1200.0f, 0xff00ff00, 1, 0}
-  };
+      {790.0f, 1200.0f, 0xff00ff00, 1, 0}};
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -121,25 +120,23 @@ void Main::start () {
 
   uistage::makeText (engine::graph->getWidth () * 0.5f, engine::graph->getHeight (), ALIGN_BOTTOM, DATESTR);
   uistage::makeText (engine::graph->getWidth () - 10, engine::graph->getHeight (), ALIGN_BOTTOM_RIGHT, "Main");
-  
-  
+
   t_fps = uistage::makeText (10, engine::graph->getHeight (), ALIGN_BOTTOM_LEFT, "#### FPS");
   t_dlt = uistage::makeText (10, engine::graph->getHeight () - 40, ALIGN_BOTTOM_LEFT, "#### sec");
   t_mem = uistage::makeText (10, engine::graph->getHeight () - 80, ALIGN_BOTTOM_LEFT, "##### byte");
-  
 
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip from button 1. Hello!!!");
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (150, 200, ALIGN_CENTER, 200, 200), [] () -> void {
+    uistage::temporaryTooltip ("Tooltip from button 1. Hello!!!");
   });
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (400, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip from button 2. Nothing happen?!");
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (400, 200, ALIGN_CENTER, 200, 200), [] () -> void {
+    uistage::temporaryTooltip ("Tooltip from button 2. Nothing happen?!");
   });
   uistage::makeImage ("test", Rect (650, 200, ALIGN_CENTER, 200, 200));
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (900, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip from button 3. Yeah ;-)");
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (900, 200, ALIGN_CENTER, 200, 200), [] () -> void {
+    uistage::temporaryTooltip ("Tooltip from button 3. Yeah ;-)");
   });
-  uistage::makeButton ({"btn1", "btn1_"}, Rect (1150, 200, ALIGN_CENTER, 200, 200), []() -> void {
-    uistage::temporaryTooltip("Tooltip from button 4. Okay");
+  uistage::makeButton ({"btn1", "btn1_"}, Rect (1150, 200, ALIGN_CENTER, 200, 200), [] () -> void {
+    uistage::temporaryTooltip ("Tooltip from button 4. Okay");
   });
 
   resume ();
@@ -148,10 +145,10 @@ void Main::resume () {
   clock_count::start ();
 }
 void Main::render () {
-  t_fps->setText("%03d FPS", clock_count::getFPS());
+  t_fps->setText ("%03d FPS", clock_count::getFPS ());
   float delta = clock_count::getDelta ();
-  t_dlt->setText("%03.3f sec", delta);
-  t_mem->setText("%011u byte", memory_usage::mem_usage());
+  t_dlt->setText ("%03.3f sec", delta);
+  t_mem->setText ("%011u byte", memory_usage::mem_usage ());
   engine::graph->clear (7);
   matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
@@ -178,11 +175,11 @@ void Main::render () {
   engine::graph->flat_render (nullptr, tch, 7);
 }
 void Main::pause () {
-  uistage::cleartemp();
+  uistage::cleartemp ();
   clock_count::end ();
 }
 void Main::end () {
-  pause();
+  pause ();
   uistage::clear ();
   engine::graph->delete_mesh (mp);
   delete[] touch_ptr;
