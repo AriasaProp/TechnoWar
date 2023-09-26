@@ -139,15 +139,15 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          a_graphics->reqResize();
-          break;
         case APP_CMD_WINDOW_RESIZED:
           a_graphics->onWindowResize();
           break;
         case APP_CMD_LOW_MEMORY:
           break;
+          /*
         case APP_CMD_DESTROY:
           break;
+          */
         default:
           break;
         }

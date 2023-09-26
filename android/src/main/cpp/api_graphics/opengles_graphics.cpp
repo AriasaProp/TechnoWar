@@ -29,7 +29,7 @@ struct opengles_texture : public engine::texture_core {
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 struct gl_data {
-  bool request_resize = false, request_window_resize = false;
+  bool request_resize = false;
   bool dirty_uiProj;
   bool dirty_worldProj;
   GLint ui_shader;
@@ -101,7 +101,7 @@ bool opengles_graphics::ready () {
   return window != nullptr;
 }
 void opengles_graphics::onWindowResize () {
-  mgl_data->request_window_resize |= true;
+  mgl_data->request_resize |= true;
 }
 bool opengles_graphics::preRender () {
   if (!window) return false;
@@ -321,21 +321,15 @@ bool opengles_graphics::preRender () {
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (mgl_data->request_window_resize) {
+  } else if (mgl_data->request_resize) {
     eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
     update_layout ();
-  } else if (mgl_data->request_resize) {
-    update_layout ();
   }
   mgl_data->request_resize = false;
-  mgl_data->request_window_resize = false;
   return true;
-}
-void opengles_graphics::reqResize () {
-  mgl_data->request_resize |= true;
 }
 void opengles_graphics::postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;

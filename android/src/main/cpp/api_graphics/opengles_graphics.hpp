@@ -14,7 +14,6 @@ public:
   bool ready () override;
   void onWindowResize () override;
   bool preRender () override;
-  void reqResize () override;
   void postRender (bool) override;
   void onWindowTerm () override;
   // core

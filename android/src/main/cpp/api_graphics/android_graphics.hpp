@@ -11,7 +11,6 @@ struct android_graphics : public engine::graphics_core {
   virtual bool ready () = 0;
   virtual void onWindowResize () = 0;
   virtual bool preRender () = 0;
-  virtual void reqResize () = 0;
   virtual void postRender (bool) = 0;
   virtual void onWindowTerm () = 0;
   virtual ~android_graphics () = 0;
