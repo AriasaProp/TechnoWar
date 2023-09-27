@@ -97,16 +97,19 @@ void opengles_graphics::onWindowInit (ANativeWindow *w) {
     killEGL(TERM_EGL_SURFACE);
   window = w;
 }
-bool opengles_graphics::ready () {
+bool inline opengles_graphics::ready () {
   return window != nullptr;
 }
 void opengles_graphics::onWindowResize () {
   mgl_data->request_resize |= true;
 }
 bool opengles_graphics::preRender () {
-  if (!window) return false;
+  if (!ready()) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
+      //proof
+      mgl_data->context = EGL_NO_CONTEXT;
+      mgl_data->surface = EGL_NO_SURFACE;
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
       eglInitialize (mgl_data->display, nullptr, nullptr);
       mgl_data->eConfig = nullptr;

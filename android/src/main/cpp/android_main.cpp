@@ -29,7 +29,7 @@
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
-enum APP_CMD : unsigned short {
+enum APP_CMD : unsigned char {
   APP_CMD_CREATE = 0,
   APP_CMD_START,
   APP_CMD_RESUME,
@@ -74,7 +74,7 @@ static void *android_app_entry (void *param) {
     bool running = false, started = false, resume = false;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
-    unsigned short read_cmd[2] {APP_CMD_CREATE, 0};
+    unsigned char read_cmd[2] {APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
       switch (ALooper_pollAll ( (started && running && a_graphics->ready()) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
@@ -185,11 +185,11 @@ static void *android_app_entry (void *param) {
   pthread_mutex_unlock (&app->mutex);
   return NULL;
 }
-static void write_android_cmd (android_app *app, unsigned short cmd, unsigned short cmd1 = 0) {
+static void write_android_cmd (android_app *app, unsigned char cmd, unsigned char cmd1 = 0) {
   pthread_mutex_lock (&app->mutex);
   app->wait_request = true;
   pthread_mutex_unlock (&app->mutex);
-  static unsigned short write_cmd[2];
+  static unsigned char write_cmd[2];
   write_cmd[0] = cmd;
   write_cmd[1] = cmd1;
   if (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd)
