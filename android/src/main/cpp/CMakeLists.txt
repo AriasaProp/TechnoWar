@@ -12,7 +12,7 @@ set(CMAKE_CXX_EXTENSION OFF)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -O3 -Wall -Wextra -Werror \
     -DANDROID_STL=c++_static \
-    -D_IDENTITY_=${BUILD_ID}
+    -D_IDENTITY_=${BUILD_ID} \
     -fexceptions -frtti")
 set(CORE_SRC "../../../../core/src/main")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
