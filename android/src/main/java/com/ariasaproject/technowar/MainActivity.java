@@ -21,6 +21,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         getWindow()
                 .getDecorView()
                 .setOnApplyWindowInsetsListener(this);
+        showToast("onCreate() dipanggil");
     }
     @Override
     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
@@ -80,51 +81,64 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         insetNative(insetsL, insetsT, insetsR, insetsB);
         return insets;
     }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
+    
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         getWindow().getDecorView().requestApplyInsets();
         super.surfaceCreated(holder);
+        showToast("surfaceCreated() dipanggil");
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
         super.surfaceChanged(holder, format, width, height);
+        showToast("surfaceChanged() dipanggil");
     }
 
     @Override
     public void onGlobalLayout() {
         getWindow().getDecorView().requestApplyInsets();
         super.onGlobalLayout();
+        showToast("onGlobalLayout() dipanggil");
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
+        showToast("surfaceDestroyed() dipanggil");
+    }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        showToast("onStart() dipanggil");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        showToast("onResume() dipanggil");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        showToast("onPause() dipanggil");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        showToast("onStop() dipanggil");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        showToast("onDestroy() dipanggil");
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
