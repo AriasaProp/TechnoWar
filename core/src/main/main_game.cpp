@@ -10,13 +10,21 @@
 #include <cstring>
 #include <ctime> /* time */
 
-#ifdef BUILD_DATE
 #define STRINGIZE(x) #x
 #define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
+
+#ifdef BUILD_DATE
 #define DATESTR STRINGIZE_VALUE_OF(BUILD_DATE)
 #else
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
+
+#ifdef _IDENTITY_
+#define NAMED_BUILD STRINGIZE_VALUE_OF(_IDENTITY_)
+#else
+#define NAMED_BUILD "Unspesified"
+#endif // _IDENTITY_
+
 
 engine::mesh_core *mp;
 engine::texture_core *tc;
@@ -82,7 +90,7 @@ void Main::start () {
   }
 
   uistage::makeText (Vector2(0, 0, ALIGN_TOP), ALIGN_TOP, DATESTR);
-  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT), ALIGN_TOP_RIGHT, "Main");
+  uistage::makeText (Vector2(10, 0, ALIGN_TOP_RIGHT), ALIGN_TOP_RIGHT, NAMED_BUILD);
   
   t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### FPS");
   t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### sec");
@@ -135,3 +143,12 @@ void Main::end () {
   uistage::clear ();
   engine::graph->delete_mesh (mp);
 }
+
+
+//done
+#undef NAMED_BUILD
+#undef DATESTR
+
+#undef STRINGIZE_VALUE_OF(x)
+#undef STRINGIZE(x)
+
