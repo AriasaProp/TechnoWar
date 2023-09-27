@@ -149,6 +149,6 @@ void Main::end () {
 #undef NAMED_BUILD
 #undef DATESTR
 
-#undef STRINGIZE_VALUE_OF(x)
-#undef STRINGIZE(x)
+#undef STRINGIZE_VALUE_OF
+#undef STRINGIZE
 
