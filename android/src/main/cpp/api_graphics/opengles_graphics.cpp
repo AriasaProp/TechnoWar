@@ -29,9 +29,9 @@ struct opengles_texture : public engine::texture_core {
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 struct gl_data {
-  bool request_resize = false;
   bool dirty_uiProj;
   bool dirty_worldProj;
+  unsigned char resize_state = 0;
   GLint ui_shader;
   GLint u_uiProj;
   GLint u_uiTex;
@@ -93,15 +93,15 @@ void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
   }
 }
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
-  if (window)
+  if (ready())
     killEGL(TERM_EGL_SURFACE);
   window = w;
 }
 bool inline opengles_graphics::ready () {
   return window != nullptr;
 }
-void opengles_graphics::onWindowResize () {
-  mgl_data->request_resize |= true;
+void opengles_graphics::onWindowResize (unsigned char par) {
+  mgl_data->resize_state |= par;
 }
 bool opengles_graphics::preRender () {
   if (!ready()) return false;
@@ -151,14 +151,14 @@ bool opengles_graphics::preRender () {
       // made root for null texture test
       {
         glGenTextures (1, &mgl_data->nullTextureId);
-        unsigned char data[16]{0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+        unsigned char data[4]{0xff, 0xff, 0xff, 0xff};
         glBindTexture (GL_TEXTURE_2D, mgl_data->nullTextureId);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, 2, 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *)data);
+        glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *)data);
         glBindTexture (GL_TEXTURE_2D, 0);
       }
       // validating gles resources
@@ -324,14 +324,16 @@ bool opengles_graphics::preRender () {
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
     update_layout ();
-  } else if (mgl_data->request_resize) {
-    eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
-    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
-    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
+  } else if (mgl_data->resize_state) {
+    if (mgl_data->resize_state & 2) {
+      eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+      eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
+      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
+      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
+    }
     update_layout ();
+    mgl_data->resize_state = 0;
   }
-  mgl_data->request_resize = false;
   return true;
 }
 void opengles_graphics::postRender (bool isDestroy) {
@@ -358,7 +360,7 @@ void opengles_graphics::postRender (bool isDestroy) {
   killEGL(EGLTermReq);
 }
 void opengles_graphics::onWindowTerm () {
-  if (!window) return;
+  if (!ready()) return;
   killEGL(TERM_EGL_SURFACE); //EGLSurface destroy
   window = nullptr;
 }

@@ -76,7 +76,7 @@ static void *android_app_entry (void *param) {
     android_input a_input (app->looper);
     unsigned char read_cmd[2] {APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (started && running && a_graphics->ready()) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ( (started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -139,8 +139,10 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
+          a_graphics->onWindowResize(1);
+          break;
         case APP_CMD_WINDOW_RESIZED:
-          a_graphics->onWindowResize();
+          a_graphics->onWindowResize(2);
           break;
         case APP_CMD_LOW_MEMORY:
           break;
@@ -154,6 +156,7 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
+        if (!a_graphics->ready()) break;
         if (!a_graphics->preRender ()) break;
         // core
         if (!created) {
