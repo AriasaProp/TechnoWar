@@ -4,8 +4,8 @@
 #include "assets/stb_image.hpp"
 #include "utils/math.hpp"
 #include "utils/uistage.hpp"
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <cstdlib> /* srand, rand */
 #include <cstring>
 #include <ctime> /* time */
@@ -31,7 +31,7 @@ engine::texture_core *tc;
 uistage::text_actor *t_fps, *t_dlt, *t_mem;
 
 void Main::start () {
-  uistage::clear();
+  uistage::clear ();
   uistage::loadBMFont ("default.fnt");
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
@@ -116,12 +116,10 @@ void Main::resume () {
   clock_count::start ();
 }
 void Main::render () {
-  t_fps->setText("%03d FPS", clock_count::getFPS());
+  t_fps->setText ("%03d FPS", clock_count::getFPS ());
   float delta = clock_count::getDelta ();
-  
   t_dlt->setText("%03.3f sec", delta);
   t_mem->setText("%011u byte", memory_usage::mem_usage());
-  
   engine::graph->clear (7);
   matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
@@ -135,11 +133,11 @@ void Main::render () {
   clock_count::render ();
 }
 void Main::pause () {
-  uistage::cleartemp();
+  uistage::cleartemp ();
   clock_count::end ();
 }
 void Main::end () {
-  pause();
+  pause ();
   uistage::clear ();
   engine::graph->delete_mesh (mp);
 }

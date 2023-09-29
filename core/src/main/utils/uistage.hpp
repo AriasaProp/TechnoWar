@@ -20,6 +20,7 @@ struct text_actor : public actor {
 private:
   std::string text;
   Rect rectangle;
+
 public:
   text_actor (Vector2, const Align &, std::string);
   Rect &getRect () override;
@@ -32,6 +33,7 @@ struct image_actor : public actor {
 private:
   std::string key;
   Rect rectangle;
+
 public:
   image_actor (std::string, Rect);
   Rect &getRect () override;
@@ -44,9 +46,10 @@ private:
   std::string *keys;
   size_t mstate = 0;
   Rect rectangle;
+
 public:
   void (*onClick) ();
-  button_actor (std::string *, Rect, void(*)());
+  button_actor (std::string *, Rect, void (*) ());
   Rect &getRect () override;
   std::string getKey () override;
   void setState (size_t);

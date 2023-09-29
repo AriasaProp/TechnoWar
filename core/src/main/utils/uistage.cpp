@@ -1,5 +1,5 @@
-#include "../assets/stb_image.hpp"
 #include "uistage.hpp"
+#include "../assets/stb_image.hpp"
 #include "../engine.hpp"
 
 #include <cstdarg>
@@ -171,26 +171,26 @@ void uistage::draw (float delta) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
         CharDescriptor &f = itf->second;
-        xList[0] = x + (f.XOffset * F); // minx
-        yList[1] = y - (f.YOffset * F); // maxy
-        xList[1] = xList[0] + (f.Width * F); // maxx
+        xList[0] = x + (f.XOffset * F);       // minx
+        yList[1] = y - (f.YOffset * F);       // maxy
+        xList[1] = xList[0] + (f.Width * F);  // maxx
         yList[0] = yList[1] - (f.Height * F); // miny
-      
+
         uList[0] = f.x / (float)font->Width;
         vList[0] = f.y / (float)font->Height;
         uList[1] = (f.x + f.Width) / (float)font->Width;
         vList[1] = (f.y + f.Height) / (float)font->Height;
-      
+
         *(verts++) = {xList[0], yList[0], hc, uList[0], vList[1]};
         *(verts++) = {xList[0], yList[1], hc, uList[0], vList[0]};
         *(verts++) = {xList[1], yList[0], hc, uList[1], vList[1]};
         *(verts++) = {xList[1], yList[1], hc, uList[1], vList[0]};
-      
+
         if (*(t + 1)) {
           x += f.XAdvance * F;
           uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
           auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+          auto it = Kearn.find (*reinterpret_cast<uint32_t *> (key));
           if (it != Kearn.end ())
             x += it->second * F;
         }
@@ -203,7 +203,7 @@ void uistage::draw (float delta) {
     engine::graph->flat_render (font->ftexid, temp_vert, to_drawn);
 }
 void uistage::cleartemp () {
-  memset(tooltips, 0, sizeof tooltips);
+  memset (tooltips, 0, sizeof tooltips);
 }
 void uistage::clear () {
   for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
@@ -235,7 +235,7 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
   actors.insert (ua);
   return ua;
 }
-void uistage::temporaryTooltip(const char *fmt, ...) {
+void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
     return;
   size_t i = 6;
@@ -319,7 +319,6 @@ float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
 }
-
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
@@ -447,7 +446,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
           else if (Key == "amount")
             Converter >> amount;
         }
-        Kearn[*reinterpret_cast<uint32_t*>(id)] = amount;
+        Kearn[*reinterpret_cast<uint32_t *> (id)] = amount;
       }
     }
   }
@@ -471,9 +470,9 @@ bmfont::~bmfont () {
 }
 //{ redefine actor
 void uistage::actor::draw (float delta) {
-  if (getKey().empty()) return;
+  if (getKey ().empty ()) return;
   (void)delta;
-  textureAtlas &ta = regions[getKey()];
+  textureAtlas &ta = regions[getKey ()];
   engine::texture_core *tex = ta.tex;
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
@@ -655,7 +654,7 @@ void uistage::text_actor::draw (float delta) {
     if (*(t + 1)) {
       float nX = f.XAdvance;
       uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-      auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+      auto it = Kearn.find (*reinterpret_cast<uint32_t *> (key));
       if (it != Kearn.end ())
         nX += it->second;
       x += nX * F;
@@ -685,9 +684,9 @@ uistage::image_actor::~image_actor () {}
 uistage::button_actor::button_actor (std::string *k, Rect r, void (*onclick) ()) : keys (k), rectangle (r), onClick (onclick) {}
 Rect &uistage::button_actor::getRect () { return rectangle; }
 std::string uistage::button_actor::getKey () {
-  if (!keys[mstate].empty())
+  if (!keys[mstate].empty ())
     return keys[mstate];
-  else if (!keys[0].empty())
+  else if (!keys[0].empty ())
     return keys[0];
   else
     return "";

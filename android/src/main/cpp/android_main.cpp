@@ -1,10 +1,10 @@
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <climits>
-#include <cstdlib>
-#include <cassert>
-#include <cstring>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <initializer_list>
 #include <memory>
 #include <poll.h>
@@ -80,7 +80,7 @@ static void *android_app_entry (void *param) {
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
     while (cmd != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (running && (window != nullptr)) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ((running && (window != nullptr)) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -129,7 +129,7 @@ static void *android_app_entry (void *param) {
         case APP_CMD_DESTROY:
           if (window) {
             a_graphics->preRender (window, resize);
-            Main::end();
+            Main::end ();
           }
           created = false;
           a_graphics->postRender (true);
@@ -167,7 +167,7 @@ static void *android_app_entry (void *param) {
         a_graphics->preRender (window, resize);
         // core
         if (!created) {
-          Main::start();
+          Main::start ();
           created = true;
           resume = false;
         } else if (resume) {
