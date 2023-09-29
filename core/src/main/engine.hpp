@@ -1,7 +1,7 @@
 #ifndef _Included_Engine
 #define _Included_Engine 1
 // maximum ui draws
-#define MAX_UI_DRAW 100
+#define MAX_UI_DRAW 1024
 // maximum output log message in char
 #define MAX_GL_MSG 1024
 

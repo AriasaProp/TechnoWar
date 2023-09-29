@@ -9,26 +9,9 @@
 #include <string>
 
 namespace uistage {
-struct texKey_state {
-  enum State : unsigned int {
-    Idle = 0,
-    Hover,
-    Pressed,
-    Disabled,
-    Focused,
-    Selected,
-    Error,
-    Loading,
-    Checked,
-    Empty,
-    Active
-  } mState;
-  std::string key;
-};
 struct actor {
   virtual Rect &getRect () = 0;
   virtual std::string getKey () = 0;
-  virtual size_t getType () const = 0;
   virtual void draw (float);
   virtual ~actor () {}
 };
@@ -38,11 +21,10 @@ private:
   std::string text;
   Rect rectangle;
 public:
-  text_actor (float, float, Align, std::string);
+  text_actor (Vector2, const Align &, std::string);
   Rect &getRect () override;
   std::string getKey () override;
   void draw (float) override;
-  size_t getType () const override;
   void setText(const char *, ...);
   ~text_actor () override;
 };
@@ -54,7 +36,6 @@ public:
   image_actor (std::string, Rect);
   Rect &getRect () override;
   std::string getKey () override;
-  size_t getType () const override;
   void draw (float) override;
   ~image_actor () override;
 };
@@ -69,7 +50,6 @@ public:
   Rect &getRect () override;
   std::string getKey () override;
   void setState (size_t);
-  size_t getType () const override;
   void draw (float) override;
   ~button_actor () override;
 };
@@ -88,7 +68,7 @@ void clear ();
 // all actor types
 image_actor *makeImage (std::string, Rect);
 button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
-text_actor *makeText (float, float, Align, std::string);
+text_actor *makeText (Vector2, const Align &, std::string);
 void temporaryTooltip(const char*, ...);
 
 void touchDown (float, float, int, int);
@@ -96,6 +76,6 @@ void touchMove (float, float, float, float, int, int);
 void touchUp (float, float, int, int);
 void touchCanceled (float, float, int, int);
 
-} // namespace uistage
+} // uistage
 
 #endif // Included_UISTAGE_

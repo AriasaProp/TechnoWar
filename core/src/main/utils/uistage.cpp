@@ -15,11 +15,10 @@
 #include <utility>
 
 #define TOOLTIP_DURATION 4.75f
-#define TEMP_SIZE 4095
+#define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
-union glb_tmp {
-  char char_buffer[1024]; // for 1 kB => 4 kbit
-} global_temporary;
+engine::flat_vertex temp_vert[MAX_UI_DRAW*4]; //= 20 KB, approximate 1024 actors can be drawn at once
+char temp_char_buffer[1024]; // for 1 kB => 4 kbit
 
 struct CharDescriptor {
   short x, y;
@@ -29,25 +28,20 @@ struct CharDescriptor {
 };
 
 struct bmfont {
-private:
   short LineHeight;
-public:
   short Width;
   short Height;
   short Base;
   short Outline;
+  uint32_t fcolor;
+  float fontSizeBase, fontSizeUsed;
   std::unordered_map<int, CharDescriptor> Chars;
   std::unordered_map<uint32_t, float> Kearn;
-  uint32_t fcolor;
   engine::texture_core *ftexid;
-  float fontSizeBase, fontSizeUsed;
   float fscale ();
-  void SetColor (unsigned char, unsigned char, unsigned char, unsigned char);
   void setFontSize (float); // px
-  float getLineHeight();
   bmfont (const char *);
   ~bmfont ();
-
 } *font = nullptr;
 
 struct textureAtlas {
@@ -56,17 +50,14 @@ struct textureAtlas {
   uint32_t clr;
 };
 struct tooltip {
-  float lifetime; // in period 10000 of period as delta time
+  float lifetime, width;
   std::string message;
-} tooltips[10];
+} tooltips[7];
 static std::unordered_map<std::string, textureAtlas> regions;
 // static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
-static engine::flat_vertex vert[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
-static engine::flat_vertex vert2[TEMP_SIZE]; //= 20 KB, approximate 1024 actors can be drawn at once
 static float yList[2], vList[2], xList[2], uList[2];
-enum Actor_Type : size_t { None = 0, Static, Button };
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
@@ -83,52 +74,99 @@ void uistage::draw (float delta) {
   for (actor *act : actors) {
     act->draw (delta);
   }
-  //tooltip drawn
+  size_t to_drawn = 7;
+  engine::flat_vertex *verts = temp_vert;
+  // touch pointer care
   {
-    size_t tooltip_drawn = 0, text_tooltip_drawn = 0;
-    engine::flat_vertex *verts = vert, *verts2 = vert2;
-    for (size_t i = 0; i < 10; ++i) {
+        // background
+    *(verts++) = {435.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 0, 1};
+    *(verts++) = {435.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 0, 0};
+    *(verts++) = {805.5f, engine::graph->getHeight() - 155.0f, 0xff999999, 1, 1};
+    *(verts++) = {805.5f, engine::graph->getHeight() - 095.0f, 0xff999999, 1, 0};
+        // ptr 1
+    uint32_t clr = engine::inpt->isTouched (0) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {440.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {440.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {490.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {490.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 2
+    clr = engine::inpt->isTouched (1) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {500.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {500.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {550.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {550.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 3
+    clr = engine::inpt->isTouched (2) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {560.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {560.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {610.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {610.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 4
+    clr = engine::inpt->isTouched (3) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {620.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {620.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {670.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {670.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 5
+    clr = engine::inpt->isTouched (4) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {680.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {680.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {730.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {730.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+        // ptr 6
+    clr = engine::inpt->isTouched (5) ? 0xff00ff00 : 0xff0000ff;
+    *(verts++) = {740.0f, engine::graph->getHeight() - 150.0f, clr, 0, 1};
+    *(verts++) = {740.0f, engine::graph->getHeight() - 100.0f, clr, 0, 0};
+    *(verts++) = {790.0f, engine::graph->getHeight() - 150.0f, clr, 1, 1};
+    *(verts++) = {790.0f, engine::graph->getHeight() - 100.0f, clr, 1, 0};
+  }
+  //tooltip background drawn
+  float F = font->fscale ();
+  {
+    //background
+    for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) {
         tlp.message = "";
         break;
       }
-      auto &Chars = font->Chars;
-      float width = 0;
-      float F = font->fscale ();
-      for (const char *t = tlp.message.c_str(); *t; ++t) {
-        if (Chars.find (*t) == Chars.end ()) continue;
-        width += Chars[*t].XAdvance;
-        if (*(t + 1)) {
-          uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
-          auto &Kearn = font->Kearn;
-          auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
-          if (it != Kearn.end ())
-            width += it->second;
-        }
+      float x = (engine::graph->getWidth() - tlp.width) *.5f;
+      float y = engine::graph->getHeight() * 0.75f + (( static_cast<float>(font->LineHeight) * F) + 10.5f) * i + 10.5f;
+      
+      xList[0] = x - 5.0f; // minx
+      xList[1] = x + tlp.width + 5.0f; // maxx
+      yList[0] = y - (static_cast<float>(font->LineHeight) * F) - 5.0f; // miny
+      yList[1] = y + 5.0f; // maxy
+      uint32_t bc = 0x88000000;
+      if (tlp.lifetime < 1.65f) {
+        float transitionAlpha = tlp.lifetime/1.65f;
+        ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
-      width *= F;
-      uint32_t hc = font->fcolor, bc = 0x88000000;
+      *(verts++) = {xList[0], yList[0], bc, 0, 0};
+      *(verts++) = {xList[0], yList[1], bc, 0, 0};
+      *(verts++) = {xList[1], yList[0], bc, 0, 0};
+      *(verts++) = {xList[1], yList[1], bc, 0, 0};
+      ++to_drawn;
+    }
+  }
+  if (to_drawn)
+    engine::graph->flat_render (nullptr, temp_vert, to_drawn);
+  to_drawn = 0;
+  verts = temp_vert;
+  {
+    //text tooltip
+    for (size_t i = 0; i < 7; ++i) {
+      tooltip &tlp = tooltips[i];
+      if (tlp.lifetime < 0.0f) break;
+      uint32_t hc = font->fcolor;
       if (tlp.lifetime < 1.65f) {
         float transitionAlpha = tlp.lifetime/1.65f;
         ((uint8_t*)&hc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&hc)[3]) * transitionAlpha);
-        ((uint8_t*)&bc)[3] = static_cast<uint8_t>(static_cast<float>(((uint8_t*)&bc)[3]) * transitionAlpha);
       }
-      float x = (engine::graph->getWidth() - width) *.5f;
-      float y = engine::graph->getHeight() * 0.75f + (font->getLineHeight() + 10.5f) * i + 10.5f;
+      float x = (engine::graph->getWidth() - tlp.width) *.5f;
+      float y = engine::graph->getHeight() * 0.75f + ((static_cast<float>(font->LineHeight) * font->fscale()) + 10.5f) * i + 10.5f;
       
-      //draw background
-      {
-        xList[0] = x - 5.0f; // minx
-        xList[1] = x + width + 5.0f; // maxx
-        yList[0] = y - font->getLineHeight() - 5.0f; // miny
-        yList[1] = y + 5.0f; // maxy
-      
-        *(verts2++) = {xList[0], yList[0], bc, 0, 0};
-        *(verts2++) = {xList[0], yList[1], bc, 0, 0};
-        *(verts2++) = {xList[1], yList[0], bc, 0, 0};
-        *(verts2++) = {xList[1], yList[1], bc, 0, 0};
-      }
+      auto &Chars = font->Chars;
       for (const char *t = tlp.message.c_str(); *t; t++) {
         auto itf = Chars.find (*t);
         if (itf == Chars.end ()) continue;
@@ -158,13 +196,11 @@ void uistage::draw (float delta) {
         }
       }
       tlp.lifetime -= delta;
-      text_tooltip_drawn += tlp.message.size();
-      ++tooltip_drawn;
+      to_drawn += tlp.message.size();
     }
-    engine::graph->flat_render (nullptr, vert2, tooltip_drawn);
-    engine::graph->flat_render (font->ftexid, vert, text_tooltip_drawn);
   }
-  
+  if (to_drawn)
+    engine::graph->flat_render (font->ftexid, temp_vert, to_drawn);
 }
 void uistage::cleartemp () {
   memset(tooltips, 0, sizeof tooltips);
@@ -189,43 +225,52 @@ uistage::image_actor *uistage::makeImage (std::string k, Rect r) {
 uistage::button_actor *uistage::makeButton (std::initializer_list<std::string> k, Rect r, void (*onclick) ()) {
   if (!k.size ()) throw ("button must have a key texture");
   std::string *K = new std::string[k.size ()];
-  size_t i = 0;
-  const std::string *it = k.begin (), *end = k.end ();
-  while (it != end) {
-    K[i] = *it;
-    ++it;
-    ++i;
-  }
+  std::copy(k.begin (), k.end (), K);
   uistage::button_actor *ua = new button_actor (K, r, onclick);
   actors.insert (ua);
   return ua;
 }
-uistage::text_actor *uistage::makeText (float x, float y, Align a, std::string k) {
-  uistage::text_actor *ua = new text_actor (x, y, a, k.c_str ());
+uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string k) {
+  uistage::text_actor *ua = new text_actor (pos, a, k.c_str ());
   actors.insert (ua);
   return ua;
 }
 void uistage::temporaryTooltip(const char *fmt, ...) {
   if (fmt == NULL)
     return;
-  size_t i = 9;
+  size_t i = 6;
   do {
-    tooltips[i].lifetime = tooltips[i-1].lifetime;
-    tooltips[i].message = tooltips[i-1].message;
-  } while ((--i) != 0);
+    tooltips[i] = tooltips[i-1];
+    tooltips[i].lifetime -= 0.2f;
+  } while (--i);
   tooltips[i].lifetime = TOOLTIP_DURATION;
-  
   va_list ap;
   va_start (ap, fmt);
-  vsprintf (global_temporary.char_buffer, fmt, ap);
+  vsprintf (temp_char_buffer, fmt, ap);
   va_end (ap);
-  tooltips[i].message = global_temporary.char_buffer;
+  tooltips[i].message = temp_char_buffer;
+  auto &Chars = font->Chars;
+  float width = 0;
+  for (const char *t = tooltips[i].message.c_str(); *t; ++t) {
+    if (Chars.find (*t) == Chars.end ()) continue;
+    width += Chars[*t].XAdvance;
+    if (*(t + 1)) {
+      uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+      auto &Kearn = font->Kearn;
+      auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+      if (it != Kearn.end ())
+        width += it->second;
+    }
+  }
+  width *= font->fscale();
+  tooltips[i].width = width;
 }
 uistage::actor *focused_actor[100]{};
 void uistage::touchDown (float x, float y, int pointer, int button) {
   for (actor *act : actors) {
-    if ((act->getType () == Actor_Type::Button) && (act->getRect ().insetOf (x, y))) {
-      ((button_actor *)act)->setState (1);
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act && act->getRect().insetOf(x,y)) {
+      button_act->setState (1);
       focused_actor[pointer] = act;
       return;
     }
@@ -242,13 +287,13 @@ void uistage::touchMove (float x, float y, float xs, float ys, int pointer, int 
   (void)button;
 }
 void uistage::touchUp (float x, float y, int pointer, int button) {
-  if (focused_actor[pointer]) {
-    actor *act = focused_actor[pointer];
-    if (act->getType () == Actor_Type::Button) {
-      button_actor *bact = (button_actor *)act;
-      bact->setState (0);
-      if (bact->onClick != NULL)
-        bact->onClick ();
+  actor *act = focused_actor[pointer];
+  if (act) {
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act) {
+      button_act->setState (0);
+      if (button_act->onClick != NULL)
+        button_act->onClick ();
     }
     focused_actor[pointer] = nullptr;
   }
@@ -257,11 +302,10 @@ void uistage::touchUp (float x, float y, int pointer, int button) {
   (void)button;
 }
 void uistage::touchCanceled (float x, float y, int pointer, int button) {
-  if (focused_actor[pointer]) {
-    actor *act = focused_actor[pointer];
-    if (act->getType () == Actor_Type::Button) {
-      ((button_actor *)act)->setState (0);
-    }
+  actor *act = focused_actor[pointer];
+  if (act) {
+    button_actor *button_act = dynamic_cast<button_actor*>(act);
+    if (button_act) button_act->setState (0);
     focused_actor[pointer] = nullptr;
   }
   (void)x;
@@ -272,19 +316,10 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 // define bmfont source
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
-void bmfont::SetColor (unsigned char r, unsigned char g, unsigned char b, unsigned char a) {
-  unsigned char *ucolor = reinterpret_cast<unsigned char*>(&fcolor);
-  ucolor[0] = r;
-  ucolor[1] = g;
-  ucolor[2] = b;
-  ucolor[3] = a;
-}
 void bmfont::setFontSize (float size) { // px
   fontSizeUsed = size;
 }
-float bmfont::getLineHeight() {
-  return static_cast<float>(LineHeight) * fontSizeUsed / fontSizeBase;
-}
+
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
@@ -443,17 +478,18 @@ void uistage::actor::draw (float delta) {
   // left, top, right, bottom
   const unsigned int *split = ta.region.patch;
   size_t quadCount = 0;
-  engine::flat_vertex *verts = vert;
-  Rect &rectangle = getRect();
+  engine::flat_vertex *verts = temp_vert;
+  float rectangle[4];
+  getRect().getFloats(rectangle);
   // vertically 1
   if (split[3]) { // horizontally
-    yList[0] = rectangle.ymin;
-    yList[1] = rectangle.ymin + split[3];
+    yList[0] = rectangle[1];
+    yList[1] = rectangle[1] + split[3];
     vList[0] = float (ta.region.pos[1] + ta.region.size[1]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -462,8 +498,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -474,8 +510,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -486,14 +522,14 @@ void uistage::actor::draw (float delta) {
     }
   }
   // vertically 2
-  yList[0] = rectangle.ymin + split[3];
-  yList[1] = rectangle.ymax - split[1];
+  yList[0] = rectangle[1] + split[3];
+  yList[1] = rectangle[3] - split[1];
   if (yList[1] > yList[0]) { // horizontally
     vList[0] = float (ta.region.pos[1] + ta.region.size[1] - split[3]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -502,8 +538,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -514,8 +550,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -527,13 +563,13 @@ void uistage::actor::draw (float delta) {
   }
   // vertically 3
   if (split[1]) { // horizontally
-    yList[0] = rectangle.ymax - split[1];
-    yList[1] = rectangle.ymax;
+    yList[0] = rectangle[3] - split[1];
+    yList[1] = rectangle[3];
     vList[0] = float (ta.region.pos[1] + split[1]) / float (tex->height ());
     vList[1] = float (ta.region.pos[1]) / float (tex->height ());
     if (split[0]) {
-      xList[0] = rectangle.xmin;
-      xList[1] = rectangle.xmin + split[0];
+      xList[0] = rectangle[0];
+      xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.region.pos[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -542,8 +578,8 @@ void uistage::actor::draw (float delta) {
       *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
       quadCount++;
     }
-    xList[0] = rectangle.xmin + split[0];
-    xList[1] = rectangle.xmax - split[2];
+    xList[0] = rectangle[0] + split[0];
+    xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.region.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
@@ -554,8 +590,8 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
     if (split[2]) {
-      xList[0] = rectangle.xmax - split[2];
-      xList[1] = rectangle.xmax;
+      xList[0] = rectangle[2] - split[2];
+      xList[1] = rectangle[2];
       uList[0] = float (ta.region.pos[0] + ta.region.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.region.pos[0] + ta.region.size[0]) / float (tex->width ());
       *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
@@ -565,17 +601,26 @@ void uistage::actor::draw (float delta) {
       quadCount++;
     }
   }
-  engine::graph->flat_render (tex, vert, quadCount);
+  engine::graph->flat_render (tex, temp_vert, quadCount);
 }
 
-uistage::text_actor::text_actor (float x, float y, Align a, std::string ti) : text (ti) {
+uistage::text_actor::text_actor (Vector2 _pos, const Align &a, std::string ti) : text (ti) {
   float width = 0;
   auto &Chars = font->Chars;
+  auto &Kearn = font->Kearn;
   for (const char *t = text.c_str(); *t; t++) {
     if (Chars.find (*t) == Chars.end ()) continue;
     width += Chars[*t].XAdvance;
+    if (*(t + 1)) {
+      uint16_t key[2] = {static_cast<uint16_t> (*t), static_cast<uint16_t> (*(t + 1))};
+      auto it = Kearn.find (*reinterpret_cast<uint32_t*>(key));
+      if (it != Kearn.end ())
+        width += it->second;
+    }
   }
-  rectangle = Rect (x, y, a, width * font->fscale (), font->getLineHeight());
+  float out[2];
+  _pos.getFloats(out);
+  rectangle = Rect (out[0], out[1], width * font->fscale (), (static_cast<float>(font->LineHeight) * font->fscale()), ALIGN_BOTTOM_LEFT, a);
 }
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
@@ -583,15 +628,17 @@ void uistage::text_actor::draw (float delta) {
   uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
-  engine::flat_vertex *verts = vert;
+  engine::flat_vertex *verts = temp_vert;
   auto &Kearn = font->Kearn;
-  float x = rectangle.xmin;
+  float r[4];
+  rectangle.getFloats(r);
+  float x = r[0];
   for (const char *t = text.c_str(); *t; t++) {
     auto itf = Chars.find (*t);
     if (itf == Chars.end ()) continue;
     CharDescriptor &f = itf->second;
     xList[0] = x + (f.XOffset * F);              // minx
-    yList[1] = rectangle.ymax - (f.YOffset * F); // maxy
+    yList[1] = r[3] - (f.YOffset * F); // maxy
     xList[1] = xList[0] + (f.Width * F);         // maxx
     yList[0] = yList[1] - (f.Height * F);        // miny
 
@@ -614,24 +661,22 @@ void uistage::text_actor::draw (float delta) {
       x += nX * F;
     }
   }
-  engine::graph->flat_render (font->ftexid, vert, text.size());
+  engine::graph->flat_render (font->ftexid, temp_vert, text.size());
 }
-size_t uistage::text_actor::getType () const { return Actor_Type::Static; }
 void uistage::text_actor::setText(const char *fmt, ...) {
   if (fmt == NULL)
     return;
   va_list ap;
   va_start (ap, fmt);
-  vsprintf (global_temporary.char_buffer, fmt, ap);
+  vsprintf (temp_char_buffer, fmt, ap);
   va_end (ap);
-  text = global_temporary.char_buffer;
+  text = temp_char_buffer;
 }
 uistage::text_actor::~text_actor () {}
 
 uistage::image_actor::image_actor (std::string k, Rect r) : key (k), rectangle (r) {}
 Rect &uistage::image_actor::getRect () { return rectangle; }
 std::string uistage::image_actor::getKey () { return key; }
-size_t uistage::image_actor::getType () const { return Actor_Type::Static; }
 void uistage::image_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }
@@ -648,7 +693,6 @@ std::string uistage::button_actor::getKey () {
     return "";
 }
 void uistage::button_actor::setState (size_t state) { mstate = state; }
-size_t uistage::button_actor::getType () const { return Actor_Type::Button; }
 void uistage::button_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }
