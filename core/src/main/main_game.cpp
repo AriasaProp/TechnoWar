@@ -19,8 +19,8 @@
 #define DATESTR "No Build Date"
 #endif // BUILD_DATE
 
-#ifdef _IDENTITY_
-#define NAMED_BUILD STRINGIZE_VALUE_OF(_IDENTITY_)
+#ifdef BUILD_BRANCH
+#define NAMED_BUILD STRINGIZE_VALUE_OF(BUILD_BRANCH)
 #else
 #define NAMED_BUILD "Unspesified"
 #endif // _IDENTITY_
@@ -36,35 +36,35 @@ void Main::start () {
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
-      {{+150.0f, +150.0f, -150.0f}, 0xff0000ff},
-      {{+150.0f, -150.0f, -150.0f}, 0xff0000ff},
-      {{-150.0f, -150.0f, -150.0f}, 0xff0000ff},
-      {{-150.0f, +150.0f, -150.0f}, 0xff0000ff},
+      {{+250.0f, +250.0f, -250.0f}, 0xff0000ff},
+      {{+250.0f, -250.0f, -250.0f}, 0xff0000ff},
+      {{-250.0f, -250.0f, -250.0f}, 0xff0000ff},
+      {{-250.0f, +250.0f, -250.0f}, 0xff0000ff},
       // left green
-      {{-150.0f, +150.0f, -150.0f}, 0xff00ff00},
-      {{-150.0f, -150.0f, -150.0f}, 0xff00ff00},
-      {{-150.0f, -150.0f, +150.0f}, 0xff00ff00},
-      {{-150.0f, +150.0f, +150.0f}, 0xff00ff00},
+      {{-250.0f, +250.0f, -250.0f}, 0xff00ff00},
+      {{-250.0f, -250.0f, -250.0f}, 0xff00ff00},
+      {{-250.0f, -250.0f, +250.0f}, 0xff00ff00},
+      {{-250.0f, +250.0f, +250.0f}, 0xff00ff00},
       // right blue
-      {{+150.0f, +150.0f, +150.0f}, 0xffff0000},
-      {{+150.0f, -150.0f, +150.0f}, 0xffff0000},
-      {{+150.0f, -150.0f, -150.0f}, 0xffff0000},
-      {{+150.0f, +150.0f, -150.0f}, 0xffff0000},
+      {{+250.0f, +250.0f, +250.0f}, 0xffff0000},
+      {{+250.0f, -250.0f, +250.0f}, 0xffff0000},
+      {{+250.0f, -250.0f, -250.0f}, 0xffff0000},
+      {{+250.0f, +250.0f, -250.0f}, 0xffff0000},
       // bot gray
-      {{+150.0f, -150.0f, -150.0f}, 0xff333333},
-      {{+150.0f, -150.0f, +150.0f}, 0xff333333},
-      {{-150.0f, -150.0f, +150.0f}, 0xff333333},
-      {{-150.0f, -150.0f, -150.0f}, 0xff333333},
+      {{+250.0f, -250.0f, -250.0f}, 0xff333333},
+      {{+250.0f, -250.0f, +250.0f}, 0xff333333},
+      {{-250.0f, -250.0f, +250.0f}, 0xff333333},
+      {{-250.0f, -250.0f, -250.0f}, 0xff333333},
       // top purple
-      {{+150.0f, +150.0f, +150.0f}, 0xff00ffff},
-      {{+150.0f, +150.0f, -150.0f}, 0xff00ffff},
-      {{-150.0f, +150.0f, -150.0f}, 0xff00ffff},
-      {{-150.0f, +150.0f, +150.0f}, 0xff00ffff},
+      {{+250.0f, +250.0f, +250.0f}, 0xff00ffff},
+      {{+250.0f, +250.0f, -250.0f}, 0xff00ffff},
+      {{-250.0f, +250.0f, -250.0f}, 0xff00ffff},
+      {{-250.0f, +250.0f, +250.0f}, 0xff00ffff},
       // back fulle
-      {{-150.0f, +150.0f, +150.0f}, 0xffffff00},
-      {{-150.0f, -150.0f, +150.0f}, 0xffffffff},
-      {{+150.0f, -150.0f, +150.0f}, 0xffff0000},
-      {{+150.0f, +150.0f, +150.0f}, 0xff00ff00}};
+      {{-250.0f, +250.0f, +250.0f}, 0xffffff00},
+      {{-250.0f, -250.0f, +250.0f}, 0xffffffff},
+      {{+250.0f, -250.0f, +250.0f}, 0xffff0000},
+      {{+250.0f, +250.0f, +250.0f}, 0xff00ff00}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mp = engine::graph->gen_mesh (vert, 24, indices, 36);
 
@@ -143,7 +143,6 @@ void Main::end () {
   uistage::clear ();
   engine::graph->delete_mesh (mp);
 }
-
 
 //done
 #undef NAMED_BUILD

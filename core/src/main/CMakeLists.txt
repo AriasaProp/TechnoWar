@@ -21,6 +21,13 @@ ENDMACRO (TODAY)
 TODAY(BUILD_DATE)
 add_definitions(-DBUILD_DATE=${BUILD_DATE})
 
+execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    OUTPUT_VARIABLE BUILD_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+add_definitions(-DBUILD_BRANCH=${BUILD_BRANCH})
+
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
 include_directories(${Include_Dir})
 file(GLOB_RECURSE Src_Files "*.cpp")

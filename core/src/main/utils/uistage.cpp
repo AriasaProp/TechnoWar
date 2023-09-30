@@ -34,12 +34,12 @@ struct bmfont {
   short Base;
   short Outline;
   uint32_t fcolor;
-  float fontSizeBase, fontSizeUsed;
+  float fontSizeBase;
+  float fontSizeUsed;
   std::unordered_map<int, CharDescriptor> Chars;
   std::unordered_map<uint32_t, float> Kearn;
   engine::texture_core *ftexid;
   float fscale ();
-  void setFontSize (float); // px
   bmfont (const char *);
   ~bmfont ();
 } *font = nullptr;
@@ -61,7 +61,7 @@ static float yList[2], vList[2], xList[2], uList[2];
 
 void uistage::loadBMFont (const char *fontFile) {
   font = new bmfont (fontFile);
-  font->setFontSize (40.f);
+  font->fontSizeUsed = 40.f;
 }
 void uistage::addTextureRegion (std::string key, engine::texture_core *tex, const uistage::texture_region &reg) {
   regions[key] = textureAtlas{tex, reg, 0xffffffff};
@@ -316,9 +316,6 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 // define bmfont source
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
-void bmfont::setFontSize (float size) { // px
-  fontSizeUsed = size;
-}
 
 bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
