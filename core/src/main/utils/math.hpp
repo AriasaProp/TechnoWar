@@ -21,7 +21,7 @@ enum Align : unsigned char {
 
 // resident memory usage
 namespace memory_usage {
-unsigned long mem_usage ();
+const char *mem_usage ();
 }
 
 namespace clock_count {

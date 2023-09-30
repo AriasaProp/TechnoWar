@@ -18,9 +18,11 @@ static union {
   struct rusage myusage;
 } tmp;
 
-unsigned long memory_usage::mem_usage () {
+const char *memory_usage::mem_usage () {
   getrusage (RUSAGE_SELF, &tmp.myusage);
-  return tmp.myusage.ru_maxrss;
+  static char result[32];
+  std::snprintf(result, sizeof(result), "%3ld.%03ld kB", tmp.myusage.ru_maxrss / 1024, tmp.myusage.ru_maxrss % 1024);
+  return result;
 }
 
 static std::chrono::time_point<std::chrono::steady_clock> start_clock;
