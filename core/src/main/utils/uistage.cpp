@@ -202,10 +202,8 @@ void uistage::draw (float delta) {
   if (to_drawn)
     engine::graph->flat_render (font->ftexid, temp_vert, to_drawn);
 }
-void uistage::cleartemp () {
-  memset(tooltips, 0, sizeof tooltips);
-}
 void uistage::clear () {
+  memset(tooltips, 0, sizeof tooltips);
   for (auto i = regions.begin (), j = regions.end (); i != j; i++) {
     delete i->second.tex;
   }

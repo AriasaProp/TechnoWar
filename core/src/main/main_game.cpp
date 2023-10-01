@@ -27,7 +27,7 @@
 
 namespace Main {
   engine::mesh_core *mp;
-  uistage::text_actor *t_fps, *t_dlt, *t_mem;
+  uistage::text_actor *t_fps, *t_dlt, *t_mem, *t_cpu;
   
   void start () {
     uistage::clear();
@@ -93,7 +93,8 @@ namespace Main {
     
     t_fps = uistage::makeText (Vector2(10, 0, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### FPS");
     t_dlt = uistage::makeText (Vector2(10, 40, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### sec");
-    t_mem = uistage::makeText (Vector2(10, 80, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "##### byte");
+    t_mem = uistage::makeText (Vector2(10, 80, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "##### MB");
+    t_cpu = uistage::makeText (Vector2(10, 120, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "CPU Time: [user] ##### s; [system] ##### s");
   
     uistage::makeButton ({"btn1", "btn1_"}, Rect (100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), []() -> void {
       uistage::temporaryTooltip("Tooltip test 1 for button 1. Hello!");
@@ -120,6 +121,7 @@ namespace Main {
     
     t_dlt->setText("%03.3f sec", delta);
     t_mem->setText(memory_usage::mem_usage());
+    t_cpu->setText(memory_usage::cpu_time());
     
     engine::graph->clear (7);
     matrix4::rotate (mp->trans,
@@ -134,7 +136,6 @@ namespace Main {
     clock_count::render ();
   }
   void pause () {
-    uistage::cleartemp();
     clock_count::end ();
   }
   void end () {
