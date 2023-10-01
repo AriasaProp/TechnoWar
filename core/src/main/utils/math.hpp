@@ -18,7 +18,7 @@ enum Align : unsigned char {
   ALIGN_RIGHT = 6,
   ALIGN_BOTTOM_RIGHT = 10
 };
-extern { 
+
 namespace memory_usage {
 const char *mem_usage ();
 const char *cpu_time ();
@@ -38,7 +38,6 @@ void rotate (float *, float, float, float);
 void toOrtho (float *, float, float, float, float, float, float);
 void toOrtho2D (float *, float, float);
 } // namespace matrix4
-}
 
 struct Vector2 {
 private:

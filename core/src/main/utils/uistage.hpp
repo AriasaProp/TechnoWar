@@ -58,24 +58,22 @@ struct texture_region {
   unsigned int pos[2], size[2];
   unsigned int patch[4];
 };
-extern {
-  void loadBMFont (const char *);
-  void addTextureRegion (std::string, engine::texture_core *, const texture_region &);
-  void addTextureRegion (std::string, engine::texture_core *, const texture_region &, const uint32_t);
-  void draw (float);
-  void clear ();
-  
-  // all actor types
-  image_actor *makeImage (std::string, Rect);
-  button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
-  text_actor *makeText (Vector2, const Align &, std::string);
-  void temporaryTooltip(const char*, ...);
-  
-  void touchDown (float, float, int, int);
-  void touchMove (float, float, float, float, int, int);
-  void touchUp (float, float, int, int);
-  void touchCanceled (float, float, int, int);
-} //extern uistage
+void loadBMFont (const char *);
+void addTextureRegion (std::string, engine::texture_core *, const texture_region &);
+void addTextureRegion (std::string, engine::texture_core *, const texture_region &, const uint32_t);
+void draw (float);
+void clear ();
+
+// all actor types
+image_actor *makeImage (std::string, Rect);
+button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
+text_actor *makeText (Vector2, const Align &, std::string);
+void temporaryTooltip(const char*, ...);
+
+void touchDown (float, float, int, int);
+void touchMove (float, float, float, float, int, int);
+void touchUp (float, float, int, int);
+void touchCanceled (float, float, int, int);
 } // uistage
 
 #endif // Included_UISTAGE_
