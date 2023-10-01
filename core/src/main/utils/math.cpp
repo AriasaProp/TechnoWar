@@ -21,7 +21,7 @@ static union {
 const char *memory_usage::mem_usage () {
   getrusage (RUSAGE_SELF, &tmp.myusage);
   static char result[64];
-  snprintf(result, sizeof result, "%3ld.%03ld kB\0", tmp.myusage.ru_maxrss / 1024, tmp.myusage.ru_maxrss % 1024);
+  snprintf(result, sizeof result, "%3ld.%03ld kB", tmp.myusage.ru_maxrss / 1024, tmp.myusage.ru_maxrss % 1024);
   return result;
 }
 
