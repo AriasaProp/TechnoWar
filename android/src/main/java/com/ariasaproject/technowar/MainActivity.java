@@ -59,7 +59,29 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         insetNative(insetsL, insetsT, insetsR, insetsB);
         return insets;
     }
+    
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        getWindow().getDecorView().requestApplyInsets();
+        super.surfaceCreated(holder);
+    }
 
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        super.surfaceChanged(holder, format, width, height);
+    }
+
+    @Override
+    public void onGlobalLayout() {
+        getWindow().getDecorView().requestApplyInsets();
+        super.onGlobalLayout();
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        super.surfaceDestroyed(holder);
+    }
+    
     @Override
     protected void onStart() {
         super.onStart();
@@ -85,25 +107,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         super.onDestroy();
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        getWindow().getDecorView().requestApplyInsets();
-        super.surfaceCreated(holder);
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        super.surfaceChanged(holder, format, width, height);
-    }
-
-    @Override
-    public void onGlobalLayout() {
-        getWindow().getDecorView().requestApplyInsets();
-        super.onGlobalLayout();
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        super.surfaceDestroyed(holder);
+    private void showToast(String message) {
+        //Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

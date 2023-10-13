@@ -2,11 +2,11 @@
 #define Included_MainListener 1
 
 namespace Main {
-void start ();
-void resume ();
-void render ();
-void pause ();
-void end ();
-} // namespace Main
+  extern void start ();
+  extern void resume ();
+  extern void render ();
+  extern void pause ();
+  extern void end ();
+}
 
 #endif // Included_MainListener

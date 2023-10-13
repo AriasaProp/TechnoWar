@@ -20,7 +20,6 @@ struct text_actor : public actor {
 private:
   std::string text;
   Rect rectangle;
-
 public:
   text_actor (Vector2, const Align &, std::string);
   Rect &getRect () override;
@@ -33,7 +32,6 @@ struct image_actor : public actor {
 private:
   std::string key;
   Rect rectangle;
-
 public:
   image_actor (std::string, Rect);
   Rect &getRect () override;
@@ -46,10 +44,9 @@ private:
   std::string *keys;
   size_t mstate = 0;
   Rect rectangle;
-
 public:
   void (*onClick) ();
-  button_actor (std::string *, Rect, void (*) ());
+  button_actor (std::string *, Rect, void(*)());
   Rect &getRect () override;
   std::string getKey () override;
   void setState (size_t);
@@ -65,7 +62,6 @@ void loadBMFont (const char *);
 void addTextureRegion (std::string, engine::texture_core *, const texture_region &);
 void addTextureRegion (std::string, engine::texture_core *, const texture_region &, const uint32_t);
 void draw (float);
-void cleartemp ();
 void clear ();
 
 // all actor types
@@ -78,7 +74,6 @@ void touchDown (float, float, int, int);
 void touchMove (float, float, float, float, int, int);
 void touchUp (float, float, int, int);
 void touchCanceled (float, float, int, int);
-
 } // uistage
 
 #endif // Included_UISTAGE_

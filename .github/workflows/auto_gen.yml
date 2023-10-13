@@ -89,10 +89,10 @@ jobs:
             os: macos-latest,
             args: "",
           }
-    name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - name: ${{ matrix.config.name }}
+        uses: actions/checkout@v3.5.2
       - name: Install Visual Studio 2019
         if: matrix.config.os == 'windows-latest'
         run: |

@@ -6,10 +6,14 @@
 struct opengles_graphics : public android_graphics {
 private:
   struct gl_data *mgl_data;
-
+  ANativeWindow *window = nullptr;
+  void killEGL(const unsigned int);
 public:
   // android
-  void preRender (ANativeWindow *, unsigned int &) override;
+  void onWindowInit (ANativeWindow *) override;
+  bool ready () override;
+  void onWindowResize (unsigned char) override;
+  bool preRender () override;
   void postRender (bool) override;
   void onWindowTerm () override;
   // core
