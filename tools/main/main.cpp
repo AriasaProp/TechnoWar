@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 
+char buffer[2048];
 int main(int argc, char** argv) {
     std::string inputFileName;
     std::string outputFileName;
