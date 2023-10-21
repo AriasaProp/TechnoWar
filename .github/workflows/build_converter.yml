@@ -10,13 +10,12 @@ jobs:
     - run: sudo apt-get install -y build-essential cmake
     - name: Try executable
       run: |
-        cd tools/main
-        mkdir build
-        cd build
-        cmake ..
+        cd tools/build
+        cmake ../main
         make
         ./Converter
+        ./Converter -i test.jpeg -o out.jpeg
     - uses: actions/upload-artifact@v3.1.2
       with:
-        name: Converter
-        path: ${{ github.workspace }}/tools/main/build/Converter
+        name: Image-Samples
+        path: ${{ github.workspace }}/tools/main/build/out.jpeg
