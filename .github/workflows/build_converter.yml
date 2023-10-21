@@ -13,7 +13,6 @@ jobs:
         cd tools/build
         cmake ../main
         make
-        ./Converter
         ./Converter -i test.jpeg -o out.jpeg
     - uses: actions/upload-artifact@v3.1.2
       with:
