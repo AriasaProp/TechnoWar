@@ -18,13 +18,9 @@ else()
 endif()
 
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
-file(GLOB_RECURSE Src_Files "*.cpp")
-
 include_directories(${Include_Dir})
 
-if(MSVC)
-	add_executable(${PROJECT_NAME} WIN32 main.cpp Src_Files)
-else()
-	add_executable(${PROJECT_NAME} main.cpp Src_Files)
-endif()
+file(GLOB_RECURSE Src_Files "*.cpp")
+add_executable(${PROJECT_NAME} Src_Files)
+
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
