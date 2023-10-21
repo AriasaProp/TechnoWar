@@ -1,1 +1,0 @@
-/data/data/com.termux/files/usr/bin/c++ -Wall -Wextra -O3 -O2 -g -DNDEBUG CMakeFiles/Converter.dir/main.cpp.o -o Converter 
