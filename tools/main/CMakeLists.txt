@@ -16,20 +16,11 @@ if (MSVC)
 else()
   set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3")
 endif()
-#set(CORE_SRC "../../core/src/main")
 
-#file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
-file(GLOB_RECURSE Src_Files "*.cpp")
-
 include_directories(${Include_Dir})
 
-#add_subdirectory(${CORE_SRC} bin/core)
+file(GLOB_RECURSE Src_Files "*.cpp")
+add_executable(${PROJECT_NAME} main.cpp)
 
-if(MSVC)
-	add_executable(${PROJECT_NAME} WIN32 main.cpp)
-else()
-	add_executable(${PROJECT_NAME} main.cpp)
-endif()
-#target_link_libraries(${PROJECT_NAME} core)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
