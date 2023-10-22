@@ -3,13 +3,13 @@
 #include <string>
 
 char buffer[2048];
-int main(int argc, char** argv) {
+int main(int, char** argv) {
   try {
     std::string inputFileName;
     std::string outputFileName;
     
     char **args = argv;
-    std::string name = args;
+    std::string name = *args;
     std::string a, b;
     while (!(a = *(++args)).empty() && !(b = *(++args)).empty()) {
       if (a == "-i") {
