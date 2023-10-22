@@ -9,21 +9,20 @@ int main(int argc, char** argv) {
     std::string outputFileName;
     
     char **args = argv;
-    char *name = args;
-    std::string a = *(++args), b = *(++args);
-    while (!a.empty() && !b.empty()) {
+    std::string name = args;
+    std::string a, b;
+    while (!(a = *(++args)).empty() && !(b = *(++args)).empty()) {
       if (a == "-i") {
         inputFileName = b;
       } else if (a == "-o") {
         outputFileName = b;
       } else {
-        throw "Unknow arguments of " << a;
+        throw "Unknow arguments of " + a;
       }
-      a = *(++args), b = *(++args);
     }
   
     if (inputFileName.empty() || outputFileName.empty())
-      throw "Usage: converter -i <input file> -o <output file>";
+      throw "Usage: " + name + " -i <input file> -o <output file>";
   
     std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
     if (!inputFile.is_open())
@@ -43,7 +42,7 @@ int main(int argc, char** argv) {
   
     std::cout << "File conversion complete." << std::endl;
     
-  } catch (const char *err) {
+  } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
   }
 
