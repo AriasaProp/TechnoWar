@@ -10,36 +10,29 @@ int main(int argc, char** argv) {
     
     char **args = argv;
     char *name = args;
-    while (args) {
-      if (i + 1 < argc) {
-        std::string a(argv[i]);
-        if (a == "-i") {
-          inputFileName = argv[i + 1];
-        } else if (a == "-o") {
-          outputFileName = argv[i + 1];
-        } else {
-          std::cout << "Unknow arguments of " << a << std::endl;
-        }
+    std::string a = *(++args), b = *(++args);
+    while (!a.empty() && !b.empty()) {
+      if (a == "-i") {
+        inputFileName = b;
+      } else if (a == "-o") {
+        outputFileName = b;
+      } else {
+        throw "Unknow arguments of " << a;
       }
-      args++;
+      a = *(++args), b = *(++args);
     }
   
-    if (inputFileName.empty() || outputFileName.empty()) {
-      std::cerr << "Usage: " << argv[0] << " -i <input file> -o <output file>" << std::endl;
-      return 1;
-    }
+    if (inputFileName.empty() || outputFileName.empty())
+      throw "Usage: converter -i <input file> -o <output file>";
   
     std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
-    if (!inputFile.is_open()) {
-      std::cerr << "Error: Could not open input file." << std::endl;
-      return 1;
-    }
+    if (!inputFile.is_open())
+      throw "Could not open input file.";
   
     std::ofstream outputFile(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc); // Open output file in binary mode
-    if (!outputFile.is_open()) {
-      std::cerr << "Error: Could not open output file." << std::endl;
-      return 1;
-    }
+    if (!outputFile.is_open())
+      throw "Could not open output file.";
+    
     while (!inputFile.eof()) {
       inputFile.read(buffer, sizeof(buffer));
       outputFile.write(buffer, inputFile.gcount());
