@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     }
   
     if (inputFileName.empty() || outputFileName.empty())
-      throw "Usage: " + argv[0] + " -i <input file> -o <output file>";
+      throw "Usage: " + std::string(argv[0]) + " -i <input file> -o <output file>";
   
     std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
     if (!inputFile.is_open())
