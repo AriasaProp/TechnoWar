@@ -13,9 +13,9 @@ int main(int argc, char** argv) {
     for (int i = 1; i < (argc - 1); ++i) {
       a = argv[i];
       if (a == "-i") {
-        inputFileName = argv[i+1];
+        inputFileName = argv[++i];
       } else if (a == "-o") {
-        outputFileName = argv[i+1];
+        outputFileName = argv[++i];
       } else {
         throw "Unknow arguments of " + a;
       }
