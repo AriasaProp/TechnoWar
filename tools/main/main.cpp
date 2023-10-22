@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
     
     std::string a, b;
     
-    for (unsigned int i = 1; i < (argc - 1); ++i) {
+    for (int i = 1; i < (argc - 1); ++i) {
       a = argv[i];
       if (a == "-i") {
         inputFileName = argv[i+1];
