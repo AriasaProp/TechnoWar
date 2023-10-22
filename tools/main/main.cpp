@@ -4,47 +4,47 @@
 
 char buffer[2048];
 int main(int argc, char** argv) {
+  try {
     std::string inputFileName;
     std::string outputFileName;
-
-    for (int i = 1; i < argc; i++) {
-      if (i + 1 < argc) {
-        std::string a(argv[i]);
-        if (a == "-i") {
-            inputFileName = argv[i + 1];
-        } else if (a == "-o") {
-            outputFileName = argv[i + 1];
-        } else {
-            std::cout << "Unknow arguments of " << a << std::endl;
-        }
+    
+    char **args = argv;
+    std::string name = args;
+    std::string a, b;
+    while (!(a = *(++args)).empty() && !(b = *(++args)).empty()) {
+      if (a == "-i") {
+        inputFileName = b;
+      } else if (a == "-o") {
+        outputFileName = b;
+      } else {
+        throw "Unknow arguments of " + a;
       }
     }
-
-    if (inputFileName.empty() || outputFileName.empty()) {
-        std::cerr << "Usage: " << argv[0] << " -i <input file> -o <output file>" << std::endl;
-        return 1;
-    }
-
+  
+    if (inputFileName.empty() || outputFileName.empty())
+      throw "Usage: " + name + " -i <input file> -o <output file>";
+  
     std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
-    if (!inputFile.is_open()) {
-        std::cerr << "Error: Could not open input file." << std::endl;
-        return 1;
-    }
-
-    std::ofstream outputFile(outputFileName, std::ios::binary); // Open output file in binary mode
-    if (!outputFile.is_open()) {
-        std::cerr << "Error: Could not open output file." << std::endl;
-        return 1;
-    }
+    if (!inputFile.is_open())
+      throw "Could not open input file.";
+  
+    std::ofstream outputFile(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc); // Open output file in binary mode
+    if (!outputFile.is_open())
+      throw "Could not open output file.";
+    
     while (!inputFile.eof()) {
-        inputFile.read(buffer, sizeof(buffer));
-        outputFile.write(buffer, inputFile.gcount());
+      inputFile.read(buffer, sizeof(buffer));
+      outputFile.write(buffer, inputFile.gcount());
     }
-
+  
     inputFile.close();
     outputFile.close();
-
+  
     std::cout << "File conversion complete." << std::endl;
-
+    
     return 0;
+  } catch (std::string err) {
+    std::cout << "Error: " << err << std::endl;
+    return 1;
+  }
 }

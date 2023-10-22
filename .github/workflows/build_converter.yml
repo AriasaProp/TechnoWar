@@ -1,4 +1,4 @@
-name: Build and Run C++ Program
+name: Build and Run Converter
 
 on: [workflow_dispatch]
 
@@ -13,7 +13,7 @@ jobs:
         cd tools/build
         cmake ../main
         make
-        ./Converter -i test.jpeg -o out.jpeg
+        converter -i test.jpeg -o out.jpeg
     - uses: actions/upload-artifact@v3.1.2
       with:
         name: Image-Samples

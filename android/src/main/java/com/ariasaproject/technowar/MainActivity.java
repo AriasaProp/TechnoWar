@@ -24,7 +24,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
         int insetsL = 0, insetsT = 0, insetsR = 0, insetsB = 0;
         try {
-            if ((insets != null) && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)) {
+            if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) && (insets != null)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     int tl =
                             insets.getRoundedCorner(android.view.RoundedCorner.POSITION_TOP_LEFT)
@@ -68,6 +68,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        getWindow().getDecorView().requestApplyInsets();
         super.surfaceChanged(holder, format, width, height);
     }
 
