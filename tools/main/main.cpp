@@ -3,26 +3,26 @@
 #include <string>
 
 char buffer[2048];
-int main(int, char** argv) {
+int main(int argc, char** argv) {
   try {
     std::string inputFileName;
     std::string outputFileName;
     
-    char **args = argv;
-    std::string name = *args;
     std::string a, b;
-    while (!(a = *(++args)).empty() && !(b = *(++args)).empty()) {
+    
+    for (unsigned int i = 1; i < (argc - 1); ++i) {
+      a = argv[i];
       if (a == "-i") {
-        inputFileName = b;
+        inputFileName = argv[i+1];
       } else if (a == "-o") {
-        outputFileName = b;
+        outputFileName = argv[i+1];
       } else {
         throw "Unknow arguments of " + a;
       }
     }
   
     if (inputFileName.empty() || outputFileName.empty())
-      throw "Usage: " + name + " -i <input file> -o <output file>";
+      throw "Usage: " + argv[0] + " -i <input file> -o <output file>";
   
     std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
     if (!inputFile.is_open())
