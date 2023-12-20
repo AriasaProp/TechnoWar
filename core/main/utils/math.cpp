@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstring>
 #include <sys/resource.h>
+#include <cstdio>
 
 // global temporary for not safe thread
 static union {
