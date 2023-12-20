@@ -20,8 +20,8 @@ jobs:
         id: changes
         uses: dorny/paths-filter@v2
         with:
-          base: ${{ github.event.before }}
-          filters: ${{ matrix.submodule }}/**
+          base: ${{ github.ref }}
+          filters: '${{ matrix.submodule }}/**'
       - name: Gradle Test ${{ matrix.submodule }}
         if: steps.changes.outputs.changes == 'true'
         uses: gradle/gradle-build-action@v2.4.2
