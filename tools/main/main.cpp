@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <csring>
+#include <cstring>
 
 char buffer[4096];
 int main(int argc, char** argv) {
