@@ -13,6 +13,7 @@ int main(int argc, char** argv) {
     	strcat(buffer, argv[i]);
     	strcat(buffer, ":");
     }
+    std::cout << buffer << std::endl;
   /*
     std::string a, b;
     for (int i = 1; i < (argc - 1); ++i) {

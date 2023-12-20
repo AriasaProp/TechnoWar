@@ -11,7 +11,7 @@ tasks.register("test") {
     dependsOn tasks.named("build")
     doLast {
         exec {
-            commandLine "${project.buildDir}/tools"
+            commandLine "${project.buildDir}/main"
             args("Hai", "Hello World")
         }
     }

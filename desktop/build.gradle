@@ -2,7 +2,6 @@ plugins {
     id 'cpp-application'
     id 'cpp-unit-test'
 }
-
 application {
     source.from file('main')
     privateHeaders.from file('main')
