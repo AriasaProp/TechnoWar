@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
   try {
     std::string inputFileName;
     std::string outputFileName;
-   
+  
     std::string a, b;
     
     for (int i = 1; i < (argc - 1); ++i) {
