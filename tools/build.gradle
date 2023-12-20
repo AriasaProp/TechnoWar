@@ -1,27 +1,19 @@
 plugins {
-    id 'cpp'
+    id 'cpp-application'
 }
 
-model {
-    components {
-        main(NativeExecutableSpec) {
-            sources {
-                cpp {
-                    source.srcDir 'main'
-                }
-            }
-        }
-        test(NativeExecutableSpec) {
-            sources {
-                cpp {
-                    source.srcDir 'test'
-                }
-            }
+application {
+		source.from file('main')
+		privateHeaders.from file('main')
+}
+
+tasks.named<Test>("test") {
+    dependsOn tasks.named("build")
+    doLast {
+        def appPath = "${project.buildDir}/tools"
+        exec {
+            commandLine appPath
+            args("Hai", "Hello World")
         }
     }
-}
-
-tasks {
-    build.dependsOn model.components.main
-    test.dependsOn model.components.test
 }
