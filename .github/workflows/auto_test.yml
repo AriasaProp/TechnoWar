@@ -1,0 +1,30 @@
+name: Auto-Test
+
+on:
+  push:
+    paths:
+      - 'core/**'
+      - 'android/**'
+      - 'desktop/**'
+      - 'tools/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        submodule: [core, android, desktop, tools]
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Filter Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ github.event.before }}
+          filters: ${{ matrix.submodule }}/**
+      - name: Gradle Test ${{ matrix.submodule }}
+        if: steps.changes.outputs.changes == 'true'
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.4
+          arguments: :${{ matrix.submodule }}:test

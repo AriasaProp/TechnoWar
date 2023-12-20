@@ -1,13 +1,29 @@
 plugins {
-    id 'cpp-application'
-    id 'cpp-unit-test'
+    id 'cpp'
 }
 
-application {
-    source.from file('main')
-    privateHeaders.from file('main')
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs 'main'
+                        include '**/*.cpp'
+                    }
+                }
+            }
+        }
+        test(NativeExecutableUnitTestSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs 'test'
+                        include '**/*.cpp'
+                    }
+                }
+            }
+        }
+    }
 }
-unitTest {
-    source.from file('test')
-    privateHeaders.from file('test')
-}
+
