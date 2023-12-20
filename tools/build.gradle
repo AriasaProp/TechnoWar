@@ -12,12 +12,3 @@ unitTest {
     privateHeaders.from file('test')
 }
 
-tasks.register("tries") {
-    dependsOn tasks.named("build")
-    doLast {
-        exec {
-            commandLine "${project.buildDir}/main"
-            args("Hai", "Hello World")
-        }
-    }
-}
