@@ -6,8 +6,12 @@ application {
 		source.from file('main')
 		privateHeaders.from file('main')
 }
+unitTest {
+    source.from file('test')
+    privateHeaders.from file('test')
+}
 
-tasks.register("test") {
+tasks.register("tries") {
     dependsOn tasks.named("build")
     doLast {
         exec {

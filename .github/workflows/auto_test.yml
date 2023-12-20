@@ -34,7 +34,7 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :tools:check
+          arguments: :tools:tries
       - name: Gradle Check Core
         if: steps.changes.outputs.core
         uses: gradle/gradle-build-action@v2.4.2
