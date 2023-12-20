@@ -8,10 +8,10 @@ int main(int argc, char** argv) {
   try {
     std::string inputFileName;
     std::string outputFileName;
-    strcpy(buffer, "P: ", 3);
+    strcpy(buffer, "P: ");
     for (int i = 1; i < (argc - 1); ++i) {
-    	strcat(buffer, argv[i], strlen(argv[i]));
-    	strcat(buffer, ":", 1);
+    	strcat(buffer, argv[i]);
+    	strcat(buffer, ":");
     }
   /*
     std::string a, b;
