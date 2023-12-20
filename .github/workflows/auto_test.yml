@@ -11,9 +11,6 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        submodule: [core, android, desktop, tools]
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Filter Changes
@@ -22,11 +19,37 @@ jobs:
         with:
           base: ${{ github.ref }}
           filters: |
-            i:
-              - '${{ matrix.submodule }}/**'
-      - name: Gradle Check
-        if: steps.changes.outputs.i == 'true'
+            tools:
+              - 'tools/**'
+            core:
+              - 'core/**'
+            android:
+              - 'core/**'
+              - 'android/**'
+            desktop:
+              - 'core/**'
+              - 'desktop/**'
+      - name: Gradle Check Tools
+        if: steps.changes.outputs.tools
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :${{ matrix.submodule }}:check
+          arguments: :tools:check
+      - name: Gradle Check Core
+        if: steps.changes.outputs.core
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.4
+          arguments: :core:check
+      - name: Gradle Check Android
+        if: steps.changes.outputs.android
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.4
+          arguments: :android:check
+      - name: Gradle Check Desktop
+        if: steps.changes.outputs.desktop
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.4
+          arguments: :desktop:check
