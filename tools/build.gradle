@@ -6,7 +6,6 @@ plugins {
 application {
     source.from file('main')
     privateHeaders.from file('main')
-    publicHeaders.from file('main')
 }
 
 unitTest {
