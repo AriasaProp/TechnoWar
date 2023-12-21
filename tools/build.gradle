@@ -19,4 +19,3 @@ task runc(type: Exec, dependsOn: 'build') {
     workingDir 'build/exe/main/debug'
     commandLine './tools', 'arg1', 'arg2'
 }
-

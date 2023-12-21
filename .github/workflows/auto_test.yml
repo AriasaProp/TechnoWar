@@ -48,7 +48,7 @@ jobs:
           gradle-version: 8.4
           arguments: :core:check
   android-test:
-  	needs: core-test
+  	need: core-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
@@ -73,7 +73,7 @@ jobs:
           name: APK
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk
   desktop-test:
-  	needs: core-test
+  	need: core-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
