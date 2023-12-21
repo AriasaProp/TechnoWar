@@ -46,7 +46,7 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :core:check
+          arguments: :core:check 
   android-test:
     runs-on: ubuntu-latest
   	needs: core-test
@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: APK
-          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk
+          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
   desktop-test:
     runs-on: ubuntu-latest
   	needs: core-test
@@ -96,4 +96,4 @@ jobs:
         uses: actions/upload-artifact@v3.1.2
         with:
           name: EXE
-          path: ${{ github.workspace }}/desktop/build
+          path: ${{ github.workspace }}/desktop/build 
