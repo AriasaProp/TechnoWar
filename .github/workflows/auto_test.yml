@@ -36,8 +36,8 @@ jobs:
   core-test:
     runs-on: ubuntu-latest
     outputs:
-  		android: ${{ steps.changes.outputs.android }}
-  		desktop: ${{ steps.changes.outputs.desktop }}
+        android: ${{ steps.changes.outputs.android }}
+        desktop: ${{ steps.changes.outputs.desktop }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Filter Changes
