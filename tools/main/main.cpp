@@ -17,8 +17,6 @@ int main(int argc, char** argv) {
         inputFileName = std::string(argv[i + 1]);
       } else if (a == "-o") {
         outputFileName = std::string(argv[i + 1]);
-      } else {
-        throw std::runtime_error("Unknow arguments of " + a);
       }
     }
     
