@@ -48,8 +48,6 @@ jobs:
           filters: |
             core:
               - 'core/**'
-              - 'android/**'
-              - 'desktop/**'
             android:
               - 'android/**'
             desktop:

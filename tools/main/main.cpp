@@ -7,16 +7,11 @@
 char buffer[4096];
 int main(int argc, char** argv) {
   try {
-  	for (int i = 0; i < argc; ++i) {
-  		std::cout << argv[i] << std::endl;
-  	}
-  	/*
     std::string inputFileName;
     std::string outputFileName;
     
-    std::string a, b;
     for (int i = 1; i < (argc - 1); ++i) {
-      a = argv[i];
+      std::string a = argv[i];
       if (a == "-i") {
         inputFileName = argv[++i];
       } else if (a == "-o") {
@@ -46,7 +41,6 @@ int main(int argc, char** argv) {
     outputFile.close();
   
     std::cout << "File conversion complete." << std::endl;
-    */
   } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
     return EXIT_FAILURE;

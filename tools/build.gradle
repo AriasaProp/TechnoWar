@@ -17,7 +17,7 @@ task runc(type: Exec, dependsOn: 'build') {
     description = 'Runs the C++ application after building'
 
     commandLine 'build/exe/main/debug/tools',
-    '-i', 'assets/images/test.jpeg',
-    '-o', 'converted/images/test.jpeg'
+    '-i assets/images/test.jpeg',
+    '-o converted/images/test.jpeg'
 }
 
