@@ -9,7 +9,7 @@ on:
       - 'tools/**'
 
 jobs:
-	tools:
+	tools-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
@@ -27,7 +27,7 @@ jobs:
         with:
           gradle-version: 8.4
           arguments: :tools:runc
-  core:
+  core-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
@@ -47,8 +47,8 @@ jobs:
         with:
           gradle-version: 8.4
           arguments: :core:check
-  android:
-  	needs: core
+  android-test:
+  	needs: core-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
@@ -72,8 +72,8 @@ jobs:
         with:
           name: APK
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk
-  desktop:
-  	needs: core
+  desktop-test:
+  	needs: core-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
