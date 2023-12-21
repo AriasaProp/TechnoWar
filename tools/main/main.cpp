@@ -10,19 +10,19 @@ int main(int argc, char** argv) {
     std::string inputFileName;
     std::string outputFileName;
     
-    for (int i = 1; i < (argc - 1); ++i) {
-      std::string a = argv[i];
+    for (int i = 1; i < (argc - 1); i += 2) {
+      std::string a = std::string(argv[i]);
       if (a == "-i") {
-        inputFileName = argv[++i];
+        inputFileName = std::string(argv[i + 1]);
       } else if (a == "-o") {
-        outputFileName = argv[++i];
+        outputFileName = std::string(argv[i + 1]);
       } else {
         throw "Unknow arguments of " + a;
       }
     }
     
     if (inputFileName.empty() || outputFileName.empty())
-      throw "Usage: " + std::string(argv[0]) + " -i <input file> -o <output file>";
+      throw "Input empty";
   	try {
 	    std::ifstream inputFile(inputFileName, std::ios::binary);
 	    if (!inputFile.is_open())
@@ -43,9 +43,6 @@ int main(int argc, char** argv) {
     std::cout << "File conversion complete." << std::endl;
   } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
-    return EXIT_FAILURE;
-  } catch (...) {
-    std::cout << "Something error" << std::endl;
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
