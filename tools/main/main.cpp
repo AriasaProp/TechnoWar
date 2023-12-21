@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
       } else if (a == "-o") {
         outputFileName = argv[++i];
       } else {
-        throw "Unknow arguments of " + a;
+        throw std::string("Unknow arguments of ") + a;
       }
     }
     if (inputFileName.empty() || outputFileName.empty())
