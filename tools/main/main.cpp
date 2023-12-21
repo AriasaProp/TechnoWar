@@ -7,6 +7,10 @@
 char buffer[4096];
 int main(int argc, char** argv) {
   try {
+  	for (int i = 0; i < argc; ++i) {
+  		std::cout << argv[i] << std:endl;
+  	}
+  	/*
     std::string inputFileName;
     std::string outputFileName;
     
@@ -21,6 +25,7 @@ int main(int argc, char** argv) {
         throw "Unknow arguments of " + a;
       }
     }
+    
     if (inputFileName.empty() || outputFileName.empty())
       throw "Usage: " + std::string(argv[0]) + " -i <input file> -o <output file>";
   
@@ -41,6 +46,7 @@ int main(int argc, char** argv) {
     outputFile.close();
   
     std::cout << "File conversion complete." << std::endl;
+    */
   } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
     return EXIT_FAILURE;
