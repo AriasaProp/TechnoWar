@@ -9,7 +9,7 @@ on:
       - 'tools/**'
 
 jobs:
-  check:
+	tools:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.5.2
@@ -21,35 +21,79 @@ jobs:
           filters: |
             tools:
               - 'tools/**'
-            core:
-              - 'core/**'
-            android:
-              - 'core/**'
-              - 'android/**'
-            desktop:
-              - 'core/**'
-              - 'desktop/**'
-      - name: Gradle Check Tools
+      - name: Test Run
         if: steps.changes.outputs.tools
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :tools:check
+          arguments: :tools:runc
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Filter Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            core:
+              - 'core/**'
+              - 'android/**'
+              - 'desktop/**'
       - name: Gradle Check Core
         if: steps.changes.outputs.core
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
           arguments: :core:check
+  android:
+  	needs: core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Filter Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            android:
+              - 'android/**'
       - name: Gradle Check Android
         if: steps.changes.outputs.android
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :android:check
-      - name: Gradle Check Desktop
+          arguments: :android:build -Prelease
+      - name: Upload Android
+        if: steps.changes.outputs.android
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: APK
+          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk
+  desktop:
+  	needs: core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Filter Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            desktop:
+              - 'desktop/**'
+      - name: Gradle Build Desktop
         if: steps.changes.outputs.desktop
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
-          arguments: :desktop:check
+          arguments: :desktop:build
+      - name: Upload Desktop
+        if: steps.changes.outputs.android
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: EXE
+          path: ${{ github.workspace }}/desktop/build
