@@ -27,20 +27,18 @@ int main(int argc, char** argv) {
 	    std::ifstream inputFile(inputFileName, std::ios::binary);
 	    if (!inputFile.is_open())
 	      throw "Could not open input file.";
-  	} catch (...) { throw "Unknow Input file error." }
-  	try {
     	std::ofstream outputFile(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
 	    if (!outputFile.is_open())
 	      throw "Could not open output file.";
-  	} catch (...) { throw "Unknow Input file error." }
-    
-    while (!inputFile.eof()) {
-      inputFile.read(buffer, sizeof(buffer));
-      outputFile.write(buffer, inputFile.gcount());
-    }
-  
-    inputFile.close();
-    outputFile.close();
+	    while (!inputFile.eof()) {
+	      inputFile.read(buffer, sizeof(buffer));
+	      outputFile.write(buffer, inputFile.gcount());
+	    }
+	  
+	    inputFile.close();
+	    outputFile.close();
+  	} catch (const char *err) { throw err;
+  	} catch (...) { throw "Unknow file proccess error."; }
   
     std::cout << "File conversion complete." << std::endl;
   } catch (std::string err) {
