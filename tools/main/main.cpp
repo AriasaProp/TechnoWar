@@ -23,14 +23,16 @@ int main(int argc, char** argv) {
     
     if (inputFileName.empty() || outputFileName.empty())
       throw "Usage: " + std::string(argv[0]) + " -i <input file> -o <output file>";
-  
-    std::ifstream inputFile(inputFileName, std::ios::binary); // Open input file in binary mode
-    if (!inputFile.is_open())
-      throw "Could not open input file.";
-  
-    std::ofstream outputFile(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc); // Open output file in binary mode
-    if (!outputFile.is_open())
-      throw "Could not open output file.";
+  	try {
+	    std::ifstream inputFile(inputFileName, std::ios::binary);
+	    if (!inputFile.is_open())
+	      throw "Could not open input file.";
+  	} catch (...) { throw "Unknow Input file error." }
+  	try {
+    	std::ofstream outputFile(outputFileName, std::ios::binary | std::ios::out | std::ios::trunc);
+	    if (!outputFile.is_open())
+	      throw "Could not open output file.";
+  	} catch (...) { throw "Unknow Input file error." }
     
     while (!inputFile.eof()) {
       inputFile.read(buffer, sizeof(buffer));
