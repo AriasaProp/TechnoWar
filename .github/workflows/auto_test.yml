@@ -22,7 +22,7 @@ jobs:
             tools:
               - 'tools/**'
       - name: Test Run
-        if: steps.changes.outputs.tools
+        if: ${{ steps.changes.outputs.tools == 'true' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
@@ -48,7 +48,7 @@ jobs:
               - 'android/**'
               - 'desktop/**'
       - name: Gradle Check Core
-        if: steps.changes.outputs.core
+        if: ${{ steps.changes.outputs.core == 'true' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
@@ -67,7 +67,7 @@ jobs:
             android:
               - 'android/**'
       - name: Gradle Check Android
-        if: steps.changes.outputs.android
+        if: ${{ steps.changes.outputs.android == 'true' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
@@ -92,7 +92,7 @@ jobs:
             desktop:
               - 'desktop/**'
       - name: Gradle Build Desktop
-        if: steps.changes.outputs.desktop
+        if: ${{ steps.changes.outputs.desktop == 'true' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4

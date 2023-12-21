@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
       } else if (a == "-o") {
         outputFileName = argv[++i];
       } else {
-        throw std::string("Unknow arguments of ") + a;
+        throw "Unknow arguments of " + a;
       }
     }
     if (inputFileName.empty() || outputFileName.empty())
@@ -41,10 +41,12 @@ int main(int argc, char** argv) {
     outputFile.close();
   
     std::cout << "File conversion complete." << std::endl;
-    
-    return EXIT_SUCCESS;
   } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
     return EXIT_FAILURE;
+  } catch (...) {
+    std::cout << "Something error" << std::endl;
+    return EXIT_FAILURE;
   }
+  return EXIT_SUCCESS;
 }
