@@ -9,8 +9,35 @@ on:
       - 'tools/**'
 
 jobs: 
-  tools-test:
+  fltr:
     runs-on: ubuntu-latest
+    outputs:
+        tools: ${{ steps.changes.outputs.tools }}
+        core: ${{ steps.changes.outputs.core }}
+        android: ${{ steps.changes.outputs.android }}
+        desktop: ${{ steps.changes.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: Filter Changes
+        id: changes
+        uses: dorny/paths-filter@v2
+        with:
+          base: ${{ github.ref }}
+          filters: |
+            tools:
+              - 'tools/**'
+            core:
+              - 'core/**'
+            android:
+              - 'core/**'
+              - 'android/**'
+            desktop:
+              - 'core/**'
+              - 'desktop/**'
+  tools:
+    runs-on: ubuntu-latest
+    needs: fltr
+    if: ${{ needs.fltr.outputs.tools == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Filter Changes
@@ -33,35 +60,21 @@ jobs:
         with:
           name: converted
           path: ${{ github.workspace }}/tools/converted
-  core-test:
+  core:
     runs-on: ubuntu-latest
-    outputs:
-        android: ${{ steps.changes.outputs.android }}
-        desktop: ${{ steps.changes.outputs.desktop }}
+    needs: fltr
+    if: ${{ needs.fltr.outputs.core == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2
-      - name: Filter Changes
-        id: changes
-        uses: dorny/paths-filter@v2
-        with:
-          base: ${{ github.ref }}
-          filters: |
-            core:
-              - 'core/**'
-            android:
-              - 'android/**'
-            desktop:
-              - 'desktop/**'
       - name: Gradle Check Core
-        if: ${{ steps.changes.outputs.core == 'true' }}
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.4
           arguments: :core:check 
-  android-test:
+  android:
     runs-on: ubuntu-latest
-    needs: core-test
-    if: ${{ needs.core-test.outputs.android == 'true'}}
+    needs: [fltr, core]
+    if: ${{ needs.fltr.outputs.android == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2 
       - name: Gradle Check Android
@@ -74,10 +87,10 @@ jobs:
         with:
           name: APK
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
-  desktop-test:
+  desktop:
     runs-on: ubuntu-latest
-    needs: core-test
-    if: ${{ needs.core-test.outputs.desktop == 'true' }}
+    needs: [fltr, core]
+    if: ${{ needs.fltr.outputs.desktop == 'true' }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Gradle Build Desktop
