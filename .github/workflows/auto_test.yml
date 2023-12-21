@@ -49,7 +49,7 @@ jobs:
           arguments: :core:check 
   android-test:
     runs-on: ubuntu-latest
-  	needs: core-test
+    needs: core-test
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Filter Changes
@@ -74,7 +74,7 @@ jobs:
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
   desktop-test:
     runs-on: ubuntu-latest
-  	needs: core-test
+    needs: core-test
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Filter Changes
