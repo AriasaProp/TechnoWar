@@ -8,7 +8,7 @@ char buffer[4096];
 int main(int argc, char** argv) {
   try {
   	for (int i = 0; i < argc; ++i) {
-  		std::cout << argv[i] << std:endl;
+  		std::cout << argv[i] << std::endl;
   	}
   	/*
     std::string inputFileName;
