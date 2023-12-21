@@ -16,7 +16,8 @@ task runc(type: Exec, dependsOn: 'build') {
     group = 'application'
     description = 'Runs the C++ application after building'
 
-    workingDir 'build/exe/main/debug'
-    commandLine './tools', 'arg1', 'arg2'
+    commandLine 'build/exe/main/debug/tools',
+    '-i assets/images/test.jpeg',
+    '-o converted/images/test.jpeg'
 }
 

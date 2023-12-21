@@ -27,6 +27,12 @@ jobs:
         with:
           gradle-version: 8.4
           arguments: :tools:runc
+      - name: Upload Tools
+        if: steps.changes.outputs.tools
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: converted
+          path: ${{ github.workspace }}/tools/converted
   core-test:
     runs-on: ubuntu-latest
     steps:
@@ -92,7 +98,7 @@ jobs:
           gradle-version: 8.4
           arguments: :desktop:build
       - name: Upload Desktop
-        if: steps.changes.outputs.android
+        if: steps.changes.outputs.desktop
         uses: actions/upload-artifact@v3.1.2
         with:
           name: EXE

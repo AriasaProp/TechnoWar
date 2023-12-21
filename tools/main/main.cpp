@@ -2,19 +2,14 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <cstdlib>
 
 char buffer[4096];
 int main(int argc, char** argv) {
   try {
     std::string inputFileName;
     std::string outputFileName;
-    strcpy(buffer, "P: ");
-    for (int i = 1; i < (argc - 1); ++i) {
-    	strcat(buffer, argv[i]);
-    	strcat(buffer, ":");
-    }
-    std::cout << buffer << std::endl;
-  /*
+    
     std::string a, b;
     for (int i = 1; i < (argc - 1); ++i) {
       a = argv[i];
@@ -46,10 +41,10 @@ int main(int argc, char** argv) {
     outputFile.close();
   
     std::cout << "File conversion complete." << std::endl;
-    */
-    return 0;
+    
+    return EXIT_SUCCESS;
   } catch (std::string err) {
     std::cout << "Error: " << err << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 }
