@@ -15,25 +15,21 @@ int main(int argc, char** argv) {
       throw  std::runtime_error("Input empty");
     std::ifstream ifile(ifn, std::ios::binary);
   	std::ofstream ofile(ofn, std::ios::binary | std::ios::out | std::ios::trunc);
-    /*
-    if (!inputFile.is_open())
+    if (!ifile.is_open())
       throw  std::runtime_error("Could not open input file.");
-    if (!outputFile.is_open())
+    if (!ofile.is_open())
       throw  std::runtime_error("Could not open output file.");
-    while (!inputFile.eof()) {
-      inputFile.read(buffer, sizeof(buffer));
-      outputFile.write(buffer, inputFile.gcount());
+    while (!ifile.eof()) {
+      ifile.read(buffer, sizeof(buffer));
+      ofile.write(buffer, ifile.gcount());
     }
-  
-  	*/
     ifile.close();
     ofile.close();
     std::cout << "in " << ifn << " & out " << ofn << std::endl;
     std::cout << "File conversion complete." << std::endl;
-    return EXIT_FAILURE;
   } catch (std::exception err) {
     std::cout << "Error: " << err.what() << std::endl;
     return EXIT_FAILURE;
   }
-  //return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
