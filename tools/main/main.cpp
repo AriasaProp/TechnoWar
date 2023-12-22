@@ -5,13 +5,13 @@
 #include <cstdlib>
 #include <stdexcept>
 
-char buffer[4096];
+char buffer[2048];
 int main(int argc, char** argv) {
   try {
   	if (argc < 3) throw  std::runtime_error("Input empty");
-    std::string inputFileName = std::string(argv[1]);
-    std::string outputFileName = std::string(argv[2]);
-    
+    std::string ifn = std::string(argv[1]);
+    std::string ofn = std::string(argv[2]);
+    /*
     if (inputFileName.empty() || outputFileName.empty())
       throw  std::runtime_error("Input empty");
     std::ifstream inputFile(inputFileName, std::ios::binary);
@@ -27,11 +27,13 @@ int main(int argc, char** argv) {
   
     inputFile.close();
     outputFile.close();
-  
+  	*/
+    std::cout << "in " << ifn << " & out " << ofn << std::endl;
     std::cout << "File conversion complete." << std::endl;
+    return EXIT_FAILURE;
   } catch (std::exception err) {
     std::cout << "Error: " << err.what() << std::endl;
-    return EXIT_FAILURE;
+    //return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
 }
