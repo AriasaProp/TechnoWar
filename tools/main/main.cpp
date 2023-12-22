@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
+#include <filesystem>
 
 char buffer[2048];
 int main(int argc, char** argv) {
@@ -25,6 +26,7 @@ int main(int argc, char** argv) {
       ifile.read(buffer, sizeof(buffer));
       ofile.write(buffer, ifile.gcount());
     }
+    
     ifile.close();
     ofile.close();
     std::cout << "File conversion complete." << std::endl;
