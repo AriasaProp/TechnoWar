@@ -19,11 +19,11 @@ task runc(type: Exec, dependsOn: 'build') {
 		commandLine 'mkdir', 'converted/images'
     //images conversion
     commandLine
-    'for file in assets/images/*; do',
-    '  converted_file="converted/images/${base_name%.*}.bitmap_compress";',
-    '  touch "$converted_file";',
-    '  build/exe/main/debug/tools "$file" "$converted_file";',
-    'done'
+    'for file in assets/images/*;','do',
+    'converted_file="converted/images/${base_name%.*}.bitmap_compress";',
+    'touch "$converted_file";',
+    'build/exe/main/debug/tools "$file" "$converted_file";',
+    'done;'
 }
 
 
