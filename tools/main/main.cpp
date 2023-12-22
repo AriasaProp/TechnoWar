@@ -13,8 +13,10 @@ int main(int argc, char** argv) {
     const std::string ofn = std::string(argv[2]);
     if (ifn.empty() || ofn.empty())
       throw  std::runtime_error("Input empty");
+    std::cout << "in " << ifn << " & out " << ofn << std::endl;
     std::ifstream ifile(ifn, std::ios::binary);
   	std::ofstream ofile(ofn, std::ios::binary | std::ios::out | std::ios::trunc);
+    
     if (!ifile.is_open())
       throw  std::runtime_error("Could not open input file.");
     if (!ofile.is_open())
@@ -25,7 +27,6 @@ int main(int argc, char** argv) {
     }
     ifile.close();
     ofile.close();
-    std::cout << "in " << ifn << " & out " << ofn << std::endl;
     std::cout << "File conversion complete." << std::endl;
   } catch (std::exception err) {
     std::cout << "Error: " << err.what() << std::endl;
