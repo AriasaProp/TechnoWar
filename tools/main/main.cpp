@@ -8,17 +8,9 @@
 char buffer[4096];
 int main(int argc, char** argv) {
   try {
-    std::string inputFileName;
-    std::string outputFileName;
-    
-    for (int i = 1; i < (argc - 1); i += 2) {
-      std::string a = std::string(argv[i]);
-      if (a == "-i") {
-        inputFileName = std::string(argv[i + 1]);
-      } else if (a == "-o") {
-        outputFileName = std::string(argv[i + 1]);
-      }
-    }
+  	if (argc < 3) throw  std::runtime_error("Input empty");
+    std::string inputFileName = std::string(argv[1]);
+    std::string outputFileName = std::string(argv[2]);
     
     if (inputFileName.empty() || outputFileName.empty())
       throw  std::runtime_error("Input empty");
