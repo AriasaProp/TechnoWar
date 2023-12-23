@@ -15,7 +15,7 @@ unitTest {
 task runc(type: Exec, dependsOn: 'build') {
     group = 'application'
     doFirst {
-    		def targetDir = 'converted'
+        def targetDir = 'converted'
         if (file(targetDir).exists()) {
             exec {
                 commandLine 'rm', '-rf', targetDir
@@ -25,8 +25,8 @@ task runc(type: Exec, dependsOn: 'build') {
             commandLine 'mkdir', targetDir
         }
     }
-		doLast {
-    		def targetDir = 'converted/images'
+    doLast {
+        def targetDir = 'converted/images'
         exec {
             commandLine 'mkdir', targetDir
         }
