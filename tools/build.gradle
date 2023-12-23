@@ -15,27 +15,21 @@ unitTest {
 task runc(type: Exec, dependsOn: 'build') {
     group = 'application'
     doFirst {
-        def targetDir = 'converted'
-        if (file(targetDir).exists()) {
-            exec {
-                commandLine 'rm', '-rf', targetDir
-            }
+        def targetDir = file('converted')
+        if (targetDir.exists()) {
+            targetDir.delete()
         }
-        exec {
-            commandLine 'mkdir', targetDir
-        }
+        targetDir.mkdir()
     }
     doLast {
-        def targetDir = 'converted/images'
-        exec {
-            commandLine 'mkdir', targetDir
-        }
+        def targetDir = file('converted/images')
+        targetDir.mkdir()
         def sourceDir = 'assets/images'
         fileTree(dir: sourceDir).each { file ->
             def baseName = file.nameWithoutExtension
-            def convertedFile = file("$targetDir/${baseName}.bitmap_compress")
+            def convertedFile = file("${targetDir.absolutePath}/${baseName}.bitmap_compress")
+            convertedFile.createNewFile()
             exec {
-                commandLine 'touch', convertedFile.absolutePath
                 commandLine 'build/exe/main/debug/tools', file.absolutePath, convertedFile.absolutePath
             }
         }
