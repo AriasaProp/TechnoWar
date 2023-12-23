@@ -26,7 +26,7 @@ task runc(dependsOn: 'build') {
         targetDir.mkdir()
         def sourceDir = 'assets/images'
         fileTree(dir: sourceDir).each { file ->
-            def baseName = file.nameWithoutExtension
+            def baseName = file.getName().split("\\.")[0]
             def convertedFile = file("${targetDir.absolutePath}/${baseName}.bitmap_compress")
             convertedFile.createNewFile()
             exec {
