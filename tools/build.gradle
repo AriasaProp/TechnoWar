@@ -14,8 +14,8 @@ unitTest {
 
 task runc(type: Exec, dependsOn: 'build') {
     group = 'application'
-    def targetDir = 'converted/images'
     doFirst {
+    		def targetDir = 'converted'
         if (file(targetDir).exists()) {
             exec {
                 commandLine 'rm', '-rf', targetDir
@@ -26,6 +26,10 @@ task runc(type: Exec, dependsOn: 'build') {
         }
     }
 		doLast {
+    		def targetDir = 'converted/images'
+        exec {
+            commandLine 'mkdir', targetDir
+        }
         def sourceDir = 'assets/images'
         fileTree(dir: sourceDir).each { file ->
             def baseName = file.nameWithoutExtension
