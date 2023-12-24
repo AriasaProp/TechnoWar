@@ -9,13 +9,13 @@
 
 stbi_io_callbacks sic_file {
 	.read = [](void *user, char *data, unsigned int size) -> int {
-		std::ifstream ifile = (std::ifstream*)user;
-		ifile.read(data, size);
-		return ifile.gcount();
+		std::ifstream *ifile = (std::ifstream*)user;
+		ifile->read(data, size);
+		return ifile->gcount();
 	},
 	.skip = [](void *user, int n){
-		std::ifstream ifile = (std::ifstream*)user;
-		ifile.seekg(n, std::ios::cur);
+		std::ifstream *ifile = (std::ifstream*)user;
+		ifile->seekg(n, std::ios::cur);
 	},
 	.eof = [](void *user) -> bool {
 		return ((std::ifstream*)user)->eof();
