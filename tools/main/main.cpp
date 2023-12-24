@@ -8,7 +8,7 @@
 #include "stb_image.hpp"
 
 stbi_io_callbacks sic_file {
-	.read = [](void *user, char *data, unsigned int size) int -> {
+	.read = [](void *user, char *data, unsigned int size) -> int {
 		std::ifstream ifile = (std::ifstream*)user;
 		ifile.read(data, size);
 		return ifile.gcount();
@@ -17,7 +17,7 @@ stbi_io_callbacks sic_file {
 		std::ifstream ifile = (std::ifstream*)user;
 		ifile.seekg(n, std::ios::cur);
 	},
-	.eof = [](void *user) bool -> {
+	.eof = [](void *user) -> bool {
 		return ((std::ifstream*)user)->eof();
 	}
 };
@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
     if (ifile.is_open() && ofile.is_open()) {
 	    int x, y, comp;
 	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, STBI_rgb_alpha);
-	    ofile.write(inpBuffer, x*y*comp);
+	    ofile.write((char*)inpBuffer, x*y*comp);
 	    stbi_image_free(inpBuffer);
 	    ifile.close();
 	    ofile.close();
