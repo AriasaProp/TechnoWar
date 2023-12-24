@@ -84,8 +84,6 @@ namespace Main {
       tex = engine::graph->gen_texture (x, y, t);
       uistage::addTextureRegion ("test", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {}});
       stbi_image_free (t);
-      t = stbi_load_from_assets ("test1.jpg", &x, &y, nullptr, STBI_rgb_alpha);
-      stbi_image_free (t);
     }
   
     uistage::makeText (Vector2(0, 0, ALIGN_TOP), ALIGN_TOP, DATESTR);
