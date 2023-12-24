@@ -4,31 +4,41 @@
 #include <cstring>
 #include <cstdlib>
 #include <stdexcept>
-#include <filesystem>
 
-char buffer[2048];
+#include "stb_image.hpp"
+
+stbi_io_callbacks sic_file {
+	.read = [](void *user, char *data, unsigned int size) int -> {
+		std::ifstream ifile = (std::ifstream*)user;
+		ifile.read(data, size);
+		return ifile.gcount();
+	},
+	.skip = [](void *user, int n){
+		std::ifstream ifile = (std::ifstream*)user;
+		ifile.seekg(n, std::ios::cur);
+	},
+	.eof = [](void *user) bool -> {
+		return ((std::ifstream*)user)->eof();
+	}
+};
+
 int main(int argc, char** argv) {
   try {
   	if (argc < 3) throw  std::runtime_error("Input empty");
-    const std::string ifn = std::string(argv[1]);
-    const std::string ofn = std::string(argv[2]);
-    if (ifn.empty() || ofn.empty())
+    if (!argv[1] || !argv[1][0] || !argv[2] || !argv[2][0])
       throw  std::runtime_error("Input empty");
-    std::cout << "in " << ifn << " & out " << ofn << std::endl;
-    std::ifstream ifile(ifn, std::ios::binary);
-  	std::ofstream ofile(ofn, std::ios::binary | std::ios::out | std::ios::trunc);
-    
-    if (!ifile.is_open())
-      throw  std::runtime_error("Could not open input file.");
-    if (!ofile.is_open())
-      throw  std::runtime_error("Could not open output file.");
-    while (!ifile.eof()) {
-      ifile.read(buffer, sizeof(buffer));
-      ofile.write(buffer, ifile.gcount());
-    }
-    
-    ifile.close();
-    ofile.close();
+    std::cout << "in " << argv[1] << " & out " << argv[2] << std::endl;
+    std::ifstream ifile{argv[1], std::ios::binary};
+  	std::ofstream ofile{argv[2], std::ios::binary | std::ios::out | std::ios::trunc};
+  	
+    if (ifile.is_open() && ofile.is_open()) {
+	    int x, y, comp;
+	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, STBI_rgb_alpha);
+	    ofile.write(inpBuffer, x*y*comp);
+	    stbi_image_free(inpBuffer);
+	    ifile.close();
+	    ofile.close();
+    } else throw  std::runtime_error("Could not open file input/output.");
     std::cout << "File conversion complete." << std::endl;
   } catch (std::exception err) {
     std::cout << "Error: " << err.what() << std::endl;
