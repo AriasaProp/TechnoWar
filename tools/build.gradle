@@ -24,12 +24,12 @@ task runc(dependsOn: 'build') {
         def targetDir = file('converted/images')
         targetDir.mkdir()
         def sourceDir = 'assets/images'
-        fileTree(dir: sourceDir).each { File file ->
-            def baseName = file.name.split("\\.")[0]
+        fileTree(dir: sourceDir).each { File f ->
+            def baseName = f.name.split("\\.")[0]
             def convertedFile = file("converted/images/${baseName}.bitmap_compress")
             convertedFile.createNewFile()
             exec {
-                commandLine 'build/exe/main/debug/tools', file.path, convertedFile.path
+                commandLine 'build/exe/main/debug/tools', f.path, convertedFile.path
             }
         }
     }
