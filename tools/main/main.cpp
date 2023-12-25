@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 	    int x, y, comp;
 	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, STBI_rgb_alpha);
 	    if (comp == STBI_rgb_alpha) {
-		    ofile.write((char*)((unsigned int[]){x,y}), sizeof(unsigned int)*2);
+		    ofile.write((char*)((int[]){x,y}), sizeof(unsigned int)*2);
 		    ofile.write((char*)inpBuffer, dat[0]*dat[1]*dat[2]);
 		    stbi_image_free(inpBuffer);
 	    }
