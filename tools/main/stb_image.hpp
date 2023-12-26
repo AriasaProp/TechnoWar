@@ -43,8 +43,8 @@ void ldr_to_hdr_scale (float);
 #endif // STBI_NO_LINEAR
 
 // stbi_is_hdr is always defined, but always returns false if STBI_NO_HDR
-int stbi::is_hdr_from_callbacks (stbi::io_callbacks const *, void *);
-int stbi::is_hdr_from_memory (unsigned char const *, int);
+int is_hdr_from_callbacks (stbi::io_callbacks const *, void *);
+int is_hdr_from_memory (unsigned char const *, int);
 
 // get a VERY brief reason for failure
 // on most compilers (and ALL modern mainstream compilers) this is threadsafe
