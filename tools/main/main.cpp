@@ -7,7 +7,7 @@
 
 #include "stb_image.hpp"
 
-stbi_io_callbacks sic_file {
+stbi::io_callbacks sic_file {
 	.read = [](void *user, char *data, unsigned int size) -> int {
 		std::ifstream *ifile = (std::ifstream*)user;
 		ifile->read(data, size);

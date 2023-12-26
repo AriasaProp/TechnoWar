@@ -6,7 +6,7 @@
 
 namespace stbi {
 enum channel {
-  default = 0, // only used for desired_channels
+  none = 0, // only used for desired_channels
   grey = 1,
   grey_alpha = 2,
   rgb = 3,
