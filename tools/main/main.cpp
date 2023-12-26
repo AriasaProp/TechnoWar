@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 	    	int dat[2] {x, y};
 		    ofile.write((char*)dat, sizeof(dat));
 		    ofile.write((char*)inpBuffer, x*y*comp);
-		    stbi_image_free(inpBuffer);
+		    stbi::image_free(inpBuffer);
 	    }
 	    ifile.close();
 	    ofile.close();
