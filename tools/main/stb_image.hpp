@@ -62,29 +62,29 @@ int is_16_bit_from_callbacks (stbi::io_callbacks const *, void *);
 // for image formats that explicitly notate that they have premultiplied alpha,
 // we just return the colors as stored in the file. set this flag to force
 // unpremultiplication. results are undefined if the unpremultiply overflow.
-void set_unpremultiply_on_load (int flag_true_if_should_unpremultiply);
+void set_unpremultiply_on_load (int);
 
 // indicate whether we should process iphone images back to canonical format,
 // or just pass them through "as-is"
-void convert_iphone_png_to_rgb (int flag_true_if_should_convert);
+void convert_iphone_png_to_rgb (int);
 
 // flip the image vertically, so the first pixel in the output array is the bottom left
-void set_flip_vertically_on_load (int flag_true_if_should_flip);
+void set_flip_vertically_on_load (int);
 
 // as above, but only applies to images loaded on the thread that calls the function
 // this function is only available if your compiler supports thread-local variables;
 // calling it will fail to link if your compiler doesn't
-void stbi_set_unpremultiply_on_load_thread (int flag_true_if_should_unpremultiply);
-void stbi_convert_iphone_png_to_rgb_thread (int flag_true_if_should_convert);
-void stbi_set_flip_vertically_on_load_thread (int flag_true_if_should_flip);
+void set_unpremultiply_on_load_thread (int);
+void convert_iphone_png_to_rgb_thread (int);
+void set_flip_vertically_on_load_thread (int);
 // ZLIB client - used by PNG, available for other purposes
-char *zlib_decode_malloc_guesssize (const char *buffer, int len, int initial_size, int *outlen);
-char *zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len, int initial_size, int *outlen, int parse_header);
-char *zlib_decode_malloc (const char *buffer, int len, int *outlen);
-int zlib_decode_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
+char *zlib_decode_malloc_guesssize (const char *, int, int, int *);
+char *zlib_decode_malloc_guesssize_headerflag (const char *, int, int, int *, int);
+char *zlib_decode_malloc (const char *, int, int *);
+int zlib_decode_buffer (char *, int, const char *, int);
 
-char *zlib_decode_noheader_malloc (const char *buffer, int len, int *outlen);
-int zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
+char *zlib_decode_noheader_malloc (const char *, int, int *);
+int zlib_decode_noheader_buffer (char *, int, const char *, int);
 }
 
 #endif // STBI_INCLUDE_STB_IMAGE_H
