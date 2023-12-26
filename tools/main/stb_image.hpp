@@ -1,36 +1,38 @@
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
 
-enum {
-  STBI_default = 0, // only used for desired_channels
-  STBI_grey = 1,
-  STBI_grey_alpha = 2,
-  STBI_rgb = 3,
-  STBI_rgb_alpha = 4
-};
 
 #include <cstdlib>
 
-struct stbi_io_callbacks {
+namespace stbi {
+enum channel {
+  default = 0, // only used for desired_channels
+  grey = 1,
+  grey_alpha = 2,
+  rgb = 3,
+  rgb_alpha = 4
+};
+
+struct io_callbacks {
   int (*read) (void *user, char *data, unsigned int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
   void (*skip) (void *user, int n);                        // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
   bool (*eof) (void *user);                                // returns nonzero if we are at end of file/data
 };
+}
 // 8-bit per channels
-unsigned char *stbi_load_from_assets (const char *, int *, int *, int *, int);
 unsigned char *stbi_load_from_memory (unsigned char const *, int, int *, int *, int *, int);
-unsigned char *stbi_load_from_callbacks (stbi_io_callbacks const *, void *, int *, int *, int *, int);
+unsigned char *stbi_load_from_callbacks (stbi::io_callbacks const *, void *, int *, int *, int *, int);
 
 #ifdef STBI_WINDOWS_UTF8
 int stbi_convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 
 unsigned short *stbi_load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-unsigned short *stbi_load_16_from_callbacks (stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+unsigned short *stbi_load_16_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_LINEAR
 float *stbi_loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-float *stbi_loadf_from_callbacks (stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+float *stbi_loadf_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 #endif
 
 #ifndef STBI_NO_HDR
@@ -44,7 +46,7 @@ void stbi_ldr_to_hdr_scale (float scale);
 #endif // STBI_NO_LINEAR
 
 // stbi_is_hdr is always defined, but always returns false if STBI_NO_HDR
-int stbi_is_hdr_from_callbacks (stbi_io_callbacks const *clbk, void *user);
+int stbi_is_hdr_from_callbacks (stbi::io_callbacks const *clbk, void *user);
 int stbi_is_hdr_from_memory (unsigned char const *buffer, int len);
 
 // get a VERY brief reason for failure
@@ -56,9 +58,9 @@ void stbi_image_free (void *retval_from_stbi_load);
 
 // get image dimensions & components without fully decoding
 int stbi_info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp);
-int stbi_info_from_callbacks (stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
+int stbi_info_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
 int stbi_is_16_bit_from_memory (unsigned char const *buffer, int len);
-int stbi_is_16_bit_from_callbacks (stbi_io_callbacks const *clbk, void *user);
+int stbi_is_16_bit_from_callbacks (stbi::io_callbacks const *clbk, void *user);
 
 // for image formats that explicitly notate that they have premultiplied alpha,
 // we just return the colors as stored in the file. set this flag to force

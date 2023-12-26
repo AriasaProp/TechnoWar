@@ -27,14 +27,13 @@ int main(int argc, char** argv) {
   	if (argc < 3) throw  std::runtime_error("Input empty");
     if (!argv[1] || !argv[1][0] || !argv[2] || !argv[2][0])
       throw  std::runtime_error("Input empty");
-    std::cout << "in " << argv[1] << " & out " << argv[2] << std::endl;
     std::ifstream ifile{argv[1], std::ios::binary};
   	std::ofstream ofile{argv[2], std::ios::binary | std::ios::out | std::ios::trunc};
   	
     if (ifile.is_open() && ofile.is_open()) {
 	    int x, y, comp;
-	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, STBI_rgb_alpha);
-	    if (comp == STBI_rgb_alpha) {
+	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, stbi::channel::rgb_alpha);
+	    if (comp == stbi::channel::rgb_alpha) {
 	    	int dat[2] {x, y};
 		    ofile.write((char*)dat, sizeof(dat));
 		    ofile.write((char*)inpBuffer, x*y*comp);
