@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
   	
     if (ifile.is_open() && ofile.is_open()) {
 	    int x, y, comp;
-	    unsigned char *inpBuffer = stbi_load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, stbi::channel::rgb_alpha);
+	    unsigned char *inpBuffer = stbi::load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, stbi::channel::rgb_alpha);
 	    if (comp == stbi::channel::rgb_alpha) {
 	    	int dat[2] {x, y};
 		    ofile.write((char*)dat, sizeof(dat));

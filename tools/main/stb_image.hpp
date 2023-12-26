@@ -1,7 +1,6 @@
 #ifndef STBI_INCLUDE_STB_IMAGE_H
 #define STBI_INCLUDE_STB_IMAGE_H
 
-
 #include <cstdlib>
 
 namespace stbi {
@@ -18,61 +17,59 @@ struct io_callbacks {
   void (*skip) (void *user, int n);                        // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
   bool (*eof) (void *user);                                // returns nonzero if we are at end of file/data
 };
-}
 // 8-bit per channels
-unsigned char *stbi_load_from_memory (unsigned char const *, int, int *, int *, int *, int);
-unsigned char *stbi_load_from_callbacks (stbi::io_callbacks const *, void *, int *, int *, int *, int);
-
+unsigned char *load_from_memory (unsigned char const *, int, int *, int *, int *, int);
+unsigned char *load_from_callbacks (io_callbacks const *, void *, int *, int *, int *, int);
+// 16-bit per channels
+unsigned short *load_16_from_memory (unsigned char const *, int, int *, int *, int *, int);
+unsigned short *load_16_from_callbacks (io_callbacks const *, void *, int *, int *, int *, int);
 #ifdef STBI_WINDOWS_UTF8
-int stbi_convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
+int convert_wchar_to_utf8 (char *, size_t, const wchar_t *);
 #endif
 
-unsigned short *stbi_load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-unsigned short *stbi_load_16_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
-
 #ifndef STBI_NO_LINEAR
-float *stbi_loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-float *stbi_loadf_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+float *loadf_from_memory (unsigned char const *, int, int *, int *, int *, int);
+float *loadf_from_callbacks (io_callbacks const *, void *, int *, int *, int *, int);
 #endif
 
 #ifndef STBI_NO_HDR
-void stbi_hdr_to_ldr_gamma (float gamma);
-void stbi_hdr_to_ldr_scale (float scale);
+void hdr_to_ldr_gamma (float);
+void hdr_to_ldr_scale (float);
 #endif // STBI_NO_HDR
 
 #ifndef STBI_NO_LINEAR
-void stbi_ldr_to_hdr_gamma (float gamma);
-void stbi_ldr_to_hdr_scale (float scale);
+void ldr_to_hdr_gamma (float);
+void ldr_to_hdr_scale (float);
 #endif // STBI_NO_LINEAR
 
 // stbi_is_hdr is always defined, but always returns false if STBI_NO_HDR
-int stbi_is_hdr_from_callbacks (stbi::io_callbacks const *clbk, void *user);
-int stbi_is_hdr_from_memory (unsigned char const *buffer, int len);
+int stbi::is_hdr_from_callbacks (stbi::io_callbacks const *, void *);
+int stbi::is_hdr_from_memory (unsigned char const *, int);
 
 // get a VERY brief reason for failure
 // on most compilers (and ALL modern mainstream compilers) this is threadsafe
-const char *stbi_failure_reason (void);
+const char *failure_reason (void);
 
 // free the loaded image -- this is just free()
-void stbi_image_free (void *retval_from_stbi_load);
+void image_free (void *);
 
 // get image dimensions & components without fully decoding
-int stbi_info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp);
-int stbi_info_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
-int stbi_is_16_bit_from_memory (unsigned char const *buffer, int len);
-int stbi_is_16_bit_from_callbacks (stbi::io_callbacks const *clbk, void *user);
+int info_from_memory (unsigned char const *, int, int *, int *, int *);
+int info_from_callbacks (stbi::io_callbacks const *, void *, int *, int *, int *);
+int is_16_bit_from_memory (unsigned char const *, int);
+int is_16_bit_from_callbacks (stbi::io_callbacks const *, void *);
 
 // for image formats that explicitly notate that they have premultiplied alpha,
 // we just return the colors as stored in the file. set this flag to force
 // unpremultiplication. results are undefined if the unpremultiply overflow.
-void stbi_set_unpremultiply_on_load (int flag_true_if_should_unpremultiply);
+void set_unpremultiply_on_load (int flag_true_if_should_unpremultiply);
 
 // indicate whether we should process iphone images back to canonical format,
 // or just pass them through "as-is"
-void stbi_convert_iphone_png_to_rgb (int flag_true_if_should_convert);
+void convert_iphone_png_to_rgb (int flag_true_if_should_convert);
 
 // flip the image vertically, so the first pixel in the output array is the bottom left
-void stbi_set_flip_vertically_on_load (int flag_true_if_should_flip);
+void set_flip_vertically_on_load (int flag_true_if_should_flip);
 
 // as above, but only applies to images loaded on the thread that calls the function
 // this function is only available if your compiler supports thread-local variables;
@@ -80,15 +77,14 @@ void stbi_set_flip_vertically_on_load (int flag_true_if_should_flip);
 void stbi_set_unpremultiply_on_load_thread (int flag_true_if_should_unpremultiply);
 void stbi_convert_iphone_png_to_rgb_thread (int flag_true_if_should_convert);
 void stbi_set_flip_vertically_on_load_thread (int flag_true_if_should_flip);
-
 // ZLIB client - used by PNG, available for other purposes
+char *zlib_decode_malloc_guesssize (const char *buffer, int len, int initial_size, int *outlen);
+char *zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len, int initial_size, int *outlen, int parse_header);
+char *zlib_decode_malloc (const char *buffer, int len, int *outlen);
+int zlib_decode_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
 
-char *stbi_zlib_decode_malloc_guesssize (const char *buffer, int len, int initial_size, int *outlen);
-char *stbi_zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len, int initial_size, int *outlen, int parse_header);
-char *stbi_zlib_decode_malloc (const char *buffer, int len, int *outlen);
-int stbi_zlib_decode_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
-
-char *stbi_zlib_decode_noheader_malloc (const char *buffer, int len, int *outlen);
-int stbi_zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
+char *zlib_decode_noheader_malloc (const char *buffer, int len, int *outlen);
+int zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
+}
 
 #endif // STBI_INCLUDE_STB_IMAGE_H

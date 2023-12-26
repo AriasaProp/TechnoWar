@@ -314,7 +314,7 @@ static
 #endif
     const char *stbi__g_failure_reason;
 
-const char *stbi_failure_reason (void) {
+const char *stbi::failure_reason (void) {
   return stbi__g_failure_reason;
 }
 
@@ -426,7 +426,7 @@ static int stbi__mul2shorts_valid (short a, short b) {
 #define stbi__errpf(x, y) ((float *)(size_t)(stbi__err (x, y) ? NULL : NULL))
 #define stbi__errpuc(x, y) ((unsigned char *)(size_t)(stbi__err (x, y) ? NULL : NULL))
 
-void stbi_image_free (void *retval_from_stbi_load) {
+void stbi::image_free (void *retval_from_stbi_load) {
   STBI_FREE (retval_from_stbi_load);
 }
 
@@ -440,7 +440,7 @@ static unsigned char *stbi__hdr_to_ldr (float *data, int x, int y, int comp);
 
 static int stbi__vertically_flip_on_load_global = 0;
 
-void stbi_set_flip_vertically_on_load (int flag_true_if_should_flip) {
+void stbi::set_flip_vertically_on_load (int flag_true_if_should_flip) {
   stbi__vertically_flip_on_load_global = flag_true_if_should_flip;
 }
 
@@ -449,7 +449,7 @@ void stbi_set_flip_vertically_on_load (int flag_true_if_should_flip) {
 #else
 static STBI_THREAD_LOCAL int stbi__vertically_flip_on_load_local, stbi__vertically_flip_on_load_set;
 
-void stbi_set_flip_vertically_on_load_thread (int flag_true_if_should_flip) {
+void stbi::set_flip_vertically_on_load_thread (int flag_true_if_should_flip) {
   stbi__vertically_flip_on_load_local = flag_true_if_should_flip;
   stbi__vertically_flip_on_load_set = 1;
 }
@@ -621,24 +621,24 @@ static void stbi__float_postprocess (float *result, int *x, int *y, int *comp, i
 }
 #endif
 
-unsigned short *stbi_load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) {
+unsigned short *stbi::load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__load_and_postprocess_16bit (&s, x, y, channels_in_file, desired_channels);
 }
 
-unsigned short *stbi_load_16_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels) {
+unsigned short *stbi::load_16_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels) {
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)clbk, user);
   return stbi__load_and_postprocess_16bit (&s, x, y, channels_in_file, desired_channels);
 }
-unsigned char *stbi_load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
+unsigned char *stbi::load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
 }
 
-unsigned char *stbi_load_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
+unsigned char *stbi::load_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)clbk, user);
   return stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
@@ -662,13 +662,13 @@ static float *stbi__loadf_main (stbi__context *s, int *x, int *y, int *comp, int
   return stbi__errpf ("unknown image type", "Image not of any known type, or corrupt");
 }
 
-float *stbi_loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
+float *stbi::loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__loadf_main (&s, x, y, comp, req_comp);
 }
 
-float *stbi_loadf_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
+float *stbi::loadf_from_callbacks (stbi::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)clbk, user);
   return stbi__loadf_main (&s, x, y, comp, req_comp);
@@ -680,7 +680,7 @@ float *stbi_loadf_from_callbacks (stbi::io_callbacks const *clbk, void *user, in
 // defined, for API simplicity; if STBI_NO_LINEAR is defined, it always
 // reports false!
 
-int stbi_is_hdr_from_memory (unsigned char const *buffer, int len) {
+int stbi::is_hdr_from_memory (unsigned char const *buffer, int len) {
 #ifndef STBI_NO_HDR
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
@@ -691,7 +691,7 @@ int stbi_is_hdr_from_memory (unsigned char const *buffer, int len) {
   return 0;
 #endif
 }
-int stbi_is_hdr_from_callbacks (stbi::io_callbacks const *clbk, void *user) {
+int stbi::is_hdr_from_callbacks (stbi::io_callbacks const *clbk, void *user) {
 #ifndef STBI_NO_HDR
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)clbk, user);
@@ -706,14 +706,14 @@ int stbi_is_hdr_from_callbacks (stbi::io_callbacks const *clbk, void *user) {
 #ifndef STBI_NO_LINEAR
 static float stbi__l2h_gamma = 2.2f, stbi__l2h_scale = 1.0f;
 
-void stbi_ldr_to_hdr_gamma (float gamma) { stbi__l2h_gamma = gamma; }
-void stbi_ldr_to_hdr_scale (float scale) { stbi__l2h_scale = scale; }
+void stbi::ldr_to_hdr_gamma (float gamma) { stbi__l2h_gamma = gamma; }
+void stbi::ldr_to_hdr_scale (float scale) { stbi__l2h_scale = scale; }
 #endif
 
 static float stbi__h2l_gamma_i = 1.0f / 2.2f, stbi__h2l_scale_i = 1.0f;
 
-void stbi_hdr_to_ldr_gamma (float gamma) { stbi__h2l_gamma_i = 1 / gamma; }
-void stbi_hdr_to_ldr_scale (float scale) { stbi__h2l_scale_i = 1 / scale; }
+void stbi::hdr_to_ldr_gamma (float gamma) { stbi__h2l_gamma_i = 1 / gamma; }
+void stbi::hdr_to_ldr_scale (float scale) { stbi__h2l_scale_i = 1 / scale; }
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -3748,7 +3748,7 @@ static int stbi__do_zlib (stbi__zbuf *a, char *obuf, int olen, int exp, int pars
   return stbi__parse_zlib (a, parse_header);
 }
 
-char *stbi_zlib_decode_malloc_guesssize (const char *buffer, int len, int initial_size, int *outlen) {
+char *stbi::zlib_decode_malloc_guesssize (const char *buffer, int len, int initial_size, int *outlen) {
   stbi__zbuf a;
   char *p = (char *)STBI_MALLOC (initial_size);
   if (p == NULL) return NULL;
@@ -3763,11 +3763,11 @@ char *stbi_zlib_decode_malloc_guesssize (const char *buffer, int len, int initia
   }
 }
 
-char *stbi_zlib_decode_malloc (char const *buffer, int len, int *outlen) {
-  return stbi_zlib_decode_malloc_guesssize (buffer, len, 16384, outlen);
+char *stbi::zlib_decode_malloc (char const *buffer, int len, int *outlen) {
+  return stbi::zlib_decode_malloc_guesssize (buffer, len, 16384, outlen);
 }
 
-char *stbi_zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len, int initial_size, int *outlen, int parse_header) {
+char *stbi::zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len, int initial_size, int *outlen, int parse_header) {
   stbi__zbuf a;
   char *p = (char *)STBI_MALLOC (initial_size);
   if (p == NULL) return NULL;
@@ -3782,7 +3782,7 @@ char *stbi_zlib_decode_malloc_guesssize_headerflag (const char *buffer, int len,
   }
 }
 
-int stbi_zlib_decode_buffer (char *obuffer, int olen, char const *ibuffer, int ilen) {
+int stbi::zlib_decode_buffer (char *obuffer, int olen, char const *ibuffer, int ilen) {
   stbi__zbuf a;
   a.zbuffer = (unsigned char *)ibuffer;
   a.zbuffer_end = (unsigned char *)ibuffer + ilen;
@@ -3792,7 +3792,7 @@ int stbi_zlib_decode_buffer (char *obuffer, int olen, char const *ibuffer, int i
     return -1;
 }
 
-char *stbi_zlib_decode_noheader_malloc (char const *buffer, int len, int *outlen) {
+char *stbi::zlib_decode_noheader_malloc (char const *buffer, int len, int *outlen) {
   stbi__zbuf a;
   char *p = (char *)STBI_MALLOC (16384);
   if (p == NULL) return NULL;
@@ -3807,7 +3807,7 @@ char *stbi_zlib_decode_noheader_malloc (char const *buffer, int len, int *outlen
   }
 }
 
-int stbi_zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen) {
+int stbi::zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen) {
   stbi__zbuf a;
   a.zbuffer = (unsigned char *)ibuffer;
   a.zbuffer_end = (unsigned char *)ibuffer + ilen;
@@ -4259,11 +4259,11 @@ static int stbi__expand_png_palette (stbi__png *a, unsigned char *palette, int l
 static int stbi__unpremultiply_on_load_global = 0;
 static int stbi__de_iphone_flag_global = 0;
 
-void stbi_set_unpremultiply_on_load (int flag_true_if_should_unpremultiply) {
+void stbi::set_unpremultiply_on_load (int flag_true_if_should_unpremultiply) {
   stbi__unpremultiply_on_load_global = flag_true_if_should_unpremultiply;
 }
 
-void stbi_convert_iphone_png_to_rgb (int flag_true_if_should_convert) {
+void stbi::convert_iphone_png_to_rgb (int flag_true_if_should_convert) {
   stbi__de_iphone_flag_global = flag_true_if_should_convert;
 }
 
@@ -4477,7 +4477,7 @@ static int stbi__parse_png_file (stbi__png *z, int scan, int req_comp) {
       // initial guess for decoded data size to avoid unnecessary reallocs
       bpl = (s->img_x * z->depth + 7) / 8; // bytes per line, per component
       raw_len = bpl * s->img_y * s->img_n /* pixels */ + s->img_y /* filter mode per row */;
-      z->expanded = (unsigned char *)stbi_zlib_decode_malloc_guesssize_headerflag ((char *)z->idata, ioff, raw_len, (int *)&raw_len, !is_iphone);
+      z->expanded = (unsigned char *)stbi::zlib_decode_malloc_guesssize_headerflag ((char *)z->idata, ioff, raw_len, (int *)&raw_len, !is_iphone);
       if (z->expanded == NULL) return 0; // zlib should set error
       STBI_FREE (z->idata);
       z->idata = NULL;
@@ -6421,25 +6421,25 @@ static int stbi__is_16_main (stbi__context *s) {
   return 0;
 }
 
-int stbi_info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp) {
+int stbi::info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__info_main (&s, x, y, comp);
 }
 
-int stbi_info_from_callbacks (stbi::io_callbacks const *c, void *user, int *x, int *y, int *comp) {
+int stbi::info_from_callbacks (stbi::io_callbacks const *c, void *user, int *x, int *y, int *comp) {
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)c, user);
   return stbi__info_main (&s, x, y, comp);
 }
 
-int stbi_is_16_bit_from_memory (unsigned char const *buffer, int len) {
+int stbi::is_16_bit_from_memory (unsigned char const *buffer, int len) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__is_16_main (&s);
 }
 
-int stbi_is_16_bit_from_callbacks (stbi::io_callbacks const *c, void *user) {
+int stbi::is_16_bit_from_callbacks (stbi::io_callbacks const *c, void *user) {
   stbi__context s;
   stbi__start_callbacks (&s, (stbi::io_callbacks *)c, user);
   return stbi__is_16_main (&s);
