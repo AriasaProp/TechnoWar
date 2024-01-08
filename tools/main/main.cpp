@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <cstring>
 #include <cstdlib>
@@ -7,39 +6,24 @@
 
 #include "stb_image.hpp"
 
-stbi::io_callbacks sic_file {
-	.read = [](void *user, char *data, unsigned int size) -> int {
-		std::ifstream *ifile = (std::ifstream*)user;
-		ifile->read(data, size);
-		return ifile->gcount();
-	},
-	.skip = [](void *user, int n){
-		std::ifstream *ifile = (std::ifstream*)user;
-		ifile->seekg(n, std::ios::cur);
-	},
-	.eof = [](void *user) -> bool {
-		return ((std::ifstream*)user)->eof();
-	}
-};
-
-int main(int argc, char** argv) {
+int main(int argc, char* argv[]) {
   try {
   	if (argc < 3) throw  std::runtime_error("Input empty");
     if (!argv[1] || !argv[1][0] || !argv[2] || !argv[2][0])
       throw  std::runtime_error("Input empty");
-    std::ifstream ifile{argv[1], std::ios::binary};
-  	std::ofstream ofile{argv[2], std::ios::binary | std::ios::out | std::ios::trunc};
+    int x, y, comp;
+    unsigned char *inpBuffer = stbi::load_from_file(argv[1], &x, &y, &comp, stbi::channel::rgb_alpha);
+    if (!inpBuffer) throw std::runtime_error(stbi::failure_reason());
+  	if (comp != stbi::channel::rgb_alpha) throw std::runtime_error("failed convert channels");
   	
-    if (ifile.is_open() && ofile.is_open()) {
-	    int x, y, comp;
-	    unsigned char *inpBuffer = stbi::load_from_callbacks(&sic_file, (void*)&ifile, &x, &y, &comp, stbi::channel::rgb_alpha);
-	    if (comp == stbi::channel::rgb_alpha) {
+  	std::ofstream ofile{argv[2], std::ios::binary | std::ios::out | std::ios::trunc};
+    if (ofile.is_open()) {
+	    if () {
 	    	int dat[2] {x, y};
 		    ofile.write((char*)dat, sizeof(dat));
 		    ofile.write((char*)inpBuffer, x*y*comp);
 		    stbi::image_free(inpBuffer);
 	    }
-	    ifile.close();
 	    ofile.close();
     } else throw  std::runtime_error("Could not open file input/output.");
     std::cout << "File conversion complete." << std::endl;
