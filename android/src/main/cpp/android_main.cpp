@@ -24,7 +24,6 @@
 #include "main_game.hpp"
 #include <jni.h>
 
-
 #include "android_asset/android_asset.hpp"
 #include "android_input/android_input.hpp"
 #include "api_graphics/android_graphics.hpp"
