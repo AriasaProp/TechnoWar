@@ -43,7 +43,7 @@ jobs:
       - name: Test Run
         uses: gradle/gradle-build-action@v2.4.2
         with:
-          gradle-version: 8.4
+          gradle-version: 8.6
           arguments: :tools:runc
       - name: Upload Tools
         uses: actions/upload-artifact@v3.1.2
@@ -59,7 +59,7 @@ jobs:
       - name: Gradle Check Core
         uses: gradle/gradle-build-action@v2.4.2
         with:
-          gradle-version: 8.4
+          gradle-version: 8.6
           arguments: :core:check 
   android:
     runs-on: ubuntu-latest
@@ -70,7 +70,7 @@ jobs:
       - name: Gradle Check Android
         uses: gradle/gradle-build-action@v2.4.2
         with:
-          gradle-version: 8.4
+          gradle-version: 8.6
           arguments: :android:build -Prelease
       - name: Upload Android
         uses: actions/upload-artifact@v3.1.2
@@ -86,7 +86,7 @@ jobs:
       - name: Gradle Build Desktop
         uses: gradle/gradle-build-action@v2.4.2
         with:
-          gradle-version: 8.4
+          gradle-version: 8.6
           arguments: :desktop:build
       - name: Upload Desktop
         uses: actions/upload-artifact@v3.1.2
