@@ -22,19 +22,19 @@ jobs:
         id: changes
         run: |
           tools_changed=$(echo "${{ toJson(glob('tools/**')) }}" | jq -e 'length > 0')
-          echo "::set-output name=tools_changed::$tools_changed"
+          echo "::set-output name=tools::$tools_changed"
           
           core_changed=$(echo "${{ toJson(glob('core/**')) }}" | jq -e 'length > 0')
           
           if [ "$core_changed" = true ]; then
-            echo "::set-output name=android_changed::true"
-            echo "::set-output name=desktop_changed::true"
+            echo "::set-output name=android::true"
+            echo "::set-output name=desktop::true"
           else
-            echo "::set-output name=android_changed::$(echo "${{ toJson(glob('android/**')) }}" | jq -e 'length > 0')"
-            echo "::set-output name=desktop_changed::$(echo "${{ toJson(glob('desktop/**')) }}" | jq -e 'length > 0')"
+            echo "::set-output name=android::$(echo "${{ toJson(glob('android/**')) }}" | jq -e 'length > 0')"
+            echo "::set-output name=desktop::$(echo "${{ toJson(glob('desktop/**')) }}" | jq -e 'length > 0')"
           fi
           
-          echo "::set-output name=core_changed::$core_changed"
+          echo "::set-output name=core::$core_changed"
 
   tools:
     runs-on: ubuntu-latest
