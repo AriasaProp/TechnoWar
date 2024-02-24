@@ -18,9 +18,9 @@ jobs:
         desktop: ${{ steps.changes.outputs.desktop }}
     steps:
       - uses: actions/checkout@v3.5.2
-			- name: Filter Changes
-			  id: changes
-			  run: |
+      - name: Filter Changes
+        id: changes
+        run: |
           tools_changed=$(echo "${{ toJson(glob('tools/**')) }}" | jq -e 'length > 0')
           echo "::set-output name=tools_changed::$tools_changed"
           
