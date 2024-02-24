@@ -13,10 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: |
-          for path in "${{ github.event.paths }}"; do
-            echo "$path"
-          done
+        run: echo "${{ toJson(github.event) }}"
   tools:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.paths, 'tools/') }}
