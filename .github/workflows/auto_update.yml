@@ -8,7 +8,12 @@ on:
       - 'desktop/**'
       - 'tools/**'
 
-jobs: 
+jobs:
+  try:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test
+        run: echo ${{ github.event.paths }}
   tools:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.paths, 'tools/') }}
