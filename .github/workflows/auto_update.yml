@@ -9,37 +9,9 @@ on:
       - 'tools/**'
 
 jobs: 
-  check-changes:
-    runs-on: ubuntu-latest
-    outputs:
-        tools: ${{ steps.changes.outputs.tools }}
-        core: ${{ steps.changes.outputs.core }}
-        android: ${{ steps.changes.outputs.android }}
-        desktop: ${{ steps.changes.outputs.desktop }}
-    steps:
-      - uses: actions/checkout@v3.5.2
-      - name: Filter Changes
-        id: changes
-        run: |
-          tools_changed=$(echo "${{ toJson(glob('tools/**')) }}" | jq -e 'length > 0')
-          echo "::set-output name=tools::$tools_changed"
-          
-          core_changed=$(echo "${{ toJson(glob('core/**')) }}" | jq -e 'length > 0')
-          
-          if [ "$core_changed" = true ]; then
-            echo "::set-output name=android::true"
-            echo "::set-output name=desktop::true"
-          else
-            echo "::set-output name=android::$(echo "${{ toJson(glob('android/**')) }}" | jq -e 'length > 0')"
-            echo "::set-output name=desktop::$(echo "${{ toJson(glob('desktop/**')) }}" | jq -e 'length > 0')"
-          fi
-          
-          echo "::set-output name=core::$core_changed"
-
   tools:
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.tools == 'true'}}
+    if: ${{ contains(github.event.paths, 'tools/') }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Test Run
@@ -54,8 +26,7 @@ jobs:
           path: ${{ github.workspace }}/tools/converted
   core:
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.core == 'true'}}
+    if: ${{ contains(github.event.paths, 'core/') || contains(github.event.paths, 'android/') || contains(github.event.paths, 'desktop/') }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Gradle Check Core
@@ -65,8 +36,8 @@ jobs:
           arguments: :core:check 
   android:
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.android == 'true'}}
+    needs: core
+    if: ${{ contains(github.event.paths, 'android/') }}
     steps:
       - uses: actions/checkout@v3.5.2 
       - name: Setup JDK 17
@@ -87,8 +58,8 @@ jobs:
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
   desktop:
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: ${{ needs.check-changes.outputs.desktop == 'true' }}
+    needs: core
+    if: ${{ contains(github.event.paths, 'desktop/') }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Gradle Build Desktop
