@@ -9,7 +9,7 @@ on:
       - 'tools/**'
 
 jobs: 
-  start:
+  check-changes:
     runs-on: ubuntu-latest
     outputs:
         tools: ${{ steps.changes.outputs.tools }}
@@ -18,26 +18,28 @@ jobs:
         desktop: ${{ steps.changes.outputs.desktop }}
     steps:
       - uses: actions/checkout@v3.5.2
-      - name: Filter Changes
-        id: changes
-        uses: dorny/paths-filter@v2
-        with:
-          base: ${{ github.ref }}
-          filters: |
-            tools:
-              - 'tools/**'
-            core:
-              - 'core/**'
-            android:
-              - 'core/**'
-              - 'android/**'
-            desktop:
-              - 'core/**'
-              - 'desktop/**'
+			- name: Filter Changes
+			  id: changes
+			  run: |
+          tools_changed=$(echo "${{ toJson(glob('tools/**')) }}" | jq -e 'length > 0')
+          echo "::set-output name=tools_changed::$tools_changed"
+          
+          core_changed=$(echo "${{ toJson(glob('core/**')) }}" | jq -e 'length > 0')
+          
+          if [ "$core_changed" = true ]; then
+            echo "::set-output name=android_changed::true"
+            echo "::set-output name=desktop_changed::true"
+          else
+            echo "::set-output name=android_changed::$(echo "${{ toJson(glob('android/**')) }}" | jq -e 'length > 0')"
+            echo "::set-output name=desktop_changed::$(echo "${{ toJson(glob('desktop/**')) }}" | jq -e 'length > 0')"
+          fi
+          
+          echo "::set-output name=core_changed::$core_changed"
+
   tools:
     runs-on: ubuntu-latest
-    needs: start
-    if: ${{ needs.start.outputs.tools == 'true'}}
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.tools == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Test Run
@@ -52,8 +54,8 @@ jobs:
           path: ${{ github.workspace }}/tools/converted
   core:
     runs-on: ubuntu-latest
-    needs: start
-    if: ${{ needs.start.outputs.core == 'true'}}
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.core == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Gradle Check Core
@@ -63,8 +65,8 @@ jobs:
           arguments: :core:check 
   android:
     runs-on: ubuntu-latest
-    needs: [start]
-    if: ${{ needs.start.outputs.android == 'true'}}
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.android == 'true'}}
     steps:
       - uses: actions/checkout@v3.5.2 
       - name: Setup JDK 17
@@ -85,8 +87,8 @@ jobs:
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
   desktop:
     runs-on: ubuntu-latest
-    needs: [start]
-    if: ${{ needs.start.outputs.desktop == 'true' }}
+    needs: check-changes
+    if: ${{ needs.check-changes.outputs.desktop == 'true' }}
     steps:
       - uses: actions/checkout@v3.5.2
       - name: Gradle Build Desktop
