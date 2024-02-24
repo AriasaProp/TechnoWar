@@ -9,70 +9,114 @@ on:
       - 'tools/**'
 
 jobs:
-  try:
+  check-changes:
     runs-on: ubuntu-latest
+    outputs:
+      tools: ${{ steps.changes.outputs.tools }}
+      core: ${{ steps.changes.outputs.core }}
+      android: ${{ steps.changes.outputs.android }}
+      desktop: ${{ steps.changes.outputs.desktop }}
     steps:
-      - name: Test
-        run: echo "${{ toJson(github.event) }}"
+      - name: Checkout code
+        uses: actions/checkout@v3.5.2
+
+      - name: Check for changes
+        id: changes
+        uses: tj-actions/changed-files@v42.0.2
+        with:
+          files_yaml: |
+            tools:
+              - tools/**
+            core:
+              - core/**
+              - android/**
+              - desktop/**
+            android:
+              - android/**
+            desktop:
+              - desktop/**
+
   tools:
     runs-on: ubuntu-latest
-    if: ${{ contains(github.event.paths, 'tools/') }}
+    if: ${{ needs.check-changes.outputs.tools == 'true' }}
     steps:
-      - uses: actions/checkout@v3.5.2
-      - name: Test Run
-        uses: gradle/gradle-build-action@v2.4.2
-        with:
-          gradle-version: 8.6
-          arguments: :tools:runc
-      - name: Upload Tools
-        uses: actions/upload-artifact@v3.1.2
-        with:
-          name: converted
-          path: ${{ github.workspace }}/tools/converted
-  core:
-    runs-on: ubuntu-latest
-    if: ${{ contains(github.event.paths, 'core/') || contains(github.event.paths, 'android/') || contains(github.event.paths, 'desktop/') }}
-    steps:
-      - uses: actions/checkout@v3.5.2
-      - name: Gradle Check Core
-        uses: gradle/gradle-build-action@v2.4.2
-        with:
-          gradle-version: 8.6
-          arguments: :core:check 
-  android:
-    runs-on: ubuntu-latest
-    needs: core
-    if: ${{ contains(github.event.paths, 'android/') }}
-    steps:
-      - uses: actions/checkout@v3.5.2 
+      - name: Checkout code
+        uses: actions/checkout@v3.5.2
+
       - name: Setup JDK 17
         uses: actions/setup-java@v3.11.0
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: 'gradle'
-      - name: Gradle Check Android
+
+      - name: Gradle Build Tools
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.6
+          arguments: :tools:build
+
+      - name: Upload Tools
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: converted
+          path: ${{ github.workspace }}/tools/converted
+
+  core:
+    runs-on: ubuntu-latest
+    if: ${{ needs.check-changes.outputs.core == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.5.2
+
+      - name: Gradle Check Core
+        uses: gradle/gradle-build-action@v2.4.2
+        with:
+          gradle-version: 8.6
+          arguments: :core:check 
+
+  android:
+    runs-on: ubuntu-latest
+    needs: core
+    if: ${{ needs.check-changes.outputs.android == 'true' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3.5.2
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3.11.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Gradle Build Android
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.6
           arguments: :android:build -Prelease
-      - name: Upload Android
+
+      - name: Upload Android APK
         uses: actions/upload-artifact@v3.1.2
         with:
           name: APK
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
+
   desktop:
     runs-on: ubuntu-latest
     needs: core
-    if: ${{ contains(github.event.paths, 'desktop/') }}
+    if: ${{ needs.check-changes.outputs.desktop == 'true' }}
     steps:
-      - uses: actions/checkout@v3.5.2
+      - name: Checkout code
+        uses: actions/checkout@v3.5.2
+
       - name: Gradle Build Desktop
         uses: gradle/gradle-build-action@v2.4.2
         with:
           gradle-version: 8.6
           arguments: :desktop:build
-      - name: Upload Desktop
+
+      - name: Upload Desktop EXE
         uses: actions/upload-artifact@v3.1.2
         with:
           name: EXE
