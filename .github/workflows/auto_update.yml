@@ -13,7 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test
-        run: echo ${{ github.event.paths }}
+        run: |
+          for path in "${{ github.event.paths }}"; do
+            echo "$path"
+          done
   tools:
     runs-on: ubuntu-latest
     if: ${{ contains(github.event.paths, 'tools/') }}
