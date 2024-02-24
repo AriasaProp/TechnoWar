@@ -18,9 +18,3 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
