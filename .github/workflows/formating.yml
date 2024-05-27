@@ -23,10 +23,7 @@ jobs:
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"
           sudo apt-get install -y clang-format
-          find . -name "tools/**/*.cpp" -o -name "tools/**/*.hpp" | xargs clang-format -i
-          find . -name "core/**/*.cpp" -o -name "core/**/*.hpp" | xargs clang-format -i
-          find . -name "android/src/main/**/*.cpp" -o -name "android/src/main/**/*.hpp" | xargs clang-format -i
-          find . -name "desktop/**/*.cpp" -o -name "desktop/**/*.hpp" | xargs clang-format -i
+          find . -iname "*.cpp" -o -iname "*.hpp" | xargs clang-format -i
           git add .
           git commit -m "Reformatting cpp"
 
