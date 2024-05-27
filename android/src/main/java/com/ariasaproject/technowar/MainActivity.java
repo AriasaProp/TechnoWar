@@ -59,7 +59,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         insetNative(insetsL, insetsT, insetsR, insetsB);
         return insets;
     }
-    
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         getWindow().getDecorView().requestApplyInsets();
@@ -82,7 +82,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     public void surfaceDestroyed(SurfaceHolder holder) {
         super.surfaceDestroyed(holder);
     }
-    
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -109,6 +109,6 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     }
 
     private void showToast(String message) {
-        //Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }
