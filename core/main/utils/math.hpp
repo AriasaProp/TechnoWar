@@ -22,7 +22,7 @@ enum Align : unsigned char {
 namespace memory_usage {
 const char *mem_usage ();
 const char *cpu_time ();
-} // resources information
+} // namespace memory_usage
 namespace clock_count {
 void start ();
 void render ();
@@ -43,22 +43,23 @@ struct Vector2 {
 private:
   float x, y;
   Align pivot_align;
+
 public:
-  Vector2();
-  Vector2(float, float, const Align &);
-  void getFloats(float *);
+  Vector2 ();
+  Vector2 (float, float, const Align &);
+  void getFloats (float *);
 };
 
 struct Rect {
 private:
   float x, y, sx, sy;
   Align main_align, pivot_align;
+
 public:
   Rect ();
   Rect (float, float, float, float, const Align &, const Align &);
-  void getFloats(float *);
+  void getFloats (float *);
   bool insetOf (float, float);
 };
-
 
 #endif // Included_MATH_

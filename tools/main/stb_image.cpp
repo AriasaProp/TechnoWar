@@ -32,11 +32,11 @@
 #endif
 
 #include <climits>
-#include <stdlib.h> // update gcc 6
-#include <cstring>
 #include <cstdio>
+#include <cstring>
 #include <stdarg.h>
 #include <stddef.h> // ptrdiff_t on osx
+#include <stdlib.h> // update gcc 6
 
 #if !defined(STBI_NO_LINEAR) || !defined(STBI_NO_HDR)
 #include <cmath> // ldexp, pow
@@ -48,15 +48,15 @@
 #endif
 
 #ifndef STBI_NO_THREAD_LOCALS
-	#if defined(__cplusplus) && __cplusplus >= 201103L
-	#define STBI_THREAD_LOCAL thread_local
-	#elif defined(_MSC_VER)
-	#define STBI_THREAD_LOCAL __declspec(thread)
-	#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
-	#define STBI_THREAD_LOCAL _Thread_local
-	#elif defined(__GNUC__)
-	#define STBI_THREAD_LOCAL __thread
-	#endif
+#if defined(__cplusplus) && __cplusplus >= 201103L
+#define STBI_THREAD_LOCAL thread_local
+#elif defined(_MSC_VER)
+#define STBI_THREAD_LOCAL __declspec(thread)
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_THREADS__)
+#define STBI_THREAD_LOCAL _Thread_local
+#elif defined(__GNUC__)
+#define STBI_THREAD_LOCAL __thread
+#endif
 #endif
 
 #if defined(_MSC_VER) && (_MSC_VER < 1600)
@@ -230,21 +230,19 @@ static void start_callbacks (context *s, stbi::io_callbacks *c, void *user) {
   s->img_buffer_original_end = s->img_buffer_end;
 }
 
-
-static void start_file(context *s, FILE *f){
-	static stbi::io_callbacks stdio_callbacks = {
-		[](void *user, char *data, unsigned int size) -> int { return (int) fread(data,1,size,(FILE*) user); },
-		[](void *user, int n) -> void {
-			int ch;
-			fseek((FILE*) user, n, SEEK_CUR);
-			ch = fgetc((FILE*) user);  /* have to read a byte to reset feof()'s flag */
-			if (ch != EOF) {
-			  ungetc(ch, (FILE *) user);  /* push byte back onto stream if valid. */
-			}
-		},
-		[](void *user) -> bool { return feof((FILE*) user) || ferror((FILE *) user); }
-	};
-	start_callbacks(s, &stdio_callbacks, (void *) f);
+static void start_file (context *s, FILE *f) {
+  static stbi::io_callbacks stdio_callbacks = {
+      [] (void *user, char *data, unsigned int size) -> int { return (int)fread (data, 1, size, (FILE *)user); },
+      [] (void *user, int n) -> void {
+        int ch;
+        fseek ((FILE *)user, n, SEEK_CUR);
+        ch = fgetc ((FILE *)user); /* have to read a byte to reset feof()'s flag */
+        if (ch != EOF) {
+          ungetc (ch, (FILE *)user); /* push byte back onto stream if valid. */
+        }
+      },
+      [] (void *user) -> bool { return feof ((FILE *)user) || ferror ((FILE *)user); }};
+  start_callbacks (s, &stdio_callbacks, (void *)f);
 }
 
 static void rewind (context *s) {
@@ -255,7 +253,8 @@ static void rewind (context *s) {
   s->img_buffer_end = s->img_buffer_original_end;
 }
 
-enum { STBI_ORDER_RGB, STBI_ORDER_BGR };
+enum { STBI_ORDER_RGB,
+       STBI_ORDER_BGR };
 
 struct result_info {
   int bits_per_channel;
@@ -626,51 +625,50 @@ static void float_postprocess (float *result, int *x, int *y, int *comp, int req
 #endif
 
 #if defined(_WIN32) && defined(WINDOWS_UTF8)
-extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
-int stbi::convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input) {
-	return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
+extern __declspec(dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+extern __declspec(dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+int stbi::convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input) {
+  return WideCharToMultiByte (65001 /* UTF8 */, 0, input, -1, buffer, (int)bufferlen, NULL, NULL);
 }
 #endif
 
-static FILE *stbi_fopen(char const *filename, char const *mode) {
-   FILE *f;
+static FILE *stbi_fopen (char const *filename, char const *mode) {
+  FILE *f;
 #if defined(_WIN32) && defined(WINDOWS_UTF8)
-   wchar_t wMode[64];
-   wchar_t wFilename[1024];
-	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
-      return 0;
-	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
-      return 0;
+  wchar_t wMode[64];
+  wchar_t wFilename[1024];
+  if (0 == MultiByteToWideChar (65001 /* UTF8 */, 0, filename, -1, wFilename, sizeof (wFilename) / sizeof (*wFilename)))
+    return 0;
+  if (0 == MultiByteToWideChar (65001 /* UTF8 */, 0, mode, -1, wMode, sizeof (wMode) / sizeof (*wMode)))
+    return 0;
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-	if (0 != _wfopen_s(&f, wFilename, wMode))
-		f = 0;
+  if (0 != _wfopen_s (&f, wFilename, wMode))
+    f = 0;
 #else
-   f = _wfopen(wFilename, wMode);
+  f = _wfopen (wFilename, wMode);
 #endif
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1400
-   if (0 != fopen_s(&f, filename, mode))
-      f=0;
+  if (0 != fopen_s (&f, filename, mode))
+    f = 0;
 #else
-   f = fopen(filename, mode);
+  f = fopen (filename, mode);
 #endif
-   return f;
+  return f;
 }
 
-
-unsigned char *stbi::load(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   FILE *f = stbi_fopen(filename, "rb");
-   if (!f) return errpuc("can't fopen", "Unable to open file");
-   context s;
-   start_file(&s,f);
-   unsigned char *result = load_and_postprocess_8bit(&s,x,y,comp,req_comp);
-   if (result) {
-      // need to 'unget' all the characters in the IO buffer
-      fseek(f, - (int) (s.img_buffer_end - s.img_buffer), SEEK_CUR);
-   }
-   fclose(f);
-   return result;
+unsigned char *stbi::load (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  FILE *f = stbi_fopen (filename, "rb");
+  if (!f) return errpuc ("can't fopen", "Unable to open file");
+  context s;
+  start_file (&s, f);
+  unsigned char *result = load_and_postprocess_8bit (&s, x, y, comp, req_comp);
+  if (result) {
+    // need to 'unget' all the characters in the IO buffer
+    fseek (f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
+  }
+  fclose (f);
+  return result;
 }
 unsigned char *stbi::load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   context s;
@@ -683,18 +681,18 @@ unsigned char *stbi::load_from_callbacks (stbi::io_callbacks const *clbk, void *
   return load_and_postprocess_8bit (&s, x, y, comp, req_comp);
 }
 
-unsigned short *stbi::load_16(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   FILE *f = stbi_fopen(filename, "rb");
-   if (!f) return (unsigned short *) errpuc("can't fopen", "Unable to open file");
-   context s;
-   start_file(&s,f);
-   unsigned short *result = load_and_postprocess_16bit(&s,x,y,comp,req_comp);
-   if (result) {
-      // need to 'unget' all the characters in the IO buffer
-      fseek(f, - (int) (s.img_buffer_end - s.img_buffer), SEEK_CUR);
-   }
-   fclose(f);
-   return result;
+unsigned short *stbi::load_16 (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  FILE *f = stbi_fopen (filename, "rb");
+  if (!f) return (unsigned short *)errpuc ("can't fopen", "Unable to open file");
+  context s;
+  start_file (&s, f);
+  unsigned short *result = load_and_postprocess_16bit (&s, x, y, comp, req_comp);
+  if (result) {
+    // need to 'unget' all the characters in the IO buffer
+    fseek (f, -(int)(s.img_buffer_end - s.img_buffer), SEEK_CUR);
+  }
+  fclose (f);
+  return result;
 }
 unsigned short *stbi::load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) {
   context s;
@@ -726,14 +724,14 @@ static float *loadf_main (context *s, int *x, int *y, int *comp, int req_comp) {
   return errpf ("unknown image type", "Image not of any known type, or corrupt");
 }
 
-float *stbi::loadf(char const *filename, int *x, int *y, int *comp, int req_comp) {
-   FILE *f = stbi_fopen(filename, "rb");
-   if (!f) return errpf("can't fopen", "Unable to open file");
-   context s;
-   start_file(&s,f);
-   float *result = loadf_main(&s,x,y,comp,req_comp);
-   fclose(f);
-   return result;
+float *stbi::loadf (char const *filename, int *x, int *y, int *comp, int req_comp) {
+  FILE *f = stbi_fopen (filename, "rb");
+  if (!f) return errpf ("can't fopen", "Unable to open file");
+  context s;
+  start_file (&s, f);
+  float *result = loadf_main (&s, x, y, comp, req_comp);
+  fclose (f);
+  return result;
 }
 float *stbi::loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   context s;
@@ -1708,13 +1706,13 @@ inline static unsigned char clamp (int x) {
   int t0, t1, t2, t3, p1, p2, p3, p4, p5, x0, x1, x2, x3; \
   p2 = s2;                                                \
   p3 = s6;                                                \
-  p1 = (p2 + p3) * f2f (0.5411961f);                \
-  t2 = p1 + p3 * f2f (-1.847759065f);               \
-  t3 = p1 + p2 * f2f (0.765366865f);                \
+  p1 = (p2 + p3) * f2f (0.5411961f);                      \
+  t2 = p1 + p3 * f2f (-1.847759065f);                     \
+  t3 = p1 + p2 * f2f (0.765366865f);                      \
   p2 = s0;                                                \
   p3 = s4;                                                \
-  t0 = fsh (p2 + p3);                               \
-  t1 = fsh (p2 - p3);                               \
+  t0 = fsh (p2 + p3);                                     \
+  t1 = fsh (p2 - p3);                                     \
   x0 = t0 + t3;                                           \
   x3 = t0 - t3;                                           \
   x1 = t1 + t2;                                           \
@@ -1727,15 +1725,15 @@ inline static unsigned char clamp (int x) {
   p4 = t1 + t3;                                           \
   p1 = t0 + t3;                                           \
   p2 = t1 + t2;                                           \
-  p5 = (p3 + p4) * f2f (1.175875602f);              \
-  t0 = t0 * f2f (0.298631336f);                     \
-  t1 = t1 * f2f (2.053119869f);                     \
-  t2 = t2 * f2f (3.072711026f);                     \
-  t3 = t3 * f2f (1.501321110f);                     \
-  p1 = p5 + p1 * f2f (-0.899976223f);               \
-  p2 = p5 + p2 * f2f (-2.562915447f);               \
-  p3 = p3 * f2f (-1.961570560f);                    \
-  p4 = p4 * f2f (-0.390180644f);                    \
+  p5 = (p3 + p4) * f2f (1.175875602f);                    \
+  t0 = t0 * f2f (0.298631336f);                           \
+  t1 = t1 * f2f (2.053119869f);                           \
+  t2 = t2 * f2f (3.072711026f);                           \
+  t3 = t3 * f2f (1.501321110f);                           \
+  p1 = p5 + p1 * f2f (-0.899976223f);                     \
+  p2 = p5 + p2 * f2f (-2.562915447f);                     \
+  p3 = p3 * f2f (-1.961570560f);                          \
+  p4 = p4 * f2f (-0.390180644f);                          \
   t3 += p1 + p4;                                          \
   t2 += p2 + p3;                                          \
   t1 += p2 + p4;                                          \
@@ -3757,7 +3755,7 @@ static int parse_zlib_header (zbuf *a) {
   int cm = cmf & 15;
   /* int cinfo = cmf >> 4; */
   int flg = zget8 (a);
-  if (zeof (a)) return err ("bad zlib header", "Corrupt PNG");              // zlib spec
+  if (zeof (a)) return err ("bad zlib header", "Corrupt PNG");                    // zlib spec
   if ((cmf * 256 + flg) % 31 != 0) return err ("bad zlib header", "Corrupt PNG"); // zlib spec
   if (flg & 32) return err ("no preset dict", "Corrupt PNG");                     // preset dictionary not allowed in png
   if (cm != 8) return err ("bad compression", "Corrupt PNG");                     // DEFLATE required for png
@@ -5146,8 +5144,8 @@ static int tga_info (context *s, int *x, int *y, int *comp) {
     rewind (s);
     return 0; // only RGB or indexed allowed
   }
-  tga_image_type = get8 (s); // image type
-  if (tga_colormap_type == 1) {    // colormapped (paletted) image
+  tga_image_type = get8 (s);    // image type
+  if (tga_colormap_type == 1) { // colormapped (paletted) image
     if (tga_image_type != 1 && tga_image_type != 9) {
       rewind (s);
       return 0;
@@ -5204,23 +5202,23 @@ static int tga_info (context *s, int *x, int *y, int *comp) {
 static int tga_test (context *s) {
   int res = 0;
   int sz, tga_color_type;
-  get8 (s);                          //   discard Offset
-  tga_color_type = get8 (s);         //   color type
+  get8 (s);                                //   discard Offset
+  tga_color_type = get8 (s);               //   color type
   if (tga_color_type > 1) goto errorEnd;   //   only RGB or indexed allowed
-  sz = get8 (s);                     //   image type
+  sz = get8 (s);                           //   image type
   if (tga_color_type == 1) {               // colormapped (paletted) image
     if (sz != 1 && sz != 9) goto errorEnd; // colortype 1 demands image type 1 or 9
-    skip (s, 4);                     // skip index of first colormap entry and number of entries
-    sz = get8 (s);                   //   check bits per palette color entry
+    skip (s, 4);                           // skip index of first colormap entry and number of entries
+    sz = get8 (s);                         //   check bits per palette color entry
     if ((sz != 8) && (sz != 15) && (sz != 16) && (sz != 24) && (sz != 32)) goto errorEnd;
-    skip (s, 4);                                                     // skip image x and y origin
+    skip (s, 4);                                                           // skip image x and y origin
   } else {                                                                 // "normal" image w/o colormap
     if ((sz != 2) && (sz != 3) && (sz != 10) && (sz != 11)) goto errorEnd; // only RGB or grey allowed, +/- RLE
-    skip (s, 9);                                                     // skip colormap specification and image x/y origin
+    skip (s, 9);                                                           // skip colormap specification and image x/y origin
   }
-  if (get16le (s) < 1) goto errorEnd;                            //   test width
-  if (get16le (s) < 1) goto errorEnd;                            //   test height
-  sz = get8 (s);                                                 //   bits per pixel
+  if (get16le (s) < 1) goto errorEnd;                                  //   test width
+  if (get16le (s) < 1) goto errorEnd;                                  //   test height
+  sz = get8 (s);                                                       //   bits per pixel
   if ((tga_color_type == 1) && (sz != 8) && (sz != 16)) goto errorEnd; // for colormapped images, bpp is size of an index
   if ((sz != 8) && (sz != 15) && (sz != 16) && (sz != 24) && (sz != 32)) goto errorEnd;
 
@@ -6489,29 +6487,28 @@ static int is_16_main (context *s) {
   return 0;
 }
 
-int stbi::info(char const *filename, int *x, int *y, int *comp) {
-	FILE *f = stbi_fopen(filename, "rb");
-	if (!f) return err("can't fopen", "Unable to open file");
-	context s;
-	long pos = ftell(f);
-	start_file(&s, f);
-	int result = info_main(&s,x,y,comp);
-	fseek(f,pos,SEEK_SET);
-	fclose(f);
-	return result;
+int stbi::info (char const *filename, int *x, int *y, int *comp) {
+  FILE *f = stbi_fopen (filename, "rb");
+  if (!f) return err ("can't fopen", "Unable to open file");
+  context s;
+  long pos = ftell (f);
+  start_file (&s, f);
+  int result = info_main (&s, x, y, comp);
+  fseek (f, pos, SEEK_SET);
+  fclose (f);
+  return result;
 }
 
-
-int stbi::is_16_bit(char const *filename) {
-	FILE *f = stbi_fopen(filename, "rb");
-	if (!f) return err("can't fopen", "Unable to open file");
-	context s;
-	long pos = ftell(f);
-	start_file(&s, f);
-	int result = is_16_main(&s);
-	fseek(f,pos,SEEK_SET);
-	fclose(f);
-	return result;
+int stbi::is_16_bit (char const *filename) {
+  FILE *f = stbi_fopen (filename, "rb");
+  if (!f) return err ("can't fopen", "Unable to open file");
+  context s;
+  long pos = ftell (f);
+  start_file (&s, f);
+  int result = is_16_main (&s);
+  fseek (f, pos, SEEK_SET);
+  fclose (f);
+  return result;
 }
 
 int stbi::info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp) {

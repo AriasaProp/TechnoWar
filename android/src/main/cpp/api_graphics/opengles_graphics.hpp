@@ -7,7 +7,8 @@ struct opengles_graphics : public android_graphics {
 private:
   struct gl_data *mgl_data;
   ANativeWindow *window = nullptr;
-  void killEGL(const unsigned int);
+  void killEGL (const unsigned int);
+
 public:
   // android
   void onWindowInit (ANativeWindow *) override;

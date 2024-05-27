@@ -1,7 +1,7 @@
 #ifndef STB_INCLUDE_STB_RECT_PACK_H
 #define STB_INCLUDE_STB_RECT_PACK_H
 
-#define STB_RECT_PACK_VERSION  1
+#define STB_RECT_PACK_VERSION 1
 
 #ifdef STBRP_STATIC
 #define STBRP_DEF static
@@ -14,12 +14,12 @@ extern "C" {
 #endif
 
 typedef struct stbrp_context stbrp_context;
-typedef struct stbrp_node    stbrp_node;
-typedef struct stbrp_rect    stbrp_rect;
+typedef struct stbrp_node stbrp_node;
+typedef struct stbrp_rect stbrp_rect;
 
-typedef int            stbrp_coord;
+typedef int stbrp_coord;
 
-#define STBRP__MAXVAL  0x7fffffff
+#define STBRP__MAXVAL 0x7fffffff
 // Mostly for internal use, but this is the maximum supported coordinate value.
 
 STBRP_DEF int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
@@ -47,20 +47,18 @@ STBRP_DEF int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int n
 // The function returns 1 if all of the rectangles were successfully
 // packed and 0 otherwise.
 
-struct stbrp_rect
-{
-   // reserved for your use:
-   int            id;
+struct stbrp_rect {
+  // reserved for your use:
+  int id;
 
-   // input:
-   stbrp_coord    w, h;
+  // input:
+  stbrp_coord w, h;
 
-   // output:
-   stbrp_coord    x, y;
-   int            was_packed;  // non-zero if valid packing
+  // output:
+  stbrp_coord x, y;
+  int was_packed; // non-zero if valid packing
 
 }; // 16 bytes, nominally
-
 
 STBRP_DEF void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_node *nodes, int num_nodes);
 // Initialize a rectangle packer to:
@@ -88,42 +86,37 @@ STBRP_DEF void stbrp_setup_allow_out_of_mem (stbrp_context *context, int allow_o
 // change the handling of the out-of-temp-memory scenario, described above.
 // If you call init again, this will be reset to the default (false).
 
-
 STBRP_DEF void stbrp_setup_heuristic (stbrp_context *context, int heuristic);
 // Optionally select which packing heuristic the library should use. Different
 // heuristics will produce better/worse results for different data sets.
 // If you call init again, this will be reset to the default.
 
-enum
-{
-   STBRP_HEURISTIC_Skyline_default=0,
-   STBRP_HEURISTIC_Skyline_BL_sortHeight = STBRP_HEURISTIC_Skyline_default,
-   STBRP_HEURISTIC_Skyline_BF_sortHeight
+enum {
+  STBRP_HEURISTIC_Skyline_default = 0,
+  STBRP_HEURISTIC_Skyline_BL_sortHeight = STBRP_HEURISTIC_Skyline_default,
+  STBRP_HEURISTIC_Skyline_BF_sortHeight
 };
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
 // the details of the following structures don't matter to you, but they must
 // be visible so you can handle the memory allocations for them
 
-struct stbrp_node
-{
-   stbrp_coord  x,y;
-   stbrp_node  *next;
+struct stbrp_node {
+  stbrp_coord x, y;
+  stbrp_node *next;
 };
 
-struct stbrp_context
-{
-   int width;
-   int height;
-   int align;
-   int init_mode;
-   int heuristic;
-   int num_nodes;
-   stbrp_node *active_head;
-   stbrp_node *free_head;
-   stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
+struct stbrp_context {
+  int width;
+  int height;
+  int align;
+  int init_mode;
+  int heuristic;
+  int num_nodes;
+  stbrp_node *active_head;
+  stbrp_node *free_head;
+  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
 };
 
 #ifdef __cplusplus
@@ -131,4 +124,3 @@ struct stbrp_context
 #endif
 
 #endif
-

@@ -1,6 +1,6 @@
 #include <iostream>
 
-int main() {
-	std::cout << "Test for Desktop module" << std::endl;
-	return 0;
+int main () {
+  std::cout << "Test for Desktop module" << std::endl;
+  return 0;
 }

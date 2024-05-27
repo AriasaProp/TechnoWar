@@ -3,9 +3,9 @@
 // math is not multithread safe.
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 #include <sys/resource.h>
-#include <cstdio>
 
 // global temporary for not safe thread
 static union {
@@ -19,17 +19,16 @@ static union {
   struct rusage myusage;
 } tmp;
 
-
 const char *memory_usage::mem_usage () {
   getrusage (RUSAGE_SELF, &tmp.myusage);
   static char result[64];
-  snprintf(result, sizeof result, "%3ld.%03ld MB", tmp.myusage.ru_maxrss / 1000, tmp.myusage.ru_maxrss % 1000);
+  snprintf (result, sizeof result, "%3ld.%03ld MB", tmp.myusage.ru_maxrss / 1000, tmp.myusage.ru_maxrss % 1000);
   return result;
 }
 const char *memory_usage::cpu_time () {
   getrusage (RUSAGE_SELF, &tmp.myusage);
   static char result[512];
-  snprintf(result, sizeof result, "CPU Time: [user] %ld.%06ld s; [system] %ld.%06ld s", tmp.myusage.ru_utime.tv_sec, tmp.myusage.ru_utime.tv_usec, tmp.myusage.ru_stime.tv_sec, tmp.myusage.ru_stime.tv_usec);
+  snprintf (result, sizeof result, "CPU Time: [user] %ld.%06ld s; [system] %ld.%06ld s", tmp.myusage.ru_utime.tv_sec, tmp.myusage.ru_utime.tv_usec, tmp.myusage.ru_stime.tv_sec, tmp.myusage.ru_stime.tv_usec);
   return result;
 }
 static std::chrono::time_point<std::chrono::steady_clock> start_clock;
@@ -47,7 +46,7 @@ void clock_count::start () {
 void clock_count::render () {
   static std::chrono::time_point<std::chrono::steady_clock> temp_clock;
   temp_clock = std::chrono::steady_clock::now ();
-  delta_result = static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(temp_clock - start_clock).count ()) / 1000000.f;
+  delta_result = static_cast<float> (std::chrono::duration_cast<std::chrono::microseconds> (temp_clock - start_clock).count ()) / 1000000.f;
   delta_count += delta_result;
   frame_count++;
   if (delta_count >= 1.0f) {
@@ -131,107 +130,107 @@ void matrix4::toOrtho2D (float *a, float width, float height) {
   a[15] = 1;
 }
 // Vector2 definition
-Vector2::Vector2(): x(0.0f), y(0.0f), pivot_align(ALIGN_BOTTOM_LEFT) {}
-Vector2::Vector2(float x_, float y_, const Align &a): x(x_), y(y_), pivot_align(a) {}
-void Vector2::getFloats(float *outFloats) {
-  //pivot align
+Vector2::Vector2 () : x (0.0f), y (0.0f), pivot_align (ALIGN_BOTTOM_LEFT) {}
+Vector2::Vector2 (float x_, float y_, const Align &a) : x (x_), y (y_), pivot_align (a) {}
+void Vector2::getFloats (float *outFloats) {
+  // pivot align
   unsigned char vert = pivot_align & 3;
   switch (vert) {
-  default: //left
+  default: // left
     outFloats[0] = x;
     break;
-  case 1: //center
-    outFloats[0] = (engine::graph->getWidth() * 0.5f) + x;
+  case 1: // center
+    outFloats[0] = (engine::graph->getWidth () * 0.5f) + x;
     break;
-  case 2: //right
-    outFloats[0] = engine::graph->getWidth() - x;
+  case 2: // right
+    outFloats[0] = engine::graph->getWidth () - x;
     break;
   }
   unsigned char hor = (pivot_align >> 2) & 3;
   switch (hor) {
-  default: //top
-    outFloats[1] = engine::graph->getHeight() - y;
+  default: // top
+    outFloats[1] = engine::graph->getHeight () - y;
     break;
-  case 1: //center
-    outFloats[1] = (engine::graph->getHeight() * 0.5f) + y;
+  case 1: // center
+    outFloats[1] = (engine::graph->getHeight () * 0.5f) + y;
     break;
-  case 2: //bottom
+  case 2: // bottom
     outFloats[1] = y;
     break;
   }
 }
 // Rect definition
-Rect::Rect (): x (0.0f), y (0.0f), sx (0.0f), sy (0.0f), main_align(ALIGN_TOP_LEFT), pivot_align(ALIGN_TOP_LEFT) {}
-Rect::Rect (float x_, float y_, float sx_, float sy_, const Align &a, const Align &b) :  x (x_), y (y_), sx (sx_), sy (sy_), main_align(a), pivot_align(b) {}
-//format is {xmin, ymin, xmax, ymax }
-void Rect::getFloats(float *outFloats) {
-  //pivot align
+Rect::Rect () : x (0.0f), y (0.0f), sx (0.0f), sy (0.0f), main_align (ALIGN_TOP_LEFT), pivot_align (ALIGN_TOP_LEFT) {}
+Rect::Rect (float x_, float y_, float sx_, float sy_, const Align &a, const Align &b) : x (x_), y (y_), sx (sx_), sy (sy_), main_align (a), pivot_align (b) {}
+// format is {xmin, ymin, xmax, ymax }
+void Rect::getFloats (float *outFloats) {
+  // pivot align
   {
     unsigned char vert = pivot_align & 3;
     switch (vert) {
-    default: //left
+    default: // left
       outFloats[0] = x;
       outFloats[2] = x + sx;
       break;
-    case 1: //center
+    case 1: // center
       outFloats[0] = x - (sx * 0.5f);
       outFloats[2] = x + (sx * 0.5f);
       break;
-    case 2: //right
+    case 2: // right
       outFloats[0] = x - sx;
       outFloats[2] = x;
       break;
     }
     unsigned char hor = (pivot_align >> 2) & 3;
     switch (hor) {
-    default: //top
+    default: // top
       outFloats[1] = y - sy;
       outFloats[3] = y;
       break;
-    case 1: //center
+    case 1: // center
       outFloats[1] = y - (sy * 0.5f);
       outFloats[3] = y + (sy * 0.5f);
       break;
-    case 2: //bottom
+    case 2: // bottom
       outFloats[1] = y;
       outFloats[3] = y + sy;
       break;
     }
   }
-  //main align
+  // main align
   {
     unsigned char vert = main_align & 3;
     switch (vert) {
-    default: //left
+    default: // left
       break;
-    case 1: //center
-      outFloats[0] += engine::graph->getWidth() * 0.5f;
-      outFloats[2] += engine::graph->getWidth() * 0.5f;
+    case 1: // center
+      outFloats[0] += engine::graph->getWidth () * 0.5f;
+      outFloats[2] += engine::graph->getWidth () * 0.5f;
       break;
-    case 2: //right
+    case 2: // right
       static float temp = outFloats[0], temp1 = outFloats[2];
-      outFloats[0] = engine::graph->getWidth() - temp1;
-      outFloats[2] = engine::graph->getWidth() - temp;
+      outFloats[0] = engine::graph->getWidth () - temp1;
+      outFloats[2] = engine::graph->getWidth () - temp;
       break;
     }
     unsigned char hor = (main_align >> 2) & 3;
     switch (hor) {
-    default: //top
+    default: // top
       static float temp = outFloats[1], temp1 = outFloats[3];
-      outFloats[1] = engine::graph->getHeight() - temp1;
-      outFloats[3] = engine::graph->getHeight() - temp;
+      outFloats[1] = engine::graph->getHeight () - temp1;
+      outFloats[3] = engine::graph->getHeight () - temp;
       break;
-    case 1: //center
-      outFloats[1] += engine::graph->getHeight() * 0.5f;
-      outFloats[3] += engine::graph->getHeight() * 0.5f;
+    case 1: // center
+      outFloats[1] += engine::graph->getHeight () * 0.5f;
+      outFloats[3] += engine::graph->getHeight () * 0.5f;
       break;
-    case 2: //bottom
+    case 2: // bottom
       break;
     }
   }
 }
 bool Rect::insetOf (float x, float y) {
   float te[4];
-  getFloats(te);
+  getFloats (te);
   return (x > te[0]) && (x < te[2]) && (y > te[1]) && (y < te[3]);
 }

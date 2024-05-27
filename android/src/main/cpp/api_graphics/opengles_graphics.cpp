@@ -56,7 +56,7 @@ struct gl_data {
 float opengles_graphics::getWidth () { return mgl_data->game_width; }
 float opengles_graphics::getHeight () { return mgl_data->game_height; }
 
-void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
+void opengles_graphics::killEGL (const unsigned int EGLTermReq) {
   if (!EGLTermReq || !mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (mgl_data->surface && (EGLTermReq & 5)) {
@@ -83,7 +83,7 @@ void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
     }
     // reset null texture
     glDeleteTextures (1, &mgl_data->nullTextureId);
-    
+
     eglDestroyContext (mgl_data->display, mgl_data->context);
     mgl_data->context = EGL_NO_CONTEXT;
   }
@@ -93,8 +93,8 @@ void opengles_graphics::killEGL(const unsigned int EGLTermReq) {
   }
 }
 void opengles_graphics::onWindowInit (ANativeWindow *w) {
-  if (ready())
-    killEGL(TERM_EGL_SURFACE);
+  if (ready ())
+    killEGL (TERM_EGL_SURFACE);
   window = w;
 }
 bool inline opengles_graphics::ready () {
@@ -104,10 +104,10 @@ void opengles_graphics::onWindowResize (unsigned char par) {
   mgl_data->resize_state |= par;
 }
 bool opengles_graphics::preRender () {
-  if (!ready()) return false;
+  if (!ready ()) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
-      //proof
+      // proof
       mgl_data->context = EGL_NO_CONTEXT;
       mgl_data->surface = EGL_NO_SURFACE;
       mgl_data->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
@@ -357,11 +357,11 @@ void opengles_graphics::postRender (bool isDestroy) {
       break;
     }
   }
-  killEGL(EGLTermReq);
+  killEGL (EGLTermReq);
 }
 void opengles_graphics::onWindowTerm () {
-  if (!ready()) return;
-  killEGL(TERM_EGL_SURFACE); //EGLSurface destroy
+  if (!ready ()) return;
+  killEGL (TERM_EGL_SURFACE); // EGLSurface destroy
   window = nullptr;
 }
 void opengles_graphics::clear (const unsigned int &m) {

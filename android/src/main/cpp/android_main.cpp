@@ -1,10 +1,10 @@
 #include <algorithm>
+#include <cassert>
 #include <cerrno>
 #include <climits>
-#include <cstdlib>
-#include <cassert>
-#include <cstring>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <initializer_list>
 #include <memory>
 #include <poll.h>
@@ -13,7 +13,6 @@
 #include <string>
 #include <sys/resource.h>
 #include <unistd.h>
-
 
 #include <android/configuration.h>
 #include <android/looper.h>
@@ -75,9 +74,9 @@ static void *android_app_entry (void *param) {
     bool running = false, started = false, resume = false;
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (app->looper);
-    unsigned char read_cmd[2] {APP_CMD_CREATE, 0};
+    unsigned char read_cmd[2]{APP_CMD_CREATE, 0};
     while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ( (started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollAll ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -120,9 +119,9 @@ static void *android_app_entry (void *param) {
         }
         pthread_mutex_lock (&app->mutex);
         app->wait_request = false;
-        pthread_cond_broadcast(&app->cond);
+        pthread_cond_broadcast (&app->cond);
         pthread_mutex_unlock (&app->mutex);
-        //no need wait
+        // no need wait
         switch (read_cmd[0]) {
         case APP_CMD_SAVE_STATE:
           break;
@@ -140,10 +139,10 @@ static void *android_app_entry (void *param) {
           resume = true;
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          a_graphics->onWindowResize(1);
+          a_graphics->onWindowResize (1);
           break;
         case APP_CMD_WINDOW_RESIZED:
-          a_graphics->onWindowResize(2);
+          a_graphics->onWindowResize (2);
           break;
         case APP_CMD_LOW_MEMORY:
           break;
@@ -157,11 +156,11 @@ static void *android_app_entry (void *param) {
         break;
       default:
         a_input.process_event ();
-        if (!a_graphics->ready()) break;
+        if (!a_graphics->ready ()) break;
         if (!a_graphics->preRender ()) break;
         // core
         if (!created) {
-          Main::start();
+          Main::start ();
           created = true;
           resume = false;
         } else if (resume) {
@@ -173,9 +172,9 @@ static void *android_app_entry (void *param) {
         break;
       }
     }
-    //when destroy
+    // when destroy
     if (a_graphics->preRender ())
-      Main::end();
+      Main::end ();
     created = false;
     a_graphics->postRender (true);
   }
@@ -200,7 +199,7 @@ static void write_android_cmd (android_app *app, unsigned char cmd, unsigned cha
     LOGE ("cannot write on pipe , %s", strerror (errno));
   pthread_mutex_lock (&app->mutex);
   while (app->wait_request)
-    pthread_cond_wait(&app->cond, &app->mutex);
+    pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
 static void onStart (ANativeActivity *activity) {
@@ -235,7 +234,7 @@ static void onLowMemory (ANativeActivity *activity) {
 }
 static void onWindowFocusChanged (ANativeActivity *activity, int focused) {
   android_app *app = (android_app *)activity->instance;
-  write_android_cmd (app, APP_CMD_FOCUS_CHANGED, focused? 1 : 0);
+  write_android_cmd (app, APP_CMD_FOCUS_CHANGED, focused ? 1 : 0);
 }
 static void onNativeWindowResized (ANativeActivity *activity, ANativeWindow *) {
   android_app *app = (android_app *)activity->instance;

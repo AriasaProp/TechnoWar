@@ -10,13 +10,11 @@ enum channel {
   rgb_alpha = 4
 };
 
-
 struct io_callbacks {
   int (*read) (void *user, char *data, unsigned int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
-  void (*skip) (void *user, int n); // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
-  bool (*eof) (void *user); // returns nonzero if we are at end of file/data
+  void (*skip) (void *user, int n);                        // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+  bool (*eof) (void *user);                                // returns nonzero if we are at end of file/data
 };
-
 
 unsigned char *load (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
 unsigned char *load_from_memory (unsigned char const *, int, int *, int *, int *, int);
@@ -94,5 +92,5 @@ int zlib_decode_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
 
 char *zlib_decode_noheader_malloc (const char *buffer, int len, int *outlen);
 int zlib_decode_noheader_buffer (char *obuffer, int olen, const char *ibuffer, int ilen);
-}
+} // namespace stbi
 #endif // STBI_INCLUDE_STB_IMAGE_H
