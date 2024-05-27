@@ -1,0 +1,37 @@
+plugins {
+    id 'cpp-application'
+    id 'cpp-unit-test'
+}
+
+application {
+		source.from file('main')
+		privateHeaders.from file('main')
+}
+unitTest {
+    source.from file('test')
+    privateHeaders.from file('test')
+}
+
+task runc(dependsOn: 'build') {
+    doFirst {
+        def targetDir = file('converted')
+        if (targetDir.exists()) {
+            targetDir.delete()
+        }
+        targetDir.mkdir()
+    }
+    doLast {
+        def targetDir = file('converted/images')
+        targetDir.mkdir()
+        def sourceDir = 'assets/images'
+        fileTree(dir: sourceDir).each { File f ->
+            def baseName = f.name.split("\\.")[0]
+            def convertedFile = file("converted/images/${baseName}.bitmap_compress")
+            convertedFile.createNewFile()
+            exec {
+                commandLine 'build/exe/main/debug/tools', f.path, convertedFile.path
+            }
+        }
+    }
+}
+

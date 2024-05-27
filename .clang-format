@@ -1,0 +1,20 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+TabWidth: 2
+# make namespace content indent 1 level
+NamespaceIndentation: Inner
+# make short code
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: true
+AlignOperands: false
+# make simple line of code
+BinPackArguments: false
+BinPackParameters: false
+SpaceBeforeParens: Always
+SpacesInParentheses: false
+# line of code hasn't limit
+ColumnLimit: 0
+# empty line will not repeated
+MaxEmptyLinesToKeep: 1
+

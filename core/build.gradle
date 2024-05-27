@@ -1,0 +1,16 @@
+plugins {
+    id 'cpp-library'
+    id 'cpp-unit-test'
+}
+
+library {
+    source.from file('main')
+    privateHeaders.from file('main')
+    publicHeaders.from file('main')
+}
+
+unitTest {
+    source.from file('test')
+    privateHeaders.from file('test')
+}
+

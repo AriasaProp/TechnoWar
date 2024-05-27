@@ -1,0 +1,2 @@
+include ':core', ':android', ':desktop', ':tools'
+rootProject.name = 'Techno War'

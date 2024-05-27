@@ -1,0 +1,57 @@
+name: Tools Auto Update
+
+on:
+  push:
+    paths:
+      - 'tools/**'
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Gradle Build Tools
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
+
+      - name: Run Build Tools
+        run: gradle :tools:runc
+
+      - name: Upload Tools
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: converted
+          path: ${{ github.workspace }}/tools/converted
+
+      - name: Check for changes
+        id: changes
+        uses: dorny/paths-filter@v3.0.1
+        with:
+          list-files: shell
+          filters: |
+            tools:
+              - added|modified: 'tools/**/*.cpp'
+              - added|modified: 'tools/**/*.hpp'
+
+      - name: Format Code C++
+        if: steps.changes.outputs.tools == 'true'
+        run: |
+          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
+          git config --global user.name "AriasaProp"
+          sudo apt-get install -y clang-format
+          clang-format -i ${{ steps.changes.outputs.tools_files }}
+          git add .
+          git commit -m "Reformatting cpp"
+
+      - name: Publish in github
+        if: steps.changes.outputs.tools == 'true'
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+

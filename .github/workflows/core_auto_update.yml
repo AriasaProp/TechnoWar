@@ -1,0 +1,95 @@
+name: Core Auto Update
+
+on:
+  push:
+    paths:
+      - 'core/**'
+      - 'android/**'
+      - 'desktop/**'
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.changes.outputs.core }}
+      android: ${{ steps.changes.outputs.android }}
+      desktop: ${{ steps.changes.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Check for changes
+        id: changes
+        uses: dorny/paths-filter@v3.0.1
+        with:
+          filters: |
+            core:
+              - 'core/**'
+              - 'android/**'
+              - 'desktop/**'
+            android:
+              - 'android/**'
+            desktop:
+              - 'desktop/**'
+
+  core:
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.core == 'true'
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Gradle Check Core
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
+
+      - name: Run Check
+        run: gradle :core:check 
+
+  android:
+    runs-on: ubuntu-latest
+    needs: [check-changes, core]
+    if: needs.check-changes.outputs.android == 'true'
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4.2.1
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Gradle Build Android
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
+      - name: Run Build Release
+        run: gradle :android:build -Prelease
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: APK
+          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
+
+  desktop:
+    runs-on: ubuntu-latest
+    needs: [check-changes, core]
+    if: needs.check-changes.outputs.desktop == 'true'
+    steps:
+      - uses: actions/checkout@v4.1.1
+
+      - name: Gradle Build Desktop
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7
+
+      - name: Run Build
+        run: gradle :desktop:build
+
+      - name: Upload Desktop EXE
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: EXE
+          path: ${{ github.workspace }}/desktop/build 
