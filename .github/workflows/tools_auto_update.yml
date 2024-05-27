@@ -1,6 +1,6 @@
 name: Tools Auto Update
 
-on: [push]
+on:
   push:
     paths:
       - 'tools/**'
