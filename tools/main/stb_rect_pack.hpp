@@ -97,7 +97,6 @@ enum {
   HEURISTIC_Skyline_BL_sortHeight = HEURISTIC_Skyline_default,
   HEURISTIC_Skyline_BF_sortHeight
 };
-
   //////////////////////////////////////////////////////////////////////////////
   //
   // the details of the following structures don't matter to you, but they must
