@@ -71,7 +71,7 @@ void stbi::rect_pack::init_target (stbi::rect_pack::context *context, int width,
   context->extra[0].x = 0;
   context->extra[0].y = 0;
   context->extra[0].next = &context->extra[1];
-  context->extra[1].x = (uint32_t)width;
+  context->extra[1].x = (unsigned int)width;
   context->extra[1].y = (1 << 30);
   context->extra[1].next = NULL;
 }
@@ -126,11 +126,10 @@ static int stbrp__skyline_find_min_y (stbi::rect_pack::context *c, stbi::rect_pa
   return min_y;
 }
 
-typedef struct
-{
+struct stbrp__findresult {
   int x, y;
   stbi::rect_pack::node **prev_link;
-} stbrp__findresult;
+};
 
 static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rect_pack::context *c, int width, int height) {
   int best_waste = (1 << 30), best_x, best_y = (1 << 30);
@@ -249,8 +248,8 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbi::rect_pack::context
 
   // on success, create new node
   node = context->free_head;
-  node->x = (uint32_t)res.x;
-  node->y = (uint32_t)(res.y + height);
+  node->x = (unsigned int)res.x;
+  node->y = (unsigned int)(res.y + height);
 
   context->free_head = node->next;
 
@@ -282,7 +281,7 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbi::rect_pack::context
   node->next = cur;
 
   if (cur->x < res.x + width)
-    cur->x = (uint32_t)(res.x + width);
+    cur->x = (unsigned int)(res.x + width);
 
 #ifdef _DEBUG
   cur = context->active_head;
@@ -344,8 +343,8 @@ int stbi::rect_pack::pack_rects (stbi::rect_pack::context *context, stbi::rect_p
     } else {
       stbrp__findresult fr = stbrp__skyline_pack_rectangle (context, rects[i].w, rects[i].h);
       if (fr.prev_link) {
-        rects[i].x = (uint32_t)fr.x;
-        rects[i].y = (uint32_t)fr.y;
+        rects[i].x = (unsigned int)fr.x;
+        rects[i].y = (unsigned int)fr.y;
       } else {
         rects[i].x = rects[i].y = STBRP__MAXVAL;
       }
