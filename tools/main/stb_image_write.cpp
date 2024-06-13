@@ -10,9 +10,9 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <stdarg.h>
-#include <cstdlib>
 
 #ifndef STBIW_ASSERT
 #include <cassert>
@@ -22,12 +22,12 @@
 #define STBIW_UCHAR(x) (unsigned char)((x)&0xff)
 
 #define PNG_COMPRESS_LEVEL 0 // png file compression level
-//tga with rle
+// tga with rle
 #define TGA_RLE true
-//force to use filter on png file
-// -1: best filter or choose 0 - 4 to force filter type
+// force to use filter on png file
+//  -1: best filter or choose 0 - 4 to force filter type
 #define FORCE_PNG_FILTER -1
-#define FLIP_VERTICAL_WRITE false //flip vertically on write
+#define FLIP_VERTICAL_WRITE false // flip vertically on write
 
 struct write_context {
   stbi::write::img_func *func;
