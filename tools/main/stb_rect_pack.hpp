@@ -92,11 +92,11 @@ namespace rect_pack {
   // heuristics will produce better/worse results for different data sets.
   // If you call init again, this will be reset to the default.
 
-enum {
-  HEURISTIC_Skyline_default = 0,
-  HEURISTIC_Skyline_BL_sortHeight = HEURISTIC_Skyline_default,
-  HEURISTIC_Skyline_BF_sortHeight
-};
+  enum {
+    HEURISTIC_Skyline_default = 0,
+    HEURISTIC_Skyline_BL_sortHeight = HEURISTIC_Skyline_default,
+    HEURISTIC_Skyline_BF_sortHeight
+  };
   //////////////////////////////////////////////////////////////////////////////
   //
   // the details of the following structures don't matter to you, but they must
