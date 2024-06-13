@@ -6,6 +6,36 @@
 #define STBRP__MAXVAL 0x7fffffff
 // Mostly for internal use, but this is the maximum supported coordinate value.
 
+struct stbrp_node {
+  uint32_t x, y;
+  stbrp_node *next;
+};
+
+struct stbrp_context {
+  int width;
+  int height;
+  int align;
+  int init_mode;
+  int heuristic;
+  int num_nodes;
+  stbrp_node *active_head;
+  stbrp_node *free_head;
+  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
+};
+
+struct stbrp_rect {
+  // reserved for your use:
+  int id;
+
+  // input:
+  uint32_t w, h;
+
+  // output:
+  uint32_t x, y;
+  int was_packed; // non-zero if valid packing
+
+}; // 16 bytes, nominally
+
 int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
 // Assign packed locations to rectangles. The rectangles are of type
 // 'stbrp_rect' defined below, stored in the array 'rects', and there
@@ -30,19 +60,6 @@ int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
 //
 // The function returns 1 if all of the rectangles were successfully
 // packed and 0 otherwise.
-
-struct stbrp_rect {
-  // reserved for your use:
-  int id;
-
-  // input:
-  uint32_t w, h;
-
-  // output:
-  uint32_t x, y;
-  int was_packed; // non-zero if valid packing
-
-}; // 16 bytes, nominally
 
 void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_node *nodes, int num_nodes);
 // Initialize a rectangle packer to:
@@ -85,22 +102,5 @@ enum {
 //
 // the details of the following structures don't matter to you, but they must
 // be visible so you can handle the memory allocations for them
-
-struct stbrp_node {
-  uint32_t x, y;
-  stbrp_node *next;
-};
-
-struct stbrp_context {
-  int width;
-  int height;
-  int align;
-  int init_mode;
-  int heuristic;
-  int num_nodes;
-  stbrp_node *active_head;
-  stbrp_node *free_head;
-  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
-};
 
 #endif
