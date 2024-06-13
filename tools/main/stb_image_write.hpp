@@ -4,11 +4,11 @@
 namespace stbi {
 namespace write {
 
-  int png (char const *, int, int, int, const void *, int);
-  int bmp (char const *, int, int, int, const void *);
-  int tga (char const *, int, int, int, const void *);
-  int hdr (char const *, int, int, int, const float *);
-  int jpg (char const *, int x, int y, int, const void *, int);
+  bool png (char const *, int, int, int, const void *, int);
+  bool bmp (char const *, int, int, int, const void *);
+  bool tga (char const *, int, int, int, const void *);
+  bool hdr (char const *, int, int, int, const float *);
+  bool jpg (char const *, int, int, int, const void *, int);
 
 #ifdef STBIW_WINDOWS_UTF8
   int convert_wchar_to_utf8 (char *, size_t, const wchar_t *);
@@ -16,17 +16,13 @@ namespace write {
 
   typedef void img_func (void *, void *, int);
 
-  int png_to_func (img_func *, void *, int, int, int, const void *, int);
-  int bmp_to_func (img_func *, void *, int, int, int, const void *);
-  int tga_to_func (img_func *, void *, int, int, int, const void *);
-  int hdr_to_func (img_func *, void *, int, int, int, const float *);
-  int jpg_to_func (img_func *, void *, int x, int y, int, const void *, int);
-
-  void flip_vertically_on_write (bool);
-  void tga_with_rle (bool);
-  void png_compression_level (unsigned int);
-  void force_png_filter (int);
+  bool png_to_func (img_func *, void *, int, int, int, const void *, int);
+  bool bmp_to_func (img_func *, void *, int, int, int, const void *);
+  bool tga_to_func (img_func *, void *, int, int, int, const void *);
+  bool hdr_to_func (img_func *, void *, int, int, int, const float *);
+  bool jpg_to_func (img_func *, void *, int x, int y, int, const void *, int);
 
 } // namespace write
 } // namespace stbi
+
 #endif // INCLUDE_STB_IMAGE_WRITE_H

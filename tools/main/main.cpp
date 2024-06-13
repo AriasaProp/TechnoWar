@@ -1,15 +1,17 @@
+#include "stb_image.hpp"
+#include "stb_image_write.hpp"
+#include "stb_rect_pack.hpp"
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 
-#include "stb_image.hpp"
-
 int main (int argc, char *argv[]) {
-  std::cout << "Converting ... ";
   try {
+  	std::cout << "Converting ... ";
     if (argc < 3) throw std::runtime_error ("Input empty");
     if (!argv[1] || !argv[1][0] || !argv[2] || !argv[2][0])
       throw std::runtime_error ("Input empty");
@@ -19,6 +21,7 @@ int main (int argc, char *argv[]) {
     if (!inpBuffer) throw std::runtime_error (stbi::failure_reason ());
     if (dat[2] != stbi::channel::rgb_alpha) throw std::runtime_error ("failed convert channels");
 
+    stbi::write::png();
     std::ofstream ofile (argv[2], std::ios::binary | std::ios::out | std::ios::trunc);
     if (ofile.is_open ()) {
       ofile.write ((char *)dat, sizeof (int) * 2);
@@ -28,11 +31,11 @@ int main (int argc, char *argv[]) {
       throw std::runtime_error ("Could not open file input/output.");
     stbi::image_free (inpBuffer);
     std::cout << argv[2] << " completed.";
+	  std::cout << std::endl;
+	  return EXIT_SUCCESS;
   } catch (std::exception err) {
     std::cout << " Error: " << err.what ();
     std::cout << std::endl;
-    // return EXIT_FAILURE;
+    return EXIT_FAILURE;
   }
-  std::cout << std::endl;
-  return EXIT_SUCCESS;
 }
