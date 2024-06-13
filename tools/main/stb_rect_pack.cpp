@@ -25,7 +25,7 @@ enum {
 void stbi::rect_pack::setup_heuristic (stbi::rect_pack::context *context, int heuristic) {
   switch (context->init_mode) {
   case STBRP__INIT_skyline:
-    STBRP_ASSERT (heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight || heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight);
+    STBRP_ASSERT (heuristic == stbi::rect_pack::HEURISTIC_Skyline_BL_sortHeight || heuristic == stbi::rect_pack::HEURISTIC_Skyline_BF_sortHeight);
     context->heuristic = heuristic;
     break;
   default:
@@ -59,7 +59,7 @@ void stbi::rect_pack::init_target (stbi::rect_pack::context *context, int width,
     nodes[i].next = &nodes[i + 1];
   nodes[i].next = NULL;
   context->init_mode = STBRP__INIT_skyline;
-  context->heuristic = STBRP_HEURISTIC_Skyline_default;
+  context->heuristic = stbi::rect_pack::HEURISTIC_Skyline_default;
   context->free_head = &nodes[0];
   context->active_head = &context->extra[0];
   context->width = width;
@@ -154,7 +154,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rect_pack::context 
   while (node->x + width <= c->width) {
     int y, waste;
     y = stbrp__skyline_find_min_y (c, node, node->x, width, &waste);
-    if (c->heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
+    if (c->heuristic == stbi::rect_pack::HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
       // bottom left
       if (y < best_y) {
         best_y = y;
@@ -194,7 +194,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rect_pack::context 
   //
   // This makes BF take about 2x the time
 
-  if (c->heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight) {
+  if (c->heuristic == stbi::rect_pack::HEURISTIC_Skyline_BF_sortHeight) {
     tail = c->active_head;
     node = c->active_head;
     prev = &c->active_head;
