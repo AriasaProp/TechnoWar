@@ -47,8 +47,17 @@ jobs:
               - 'android/src/main/java/**/*.java'
               - 'android/src/test/java/**/*.java'
 
+      - name: Format Java Code
+        if: steps.changes.outputs.java-src == 'true'
+        uses: axel-op/googlejavaformat-action@v3.6.0
+        continue-on-error: true
+        with:
+          files: "android/src/**/*.java"
+          args: "-r -a"
+
       - name: Format Code C++
-        if: success() && (steps.changes.outputs.cpp-src == 'true')
+        if: steps.changes.outputs.cpp-src == 'true'
+        continue-on-error: true
         run: |
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"
@@ -56,22 +65,10 @@ jobs:
           echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
           git add .
           git commit -m "Core Reformatting Sources"
-
-      - name: Publish in github
-        if: success() && (steps.changes.outputs.cpp-src == 'true')
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Format Java Code
-        if: always() && (steps.changes.outputs.java-src == 'true' )
-        uses: axel-op/googlejavaformat-action@v3.6.0
-        with:
-          files: "android/src/**/*.java"
-          args: "-r -a"
+          git push
 
       - name: Setup JDK 21
-        if: always() && (steps.changes.outputs.core == 'true')
+        if: steps.changes.outputs.core == 'true'
         uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
@@ -79,13 +76,13 @@ jobs:
           cache: 'gradle'
 
       - name: Gradle Check Core
-        if: always() && (steps.changes.outputs.core == 'true')
+        if: steps.changes.outputs.core == 'true'
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
 
       - name: Run Check
-        if: always() && (steps.changes.outputs.core == 'true')
+        if: steps.changes.outputs.core == 'true'
         run: gradle :core:check 
 
   android:
