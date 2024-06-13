@@ -4,11 +4,11 @@
 namespace stbi {
 namespace write {
 
-  bool png (char const *, int, int, int, const void *, int);
-  bool bmp (char const *, int, int, int, const void *);
-  bool tga (char const *, int, int, int, const void *);
-  bool hdr (char const *, int, int, int, const float *);
-  bool jpg (char const *, int, int, int, const void *, int);
+  bool png (char const *, unsigned int, unsigned int, unsigned int, const void *, int);
+  bool bmp (char const *, unsigned int, unsigned int, unsigned int, const void *);
+  bool tga (char const *, unsigned int, unsigned int, unsigned int, const void *);
+  bool hdr (char const *, unsigned int, unsigned int, unsigned int, const float *);
+  bool jpg (char const *, unsigned int, unsigned int, unsigned int, const void *, int);
 
 #ifdef STBIW_WINDOWS_UTF8
   int convert_wchar_to_utf8 (char *, size_t, const wchar_t *);
@@ -16,11 +16,11 @@ namespace write {
 
   typedef void img_func (void *, void *, int);
 
-  bool png_to_func (img_func *, void *, int, int, int, const void *, int);
-  bool bmp_to_func (img_func *, void *, int, int, int, const void *);
-  bool tga_to_func (img_func *, void *, int, int, int, const void *);
-  bool hdr_to_func (img_func *, void *, int, int, int, const float *);
-  bool jpg_to_func (img_func *, void *, int x, int y, int, const void *, int);
+  bool png_to_func (img_func *, void *, unsigned int, unsigned int, unsigned int, const void *, int);
+  bool bmp_to_func (img_func *, void *, unsigned int, unsigned int, unsigned int, const void *);
+  bool tga_to_func (img_func *, void *, unsigned int, unsigned int, unsigned int, const void *);
+  bool hdr_to_func (img_func *, void *, unsigned int, unsigned int, unsigned int, const float *);
+  bool jpg_to_func (img_func *, void *, unsigned int, unsigned int, unsigned int, const void *, int);
 
 } // namespace write
 } // namespace stbi

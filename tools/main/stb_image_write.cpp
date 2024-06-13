@@ -10,9 +10,9 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <stdarg.h>
+#include <cstdlib>
 
 #ifndef STBIW_ASSERT
 #include <cassert>
@@ -22,12 +22,12 @@
 #define STBIW_UCHAR(x) (unsigned char)((x)&0xff)
 
 #define PNG_COMPRESS_LEVEL 0 // png file compression level
-// tga with rle
+//tga with rle
 #define TGA_RLE true
-// force to use filter on png file
-//  -1: best filter or choose 0 - 4 to force filter type
+//force to use filter on png file
+// -1: best filter or choose 0 - 4 to force filter type
 #define FORCE_PNG_FILTER -1
-#define FLIP_VERTICAL_WRITE false // flip vertically on write
+#define FLIP_VERTICAL_WRITE false //flip vertically on write
 
 struct write_context {
   stbi::write::img_func *func;
@@ -211,7 +211,7 @@ static void stbiw__write_pixel (write_context *s, int rgb_dir, uint16_t comp, in
     stbiw__write1 (s, d[comp - 1]);
 }
 
-static void stbiw__write_pixels (write_context *s, int rgb_dir, int vdir, uint16_t x, uint16_t y, uint16_t comp, void *data, int write_alpha, int scanline_pad, int expand_mono) {
+static void stbiw__write_pixels (write_context *s, int rgb_dir, int vdir, unsigned int x, unsigned int y, unsigned int comp, void *data, int write_alpha, int scanline_pad, int expand_mono) {
   uint32_t zero = 0;
   int i, j, j_end;
 
@@ -239,7 +239,7 @@ static void stbiw__write_pixels (write_context *s, int rgb_dir, int vdir, uint16
   }
 }
 
-static bool stbiw__outfile (write_context *s, int rgb_dir, int vdir, uint16_t x, uint16_t y, uint16_t comp, int expand_mono, void *data, int alpha, int pad, const char *fmt, ...) {
+static bool stbiw__outfile (write_context *s, int rgb_dir, int vdir, unsigned int x, unsigned int y, unsigned int comp, int expand_mono, void *data, int alpha, int pad, const char *fmt, ...) {
   va_list v;
   va_start (v, fmt);
   stbiw__writefv (s, fmt, v);
@@ -248,7 +248,7 @@ static bool stbiw__outfile (write_context *s, int rgb_dir, int vdir, uint16_t x,
   return true;
 }
 
-static bool stbiw__bmp_core (write_context *s, uint16_t x, uint16_t y, uint16_t comp, const void *data) {
+static bool stbiw__bmp_core (write_context *s, unsigned int x, unsigned int y, unsigned int comp, const void *data) {
   if (comp != 4) {
     // write RGB bitmap
     int pad = (-x * 3) & 3;
@@ -314,13 +314,13 @@ static bool stbiw__bmp_core (write_context *s, uint16_t x, uint16_t y, uint16_t 
   }
 }
 
-bool stbi::write::bmp_to_func (stbi::write::img_func *func, void *context, uint16_t x, uint16_t y, uint16_t comp, const void *data) {
+bool stbi::write::bmp_to_func (stbi::write::img_func *func, void *context, unsigned int x, unsigned int y, unsigned int comp, const void *data) {
   write_context s = {0};
   start_write_callbacks (&s, func, context);
   return stbiw__bmp_core (&s, x, y, comp, data);
 }
 
-bool stbi::write::bmp (char const *filename, uint16_t x, uint16_t y, uint16_t comp, const void *data) {
+bool stbi::write::bmp (char const *filename, unsigned int x, unsigned int y, unsigned int comp, const void *data) {
   write_context s = {0};
   if (start_write_file (&s, filename)) {
     bool r = stbiw__bmp_core (&s, x, y, comp, data);
@@ -330,7 +330,7 @@ bool stbi::write::bmp (char const *filename, uint16_t x, uint16_t y, uint16_t co
     return false;
 }
 
-static bool stbiw__tga_core (write_context *s, uint16_t x, uint16_t y, uint16_t comp, void *data) {
+static bool stbiw__tga_core (write_context *s, unsigned int x, unsigned int y, unsigned int comp, void *data) {
   int has_alpha = (comp == 2 || comp == 4);
   int colorbytes = has_alpha ? comp - 1 : comp;
   int format = colorbytes < 2 ? 3 : 2; // 3 color channels (RGB/RGBA) = 2, 1 color channel (Y/YA) = 3
@@ -404,13 +404,13 @@ static bool stbiw__tga_core (write_context *s, uint16_t x, uint16_t y, uint16_t 
   return true;
 }
 
-bool stbi::write::tga_to_func (stbi::write::img_func *func, void *context, uint16_t x, uint16_t y, uint16_t comp, const void *data) {
+bool stbi::write::tga_to_func (stbi::write::img_func *func, void *context, unsigned int x, unsigned int y, unsigned int comp, const void *data) {
   write_context s = {0};
   start_write_callbacks (&s, func, context);
   return stbiw__tga_core (&s, x, y, comp, (void *)data);
 }
 
-bool stbi::write::tga (char const *filename, uint16_t x, uint16_t y, uint16_t comp, const void *data) {
+bool stbi::write::tga (char const *filename, unsigned int x, unsigned int y, unsigned int comp, const void *data) {
   write_context s = {0};
   if (start_write_file (&s, filename)) {
     int r = stbiw__tga_core (&s, x, y, comp, (void *)data);
@@ -546,7 +546,7 @@ static void stbiw__write_hdr_scanline (write_context *s, int width, int ncomp, u
   }
 }
 
-static bool stbiw__hdr_core (write_context *s, uint16_t x, uint16_t y, uint16_t comp, float *data) {
+static bool stbiw__hdr_core (write_context *s, unsigned int x, unsigned int y, unsigned int comp, float *data) {
   if (data == NULL)
     return false;
   else {
@@ -571,13 +571,13 @@ static bool stbiw__hdr_core (write_context *s, uint16_t x, uint16_t y, uint16_t 
   }
 }
 
-bool stbi::write::hdr_to_func (stbi::write::img_func *func, void *context, uint16_t x, uint16_t y, uint16_t comp, const float *data) {
+bool stbi::write::hdr_to_func (stbi::write::img_func *func, void *context, unsigned int x, unsigned int y, unsigned int comp, const float *data) {
   write_context s = {0};
   start_write_callbacks (&s, func, context);
   return stbiw__hdr_core (&s, x, y, comp, (float *)data);
 }
 
-bool stbi::write::hdr (char const *filename, uint16_t x, uint16_t y, uint16_t comp, const float *data) {
+bool stbi::write::hdr (char const *filename, unsigned int x, unsigned int y, unsigned int comp, const float *data) {
   write_context s = {0};
   if (start_write_file (&s, filename)) {
     int r = stbiw__hdr_core (&s, x, y, comp, (float *)data);
@@ -901,7 +901,7 @@ static void stbiw__encode_png_line (unsigned char *pixels, int stride_bytes, uin
   }
 }
 
-unsigned char *stbiw__png_to_mem (const unsigned char *pixels, int stride_bytes, uint16_t x, uint16_t y, int n, int *out_len) {
+unsigned char *stbiw__png_to_mem (const unsigned char *pixels, int stride_bytes, unsigned int x, unsigned int y, int n, int *out_len) {
   int ctype[5] = {-1, 0, 4, 2, 6};
   unsigned char sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
   unsigned char *out, *o, *filt, *zlib;
@@ -987,7 +987,7 @@ unsigned char *stbiw__png_to_mem (const unsigned char *pixels, int stride_bytes,
   return out;
 }
 
-bool stbi::write::png (char const *filename, uint16_t x, uint16_t y, uint16_t comp, const void *data, int stride_bytes) {
+bool stbi::write::png (char const *filename, unsigned int x, unsigned int y, unsigned int comp, const void *data, int stride_bytes) {
   FILE *f;
   int len;
   unsigned char *png = stbiw__png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
@@ -1004,7 +1004,7 @@ bool stbi::write::png (char const *filename, uint16_t x, uint16_t y, uint16_t co
   return true;
 }
 
-bool stbi::write::png_to_func (stbi::write::img_func *func, void *context, uint16_t x, uint16_t y, uint16_t comp, const void *data, int stride_bytes) {
+bool stbi::write::png_to_func (stbi::write::img_func *func, void *context, unsigned int x, unsigned int y, unsigned int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbiw__png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return false;
@@ -1332,13 +1332,13 @@ static bool stbiw__jpg_core (write_context *s, uint16_t width, uint16_t height, 
   return true;
 }
 
-bool stbi::write::jpg_to_func (stbi::write::img_func *func, void *context, uint16_t x, uint16_t y, uint16_t comp, const void *data, int quality) {
+bool stbi::write::jpg_to_func (stbi::write::img_func *func, void *context, unsigned int x, unsigned int y, unsigned int comp, const void *data, int quality) {
   write_context s = {0};
   start_write_callbacks (&s, func, context);
   return stbiw__jpg_core (&s, x, y, comp, (void *)data, quality);
 }
 
-bool stbi::write::jpg (char const *filename, uint16_t x, uint16_t y, uint16_t comp, const void *data, int quality) {
+bool stbi::write::jpg (char const *filename, unsigned int x, unsigned int y, unsigned int comp, const void *data, int quality) {
   write_context s = {0};
   if (start_write_file (&s, filename)) {
     bool r = stbiw__jpg_core (&s, x, y, comp, data, quality);
