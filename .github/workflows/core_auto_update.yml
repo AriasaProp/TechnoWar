@@ -48,7 +48,7 @@ jobs:
               - 'android/src/test/java/**/*.java'
 
       - name: Format Code C++
-        if: steps.changes.outputs.cpp-src == 'true'
+        if: success() && (steps.changes.outputs.cpp-src == 'true')
         run: |
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"
@@ -58,6 +58,7 @@ jobs:
           git commit -m "Core Reformatting Sources"
 
       - name: Publish in github
+        if: success() && (steps.changes.outputs.cpp-src == 'true')
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -22,7 +22,7 @@ enum {
   STBRP__INIT_skyline = 1
 };
 
-void stbrp_setup_heuristic (stbrp_context *context, int heuristic) {
+void stbi::rect_pack::setup_heuristic (stbi::rect_pack::context *context, int heuristic) {
   switch (context->init_mode) {
   case STBRP__INIT_skyline:
     STBRP_ASSERT (heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight || heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight);
@@ -33,7 +33,7 @@ void stbrp_setup_heuristic (stbrp_context *context, int heuristic) {
   }
 }
 
-void stbrp_setup_allow_out_of_mem (stbrp_context *context, int allow_out_of_mem) {
+void stbi::rect_pack::setup_allow_out_of_mem (stbi::rect_pack::context *context, int allow_out_of_mem) {
   if (allow_out_of_mem)
     // if it's ok to run out of memory, then don't bother aligning them;
     // this gives better packing, but may fail due to OOM (even though
@@ -52,7 +52,7 @@ void stbrp_setup_allow_out_of_mem (stbrp_context *context, int allow_out_of_mem)
   }
 }
 
-void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_node *nodes, int num_nodes) {
+void stbi::rect_pack::init_target (stbi::rect_pack::context *context, int width, int height, stbi::rect_pack::node *nodes, int num_nodes) {
   int i;
 
   for (i = 0; i < num_nodes - 1; ++i)
@@ -65,7 +65,7 @@ void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_nod
   context->width = width;
   context->height = height;
   context->num_nodes = num_nodes;
-  stbrp_setup_allow_out_of_mem (context, 0);
+  stbi::rect_pack::setup_allow_out_of_mem (context, 0);
 
   // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
   context->extra[0].x = 0;
@@ -77,8 +77,8 @@ void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_nod
 }
 
 // find minimum y position if it starts at x1
-static int stbrp__skyline_find_min_y (stbrp_context *c, stbrp_node *first, int x0, int width, int *pwaste) {
-  stbrp_node *node = first;
+static int stbrp__skyline_find_min_y (stbi::rect_pack::context *c, stbi::rect_pack::node *first, int x0, int width, int *pwaste) {
+  stbi::rect_pack::node *node = first;
   int x1 = x0 + width;
   int min_y, visited_width, waste_area;
 
@@ -129,13 +129,13 @@ static int stbrp__skyline_find_min_y (stbrp_context *c, stbrp_node *first, int x
 typedef struct
 {
   int x, y;
-  stbrp_node **prev_link;
+  stbi::rect_pack::node **prev_link;
 } stbrp__findresult;
 
-static stbrp__findresult stbrp__skyline_find_best_pos (stbrp_context *c, int width, int height) {
+static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rect_pack::context *c, int width, int height) {
   int best_waste = (1 << 30), best_x, best_y = (1 << 30);
   stbrp__findresult fr;
-  stbrp_node **prev, *node, *tail, **best = NULL;
+  stbi::rect_pack::node **prev, *node, *tail, **best = NULL;
 
   // align to multiple of c->align
   width = (width + c->align - 1);
@@ -233,10 +233,10 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp_context *c, int wid
   return fr;
 }
 
-static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, int width, int height) {
+static stbrp__findresult stbrp__skyline_pack_rectangle (stbi::rect_pack::context *context, int width, int height) {
   // find best position according to heuristic
   stbrp__findresult res = stbrp__skyline_find_best_pos (context, width, height);
-  stbrp_node *node, *cur;
+  stbi::rect_pack::node *node, *cur;
 
   // bail if:
   //    1. it failed
@@ -261,7 +261,7 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, 
   cur = *res.prev_link;
   if (cur->x < res.x) {
     // preserve the existing one, so start testing with the next one
-    stbrp_node *next = cur->next;
+    stbi::rect_pack::node *next = cur->next;
     cur->next = node;
     cur = next;
   } else {
@@ -271,7 +271,7 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, 
   // from here, traverse cur and free the nodes, until we get to one
   // that shouldn't be freed
   while (cur->next && cur->next->x <= res.x + width) {
-    stbrp_node *next = cur->next;
+    stbi::rect_pack::node *next = cur->next;
     // move the current node to the free list
     cur->next = context->free_head;
     context->free_head = cur;
@@ -312,8 +312,8 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, 
 }
 
 static int STBRP__CDECL rect_height_compare (const void *a, const void *b) {
-  const stbrp_rect *p = (const stbrp_rect *)a;
-  const stbrp_rect *q = (const stbrp_rect *)b;
+  const stbi::rect_pack::rect *p = (const stbi::rect_pack::rect *)a;
+  const stbi::rect_pack::rect *q = (const stbi::rect_pack::rect *)b;
   if (p->h > q->h)
     return -1;
   if (p->h < q->h)
@@ -322,12 +322,12 @@ static int STBRP__CDECL rect_height_compare (const void *a, const void *b) {
 }
 
 static int STBRP__CDECL rect_original_order (const void *a, const void *b) {
-  const stbrp_rect *p = (const stbrp_rect *)a;
-  const stbrp_rect *q = (const stbrp_rect *)b;
+  const stbi::rect_pack::rect *p = (const stbi::rect_pack::rect *)a;
+  const stbi::rect_pack::rect *q = (const stbi::rect_pack::rect *)b;
   return (p->was_packed < q->was_packed) ? -1 : (p->was_packed > q->was_packed);
 }
 
-int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects) {
+int stbi::rect_pack::pack_rects (stbi::rect_pack::context *context, stbi::rect_pack::rect *rects, int num_rects) {
   int i, all_rects_packed = 1;
 
   // we use the 'was_packed' field internally to allow sorting/unsorting

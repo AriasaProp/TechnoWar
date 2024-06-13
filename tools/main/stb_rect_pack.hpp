@@ -1,44 +1,44 @@
 #ifndef STB_INCLUDE_STB_RECT_PACK_H
 #define STB_INCLUDE_STB_RECT_PACK_H
 
-#include <cstdint>
-
 #define STBRP__MAXVAL 0x7fffffff
 // Mostly for internal use, but this is the maximum supported coordinate value.
+namespace stbi {
+namespace rect_pack {
 
-struct stbrp_node {
-  uint32_t x, y;
-  stbrp_node *next;
+struct node {
+  unsigned int x, y;
+  node *next;
 };
 
-struct stbrp_context {
+struct context {
   int width;
   int height;
   int align;
   int init_mode;
   int heuristic;
   int num_nodes;
-  stbrp_node *active_head;
-  stbrp_node *free_head;
-  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
+  node *active_head;
+  node *free_head;
+  node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
 };
 
-struct stbrp_rect {
+struct rect {
   // reserved for your use:
   int id;
 
   // input:
-  uint32_t w, h;
+  unsigned int w, h;
 
   // output:
-  uint32_t x, y;
+  unsigned int x, y;
   int was_packed; // non-zero if valid packing
 
 }; // 16 bytes, nominally
 
-int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
+int pack_rects (context *context, rect *rects, int num_rects);
 // Assign packed locations to rectangles. The rectangles are of type
-// 'stbrp_rect' defined below, stored in the array 'rects', and there
+// 'stbi::rect_pack::rect' defined below, stored in the array 'rects', and there
 // are 'num_rects' many of them.
 //
 // Rectangles which are successfully packed have the 'was_packed' flag
@@ -51,7 +51,7 @@ int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
 // while this function is running, as the function temporarily reorders
 // the array while it executes.
 //
-// To pack into another rectangle, you need to call stbrp_init_target
+// To pack into another rectangle, you need to call stbi::rect_pack::init_target
 // again. To continue packing into the same rectangle, you can call
 // this function again. Calling this multiple times with multiple rect
 // arrays will probably produce worse packing results than calling it
@@ -61,7 +61,7 @@ int stbrp_pack_rects (stbrp_context *context, stbrp_rect *rects, int num_rects);
 // The function returns 1 if all of the rectangles were successfully
 // packed and 0 otherwise.
 
-void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_node *nodes, int num_nodes);
+void init_target (context *context, int width, int height, node *nodes, int num_nodes);
 // Initialize a rectangle packer to:
 //    pack a rectangle that is 'width' by 'height' in dimensions
 //    using temporary storage provided by the array 'nodes', which is 'num_nodes' long
@@ -69,12 +69,12 @@ void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_nod
 // You must call this function every time you start packing into a new target.
 //
 // There is no "shutdown" function. The 'nodes' memory must stay valid for
-// the following stbrp_pack_rects() call (or calls), but can be freed after
+// the following stbi::rect_pack::pack_rects() call (or calls), but can be freed after
 // the call (or calls) finish.
 //
 // Note: to guarantee best results, either:
 //       1. make sure 'num_nodes' >= 'width'
-//   or  2. call stbrp_allow_out_of_mem() defined below with 'allow_out_of_mem = 1'
+//   or  2. call stbi::rect_pack::allow_out_of_mem() defined below with 'allow_out_of_mem = 1'
 //
 // If you don't do either of the above things, widths will be quantized to multiples
 // of small integers to guarantee the algorithm doesn't run out of temporary storage.
@@ -82,12 +82,12 @@ void stbrp_init_target (stbrp_context *context, int width, int height, stbrp_nod
 // If you do #2, then the non-quantized algorithm will be used, but the algorithm
 // may run out of temporary storage and be unable to pack some rectangles.
 
-void stbrp_setup_allow_out_of_mem (stbrp_context *context, int allow_out_of_mem);
+void setup_allow_out_of_mem (context *context, int allow_out_of_mem);
 // Optionally call this function after init but before doing any packing to
 // change the handling of the out-of-temp-memory scenario, described above.
 // If you call init again, this will be reset to the default (false).
 
-void stbrp_setup_heuristic (stbrp_context *context, int heuristic);
+void setup_heuristic (context *context, int heuristic);
 // Optionally select which packing heuristic the library should use. Different
 // heuristics will produce better/worse results for different data sets.
 // If you call init again, this will be reset to the default.
@@ -102,5 +102,6 @@ enum {
 //
 // the details of the following structures don't matter to you, but they must
 // be visible so you can handle the memory allocations for them
-
+} ///namespace rect_pack
+} ///namespace stbi
 #endif
