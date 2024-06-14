@@ -15,7 +15,6 @@ namespace load {
     rgb_alpha = 4
   };
 
-
   typedef struct
   {
     int (*read) (void *user, char *data, int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
