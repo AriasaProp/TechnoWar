@@ -966,7 +966,7 @@ static unsigned char *stbi__write_png_to_mem (const unsigned char *pixels, int s
     memmove (filt + j * (x * n + 1) + 1, line_buffer, x * n);
   }
   free (line_buffer);
-  zlib = stbi_zlib_compress (filt, y * (x * n + 1), &zlen, stbi_write_png_compression_level);
+  zlib = stbi_zlib_compress (filt, y * (x * n + 1), &zlen, stbi::write::png_compression_level);
   free (filt);
   if (!zlib) return 0;
 
