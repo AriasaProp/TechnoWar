@@ -343,7 +343,7 @@ static int stbi_write_tga_core (stbi__write_context *s, int x, int y, int comp, 
   if (y < 0 || x < 0)
     return 0;
 
-  if (!stbi_write_tga_with_rle) {
+  if (!stbi::write::tga_with_rle) {
     return stbiw__outfile (s, -1, -1, x, y, comp, 0, (void *)data, has_alpha, 0, "111 221 2222 11", 0, 0, format, 0, 0, 0, 0, 0, x, y, (colorbytes + has_alpha) * 8, has_alpha * 8);
   } else {
     int i, j, k;
