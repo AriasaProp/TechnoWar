@@ -22,13 +22,13 @@ namespace write {
 #endif
 #endif
 
-  typedef void func (void *context, void *data, int size);
+  typedef void write_func (void *context, void *data, int size);
 
-  int png_to_func (func *func, void *context, int w, int h, int comp, const void *data, int stride_in_bytes);
-  int bmp_to_func (func *func, void *context, int w, int h, int comp, const void *data);
-  int tga_to_func (func *func, void *context, int w, int h, int comp, const void *data);
-  int hdr_to_func (func *func, void *context, int w, int h, int comp, const float *data);
-  int jpg_to_func (func *func, void *context, int x, int y, int comp, const void *data, int quality);
+  int png_to_func (write_func *func, void *context, int w, int h, int comp, const void *data, int stride_in_bytes);
+  int bmp_to_func (write_func *func, void *context, int w, int h, int comp, const void *data);
+  int tga_to_func (write_func *func, void *context, int w, int h, int comp, const void *data);
+  int hdr_to_func (write_func *func, void *context, int w, int h, int comp, const float *data);
+  int jpg_to_func (write_func *func, void *context, int x, int y, int comp, const void *data, int quality);
 
   void flip_vertically_on_write (int flip_boolean);
 } // namespace write
