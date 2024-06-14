@@ -1,6 +1,7 @@
 #ifndef STBI_LOAD_HPP
 #define STBI_LOAD_HPP
 
+#include <cstdlib>
 #ifndef STBI_NO_STDIO
 #include <cstdio>
 #endif // STBI_NO_STDIO
@@ -14,7 +15,6 @@ namespace load {
     rgb_alpha = 4
   };
 
-#include <cstdlib>
 
   typedef struct
   {

@@ -1,3 +1,5 @@
+#include "stbi_write.hpp"
+
 #ifdef _WIN32
 #ifndef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS
@@ -26,9 +28,9 @@
 
 #define STBIW_UCHAR(x) (unsigned char)((x)&0xff)
 
-stbi::write::png_compression_level = 8;
-stbi::write::tga_with_rle = 1;
-stbi::write::force_png_filter = -1;
+int stbi::write::png_compression_level = 8;
+int stbi::write::tga_with_rle = 1;
+int stbi::write::force_png_filter = -1;
 
 static int stbi__flip_vertically_on_write = 0;
 
@@ -56,13 +58,8 @@ static void stbi__stdio_write (void *context, void *data, int size) {
 }
 
 #if defined(_WIN32) && defined(STBIW_WINDOWS_UTF8)
-#ifdef __cplusplus
-#define STBIW_EXTERN extern "C"
-#else
-#define STBIW_EXTERN extern
-#endif
-STBIW_EXTERN __declspec(dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-STBIW_EXTERN __declspec(dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+extern "C" __declspec(dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+extern "C" __declspec(dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
 
 int stbiw_convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input) {
   return WideCharToMultiByte (65001 /* UTF8 */, 0, input, -1, buffer, (int)bufferlen, NULL, NULL);
@@ -1372,6 +1369,3 @@ int stbi::write::jpg (char const *filename, int x, int y, int comp, const void *
     return 0;
 }
 #endif
-
-#endif // STB_IMAGE_WRITE_IMPLEMENTATION
-}
