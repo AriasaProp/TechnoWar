@@ -40,7 +40,6 @@ int main (int argc, char *argv[]) {
     			break;
     	}
 			std::cout << std::endl
-    	
     }
     std::cout << "Output file: " << argv[2] << std::endl;
     stbi::write::png(argv[2], dat[0], dat[1], dat[2], (void*)inpBuffer, 0);
