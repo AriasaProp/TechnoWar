@@ -622,17 +622,16 @@ int stbi::write::hdr (char const *filename, int x, int y, int comp, const float 
 #define stbiw__sbcount(a) ((a) ? stbiw__sbn (a) : 0)
 #define stbiw__sbfree(a) ((a) ? free (stbiw__sbraw (a)), 0 : 0)
 
-static void *stbiw__sbgrowf(void **arr, int increment, int itemsize)
-{
-   int m = *arr ? 2*stbiw__sbm(*arr)+increment : increment+1;
-   void *p = REALLOC_SIZED(*arr ? stbiw__sbraw(*arr) : 0, *arr ? (stbiw__sbm(*arr)*itemsize + sizeof(int)*2) : 0, itemsize * m + sizeof(int)*2);
-   ASSERT(p);
-   if (p) {
-      if (!*arr) ((int *) p)[1] = 0;
-      *arr = (void *) ((int *) p + 2);
-      stbiw__sbm(*arr) = m;
-   }
-   return *arr;
+static void *stbiw__sbgrowf (void **arr, int increment, int itemsize) {
+  int m = *arr ? 2 * stbiw__sbm (*arr) + increment : increment + 1;
+  void *p = REALLOC_SIZED (*arr ? stbiw__sbraw (*arr) : 0, *arr ? (stbiw__sbm (*arr) * itemsize + sizeof (int) * 2) : 0, itemsize * m + sizeof (int) * 2);
+  ASSERT (p);
+  if (p) {
+    if (!*arr) ((int *)p)[1] = 0;
+    *arr = (void *)((int *)p + 2);
+    stbiw__sbm (*arr) = m;
+  }
+  return *arr;
 }
 
 static unsigned char *stbiw__zlib_flushf (unsigned char *data, unsigned int *bitbuffer, int *bitcount) {
