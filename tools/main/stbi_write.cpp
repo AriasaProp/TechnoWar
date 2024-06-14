@@ -39,14 +39,14 @@ void stbi_flip_vertically_on_write (int flag) {
 }
 
 struct stbi__write_context {
-  stbi::write::func *func;
+  stbi::write::write_func *func;
   void *context;
   unsigned char buffer[64];
   int buf_used;
 };
 
 // initialize a callback-based context
-static void stbi__start_write_callbacks (stbi__write_context *s, stbi::write::func *c, void *context) {
+static void stbi__start_write_callbacks (stbi__write_context *s, stbi::write::write_func *c, void *context) {
   s->func = c;
   s->context = context;
 }
