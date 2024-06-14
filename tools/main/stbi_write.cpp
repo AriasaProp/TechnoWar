@@ -915,7 +915,7 @@ static void stbiw__encode_png_line (unsigned char *pixels, int stride_bytes, int
 }
 
 static unsigned char *stbi__write_png_to_mem (const unsigned char *pixels, int stride_bytes, int x, int y, int n, int *out_len) {
-  int force_filter = stbi_write_force_png_filter;
+  int force_filter = stbi::write::force_png_filter;
   int ctype[5] = {-1, 0, 4, 2, 6};
   unsigned char sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
   unsigned char *out, *o, *filt, *zlib;
