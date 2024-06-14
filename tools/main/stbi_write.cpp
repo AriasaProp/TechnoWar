@@ -914,7 +914,7 @@ static void stbiw__encode_png_line (unsigned char *pixels, int stride_bytes, int
   }
 }
 
-unsigned char *stbi::write::png_to_mem (const unsigned char *pixels, int stride_bytes, int x, int y, int n, int *out_len) {
+static unsigned char *stbi__write_png_to_mem (const unsigned char *pixels, int stride_bytes, int x, int y, int n, int *out_len) {
   int force_filter = stbi_write_force_png_filter;
   int ctype[5] = {-1, 0, 4, 2, 6};
   unsigned char sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
@@ -1009,7 +1009,7 @@ unsigned char *stbi::write::png_to_mem (const unsigned char *pixels, int stride_
 int stbi::write::png (char const *filename, int x, int y, int comp, const void *data, int stride_bytes) {
   FILE *f;
   int len;
-  unsigned char *png = stbi::write::png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
+  unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
 
   f = stbiw__fopen (filename, "wb");
@@ -1026,7 +1026,7 @@ int stbi::write::png (char const *filename, int x, int y, int comp, const void *
 
 int stbi::write::png_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
-  unsigned char *png = stbi::write::png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
+  unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
   func (context, png, len);
   free (png);
