@@ -13,9 +13,9 @@
 #include <cmath> // ldexp, pow
 #endif
 
-#ifndef STBI_ASSERT
+#ifndef ASSERT
 #include <cassert>
-#define STBI_ASSERT(x) assert (x)
+#define ASSERT(x) assert (x)
 #endif
 
 #ifndef STBI_NO_THREAD_LOCALS
@@ -603,7 +603,7 @@ static unsigned char *stbi__load_and_postprocess_8bit (stbi__context *s, int *x,
     return NULL;
 
   // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
-  STBI_ASSERT (ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
+  ASSERT (ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
 
   if (ri.bits_per_channel != 8) {
     result = stbi__convert_16_to_8 ((uint16_t *)result, *x, *y, req_comp == 0 ? *comp : req_comp);
@@ -628,7 +628,7 @@ static uint16_t *stbi__load_and_postprocess_16bit (stbi__context *s, int *x, int
     return NULL;
 
   // it is the responsibility of the loaders to make sure we get either 8 or 16 bit.
-  STBI_ASSERT (ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
+  ASSERT (ri.bits_per_channel == 8 || ri.bits_per_channel == 16);
 
   if (ri.bits_per_channel != 16) {
     result = stbi__convert_8_to_16 ((unsigned char *)result, *x, *y, req_comp == 0 ? *comp : req_comp);
@@ -1058,7 +1058,7 @@ static unsigned char *stbi__convert_format (unsigned char *data, int img_n, int 
   unsigned char *good;
 
   if (req_comp == img_n) return data;
-  STBI_ASSERT (req_comp >= 1 && req_comp <= 4);
+  ASSERT (req_comp >= 1 && req_comp <= 4);
 
   good = (unsigned char *)stbi__malloc_mad3 (req_comp, x, y, 0);
   if (good == NULL) {
@@ -1126,7 +1126,7 @@ static unsigned char *stbi__convert_format (unsigned char *data, int img_n, int 
       }
       break;
     default:
-      STBI_ASSERT (0);
+      ASSERT (0);
       free (data);
       free (good);
       return stbi__errpuc ("unsupported", "Unsupported format conversion");
@@ -1155,7 +1155,7 @@ static uint16_t *stbi__convert_format16 (uint16_t *data, int img_n, int req_comp
   uint16_t *good;
 
   if (req_comp == img_n) return data;
-  STBI_ASSERT (req_comp >= 1 && req_comp <= 4);
+  ASSERT (req_comp >= 1 && req_comp <= 4);
 
   good = (uint16_t *)malloc (req_comp * x * y * 2);
   if (good == NULL) {
@@ -1223,7 +1223,7 @@ static uint16_t *stbi__convert_format16 (uint16_t *data, int img_n, int req_comp
       }
       break;
     default:
-      STBI_ASSERT (0);
+      ASSERT (0);
       free (data);
       free (good);
       return (uint16_t *)stbi__errpuc ("unsupported", "Unsupported format conversion");
@@ -1523,7 +1523,7 @@ INLINE static int stbi__jpeg_huff_decode (stbi__jpeg *j, stbi__huffman *h) {
   c = ((j->code_buffer >> (32 - k)) & stbi__bmask[k]) + h->delta[k];
   if (c < 0 || c >= 256) // symbol id out of bounds!
     return -1;
-  STBI_ASSERT ((((j->code_buffer) >> (32 - h->size[c])) & stbi__bmask[h->size[c]]) == h->code[c]);
+  ASSERT ((((j->code_buffer) >> (32 - h->size[c])) & stbi__bmask[h->size[c]]) == h->code[c]);
 
   // convert the id to a symbol
   j->code_bits -= k;
@@ -3575,7 +3575,7 @@ INLINE static int stbi__bitreverse16 (int n) {
 }
 
 INLINE static int stbi__bit_reverse (int v, int bits) {
-  STBI_ASSERT (bits <= 16);
+  ASSERT (bits <= 16);
   // to bit reverse n bits, reverse 16 and shift
   // e.g. 11 bits, bit reverse and shift away 5
   return stbi__bitreverse16 (v) >> (16 - bits);
@@ -4108,7 +4108,7 @@ static void stbi__create_png_alpha_expand8 (unsigned char *dest, unsigned char *
       dest[i * 2 + 0] = src[i];
     }
   } else {
-    STBI_ASSERT (img_n == 3);
+    ASSERT (img_n == 3);
     for (i = x - 1; i >= 0; --i) {
       dest[i * 4 + 3] = 255;
       dest[i * 4 + 2] = src[i * 3 + 2];
@@ -4133,7 +4133,7 @@ static int stbi__create_png_image_raw (stbi__png *a, unsigned char *raw, uint32_
   int filter_bytes = img_n * bytes;
   int width = x;
 
-  STBI_ASSERT (out_n == s->img_n || out_n == s->img_n + 1);
+  ASSERT (out_n == s->img_n || out_n == s->img_n + 1);
   a->out = (unsigned char *)stbi__malloc_mad3 (x, y, output_bytes, 0); // extra bytes to write off the end into
   if (!a->out) return stbi__err ("outofmem", "Out of memory");
 
@@ -4233,7 +4233,7 @@ static int stbi__create_png_image_raw (stbi__png *a, unsigned char *raw, uint32_
           inb <<= 2;
         }
       } else {
-        STBI_ASSERT (depth == 1);
+        ASSERT (depth == 1);
         for (i = 0; i < nsmp; ++i) {
           if ((i & 7) == 0) inb = *in++;
           *out++ = scale * (inb >> 7);
@@ -4258,14 +4258,14 @@ static int stbi__create_png_image_raw (stbi__png *a, unsigned char *raw, uint32_
         for (i = 0; i < nsmp; ++i, ++dest16, cur += 2)
           *dest16 = (cur[0] << 8) | cur[1];
       } else {
-        STBI_ASSERT (img_n + 1 == out_n);
+        ASSERT (img_n + 1 == out_n);
         if (img_n == 1) {
           for (i = 0; i < x; ++i, dest16 += 2, cur += 2) {
             dest16[0] = (cur[0] << 8) | cur[1];
             dest16[1] = 0xffff;
           }
         } else {
-          STBI_ASSERT (img_n == 3);
+          ASSERT (img_n == 3);
           for (i = 0; i < x; ++i, dest16 += 4, cur += 6) {
             dest16[0] = (cur[0] << 8) | cur[1];
             dest16[1] = (cur[2] << 8) | cur[3];
@@ -4335,7 +4335,7 @@ static int stbi__compute_transparency (stbi__png *z, unsigned char tc[3], int ou
 
   // compute color-based transparency, assuming we've
   // already got 255 as the alpha value in the output
-  STBI_ASSERT (out_n == 2 || out_n == 4);
+  ASSERT (out_n == 2 || out_n == 4);
 
   if (out_n == 2) {
     for (i = 0; i < pixel_count; ++i) {
@@ -4359,7 +4359,7 @@ static int stbi__compute_transparency16 (stbi__png *z, uint16_t tc[3], int out_n
 
   // compute color-based transparency, assuming we've
   // already got 65535 as the alpha value in the output
-  STBI_ASSERT (out_n == 2 || out_n == 4);
+  ASSERT (out_n == 2 || out_n == 4);
 
   if (out_n == 2) {
     for (i = 0; i < pixel_count; ++i) {
@@ -4461,7 +4461,7 @@ static void stbi__de_iphone (stbi__png *z) {
       p += 3;
     }
   } else {
-    STBI_ASSERT (s->img_out_n == 4);
+    ASSERT (s->img_out_n == 4);
     if (stbi__unpremultiply_on_load) {
       // convert bgr to rgb and unpremultiply
       for (i = 0; i < pixel_count; ++i) {
@@ -4858,9 +4858,9 @@ static int stbi__shiftsigned (unsigned int v, int shift, int bits) {
     v <<= -shift;
   else
     v >>= shift;
-  STBI_ASSERT (v < 256);
+  ASSERT (v < 256);
   v >>= (8 - bits);
-  STBI_ASSERT (bits >= 0 && bits <= 8);
+  ASSERT (bits >= 0 && bits <= 8);
   return (int)((unsigned)v * mul_table[bits]) >> shift_table[bits];
 }
 
@@ -5206,19 +5206,19 @@ static void *stbi__bmp_load (stbi__context *s, int *x, int *y, int *comp, int re
 // Targa Truevision - TGA
 // by Jonathan Dummer
 #ifndef STBI_NO_TGA
-// returns STBI_rgb or whatever, 0 on error
+// returns stbi::load::channel::rgb or whatever, 0 on error
 static int stbi__tga_get_comp (int bits_per_pixel, int is_grey, int *is_rgb16) {
   // only RGB or RGBA (incl. 16bit) or grey allowed
   if (is_rgb16) *is_rgb16 = 0;
   switch (bits_per_pixel) {
   case 8:
-    return STBI_grey;
+    return stbi::load::channel::grey;
   case 16:
-    if (is_grey) return STBI_grey_alpha;
+    if (is_grey) return stbi::load::channel::grey_alpha;
     // fallthrough
   case 15:
     if (is_rgb16) *is_rgb16 = 1;
-    return STBI_rgb;
+    return stbi::load::channel::rgb;
   case 24: // fallthrough
   case 32:
     return bits_per_pixel / 8;
@@ -5426,7 +5426,7 @@ static void *stbi__tga_load (stbi__context *s, int *x, int *y, int *comp, int re
       }
       if (tga_rgb16) {
         unsigned char *pal_entry = tga_palette;
-        STBI_ASSERT (tga_comp == STBI_rgb);
+        ASSERT (tga_comp == stbi::load::channel::rgb);
         for (i = 0; i < tga_palette_len; ++i) {
           stbi__tga_read_rgb16 (s, pal_entry);
           pal_entry += tga_comp;
@@ -5468,7 +5468,7 @@ static void *stbi__tga_load (stbi__context *s, int *x, int *y, int *comp, int re
             raw_data[j] = tga_palette[pal_idx + j];
           }
         } else if (tga_rgb16) {
-          STBI_ASSERT (tga_comp == STBI_rgb);
+          ASSERT (tga_comp == stbi::load::channel::rgb);
           stbi__tga_read_rgb16 (s, raw_data);
         } else {
           //   read in the data raw

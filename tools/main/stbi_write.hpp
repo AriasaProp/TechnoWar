@@ -1,5 +1,5 @@
-#ifndef INCLUDE_STB_IMAGE_WRITE_H
-#define INCLUDE_STB_IMAGE_WRITE_H
+#ifndef STBI_WRITE
+#define STBI_WRITE
 
 #include <cstdlib>
 
@@ -33,4 +33,4 @@ namespace write {
   void flip_vertically_on_write (int flip_boolean);
 } // namespace write
 } // namespace stbi
-#endif // INCLUDE_STB_IMAGE_WRITE_H
+#endif // STBI_WRITE
