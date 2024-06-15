@@ -14,6 +14,7 @@
 namespace fs = std::filesystem;
 
 #define PACKED_SIZE 4096
+#define NODE_SIZE 5000
 
 int main (int argc, char *argv[]) {
   try {
@@ -23,35 +24,34 @@ int main (int argc, char *argv[]) {
     std::cout << "Input folder: " << argv[1] << std::endl;
     static const std::set<std::string> exten = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".gif"};
     stbi::rectpack::context p_context;
-    stbi::rectpack::node p_nodes[PACKED_SIZE];
-    stbi::rectpack::init_target (&p_context, PACKED_SIZE, PACKED_SIZE, p_nodes, PACKED_SIZE);
+    stbi::rectpack::node p_nodes[NODE_SIZE];
+    stbi::rectpack::init_target (&p_context, PACKED_SIZE, PACKED_SIZE, p_nodes, NODE_SIZE);
     std::vector<stbi::rectpack::rect> rects;
     for (const auto &entry : fs::directory_iterator (argv[1])) {
       if ((!fs::is_regular_file (entry.status ())) || (exten.find (entry.path ().extension ().string ()) == exten.end ())) continue;
       static int dat[3];
       stbi::load::info (entry.path ().c_str (), dat, dat + 1, dat + 2);
-      std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is ";
-      if (dat[2] != stbi::load::channel::rgb_alpha) {
-        std::cout << "not RGBA" << std::endl;
-        continue;
-      }
-      std::cout << "RGBA" << std::endl;
+      if (dat[2] != stbi::load::channel::rgb_alpha) continue;
+    	std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is RGBA";
       rects.push_back ({(void *)new std::string (entry.path ().string ()), dat[0], dat[1], 0, 0, 0});
     }
-    if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ())) throw "All not packed!";
+    if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
+    	std::cout << "Warning: All not packed!" << std::endl;
     unsigned char *outBuffer = new unsigned char[PACKED_SIZE * PACKED_SIZE * 4];
     for (stbi::rectpack::rect r : rects) {
       static int dat[3];
       std::string *iname = static_cast<std::string *> (r.id);
+      std::cout << "i: " << *iname;
       unsigned char *inpBuffer = stbi::load::load_from_filename (iname->c_str (), dat, dat + 1, dat + 2, stbi::load::channel::rgb_alpha);
       if (inpBuffer) {
-        for (unsigned y = 0; y < dat[1]; y++) {
+        for (unsigned y = 0; y < dat[1]; y++)
           memcpy (outBuffer + (r.y * dat[0] * 4) + (r.x * 4), inpBuffer + (y * dat[0]), dat[0] * 4);
-        }
         stbi::load::image_free (inpBuffer);
+        std::cout << " is loaded";
       } else {
-        std::cout << "failed an image, " << *iname << std::endl;
+        std::cout << " is failed to load";
       }
+      std::cout << std::endl
       delete iname;
     }
     rects.clear ();
