@@ -1,14 +1,15 @@
 #include "stbi_load.hpp"
 #include "stbi_write.hpp"
+#include "stbi_rectpack.hpp"
 
 #include <cstdlib>
 #include <cstring>
-#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <set>
 #include <string>
+#include <filesystem>
 #include <vector>
+#include <set>
 
 namespace fs = std::filesystem;
 
@@ -19,10 +20,10 @@ int main (int argc, char *argv[]) {
       throw "Input empty";
     std::cout << "Input folder: " << argv[1] << std::endl;
     static const std::set<std::string> exten = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".gif"};
-    for (const auto &entry : fs::directory_iterator (argv[1])) {
-      if ((!fs::is_regular_file (entry.status ())) || (exten.find (entry.path ().extension ().string ()) == exten.end ())) continue;
-      int dat[3];
-      stbi::load::info (entry.path ().c_str (), dat, dat + 1, dat + 2);
+		for (const auto& entry : fs::directory_iterator(argv[1])) {
+      if ((!fs::is_regular_file(entry.status())) || (exten.find(entry.path().extension().string()) == exten.end())) continue;
+    	int dat[3];
+      stbi::load::info(entry.path().c_str(), dat, dat+1, dat+2);
       std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel: ";
       switch (dat[2]) {
       default:
@@ -43,7 +44,7 @@ int main (int argc, char *argv[]) {
         break;
       }
       std::cout << std::endl;
-    }
+		}
     /*
     unsigned char *inpBuffer = stbi::load::load_from_filename (argv[1], &dat[0], &dat[1], &dat[2], stbi::load::channel::rgb_alpha);
     if (!inpBuffer)
@@ -76,7 +77,7 @@ int main (int argc, char *argv[]) {
     std::cout << argv[2] << " completed." << std::endl;
     */
   } catch (const fs::filesystem_error &e) {
-    std::cerr << "Error reading directory: " << e.what () << std::endl;
+    std::cerr << "Error reading directory: " << e.what() << std::endl;
     return EXIT_FAILURE;
   } catch (const char *err) {
     std::cout << " Error: " << err << std::endl;
@@ -85,3 +86,4 @@ int main (int argc, char *argv[]) {
   }
   return EXIT_SUCCESS;
 }
+

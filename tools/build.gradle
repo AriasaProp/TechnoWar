@@ -12,20 +12,21 @@ unitTest {
     privateHeaders.from file('test')
 }
 
-task runc(dependsOn: 'build') {
+task runc(type: Exec, dependsOn: 'build') {
     doFirst {
         def targetDir = file('converted')
         if (targetDir.exists()) {
-            targetDir.delete()
+            targetDir.deleteDir()
         }
-        targetDir.mkdir()
+        targetDir.mkdirs()
     }
     doLast {
         def targetDir = file('converted/images')
-        targetDir.mkdir()
+        targetDir.mkdirs()
         def sourceDir = file('assets/images')
-        sourceDir.mkdir()
-        commandLine 'build/exe/main/debug/tools', sourceDir.path, targetDir.path
+
+        def executablePath = file('build/exe/main/debug/tools')
+        commandLine executablePath, sourceDir.path, targetDir.path
     }
 }
 
