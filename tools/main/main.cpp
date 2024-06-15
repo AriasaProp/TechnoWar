@@ -33,40 +33,36 @@ int main (int argc, char *argv[]) {
       stbi::load::info (entry.path ().c_str (), dat, dat + 1, dat + 2);
       std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is ";
       if (dat[2] != stbi::load::channel::rgb_alpha) {
-        std::cout << "not RGBA" << std::endl;
-        continue;
-      }
-      std::cout << "RGBA" << std::endl;
-      rects.push_back ({(void *)new std::string (entry.path ().string ()), dat[0], dat[1], 0, 0, 0});
-    }
-    if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ())) throw "All not packed!" unsigned char *outBuffer = new unsigned char[PACKED_SIZE * PACKED_SIZE * 4];
-    for (stbi::rectpack::rect r : rects) {
-      static int dat[3];
-      std::string *iname = static_cast<std::string *> (r.id);
-      unsigned char *inpBuffer = stbi::load::load_from_filename (iname->c_str (), dat, dat + 1, dat + 2, stbi::load::channel::rgb_alpha);
-      if (inpBuffer) {
-        for (unsigned y = 0; y < dat[1]; y++) {
-          memcpy (outBuffer + (r.y * dat[0] * 4) + (r.x * 4), inpBuffer + (y * dat[0]), dat[0] * 4);
-        }
-        stbi::load::image_free (inpBuffer);
-      } else {
-        {
-          std::cout << "failed an image, " << *iname << std::endl;
-        }
-        delete iname;
-      }
-      stbi::write::png (argv[2], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
-      delete[] outBuffer;
-      std::cout << "Output: " << argv[2] << " completed." << std::endl;
-    }
-    catch (const fs::filesystem_error &e) {
-      std::cerr << "Error reading directory: " << e.what () << std::endl;
-      return EXIT_FAILURE;
-    }
-    catch (const char *err) {
-      std::cout << " Error: " << err << std::endl;
-      std::cout << " STBI Error: " << stbi::load::failure_reason () << std::endl;
-      return EXIT_FAILURE;
-    }
-    return EXIT_SUCCESS;
+      	std::cout << "not RGBA" << std::endl;
+      	continue;
+    	}
+    	std::cout << "RGBA" << std::endl;
+    	rects.push_back({(void*)new std::string(entry.path().string()), dat[0], dat[1], 0, 0, 0});
+		}
+		if (!stbi::rectpack::pack_rects(&p_context, rects.data(), rects.size())) throw "All not packed!";
+		unsigned char *outBuffer = new unsigned char[PACKED_SIZE*PACKED_SIZE*4];
+		for (stbi::rectpack::rect r : rects) {
+			static int dat[3];
+			std::string *iname = static_cast<std::string*>(r.id);
+    	unsigned char *inpBuffer = stbi::load::load_from_filename (iname->c_str(), dat, dat + 1, dat + 2, stbi::load::channel::rgb_alpha);
+	    if (inpBuffer) {
+	    	for (unsigned y = 0; y < dat[1]; y++) {
+	    		memcpy(outBuffer+(r.y*dat[0]*4)+(r.x*4), inpBuffer+(y*dat[0]), dat[0]*4);
+	    	}
+				stbi::load::image_free (inpBuffer);
+	    } else {{
+	    	std::cout << "failed an image, " << *iname << std::endl;
+	    }
+			delete iname;
+		}
+  	stbi::write::png (argv[2], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
+		delete[] outBuffer;
+    std::cout << "Output: " << argv[2] << " completed." << std::endl;
+  } catch (const fs::filesystem_error &e) {
+    std::cerr << "Error reading directory: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  } catch (const char *err) {
+    std::cout << " Error: " << err << std::endl;
+    std::cout << " STBI Error: " << stbi::load::failure_reason () << std::endl;
+    return EXIT_FAILURE;
   }
