@@ -13,7 +13,7 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 2048
+#define PACKED_SIZE 4096
 
 int main (int argc, char *argv[]) {
   try {
