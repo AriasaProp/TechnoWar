@@ -24,6 +24,7 @@ task runc(dependsOn: 'build') {
         def targetDir = file('converted/images')
         targetDir.mkdir()
         def sourceDir = file('assets/images')
+        sourceDir.mkdir()
         commandLine 'build/exe/main/debug/tools', sourceDir.path, targetDir.path
     }
 }
