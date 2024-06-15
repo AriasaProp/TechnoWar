@@ -13,7 +13,7 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 1024
+#define PACKED_SIZE 2048
 
 int main (int argc, char *argv[]) {
   try {
@@ -23,8 +23,8 @@ int main (int argc, char *argv[]) {
     std::cout << "Input folder: " << argv[1] << std::endl;
     static const std::set<std::string> exten = {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".gif"};
     stbi::rectpack::context p_context;
-    stbi::rectpack::node p_nodes[STBRP__MAXVAL];
-    stbi::rectpack::init_target (&p_context, PACKED_SIZE, PACKED_SIZE, p_nodes, STBRP__MAXVAL);
+    stbi::rectpack::node p_nodes[PACKED_SIZE];
+    stbi::rectpack::init_target (&p_context, PACKED_SIZE, PACKED_SIZE, p_nodes, PACKED_SIZE);
     std::vector<stbi::rectpack::rect> rects;
     for (const auto &entry : fs::directory_iterator (argv[1])) {
       if ((!fs::is_regular_file (entry.status ())) || (exten.find (entry.path ().extension ().string ()) == exten.end ())) continue;
