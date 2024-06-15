@@ -11,26 +11,35 @@ namespace write {
   extern int force_png_filter;
 
 #ifndef STBI_WRITE_NO_STDIO
-  int png (char const *filename, int w, int h, int comp, const void *data, int stride_in_bytes);
-  int bmp (char const *filename, int w, int h, int comp, const void *data);
-  int tga (char const *filename, int w, int h, int comp, const void *data);
-  int hdr (char const *filename, int w, int h, int comp, const float *data);
-  int jpg (char const *filename, int x, int y, int comp, const void *data, int quality);
+	//filename, width, height, channel type, data
+  int tga (char const *, int, int, int, const void*);
+	//filename, width, height, channel type, data
+  int bmp (char const *, int, int, int, const void*);
+	//filename, width, height, channel type, data, stride-in-bytes (channel size)
+  int png (char const *, int, int, int, const void*, int);
+	//filename, width, height, channel type, data, quality
+  int jpg (char const *, int, int, int, const void*, int);
+	//filename, width, height, channel type, data
+  int hdr (char const *, int, int, int, const float*);
 
 #ifdef STBIW_WINDOWS_UTF8
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 #endif
 
-  typedef void write_func (void *context, void *data, int size);
+  typedef void write_func (void*, void *data, int size);
+	//func, context, width, height, channel type, data, stride_in_bytes
+  int png_to_func (write_func*, void*, int, int, int, const void *, int);
+	//func, context, width, height, channel type, data
+  int bmp_to_func (write_func*, void*, int, int, int, const void *);
+	//func, context, width, height, channel type, data
+  int tga_to_func (write_func*, void*, int, int, int, const void *);
+	//func, context, width, height, channel type, data
+  int hdr_to_func (write_func*, void*, int, int, int, const float *);
+	//func, context, width, height, channel type, data, quality
+  int jpg_to_func (write_func*, void*, int, int, int, const void *, int);
 
-  int png_to_func (write_func *func, void *context, int w, int h, int comp, const void *data, int stride_in_bytes);
-  int bmp_to_func (write_func *func, void *context, int w, int h, int comp, const void *data);
-  int tga_to_func (write_func *func, void *context, int w, int h, int comp, const void *data);
-  int hdr_to_func (write_func *func, void *context, int w, int h, int comp, const float *data);
-  int jpg_to_func (write_func *func, void *context, int x, int y, int comp, const void *data, int quality);
-
-  void flip_vertically_on_write (int flip_boolean);
+  void flip_vertically_on_write (bool flip_boolean);
 } // namespace write
 } // namespace stbi
 #endif // STBI_WRITE

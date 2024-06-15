@@ -32,9 +32,9 @@ int stbi::write::png_compression_level = 8;
 int stbi::write::tga_with_rle = 1;
 int stbi::write::force_png_filter = -1;
 
-static int stbi__flip_vertically_on_write = 0;
+static bool stbi__flip_vertically_on_write = 0;
 
-void stbi_flip_vertically_on_write (int flag) {
+void stbi::write::flip_vertically_on_write (bool flag) {
   stbi__flip_vertically_on_write = flag;
 }
 
@@ -566,7 +566,7 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
     unsigned char *scratch = (unsigned char *)malloc (x * 4);
     int i, len;
     char buffer[128];
-    char header[] = "#?RADIANCE\n# Written by stb_image_write.h\nFORMAT=32-bit_rle_rgbe\n";
+    char header[] = "#?RADIANCE\n# Written by stbi_write \nFORMAT=32-bit_rle_rgbe\n";
     s->func (s->context, header, sizeof (header) - 1);
 
 #ifdef __STDC_LIB_EXT1__
