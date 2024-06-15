@@ -75,7 +75,7 @@ int main (int argc, char *argv[]) {
     stbi::write::png (argv[2], dat[0], dat[1], dat[2], (void *)inpBuffer, 0);
     stbi::load::image_free (inpBuffer);
     */
-    std::cout << "Output: " << argv[2] << " completed." << std::endl;
+    std::cout << "Output: " << argv[2] << " was " << " complete." << std::endl;
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error reading directory: " << e.what () << std::endl;
     return EXIT_FAILURE;

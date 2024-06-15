@@ -168,7 +168,7 @@ jobs:
           gradle :tools:build
           mkdir converted
           mkdir converted/images
-          ./build/exe/main/debug/tools assets/images converted/images
+          tools/build/exe/main/debug/tools assets/images converted/images
 
       - name: Upload Tools
         uses: actions/upload-artifact@v4.3.3
