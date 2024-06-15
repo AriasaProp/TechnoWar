@@ -4913,11 +4913,11 @@ static void *stbi__bmp_parse_header (stbi__context *s, stbi__bmp_data *info) {
     if (compress == 1 || compress == 2) return stbi__errpuc ("BMP RLE : BMP type not supported: RLE");
     if (compress >= 4) return stbi__errpuc ("BMP JPEG/PNG : BMP type not supported: unsupported compression"); // this includes PNG/JPEG modes
     if (compress == 3 && info->bpp != 16 && info->bpp != 32) return stbi__errpuc ("bad BMP : bad BMP");        // bitfields requires 16 or 32 bits/pixel
-    stbi__get32le (s);                                                                                          // discard sizeof
-    stbi__get32le (s);                                                                                          // discard hres
-    stbi__get32le (s);                                                                                          // discard vres
-    stbi__get32le (s);                                                                                          // discard colorsused
-    stbi__get32le (s);                                                                                          // discard max important
+    stbi__get32le (s);                                                                                         // discard sizeof
+    stbi__get32le (s);                                                                                         // discard hres
+    stbi__get32le (s);                                                                                         // discard vres
+    stbi__get32le (s);                                                                                         // discard colorsused
+    stbi__get32le (s);                                                                                         // discard max important
     if (hsz == 40 || hsz == 56) {
       if (hsz == 56) {
         stbi__get32le (s);

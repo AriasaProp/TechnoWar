@@ -32,11 +32,11 @@ int main (int argc, char *argv[]) {
       static int dat[3];
       stbi::load::info (entry.path ().c_str (), dat, dat + 1, dat + 2);
       if (dat[2] != stbi::load::channel::rgb_alpha) continue;
-    	std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is RGBA";
+      std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is RGBA";
       rects.push_back ({(void *)new std::string (entry.path ().string ()), dat[0], dat[1], 0, 0, 0});
     }
     if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
-    	std::cout << "Warning: All not packed!" << std::endl;
+      std::cout << "Warning: All not packed!" << std::endl;
     unsigned char *outBuffer = new unsigned char[PACKED_SIZE * PACKED_SIZE * 4];
     for (stbi::rectpack::rect r : rects) {
       static int dat[3];
@@ -51,8 +51,7 @@ int main (int argc, char *argv[]) {
       } else {
         std::cout << " is failed to load";
       }
-      std::cout << std::endl
-      delete iname;
+      std::cout << std::endl delete iname;
     }
     rects.clear ();
     stbi::write::png (argv[2], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
