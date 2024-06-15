@@ -32,11 +32,11 @@ int main (int argc, char *argv[]) {
       static int dat[3];
       stbi::load::info (entry.path ().c_str (), dat, dat + 1, dat + 2);
       if (dat[2] != stbi::load::channel::rgb_alpha) continue;
-      std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is RGBA";
+    	std::cout << "Size: " << dat[0] << " x " << dat[1] << ", Channel is RGBA";
       rects.push_back ({(void *)new std::string (entry.path ().string ()), dat[0], dat[1], 0, 0, 0});
     }
     if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
-      std::cout << "Warning: All not packed!" << std::endl;
+    	std::cout << "Warning: All not packed!" << std::endl;
     unsigned char *outBuffer = new unsigned char[PACKED_SIZE * PACKED_SIZE * 4];
     for (stbi::rectpack::rect r : rects) {
       static int dat[3];
@@ -45,7 +45,7 @@ int main (int argc, char *argv[]) {
       unsigned char *inpBuffer = stbi::load::load_from_filename (iname->c_str (), dat, dat + 1, dat + 2, stbi::load::channel::rgb_alpha);
       if (inpBuffer) {
         for (unsigned y = 0; y < dat[1]; y++)
-          memcpy (outBuffer + (r.y * dat[0] * 4) + (r.x * 4), inpBuffer + (y * dat[0]), dat[0] * 4);
+          memcpy (outBuffer + ((r.y+y) * dat[0] * 4) + (r.x * 4), inpBuffer + (y * dat[0] * 4), dat[0] * 4);
         stbi::load::image_free (inpBuffer);
         std::cout << " is loaded";
       } else {
