@@ -23,16 +23,8 @@ task runc(dependsOn: 'build') {
     doLast {
         def targetDir = file('converted/images')
         targetDir.mkdir()
-        def sourceDir = 'assets/images'
-        fileTree(dir: sourceDir).each { File f ->
-            def baseName = f.name.split("\\.")[0]
-            def convertedFile = file("converted/images/")  // ${baseName}.png
-            convertedFile.mkdir();
-            // convertedFile.createNewFile()
-            exec {
-                commandLine 'build/exe/main/debug/tools', f.path, convertedFile.path
-            }
-        }
+        def sourceDir = file('assets/images')
+        commandLine 'build/exe/main/debug/tools', sourceDir.path, targetDir.path
     }
 }
 
