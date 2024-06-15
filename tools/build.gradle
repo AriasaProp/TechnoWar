@@ -7,23 +7,9 @@ application {
 		source.from file('main')
 		privateHeaders.from file('main')
 }
+
 unitTest {
     source.from file('test')
     privateHeaders.from file('test')
-}
-
-task runc(dependsOn: 'build') {
-    doFirst {
-        def targetDir = file('converted')
-        if (targetDir.exists()) {
-            targetDir.deleteDir()
-        }
-        targetDir.mkdirs()
-    }
-    doLast {
-        def targetDir = file('converted/images')
-        targetDir.mkdirs()
-        commandLine 'build/exe/main/debug/tools assets/images converted/images'
-    }
 }
 

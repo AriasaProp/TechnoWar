@@ -164,7 +164,11 @@ jobs:
           gradle-version: 8.7
 
       - name: Run Build Tools
-        run: gradle :tools:runc
+        run: |
+          gradle :tools:build
+          mkdir converted
+          mkdir converted/images
+          build/exe/main/debug/tools assets/images converted/images
 
       - name: Upload Tools
         uses: actions/upload-artifact@v4.3.3
