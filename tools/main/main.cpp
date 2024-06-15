@@ -58,13 +58,13 @@ int main (int argc, char *argv[]) {
       stbi::write::png (argv[2], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
       delete[] outBuffer;
       std::cout << "Output: " << argv[2] << " completed." << std::endl;
-    }
-    catch (const fs::filesystem_error &e) {
+    } catch (const fs::filesystem_error &e) {
       std::cerr << "Error reading directory: " << e.what () << std::endl;
       return EXIT_FAILURE;
-    }
-    catch (const char *err) {
+    } catch (const char *err) {
       std::cout << " Error: " << err << std::endl;
       std::cout << " STBI Error: " << stbi::load::failure_reason () << std::endl;
       return EXIT_FAILURE;
     }
+  }
+}
