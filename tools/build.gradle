@@ -12,7 +12,7 @@ unitTest {
     privateHeaders.from file('test')
 }
 
-task runc(type: Exec, dependsOn: 'build') {
+task runc(dependsOn: 'build') {
     doFirst {
         def targetDir = file('converted')
         if (targetDir.exists()) {
