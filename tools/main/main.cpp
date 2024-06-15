@@ -54,7 +54,7 @@ int main (int argc, char *argv[]) {
       }
       delete iname;
     }
-    rects.clear();
+    rects.clear ();
     stbi::write::png (argv[2], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
     delete[] outBuffer;
     std::cout << "Output: " << argv[2] << " completed." << std::endl;
