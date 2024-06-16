@@ -47,7 +47,7 @@ int main (int argc, char *argv[]) {
       if (inpBuffer) {
         static const int w_b = 4 * sizeof (unsigned char);
         for (unsigned y = 0; y < dat[1]; y++)
-          memcpy (outBuffer + ((r.y + y) * PACKED_SIZE * w_b) + (r.x * w_b), inpBuffer + (y * dat[0] w_b), dat[0] * w_b);
+          memcpy (outBuffer + ((r.y + y) * PACKED_SIZE * w_b) + (r.x * w_b), inpBuffer + (y * dat[0] * w_b), dat[0] * w_b);
         stbi::load::image_free (inpBuffer);
         std::cout << " is loaded";
       } else {
