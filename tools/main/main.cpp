@@ -26,6 +26,7 @@ int main (int argc, char *argv[]) {
     stbi::rectpack::context p_context;
     stbi::rectpack::node p_nodes[NODE_SIZE];
     stbi::rectpack::init_target (&p_context, PACKED_SIZE, PACKED_SIZE, p_nodes, NODE_SIZE);
+    stbi::rectpack::setup_heuristic (&p_context, stbi::rectpack::HEURISTIC_Skyline::BF_sortHeight);
     std::vector<stbi::rectpack::rect> rects;
     for (const auto &entry : fs::directory_iterator (argv[1])) {
       if ((!fs::is_regular_file (entry.status ())) || (exten.find (entry.path ().extension ().string ()) == exten.end ())) continue;
