@@ -14,7 +14,7 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 1024
+#define PACKED_SIZE 512
 
 int main (int argc, char *argv[]) {
   try {
@@ -37,7 +37,7 @@ int main (int argc, char *argv[]) {
 
     if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
       std::cout << "Warning: All not packed!" << std::endl;
-    unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
+    unsigned int outBuffer[PACKED_SIZE * PACKED_SIZE];
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
@@ -47,8 +47,7 @@ int main (int argc, char *argv[]) {
       color_count %= 5;
     }
     stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, outBuffer, 0);
-    delete[] outBuffer;
-    std::cout << "Output: " << argv[2] << " completed." << std::endl;
+    std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error reading directory: " << e.what () << std::endl;
     return EXIT_FAILURE;

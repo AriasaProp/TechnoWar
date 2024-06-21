@@ -8,6 +8,11 @@ namespace rectpack {
     skylineBF_sortHeight
   };
 
+	struct node {
+	  unsigned int x, y;
+	  node *next;
+	};
+
   struct rect {
     // input:
     unsigned int w, h;
@@ -16,11 +21,7 @@ namespace rectpack {
     int was_packed = 0; // non-zero if valid packing
     rect (unsigned int, unsigned int);
   }; // 16 bytes, nominally
-  struct node {
-    unsigned int x, y;
-    node *next;
-  };
-
+  
   struct context {
     context (unsigned int, unsigned int);
     // Initialize a rectangle packer to:
@@ -41,13 +42,13 @@ namespace rectpack {
     unsigned int width;
     unsigned int height;
     heuristic hr = heuristic::skylineBL_sortHeight;
-    node *active_head;
-    node *free_head;
     node *nodes;
-    node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
+    node *free_head;
+    node *active_head;
+    node extra[2];
   };
 
-  bool pack_rects (context *, rect *, int);
+  bool pack_rects (context *, rect *, unsigned int);
   // Assign packed locations to rectangles. The rectangles are of type
   // 'rect' defined below, stored in the array 'rects', and there
   // are 'num_rects' many of them.
