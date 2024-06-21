@@ -1,6 +1,5 @@
 #include <iostream>
 
-
 int main () {
   bool passed = true;
   std::cout << "Start Test - Tools module" << std::endl;
