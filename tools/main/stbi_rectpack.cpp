@@ -37,7 +37,7 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
 }
 
 stbi::rectpack::context::~context () {
-	delete[] nodes;
+  delete[] nodes;
 }
 
 // find minimum y position if it starts at x1
