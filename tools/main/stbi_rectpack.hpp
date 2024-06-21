@@ -19,7 +19,7 @@ namespace rectpack {
     // output:
     unsigned int x, y;
     int was_packed; // non-zero if valid packing
-  }; // 16 bytes, nominally
+  };                // 16 bytes, nominally
 
   struct context {
     context (unsigned int, unsigned int);
