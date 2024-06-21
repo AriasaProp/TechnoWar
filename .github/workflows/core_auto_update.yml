@@ -169,7 +169,7 @@ jobs:
           cd tools
           mkdir converted
           mkdir converted/images
-          build/exe/main/debug/tools assets/images converted/images/packed.png
+          build/exe/main/debug/tools converted/images/packed.png
 
       - name: Upload Tools
         uses: actions/upload-artifact@v4.3.3
