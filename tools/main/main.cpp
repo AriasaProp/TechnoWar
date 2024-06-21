@@ -41,7 +41,6 @@ int main (int argc, char *argv[]) {
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
-      unsigned int inpBuffer[r.h * r.w];
       for (unsigned y = 0; y < r.h; y++)
         std::fill (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, outBuffer + ((r.y + y) * PACKED_SIZE) + r.x + r.w, colors[color_count]);
       ++color_count;
