@@ -37,7 +37,7 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
 }
 
 stbi::rectpack::context::~context () {
-	delete[] nodes;
+  delete[] nodes;
 }
 
 // find minimum y position if it starts at x1
@@ -209,86 +209,86 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
     return (p.w * p.h) > (q.w * q.h);
   });
   {
-  stbi::rectpack::context context(width, height);
-  for (i = 0; i < num_rects; ++i) {
-    if (rects[i].w == 0 || rects[i].h == 0) {
-      rects[i].x = rects[i].y = 0; // empty rect needs no space
-    } else {
-      // pack rect
-      // find best position according to heuristic
-      stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
-      /* bail if:
-       *   1. it failed
-       *   2. the best node doesn't fit (we don't always check this)
-       *   3. we're out of memory
-       */
-      if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
-        rects[i].x = rects[i].y = STBRP__MAXVAL;
+    stbi::rectpack::context context (width, height);
+    for (i = 0; i < num_rects; ++i) {
+      if (rects[i].w == 0 || rects[i].h == 0) {
+        rects[i].x = rects[i].y = 0; // empty rect needs no space
       } else {
-        stbi::rectpack::node *node, *cur;
-        // on success, create new node
-        node = context.free_head;
-        node->x = fr.x;
-        node->y = fr.y + rects[i].h;
-        context.free_head = node->next;
-
-        // insert the new node into the right starting point, and
-        // let 'cur' point to the remaining nodes needing to be
-        // stiched back in
-        cur = *fr.prev_link;
-        if (cur->x < fr.x) {
-          // preserve the existing one, so start testing with the next one
-          stbi::rectpack::node *next = cur->next;
-          cur->next = node;
-          cur = next;
+        // pack rect
+        // find best position according to heuristic
+        stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
+        /* bail if:
+         *   1. it failed
+         *   2. the best node doesn't fit (we don't always check this)
+         *   3. we're out of memory
+         */
+        if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
+          rects[i].x = rects[i].y = STBRP__MAXVAL;
         } else {
-          *fr.prev_link = node;
-        }
+          stbi::rectpack::node *node, *cur;
+          // on success, create new node
+          node = context.free_head;
+          node->x = fr.x;
+          node->y = fr.y + rects[i].h;
+          context.free_head = node->next;
 
-        // from here, traverse cur and free the nodes, until we get to one
-        // that shouldn't be freed
-        while (cur->next && cur->next->x <= fr.x + rects[i].w) {
-          stbi::rectpack::node *next = cur->next;
-          // move the current node to the free list
-          cur->next = context.free_head;
-          context.free_head = cur;
-          cur = next;
-        }
+          // insert the new node into the right starting point, and
+          // let 'cur' point to the remaining nodes needing to be
+          // stiched back in
+          cur = *fr.prev_link;
+          if (cur->x < fr.x) {
+            // preserve the existing one, so start testing with the next one
+            stbi::rectpack::node *next = cur->next;
+            cur->next = node;
+            cur = next;
+          } else {
+            *fr.prev_link = node;
+          }
 
-        // stitch the list back in
-        node->next = cur;
+          // from here, traverse cur and free the nodes, until we get to one
+          // that shouldn't be freed
+          while (cur->next && cur->next->x <= fr.x + rects[i].w) {
+            stbi::rectpack::node *next = cur->next;
+            // move the current node to the free list
+            cur->next = context.free_head;
+            context.free_head = cur;
+            cur = next;
+          }
 
-        if (cur->x < fr.x + rects[i].w)
-          cur->x = fr.x + rects[i].w;
+          // stitch the list back in
+          node->next = cur;
+
+          if (cur->x < fr.x + rects[i].w)
+            cur->x = fr.x + rects[i].w;
 
 #ifdef _DEBUG
-        cur = context.active_head;
-        while (cur->x < context.width) {
-          ASSERT (cur->x < cur->next->x);
-          cur = cur->next;
-        }
-        ASSERT (cur->next == NULL);
-
-        {
-          size_t count = 0;
           cur = context.active_head;
-          while (cur) {
+          while (cur->x < context.width) {
+            ASSERT (cur->x < cur->next->x);
             cur = cur->next;
-            ++count;
           }
-          cur = context.free_head;
-          while (cur) {
-            cur = cur->next;
-            ++count;
+          ASSERT (cur->next == NULL);
+
+          {
+            size_t count = 0;
+            cur = context.active_head;
+            while (cur) {
+              cur = cur->next;
+              ++count;
+            }
+            cur = context.free_head;
+            while (cur) {
+              cur = cur->next;
+              ++count;
+            }
+            ASSERT (count == context.width + 2);
           }
-          ASSERT (count == context.width + 2);
-        }
 #endif
-        rects[i].x = fr.x;
-        rects[i].y = fr.y;
+          rects[i].x = fr.x;
+          rects[i].y = fr.y;
+        }
       }
     }
-  }
   }
 
   // unsort
