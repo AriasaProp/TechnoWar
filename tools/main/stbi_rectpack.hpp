@@ -8,10 +8,10 @@ namespace rectpack {
     skylineBF_sortHeight
   };
 
-	struct node {
-	  unsigned int x, y;
-	  node *next;
-	};
+  struct node {
+    unsigned int x, y;
+    node *next;
+  };
 
   struct rect {
     // input:
@@ -21,7 +21,7 @@ namespace rectpack {
     int was_packed = 0; // non-zero if valid packing
     rect (unsigned int, unsigned int);
   }; // 16 bytes, nominally
-  
+
   struct context {
     context (unsigned int, unsigned int);
     // Initialize a rectangle packer to:
