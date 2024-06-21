@@ -45,8 +45,8 @@ stbi::rectpack::context::~context () {
 // find minimum y position if it starts at x1
 static int stbrp__skyline_find_min_y (stbi::rectpack::context *c, stbi::rectpack::node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
   stbi::rectpack::node *node = first;
-  int x1 = x0 + width;
-  int min_y, visited_width, waste_area;
+  unsigned int x1 = x0 + width;
+  unsigned int min_y, visited_width, waste_area;
 
   NO_USE (c);
 
