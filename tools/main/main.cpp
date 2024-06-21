@@ -23,14 +23,14 @@ int main (int argc, char *argv[]) {
       throw "Input empty";
     stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
     std::cout << "Contexted ... " << std::endl;
-    std::vector<stbi::rectpack::rect> rects{
+    stbi::rectpack::rect rects[5] = {
         {8, 21, 0, 0, 0},
         {15, 10, 0, 0, 0},
         {30, 20, 0, 0, 0},
         {21, 7, 0, 0, 0},
         {30, 14, 0, 0, 0}};
     std::cout << "Rects ... " << std::endl;
-    std::vector<uint32_t> colors{
+    uint32_t colors[5] = {
         0xff0000ff,
         0x00ff00ff,
         0x0000ffff,
@@ -38,7 +38,7 @@ int main (int argc, char *argv[]) {
         0xffff00ff};
     std::cout << "Colors ... " << std::endl;
 
-    if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
+    if (!stbi::rectpack::pack_rects (&p_context, rects, 5)
       std::cout << "Warning: All not packed!" << std::endl;
     std::cout << "Packed ... " << std::endl;
     unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
