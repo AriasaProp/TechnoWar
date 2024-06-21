@@ -3,7 +3,6 @@
 
 namespace stbi {
 namespace rectpack {
-
   enum heuristic {
     skylineBL_sortHeight,
     skylineBF_sortHeight
