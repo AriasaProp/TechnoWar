@@ -23,11 +23,11 @@ int main (int argc, char *argv[]) {
       throw "Input empty";
     stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
     std::vector<stbi::rectpack::rect> rects{
-        {8, 21},
-        {15, 10},
-        {30, 20},
-        {21, 7},
-        {30, 14}};
+        stbi::rectpack::rect(8, 21),
+        stbi::rectpack::rect(15, 10),
+        stbi::rectpack::rect(30, 20),
+        stbi::rectpack::rect(21, 7),
+        stbi::rectpack::rect(30, 14)};
     std::vector<uint32_t> colors{
         0xff0000ff,
         0x00ff00ff,
@@ -35,12 +35,9 @@ int main (int argc, char *argv[]) {
         0x00ffffff,
         0xffff00ff};
 
-    std::cout << "Rect Pack ... " << std::endl;
     if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
       std::cout << "Warning: All not packed!" << std::endl;
-    std::cout << "Rect Packed ... " << std::endl;
     unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
-    std::cout << "Buffer Created ... " << std::endl;
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
