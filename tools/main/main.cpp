@@ -23,11 +23,11 @@ int main (int argc, char *argv[]) {
       throw "Input empty";
     stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
     std::vector<stbi::rectpack::rect> rects{
-        stbi::rectpack::rect(8, 21),
-        stbi::rectpack::rect(15, 10),
-        stbi::rectpack::rect(30, 20),
-        stbi::rectpack::rect(21, 7),
-        stbi::rectpack::rect(30, 14)};
+        stbi::rectpack::rect (8, 21),
+        stbi::rectpack::rect (15, 10),
+        stbi::rectpack::rect (30, 20),
+        stbi::rectpack::rect (21, 7),
+        stbi::rectpack::rect (30, 14)};
     std::vector<uint32_t> colors{
         0xff0000ff,
         0x00ff00ff,
