@@ -17,8 +17,6 @@
 #define STBRP__MAXVAL 0x7fffffff
 // this is the maximum supported coordinate value.
 
-stbi::rectpack::rect::rect (unsigned int _w, unsigned int _h) : w (_w), h (_h) {}
-
 stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), height (h) {
   size_t i = 0;
   nodes = new stbi::rectpack::node[width];
