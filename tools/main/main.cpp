@@ -21,7 +21,9 @@ int main (int argc, char *argv[]) {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
+    std::cout << "Create context ... " << std::endl;
     stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
+    std::cout << "Created context ... " << std::endl;
     std::vector<stbi::rectpack::rect> rects{
         {8, 21},
         {15, 10},
@@ -42,11 +44,11 @@ int main (int argc, char *argv[]) {
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
       for (size_t y = 0; y < r.h; y++)
-        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, colors[color_count]);
+        std::fill_n(outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, colors[color_count]);
       ++color_count;
       color_count %= 5;
     }
-    stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
+    stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void*)outBuffer, 0);
     delete[] outBuffer;
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {

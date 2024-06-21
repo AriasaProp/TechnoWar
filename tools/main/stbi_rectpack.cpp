@@ -27,7 +27,7 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
   } while (++i < width);
   nodes[i].next = NULL;
   free_head = nodes;
-  active_head = &extra[0];
+  active_head = extra;
 
   // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
   extra[0].x = 0;
