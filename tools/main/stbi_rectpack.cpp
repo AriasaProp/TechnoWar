@@ -17,6 +17,45 @@
 #define STBRP__MAXVAL 0x7fffffff
 // this is the maximum supported coordinate value.
 
+namespace stbi { 
+namespace rectpack { 
+  enum heuristic {
+    skylineBL_sortHeight,
+    skylineBF_sortHeight
+  };
+
+  struct node {
+    unsigned int x, y;
+    node *next;
+  };
+  struct context {
+    context (unsigned int, unsigned int);
+    // Initialize a rectangle packer to:
+    //    pack a rectangle that is 'width' by 'height' in dimensions
+    //
+    // You must call this function every time you start packing into a new target.
+    //
+    // There is no "shutdown" function. The 'nodes' memory must stay valid for
+    // the following pack_rects() call (or calls), but can be freed after
+    // the call (or calls) finish.
+    // If you don't do either of the above things, widths will be quantized to multiples
+    // of small integers to guarantee the algorithm doesn't run out of temporary storage.
+    //
+    // If you do #2, then the non-quantized algorithm will be used, but the algorithm
+    // may run out of temporary storage and be unable to pack some rectangles.
+
+    ~context ();
+    unsigned int width;
+    unsigned int height;
+    heuristic hr = heuristic::skylineBL_sortHeight;
+    node *nodes;
+    node *free_head;
+    node *active_head;
+    node extra[2];
+  };
+}
+}
+
 stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), height (h) {
   size_t i = 0;
   nodes = new stbi::rectpack::node[width];
@@ -213,80 +252,81 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
     for (i = 0; i < num_rects; ++i) {
       if (rects[i].w == 0 || rects[i].h == 0) {
         rects[i].x = rects[i].y = 0; // empty rect needs no space
+        continue;
+      }
+      
+      // pack rect
+      // find best position according to heuristic
+      stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
+      /* bail if:
+       *   1. it failed
+       *   2. the best node doesn't fit (we don't always check this)
+       *   3. we're out of memory
+       */
+      if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
+        rects[i].x = rects[i].y = STBRP__MAXVAL;
       } else {
-        // pack rect
-        // find best position according to heuristic
-        stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
-        /* bail if:
-         *   1. it failed
-         *   2. the best node doesn't fit (we don't always check this)
-         *   3. we're out of memory
-         */
-        if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
-          rects[i].x = rects[i].y = STBRP__MAXVAL;
+        stbi::rectpack::node *node, *cur;
+        // on success, create new node
+        node = context.free_head;
+        node->x = fr.x;
+        node->y = fr.y + rects[i].h;
+        context.free_head = node->next;
+
+        // insert the new node into the right starting point, and
+        // let 'cur' point to the remaining nodes needing to be
+        // stiched back in
+        cur = *fr.prev_link;
+        if (cur->x < fr.x) {
+          // preserve the existing one, so start testing with the next one
+          stbi::rectpack::node *next = cur->next;
+          cur->next = node;
+          cur = next;
         } else {
-          stbi::rectpack::node *node, *cur;
-          // on success, create new node
-          node = context.free_head;
-          node->x = fr.x;
-          node->y = fr.y + rects[i].h;
-          context.free_head = node->next;
+          *fr.prev_link = node;
+        }
 
-          // insert the new node into the right starting point, and
-          // let 'cur' point to the remaining nodes needing to be
-          // stiched back in
-          cur = *fr.prev_link;
-          if (cur->x < fr.x) {
-            // preserve the existing one, so start testing with the next one
-            stbi::rectpack::node *next = cur->next;
-            cur->next = node;
-            cur = next;
-          } else {
-            *fr.prev_link = node;
-          }
+        // from here, traverse cur and free the nodes, until we get to one
+        // that shouldn't be freed
+        while (cur->next && cur->next->x <= fr.x + rects[i].w) {
+          stbi::rectpack::node *next = cur->next;
+          // move the current node to the free list
+          cur->next = context.free_head;
+          context.free_head = cur;
+          cur = next;
+        }
 
-          // from here, traverse cur and free the nodes, until we get to one
-          // that shouldn't be freed
-          while (cur->next && cur->next->x <= fr.x + rects[i].w) {
-            stbi::rectpack::node *next = cur->next;
-            // move the current node to the free list
-            cur->next = context.free_head;
-            context.free_head = cur;
-            cur = next;
-          }
+        // stitch the list back in
+        node->next = cur;
 
-          // stitch the list back in
-          node->next = cur;
-
-          if (cur->x < fr.x + rects[i].w)
-            cur->x = fr.x + rects[i].w;
+        if (cur->x < fr.x + rects[i].w)
+          cur->x = fr.x + rects[i].w;
 
 #ifdef _DEBUG
-          cur = context.active_head;
-          while (cur->x < context.width) {
-            ASSERT (cur->x < cur->next->x);
-            cur = cur->next;
-          }
-          ASSERT (cur->next == NULL);
-
-          {
-            size_t count = 0;
-            cur = context.active_head;
-            while (cur) {
-              cur = cur->next;
-              ++count;
-            }
-            cur = context.free_head;
-            while (cur) {
-              cur = cur->next;
-              ++count;
-            }
-            ASSERT (count == context.width + 2);
-          }
-#endif
-          rects[i].x = fr.x;
-          rects[i].y = fr.y;
+        cur = context.active_head;
+        while (cur->x < context.width) {
+          ASSERT (cur->x < cur->next->x);
+          cur = cur->next;
         }
+        ASSERT (cur->next == NULL);
+
+        {
+          size_t count = 0;
+          cur = context.active_head;
+          while (cur) {
+            cur = cur->next;
+            ++count;
+          }
+          cur = context.free_head;
+          while (cur) {
+            cur = cur->next;
+            ++count;
+          }
+          ASSERT (count == context.width + 2);
+        }
+#endif
+        rects[i].x = fr.x;
+        rects[i].y = fr.y;
       }
     }
   }

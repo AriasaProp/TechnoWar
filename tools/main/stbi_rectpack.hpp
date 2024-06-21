@@ -3,15 +3,6 @@
 
 namespace stbi {
 namespace rectpack {
-  enum heuristic {
-    skylineBL_sortHeight,
-    skylineBF_sortHeight
-  };
-
-  struct node {
-    unsigned int x, y;
-    node *next;
-  };
 
   struct rect {
     // input:
@@ -19,33 +10,7 @@ namespace rectpack {
     // output:
     unsigned int x, y;
     int was_packed; // non-zero if valid packing
-  };                // 16 bytes, nominally
-
-  struct context {
-    context (unsigned int, unsigned int);
-    // Initialize a rectangle packer to:
-    //    pack a rectangle that is 'width' by 'height' in dimensions
-    //
-    // You must call this function every time you start packing into a new target.
-    //
-    // There is no "shutdown" function. The 'nodes' memory must stay valid for
-    // the following pack_rects() call (or calls), but can be freed after
-    // the call (or calls) finish.
-    // If you don't do either of the above things, widths will be quantized to multiples
-    // of small integers to guarantee the algorithm doesn't run out of temporary storage.
-    //
-    // If you do #2, then the non-quantized algorithm will be used, but the algorithm
-    // may run out of temporary storage and be unable to pack some rectangles.
-
-    ~context ();
-    unsigned int width;
-    unsigned int height;
-    heuristic hr = heuristic::skylineBL_sortHeight;
-    node *nodes;
-    node *free_head;
-    node *active_head;
-    node extra[2];
-  };
+  }; // 16 bytes, nominally
 
   bool pack_rects (unsigned int, unsigned int, rect *, unsigned int);
   // Assign packed locations to rectangles. The rectangles are of type
