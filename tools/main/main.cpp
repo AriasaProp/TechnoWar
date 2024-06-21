@@ -11,6 +11,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <cmemory>
 
 namespace fs = std::filesystem;
 
@@ -41,7 +42,7 @@ int main (int argc, char *argv[]) {
     if (!stbi::rectpack::pack_rects (&p_context, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
     std::cout << "Packed ... " << std::endl;
-    unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
+    unsigned int *outBuffer = (unsigned int *) malloc(PACKED_SIZE * PACKED_SIZE * sizeof(uint32_t));
     std::cout << "Buffed ... " << std::endl;
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
@@ -54,7 +55,7 @@ int main (int argc, char *argv[]) {
     std::cout << "Filled ... " << std::endl;
     stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
     std::cout << "Write ... " << std::endl;
-    delete[] outBuffer;
+    free(outBuffer);
     std::cout << "Cleanup ... " << std::endl;
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {
