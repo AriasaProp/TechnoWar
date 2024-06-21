@@ -17,8 +17,8 @@
 #define STBRP__MAXVAL 0x7fffffff
 // this is the maximum supported coordinate value.
 
-namespace stbi { 
-namespace rectpack { 
+namespace stbi {
+namespace rectpack {
   enum heuristic {
     skylineBL_sortHeight,
     skylineBF_sortHeight
@@ -53,8 +53,8 @@ namespace rectpack {
     node *active_head;
     node extra[2];
   };
-}
-}
+} // namespace rectpack
+} // namespace stbi
 
 stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), height (h) {
   size_t i = 0;
@@ -254,7 +254,7 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
         rects[i].x = rects[i].y = 0; // empty rect needs no space
         continue;
       }
-      
+
       // pack rect
       // find best position according to heuristic
       stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
