@@ -14,16 +14,14 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 512
+#define PACKED_SIZE 128
 
 int main (int argc, char *argv[]) {
   try {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
-    std::cout << "Create context ... " << std::endl;
     stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
-    std::cout << "Created context ... " << std::endl;
     std::vector<stbi::rectpack::rect> rects{
         {8, 21},
         {15, 10},
@@ -37,9 +35,12 @@ int main (int argc, char *argv[]) {
         0x00ffffff,
         0xffff00ff};
 
+    std::cout << "Rect Pack ... " << std::endl;
     if (!stbi::rectpack::pack_rects (&p_context, rects.data (), rects.size ()))
       std::cout << "Warning: All not packed!" << std::endl;
+    std::cout << "Rect Packed ... " << std::endl;
     unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
+    std::cout << "Buffer Created ... " << std::endl;
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
