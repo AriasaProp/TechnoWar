@@ -23,7 +23,7 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
   size_t i = 0;
   nodes = new stbi::rectpack::node[width];
   do {
-  	nodes[i].next = nodes + i + 1;
+    nodes[i].next = nodes + i + 1;
   } while (++i < width);
   nodes[i].next = NULL;
   free_head = nodes;
@@ -43,7 +43,7 @@ stbi::rectpack::context::~context () {
 }
 
 // find minimum y position if it starts at x1
-static int stbrp__skyline_find_min_y(stbi::rectpack::context *c, stbi::rectpack::node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
+static int stbrp__skyline_find_min_y (stbi::rectpack::context *c, stbi::rectpack::node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
   stbi::rectpack::node *node = first;
   int x1 = x0 + width;
   int min_y, visited_width, waste_area;
@@ -117,8 +117,8 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rectpack::context *
   node = c->active_head;
   prev = &c->active_head;
   while (node->x + width <= c->width) {
-    unsigned int y,waste;
-    y = stbrp__skyline_find_min_y(c, node, node->x, width, &waste);
+    unsigned int y, waste;
+    y = stbrp__skyline_find_min_y (c, node, node->x, width, &waste);
     if (c->hr == stbi::rectpack::heuristic::skylineBL_sortHeight) { // actually just want to test BL
       // bottom left
       if (y < best_y) {
