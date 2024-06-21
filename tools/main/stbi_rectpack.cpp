@@ -37,7 +37,7 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
 }
 
 stbi::rectpack::context::~context () {
-  delete[] nodes;
+	delete[] nodes;
 }
 
 // find minimum y position if it starts at x1
@@ -196,7 +196,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rectpack::context *
   return fr;
 }
 
-bool stbi::rectpack::pack_rects (context *context, rect *rects, unsigned int num_rects) {
+bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::rectpack::rect *rects, unsigned int num_rects) {
   size_t i;
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
@@ -208,28 +208,29 @@ bool stbi::rectpack::pack_rects (context *context, rect *rects, unsigned int num
   std::sort (rects, rects + num_rects, [] (const rect &p, const rect &q) {
     return (p.w * p.h) > (q.w * q.h);
   });
-
+  {
+  stbi::rectpack::context context(width, height);
   for (i = 0; i < num_rects; ++i) {
     if (rects[i].w == 0 || rects[i].h == 0) {
       rects[i].x = rects[i].y = 0; // empty rect needs no space
     } else {
       // pack rect
       // find best position according to heuristic
-      stbrp__findresult fr = stbrp__skyline_find_best_pos (context, rects[i].w, rects[i].h);
+      stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
       /* bail if:
        *   1. it failed
        *   2. the best node doesn't fit (we don't always check this)
        *   3. we're out of memory
        */
-      if (fr.prev_link == NULL || fr.y + rects[i].h > context->height || context->free_head == NULL) {
+      if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
         rects[i].x = rects[i].y = STBRP__MAXVAL;
       } else {
         stbi::rectpack::node *node, *cur;
         // on success, create new node
-        node = context->free_head;
+        node = context.free_head;
         node->x = fr.x;
         node->y = fr.y + rects[i].h;
-        context->free_head = node->next;
+        context.free_head = node->next;
 
         // insert the new node into the right starting point, and
         // let 'cur' point to the remaining nodes needing to be
@@ -249,8 +250,8 @@ bool stbi::rectpack::pack_rects (context *context, rect *rects, unsigned int num
         while (cur->next && cur->next->x <= fr.x + rects[i].w) {
           stbi::rectpack::node *next = cur->next;
           // move the current node to the free list
-          cur->next = context->free_head;
-          context->free_head = cur;
+          cur->next = context.free_head;
+          context.free_head = cur;
           cur = next;
         }
 
@@ -261,8 +262,8 @@ bool stbi::rectpack::pack_rects (context *context, rect *rects, unsigned int num
           cur->x = fr.x + rects[i].w;
 
 #ifdef _DEBUG
-        cur = context->active_head;
-        while (cur->x < context->width) {
+        cur = context.active_head;
+        while (cur->x < context.width) {
           ASSERT (cur->x < cur->next->x);
           cur = cur->next;
         }
@@ -270,23 +271,24 @@ bool stbi::rectpack::pack_rects (context *context, rect *rects, unsigned int num
 
         {
           size_t count = 0;
-          cur = context->active_head;
+          cur = context.active_head;
           while (cur) {
             cur = cur->next;
             ++count;
           }
-          cur = context->free_head;
+          cur = context.free_head;
           while (cur) {
             cur = cur->next;
             ++count;
           }
-          ASSERT (count == context->width + 2);
+          ASSERT (count == context.width + 2);
         }
 #endif
         rects[i].x = fr.x;
         rects[i].y = fr.y;
       }
     }
+  }
   }
 
   // unsort

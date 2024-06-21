@@ -21,8 +21,6 @@ int main (int argc, char *argv[]) {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
-    stbi::rectpack::context p_context (PACKED_SIZE, PACKED_SIZE);
-    std::cout << "Contexted ... " << std::endl;
     stbi::rectpack::rect rects[5] = {
         {8, 21, 0, 0, 0},
         {15, 10, 0, 0, 0},
@@ -38,10 +36,10 @@ int main (int argc, char *argv[]) {
         0xffff00ff};
     std::cout << "Colors ... " << std::endl;
 
-    if (!stbi::rectpack::pack_rects (&p_context, rects, 5))
+    if (!stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
     std::cout << "Packed ... " << std::endl;
-    unsigned int *outBuffer = (unsigned int *)malloc (PACKED_SIZE * PACKED_SIZE * sizeof (uint32_t));
+    unsigned int *outBuffer = (unsigned int *) malloc(PACKED_SIZE * PACKED_SIZE * sizeof(uint32_t));
     std::cout << "Buffed ... " << std::endl;
     size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
@@ -54,7 +52,7 @@ int main (int argc, char *argv[]) {
     std::cout << "Filled ... " << std::endl;
     stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
     std::cout << "Write ... " << std::endl;
-    free (outBuffer);
+    free(outBuffer);
     std::cout << "Cleanup ... " << std::endl;
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {

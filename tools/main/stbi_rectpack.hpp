@@ -19,7 +19,7 @@ namespace rectpack {
     // output:
     unsigned int x, y;
     int was_packed; // non-zero if valid packing
-  };                // 16 bytes, nominally
+  }; // 16 bytes, nominally
 
   struct context {
     context (unsigned int, unsigned int);
@@ -47,7 +47,7 @@ namespace rectpack {
     node extra[2];
   };
 
-  bool pack_rects (context *, rect *, unsigned int);
+  bool pack_rects (unsigned int, unsigned int, rect *, unsigned int);
   // Assign packed locations to rectangles. The rectangles are of type
   // 'rect' defined below, stored in the array 'rects', and there
   // are 'num_rects' many of them.
