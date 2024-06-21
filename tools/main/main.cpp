@@ -38,7 +38,7 @@ int main (int argc, char *argv[]) {
         0xffff00ff};
     std::cout << "Colors ... " << std::endl;
 
-    if (!stbi::rectpack::pack_rects (&p_context, rects, 5);
+    if (!stbi::rectpack::pack_rects (&p_context, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
     std::cout << "Packed ... " << std::endl;
     unsigned int *outBuffer = new unsigned int[PACKED_SIZE * PACKED_SIZE];
