@@ -36,7 +36,9 @@ stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), h
   extra[1].next = NULL;
 }
 
-stbi::rectpack::context::~context () {}
+stbi::rectpack::context::~context () {
+	delete[] nodes;
+}
 
 // find minimum y position if it starts at x1
 static int stbrp__skyline_find_min_y (stbi::rectpack::context *c, stbi::rectpack::node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
