@@ -207,32 +207,32 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
     stbrp__context context;
     context.width = width;
     context.height = height;
-    
+
     // Initialize a rectangle packer to:
     //    pack a rectangle that is 'width' by 'height' in dimensions
     //
-  stbrp__node nodes[width+25];
-  do {
-    nodes[i].next = nodes + i + 1;
-  } while (++i < width+25);
-  nodes[i].next = NULL;
-  context.free_head = nodes;
-  context.active_head = context.extra;
+    stbrp__node nodes[width + 25];
+    do {
+      nodes[i].next = nodes + i + 1;
+    } while (++i < width + 25);
+    nodes[i].next = NULL;
+    context.free_head = nodes;
+    context.active_head = context.extra;
 
-  // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
-  context.extra[0].x = 0;
-  context.extra[0].y = 0;
-  context.extra[0].next = &context.extra[1];
-  context.extra[1].x = width;
-  context.extra[1].y = (1 << 30);
-  context.extra[1].next = NULL;
+    // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
+    context.extra[0].x = 0;
+    context.extra[0].y = 0;
+    context.extra[0].next = &context.extra[1];
+    context.extra[1].x = width;
+    context.extra[1].y = (1 << 30);
+    context.extra[1].next = NULL;
 
     for (i = 0; i < num_rects; ++i) {
       if (rects[i].w == 0 || rects[i].h == 0) {
         rects[i].x = rects[i].y = 0; // empty rect needs no space
         continue;
       }
-      
+
       // pack rect
       // find best position according to heuristic
       stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
