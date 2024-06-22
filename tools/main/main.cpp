@@ -14,7 +14,7 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 80
+#define PACKED_SIZE 235
 
 int main (int argc, char *argv[]) {
   try {
@@ -22,37 +22,23 @@ int main (int argc, char *argv[]) {
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
     stbi::rectpack::rect rects[5] = {
-        {8, 21, 0, 0, 0},
-        {15, 10, 0, 0, 0},
-        {30, 20, 0, 0, 0},
-        {21, 7, 0, 0, 0},
-        {30, 14, 0, 0, 0}};
-    std::cout << "Rects ... " << std::endl;
-    uint32_t colors[5] = {
-        0xff0000ff,
-        0x00ff00ff,
-        0x0000ffff,
-        0x00ffffff,
-        0xffff00ff};
-    std::cout << "Colors ... " << std::endl;
+        {8, 21, (void*)0xff0000ff, 0, 0, 0},
+        {15, 10, (void*)0x00ff00ff, 0, 0, 0},
+        {30, 20, (void*)0x0000ffff, 0, 0, 0},
+        {21, 7, (void*)0x00ffffff, 0, 0, 0},
+        {7, 7, (void*)0xffffffff, 0, 0, 0},
+        {7, 7, (void*)0x000000ff, 0, 0, 0},
+        {30, 14, (void*)0xffff00ff, 0, 0, 0}};
 
     if (!stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
-    std::cout << "Packed ... " << std::endl;
     uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
-    std::cout << "Buffed ... " << std::endl;
-    size_t color_count = 0;
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
       for (size_t y = 0; y < r.h; y++)
-        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, colors[color_count]);
-      ++color_count;
-      color_count %= 5;
+        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, (uint32_t)r.id);
     }
-    std::cout << "Filled ... " << std::endl;
     stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
-    std::cout << "Write ... " << std::endl;
-    std::cout << "Cleanup ... " << std::endl;
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error reading directory: " << e.what () << std::endl;
