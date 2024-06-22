@@ -21,13 +21,13 @@ int main (int argc, char *argv[]) {
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
     stbi::rectpack::rect rects[7] = {
-        {8, 21, static_cast<void*>(0xff0000ff), 0, 0, 0},
-        {15, 10, static_cast<void*>(0x00ff00ff), 0, 0, 0},
-        {30, 20, static_cast<void*>(0x0000ffff), 0, 0, 0},
-        {21, 7, static_cast<void*>(0x00ffffff), 0, 0, 0},
-        {7, 7, static_cast<void*>(0xffffffff), 0, 0, 0},
-        {7, 7, static_cast<void*>(0x000000ff), 0, 0, 0},
-        {30, 14, static_cast<void*>(0xffff00ff), 0, 0, 0}};
+        {8, 21, static_cast<void *> (0xff0000ff), 0, 0, 0},
+        {15, 10, static_cast<void *> (0x00ff00ff), 0, 0, 0},
+        {30, 20, static_cast<void *> (0x0000ffff), 0, 0, 0},
+        {21, 7, static_cast<void *> (0x00ffffff), 0, 0, 0},
+        {7, 7, static_cast<void *> (0xffffffff), 0, 0, 0},
+        {7, 7, static_cast<void *> (0x000000ff), 0, 0, 0},
+        {30, 14, static_cast<void *> (0xffff00ff), 0, 0, 0}};
 
     if (!stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
@@ -35,7 +35,7 @@ int main (int argc, char *argv[]) {
     for (stbi::rectpack::rect r : rects) {
       if (!r.was_packed) continue;
       for (size_t y = 0; y < r.h; y++)
-        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, static_cast<uint32_t>(r.id));
+        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, static_cast<uint32_t> (r.id));
     }
     stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
