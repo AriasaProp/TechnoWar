@@ -253,8 +253,8 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
       // stitch the list back in
       node->next = cur;
 
-      if (cur->x < fr.x + r_width)
-        cur->x = fr.x + r_width;
+      if (cur->x < fr.x + rect.w)
+        cur->x = fr.x + rect.w;
 
 #ifdef _DEBUG
       cur = context.active_head;
