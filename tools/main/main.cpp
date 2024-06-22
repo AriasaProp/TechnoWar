@@ -30,13 +30,13 @@ int main (int argc, char *argv[]) {
         {30, 14, (0xffff00ff), 0, 0, 0}};
 
     if (stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5)) {
-	    uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
-	    for (stbi::rectpack::rect r : rects)
-	    	if (r.was_packed)
-		      for (size_t y = 0; y < r.h; y++)
-		        std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, uint32_t(r.id));
-	    stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
-	    std::cout << "Output: " << argv[1] << " completed." << std::endl;
+      uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
+      for (stbi::rectpack::rect r : rects)
+        if (r.was_packed)
+          for (size_t y = 0; y < r.h; y++)
+            std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, uint32_t (r.id));
+      stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
+      std::cout << "Output: " << argv[1] << " completed." << std::endl;
     } else
       std::cout << "Error: All not packed!" << std::endl;
   } catch (const fs::filesystem_error &e) {

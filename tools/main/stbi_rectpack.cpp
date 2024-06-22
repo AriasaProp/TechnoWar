@@ -106,8 +106,10 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
     //    pack a rectangle that is 'width' by 'height' in dimensions
     //
     stbrp__node nodes[width + 25];
-    do {p
-      nodes[i].next = nodes + i + 1;
+    do {
+      p
+          nodes[i]
+              .next = nodes + i + 1;
     } while (++i < width + 25);
     nodes[i].next = NULL;
     context.free_head = nodes;
@@ -122,7 +124,7 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
     context.extra[1].next = NULL;
 
     for (i = 0; i < num_rects; ++i) {
-    	stbi::rectpack::rect &rect = rects[i];
+      stbi::rectpack::rect &rect = rects[i];
       // empty rect needs no space
       if (rect.w == 0 || rect.h == 0) {
         rect.x = rect.y = 0;
@@ -137,80 +139,80 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
 
       // pack rect
       // find best position according to heuristic
-		  stbrp__findresult fr;
-			{
-			  // align to multiple of 2
-			  unsigned int r_width = rect.w + (rect.w % 2);
-			
-			  // if it can't possibly fit, bail immediately
-			  unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
-			  stbrp__node **prev = &context.active_head;
-			  stbrp__node *node = context.active_head;
-			  stbrp__node *tail;
-			  stbrp__node **best = NULL;
-			  
-			  while (node->x + r_width <= width) {
-			    unsigned int waste;
-			    unsigned int y = stbrp__skyline_find_min_y (c, node, node->x, r_width, &waste);
-			    if (context.hr == stbrp__heuristic::skylineBL_sortHeight) { // actually just want to test BL
-			      // bottom left
-			      if (y < best_y) {
-			        best_y = y;
-			        best = prev;
-			      }
-			    } else {
-			      // best-fit
-			      if (y + rect.h <= height) {
-			        // can only use it if it first vertically
-			        if (y < best_y || (y == best_y && waste < best_waste)) {
-			          best_y = y;
-			          best_waste = waste;
-			          best = prev;
-			        }
-			      }
-			    }
-			    prev = &node->next;
-			    node = node->next;
-			  }
-			
-			  best_x = (best == NULL) ? 0 : (*best)->x;
-			  if (context.hr == stbrp__heuristic::skylineBF_sortHeight) {
-			    tail = context.active_head;
-			    node = context.active_head;
-			    prev = &context.active_head;
-			    // find first node that's admissible
-			    while (tail->x < r_width)
-			      tail = tail->next;
-			    while (tail) {
-			      unsigned int xpos = tail->x - r_width;
-			      unsigned int y, waste;
-			      ASSERT (xpos >= 0);
-			      // find the left position that matches this
-			      while (node->next->x <= xpos) {
-			        prev = &node->next;
-			        node = node->next;
-			      }
-			      ASSERT (node->next->x > xpos && node->x <= xpos);
-			      y = stbrp__skyline_find_min_y (c, node, xpos, r_width, &waste);
-			      if (y + rect.h <= height) {
-			        if (y <= best_y) {
-			          if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
-			            best_x = xpos;
-			            ASSERT (y <= best_y);
-			            best_y = y;
-			            best_waste = waste;
-			            best = prev;
-			          }
-			        }
-			      }
-			      tail = tail->next;
-			    }
-			  }
-			
-			  fr.prev_link = best;
-			  fr.x = best_x;
-			  fr.y = best_y;
-			}
+      stbrp__findresult fr;
+      {
+        // align to multiple of 2
+        unsigned int r_width = rect.w + (rect.w % 2);
+
+        // if it can't possibly fit, bail immediately
+        unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
+        stbrp__node **prev = &context.active_head;
+        stbrp__node *node = context.active_head;
+        stbrp__node *tail;
+        stbrp__node **best = NULL;
+
+        while (node->x + r_width <= width) {
+          unsigned int waste;
+          unsigned int y = stbrp__skyline_find_min_y (c, node, node->x, r_width, &waste);
+          if (context.hr == stbrp__heuristic::skylineBL_sortHeight) { // actually just want to test BL
+            // bottom left
+            if (y < best_y) {
+              best_y = y;
+              best = prev;
+            }
+          } else {
+            // best-fit
+            if (y + rect.h <= height) {
+              // can only use it if it first vertically
+              if (y < best_y || (y == best_y && waste < best_waste)) {
+                best_y = y;
+                best_waste = waste;
+                best = prev;
+              }
+            }
+          }
+          prev = &node->next;
+          node = node->next;
+        }
+
+        best_x = (best == NULL) ? 0 : (*best)->x;
+        if (context.hr == stbrp__heuristic::skylineBF_sortHeight) {
+          tail = context.active_head;
+          node = context.active_head;
+          prev = &context.active_head;
+          // find first node that's admissible
+          while (tail->x < r_width)
+            tail = tail->next;
+          while (tail) {
+            unsigned int xpos = tail->x - r_width;
+            unsigned int y, waste;
+            ASSERT (xpos >= 0);
+            // find the left position that matches this
+            while (node->next->x <= xpos) {
+              prev = &node->next;
+              node = node->next;
+            }
+            ASSERT (node->next->x > xpos && node->x <= xpos);
+            y = stbrp__skyline_find_min_y (c, node, xpos, r_width, &waste);
+            if (y + rect.h <= height) {
+              if (y <= best_y) {
+                if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
+                  best_x = xpos;
+                  ASSERT (y <= best_y);
+                  best_y = y;
+                  best_waste = waste;
+                  best = prev;
+                }
+              }
+            }
+            tail = tail->next;
+          }
+        }
+
+        fr.prev_link = best;
+        fr.x = best_x;
+        fr.y = best_y;
+      }
       /* bail if:
        *   1. it failed
        *   2. the best node doesn't fit (we don't always check this)
@@ -293,8 +295,8 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
   // set was_packed flags and all_rects_packed status
   bool all_rects_packed = true;
   for (i = 0; i < num_rects; ++i) {
-  	int &state = rects[i].was_packed;
-    state = (rects[i].x >= width || rects[i].y >= height)?0:1;
+    int &state = rects[i].was_packed;
+    state = (rects[i].x >= width || rects[i].y >= height) ? 0 : 1;
     if (!state) {
       all_rects_packed &= false;
     }
