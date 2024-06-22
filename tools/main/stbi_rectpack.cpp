@@ -23,7 +23,7 @@ enum stbrp__heuristic {
 };
 struct stbrp__node {
   unsigned int x, y;
-  node *next;
+  stbrp__node *next;
 };
 struct stbrp__context {
   unsigned int width;
