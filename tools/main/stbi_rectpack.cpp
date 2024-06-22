@@ -17,71 +17,27 @@
 #define STBRP__MAXVAL 0x7fffffff
 // this is the maximum supported coordinate value.
 
-namespace stbi {
-namespace rectpack {
-  enum heuristic {
-    skylineBL_sortHeight,
-    skylineBF_sortHeight
-  };
-
-  struct node {
-    unsigned int x, y;
-    node *next;
-  };
-  struct context {
-    context (unsigned int, unsigned int);
-    // Initialize a rectangle packer to:
-    //    pack a rectangle that is 'width' by 'height' in dimensions
-    //
-    // You must call this function every time you start packing into a new target.
-    //
-    // There is no "shutdown" function. The 'nodes' memory must stay valid for
-    // the following pack_rects() call (or calls), but can be freed after
-    // the call (or calls) finish.
-    // If you don't do either of the above things, widths will be quantized to multiples
-    // of small integers to guarantee the algorithm doesn't run out of temporary storage.
-    //
-    // If you do #2, then the non-quantized algorithm will be used, but the algorithm
-    // may run out of temporary storage and be unable to pack some rectangles.
-
-    ~context ();
-    unsigned int width;
-    unsigned int height;
-    heuristic hr = heuristic::skylineBL_sortHeight;
-    node *nodes;
-    node *free_head;
-    node *active_head;
-    node extra[2];
-  };
-} // namespace rectpack
-} // namespace stbi
-
-stbi::rectpack::context::context (unsigned int w, unsigned int h) : width (w), height (h) {
-  size_t i = 0;
-  nodes = new stbi::rectpack::node[width];
-  do {
-    nodes[i].next = nodes + i + 1;
-  } while (++i < width);
-  nodes[i].next = NULL;
-  free_head = nodes;
-  active_head = extra;
-
-  // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
-  extra[0].x = 0;
-  extra[0].y = 0;
-  extra[0].next = &extra[1];
-  extra[1].x = width;
-  extra[1].y = (1 << 30);
-  extra[1].next = NULL;
-}
-
-stbi::rectpack::context::~context () {
-  delete[] nodes;
-}
+enum stbrp__heuristic {
+  skylineBL_sortHeight,
+  skylineBF_sortHeight
+};
+struct stbrp__node {
+  unsigned int x, y;
+  node *next;
+};
+struct stbrp__context {
+  unsigned int width;
+  unsigned int height;
+  stbrp__heuristic hr = stbrp__heuristic::skylineBL_sortHeight;
+  stbrp__node *nodes;
+  stbrp__node *free_head;
+  stbrp__node *active_head;
+  stbrp__node extra[2];
+};
 
 // find minimum y position if it starts at x1
-static int stbrp__skyline_find_min_y (stbi::rectpack::context *c, stbi::rectpack::node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
-  stbi::rectpack::node *node = first;
+static int stbrp__skyline_find_min_y (stbrp__context *c, stbrp__node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
+  stbrp__node *node = first;
   unsigned int x1 = x0 + width;
   unsigned int min_y, visited_width, waste_area;
 
@@ -131,13 +87,13 @@ static int stbrp__skyline_find_min_y (stbi::rectpack::context *c, stbi::rectpack
 
 struct stbrp__findresult {
   unsigned int x, y;
-  stbi::rectpack::node **prev_link;
+  stbrp__node **prev_link;
 };
 
-static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rectpack::context *c, int width, int height) {
+static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context *c, int width, int height) {
   unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
   stbrp__findresult fr;
-  stbi::rectpack::node **prev, *node, *tail, **best = NULL;
+  stbrp__node **prev, *node, *tail, **best = NULL;
 
   // align to multiple of 2
   width = (width + 2 - 1);
@@ -156,7 +112,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rectpack::context *
   while (node->x + width <= c->width) {
     unsigned int y, waste;
     y = stbrp__skyline_find_min_y (c, node, node->x, width, &waste);
-    if (c->hr == stbi::rectpack::heuristic::skylineBL_sortHeight) { // actually just want to test BL
+    if (c->hr == stbrp__heuristic::skylineBL_sortHeight) { // actually just want to test BL
       // bottom left
       if (y < best_y) {
         best_y = y;
@@ -196,7 +152,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbi::rectpack::context *
   //
   // This makes BF take about 2x the time
 
-  if (c->hr == stbi::rectpack::heuristic::skylineBF_sortHeight) {
+  if (c->hr == stbrp__heuristic::skylineBF_sortHeight) {
     tail = c->active_head;
     node = c->active_head;
     prev = &c->active_head;
@@ -248,13 +204,35 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
     return (p.w * p.h) > (q.w * q.h);
   });
   {
-    stbi::rectpack::context context (width, height);
+    stbrp__context context;
+    context.width = width;
+    context.height = height;
+    
+    // Initialize a rectangle packer to:
+    //    pack a rectangle that is 'width' by 'height' in dimensions
+    //
+  stbrp__node nodes[width+25];
+  do {
+    nodes[i].next = nodes + i + 1;
+  } while (++i < width+25);
+  nodes[i].next = NULL;
+  context.free_head = nodes;
+  context.active_head = context.extra;
+
+  // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
+  context.extra[0].x = 0;
+  context.extra[0].y = 0;
+  context.extra[0].next = &context.extra[1];
+  context.extra[1].x = width;
+  context.extra[1].y = (1 << 30);
+  context.extra[1].next = NULL;
+
     for (i = 0; i < num_rects; ++i) {
       if (rects[i].w == 0 || rects[i].h == 0) {
         rects[i].x = rects[i].y = 0; // empty rect needs no space
         continue;
       }
-
+      
       // pack rect
       // find best position according to heuristic
       stbrp__findresult fr = stbrp__skyline_find_best_pos (&context, rects[i].w, rects[i].h);
@@ -266,7 +244,7 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
       if (fr.prev_link == NULL || fr.y + rects[i].h > context.height || context.free_head == NULL) {
         rects[i].x = rects[i].y = STBRP__MAXVAL;
       } else {
-        stbi::rectpack::node *node, *cur;
+        stbrp__node *node, *cur;
         // on success, create new node
         node = context.free_head;
         node->x = fr.x;
@@ -279,7 +257,7 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
         cur = *fr.prev_link;
         if (cur->x < fr.x) {
           // preserve the existing one, so start testing with the next one
-          stbi::rectpack::node *next = cur->next;
+          stbrp__node *next = cur->next;
           cur->next = node;
           cur = next;
         } else {
@@ -289,7 +267,7 @@ bool stbi::rectpack::pack_rects (unsigned int width, unsigned int height, stbi::
         // from here, traverse cur and free the nodes, until we get to one
         // that shouldn't be freed
         while (cur->next && cur->next->x <= fr.x + rects[i].w) {
-          stbi::rectpack::node *next = cur->next;
+          stbrp__node *next = cur->next;
           // move the current node to the free list
           cur->next = context.free_head;
           context.free_head = cur;
