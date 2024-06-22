@@ -22,13 +22,13 @@ int main (int argc, char *argv[]) {
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
     stbi::rectpack::rect rects[5] = {
-        {8, 21, (void*)0xff0000ff, 0, 0, 0},
-        {15, 10, (void*)0x00ff00ff, 0, 0, 0},
-        {30, 20, (void*)0x0000ffff, 0, 0, 0},
-        {21, 7, (void*)0x00ffffff, 0, 0, 0},
-        {7, 7, (void*)0xffffffff, 0, 0, 0},
-        {7, 7, (void*)0x000000ff, 0, 0, 0},
-        {30, 14, (void*)0xffff00ff, 0, 0, 0}};
+        {8, 21, (void *)0xff0000ff, 0, 0, 0},
+        {15, 10, (void *)0x00ff00ff, 0, 0, 0},
+        {30, 20, (void *)0x0000ffff, 0, 0, 0},
+        {21, 7, (void *)0x00ffffff, 0, 0, 0},
+        {7, 7, (void *)0xffffffff, 0, 0, 0},
+        {7, 7, (void *)0x000000ff, 0, 0, 0},
+        {30, 14, (void *)0xffff00ff, 0, 0, 0}};
 
     if (!stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5))
       std::cout << "Warning: All not packed!" << std::endl;
