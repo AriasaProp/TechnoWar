@@ -32,7 +32,7 @@ int main (int argc, char *argv[]) {
     if (stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 5)) {
       uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
       for (size_t i = 0; i < 7; ++i) {
-        stbi::rectpack::rects &r = rects[i];
+        stbi::rectpack::rect &r = rects[i];
         if (r.was_packed)
           for (size_t y = 0; y < r.h; y++)
             std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, uint32_t (r.id));
