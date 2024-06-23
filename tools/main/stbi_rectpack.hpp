@@ -6,14 +6,14 @@ namespace rectpack {
 
   struct rect {
     // input:
-    unsigned int w, h;
+    int w, h;
     unsigned int id;
     // output:
-    unsigned int x, y;
+    int x, y;
     int was_packed; // non-zero if valid packing
-  };                // 16 bytes, nominally
+  }; // 16 bytes, nominally
 
-  bool pack_rects (unsigned int, unsigned int, rect *, unsigned int);
+  bool pack_rects (int, int, rect *, int);
   // Assign packed locations to rectangles. The rectangles are of type
   // 'rect' defined below, stored in the array 'rects', and there
   // are 'num_rects' many of them.
