@@ -91,8 +91,8 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
   size_t i;
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
-  for (int n = 0; n < num_rects; ++n) {
-    rects[n].was_packed = n;
+  for (i = 0; i < num_rects; ++i) {
+    rects[i].was_packed = i;
   }
 
   // sort according to heuristic
