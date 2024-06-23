@@ -91,13 +91,13 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
   size_t i;
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
-  for (i = 0; i < num_rects; ++i) {
-    rects[i].was_packed = i;
+  for (int n = 0; n < num_rects; ++n) {
+    rects[i].was_packed = n;
   }
 
   // sort according to heuristic
   std::sort (rects, rects + num_rects, [] (const rect &p, const rect &q) {
-    return (p.w * p.h) > (q.w * q.h);
+    return p.h < q.h;
   });
   {
     stbrp__context context;
@@ -123,13 +123,8 @@ bool stbi::rectpack::pack_rects (const unsigned int width, const unsigned int he
 
     for (i = 0; i < num_rects; ++i) {
       stbi::rectpack::rect &rect = rects[i];
-      // empty rect needs no space
-      if (rect.w == 0 || rect.h == 0) {
-        rect.x = rect.y = 0;
-        continue;
-      }
-      // rect that bigger than rect bin skipped
-      if (rect.w >= width || rect.h >= height) {
+      // rect that empty or bigger than bin skipped
+      if (rect.w == 0 || rect.w >= width || rect.h == 0 || rect.h >= height) {
         rect.x = width;
         rect.y = height;
         continue;

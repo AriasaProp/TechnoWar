@@ -33,9 +33,9 @@ int main (int argc, char *argv[]) {
       uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
       for (size_t i = 0; i < 7; ++i) {
         stbi::rectpack::rect &r = rects[i];
-        if (!r.was_packed)
-          for (size_t y = 0; y < r.h; y++)
-            std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, uint32_t (r.id));
+        for (size_t y = 0; y < r.h; y++)
+          std::fill_n (outBuffer + ((r.y + y) * PACKED_SIZE) + r.x, r.w, uint32_t (r.id));
+    		std::cout << "packed ... " << r.w << " x " << r.h << std::endl;
       }
       stbi::write::png (argv[1], PACKED_SIZE, PACKED_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
       std::cout << "Output: " << argv[1] << " completed." << std::endl;
