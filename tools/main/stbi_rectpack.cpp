@@ -16,9 +16,9 @@ struct stbrp_node {
   stbrp_node *next;
 };
 
-#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 
 #ifndef ASSERT
 #include <cassert>
@@ -26,8 +26,6 @@ struct stbrp_node {
 #endif
 
 struct stbrp__context {
-  int width;
-  int height;
   int heuristic;
   int num_nodes;
   stbrp_node *active_head;
@@ -95,13 +93,6 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
 
   // align to multiple of 2
   width += width % 2;
-
-  // if it can't possibly fit, bail immediately
-  if (width > c.width || height > c.height) {
-    fr.prev_link = NULL;
-    fr.x = fr.y = 0;
-    return fr;
-  }
 
   node = c.active_head;
   prev = &c.active_head;
@@ -280,8 +271,6 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.heuristic = STBRP_HEURISTIC_Skyline_default;
   context.free_head = &nodes[0];
   context.active_head = &context.extra[0];
-  context.width = c_width;
-  context.height = c_height;
   context.num_nodes = num_nodes;
 
   // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
@@ -291,6 +280,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.extra[1].x = c_width;
   context.extra[1].y = (1 << 30);
   context.extra[1].next = NULL;
+  
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -298,14 +288,14 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // sort according to heuristic
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     if (p.h != q.h)
       return p.h > q.h;
     return p.w > q.w;
   });
 
   for (i = 0; i < num_rects; ++i) {
-    stbi::rectpack::rect &rect = rects[i];
+  	stbi::rectpack::rect &rect = rects[i];
     if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
       // empty rect needs no space, rect size over bin skipped
       rect.x = c_width;
@@ -323,7 +313,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // unsort 0, 1 ,2 ....
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     return p.was_packed < q.was_packed;
   });
 
@@ -332,8 +322,6 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   for (i = 0; i < num_rects; ++i) {
     rects[i].was_packed = ((rects[i].x + rects[i].w) <= c_width) && ((rects[i].y + rects[i].h) <= c_height);
     all_rects_packed &= rects[i].was_packed;
-
-    if (!rects[i].was_packed)
   }
 
   // return the all_rects_packed status
