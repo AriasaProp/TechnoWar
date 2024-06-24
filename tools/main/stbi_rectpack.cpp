@@ -40,7 +40,7 @@ struct stbrp__context {
 };
 
 // find minimum y position if it starts at x1
-static int stbrp__skyline_find_min_y (stbrp_context *c, stbrp_node *first, int x0, int width, int *pwaste) {
+static int stbrp__skyline_find_min_y (stbrp__context *c, stbrp_node *first, int x0, int width, int *pwaste) {
   stbrp_node *node = first;
   int x1 = x0 + width;
   int min_y, visited_width, waste_area;
@@ -94,7 +94,7 @@ struct stbrp__findresult {
   stbrp_node **prev_link;
 };
 
-static stbrp__findresult stbrp__skyline_find_best_pos (stbrp_context *c, int width, int height) {
+static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context *c, int width, int height) {
   int best_waste = (1 << 30), best_x, best_y = (1 << 30);
   stbrp__findresult fr;
   stbrp_node **prev, *node, *tail, **best = NULL;
@@ -193,7 +193,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp_context *c, int wid
   return fr;
 }
 
-static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, int width, int height) {
+static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp__context *context, int width, int height) {
   // find best position according to heuristic
   stbrp__findresult res = stbrp__skyline_find_best_pos (context, width, height);
   stbrp_node *node, *cur;
@@ -274,8 +274,8 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp_context *context, 
 bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect *rects, int num_rects) {
   int i;
 
-  stbrp_context context;
-
+  stbrp__context context;
+  // init context
   int num_nodes = c_width + 15;
   stbrp_node nodes[num_nodes];
 
@@ -297,6 +297,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.extra[1].x = c_width;
   context.extra[1].y = (1 << 30);
   context.extra[1].next = NULL;
+  
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -304,14 +305,10 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // sort according to heuristic
-  qsort (rects, num_rects, sizeof (rects[0]), [] (const void *a, const void *b) -> int {
-    const stbi::rectpack::rect *p = (const stbi::rectpack::rect *)a;
-    const stbi::rectpack::rect *q = (const stbi::rectpack::rect *)b;
-    if (p->h > q->h)
-      return -1;
-    if (p->h < q->h)
-      return 1;
-    return (p->w > q->w) ? -1 : (p->w < q->w);
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+    if (p.h != q.h)
+      return p.h > q.h;
+    return p.w > q.w;
   });
 
   for (i = 0; i < num_rects; ++i) {
@@ -323,22 +320,20 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
         rects[i].x = (int)fr.x;
         rects[i].y = (int)fr.y;
       } else {
-        rects[i].x = rects[i].y = STBRP__MAXVAL;
+        rects[i].x = rects[i].y = 0x7fffffff;
       }
     }
   }
 
-  // unsort
-  qsort (rects, num_rects, sizeof (rects[0]), [] (const void *a, const void *b) -> int {
-    const stbi::rectpack::rect *p = (const stbi::rectpack::rect *)a;
-    const stbi::rectpack::rect *q = (const stbi::rectpack::rect *)b;
-    return (p->was_packed < q->was_packed) ? -1 : (p->was_packed > q->was_packed);
+  // unsort 0, 1 ,2 ....
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+    return p.was_packed < q.was_packed;
   });
 
   bool all_rects_packed = true;
   // set was_packed flags and all_rects_packed status
   for (i = 0; i < num_rects; ++i) {
-    rects[i].was_packed = !(rects[i].x == STBRP__MAXVAL && rects[i].y == STBRP__MAXVAL);
+    rects[i].was_packed = !(rects[i].x == 0x7fffffff && rects[i].y == 0x7fffffff);
     if (!rects[i].was_packed)
       all_rects_packed &= false;
   }
