@@ -16,9 +16,9 @@ struct stbrp_node {
   stbrp_node *next;
 };
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
-#include <algorithm>
 
 #ifndef ASSERT
 #include <cassert>
@@ -280,7 +280,6 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.extra[1].x = c_width;
   context.extra[1].y = (1 << 30);
   context.extra[1].next = NULL;
-  
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -288,14 +287,14 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // sort according to heuristic
-  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     if (p.h != q.h)
       return p.h > q.h;
     return p.w > q.w;
   });
 
   for (i = 0; i < num_rects; ++i) {
-  	stbi::rectpack::rect &rect = rects[i];
+    stbi::rectpack::rect &rect = rects[i];
     if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
       // empty rect needs no space, rect size over bin skipped
       rect.x = c_width;
@@ -313,7 +312,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // unsort 0, 1 ,2 ....
-  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     return p.was_packed < q.was_packed;
   });
 
