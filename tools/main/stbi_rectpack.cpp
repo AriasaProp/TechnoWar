@@ -27,7 +27,6 @@ struct stbrp_node {
 
 struct stbrp__context {
   int heuristic;
-  int num_nodes;
   stbrp_node *active_head;
   stbrp_node *free_head;
   stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
@@ -86,19 +85,66 @@ struct stbrp__findresult {
   stbrp_node **prev_link;
 };
 
-static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int width, int height) {
+bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect *rects, int num_rects) {
+  size_t i;
+
+  stbrp__context context;
+  // init context
+  const size_t num_nodes = c_width + 15;
+  stbrp_node nodes[num_nodes];
+
+  for (i = 0; i < num_nodes - 1; ++i)
+    nodes[i].next = &nodes[i + 1];
+  nodes[i].next = NULL;
+
+  context.heuristic = STBRP_HEURISTIC_Skyline_default;
+  context.free_head = &nodes[0];
+  context.active_head = &context.extra[0];
+
+  // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
+  context.extra[0].x = 0;
+  context.extra[0].y = 0;
+  context.extra[0].next = &context.extra[1];
+  context.extra[1].x = c_width;
+  context.extra[1].y = (1 << 30);
+  context.extra[1].next = NULL;
+
+  // we use the 'was_packed' field internally to allow sorting/unsorting
+  for (i = 0; i < num_rects; ++i) {
+    rects[i].was_packed = i;
+  }
+
+  // sort according to heuristic
+  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+    if (p.h != q.h)
+      return p.h > q.h;
+    return p.w > q.w;
+  });
+
+  for (i = 0; i < num_rects; ++i) {
+    stbi::rectpack::rect &rect = rects[i];
+    rect.x = c_width;
+    rect.y = c_height;
+    // empty rect needs no space, rect size over bin skipped
+    if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
+      continue;
+    }
+
+    // find best position according to heuristic
+    stbrp__findresult fr = stbrp__skyline_find_best_pos (context, rect.w, rect.h);
+    {
+    	
   int best_waste = (1 << 30), best_x, best_y = (1 << 30);
-  stbrp__findresult fr;
   stbrp_node **prev, *node, *tail, **best = NULL;
 
   // align to multiple of 2
-  width += width % 2;
+  int r_width  += rect.w + (rect.w % 2);
 
   node = c.active_head;
   prev = &c.active_head;
-  while (node->x + width <= c.width) {
+  while (node->x + r_width <= c_width) {
     int y, waste;
-    y = stbrp__skyline_find_min_y (node, node->x, width, &waste);
+    y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
     if (c.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
       // bottom left
       if (y < best_y) {
@@ -107,7 +153,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
       }
     } else {
       // best-fit
-      if (y + height <= c.height) {
+      if (y + rect.h <= c_height) {
         // can only use it if it first vertically
         if (y < best_y || (y == best_y && waste < best_waste)) {
           best_y = y;
@@ -144,10 +190,10 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
     node = c.active_head;
     prev = &c.active_head;
     // find first node that's admissible
-    while (tail->x < width)
+    while (tail->x < r_width)
       tail = tail->next;
     while (tail) {
-      int xpos = tail->x - width;
+      int xpos = tail->x - r_width;
       int y, waste;
       ASSERT (xpos >= 0);
       // find the left position that matches this
@@ -156,8 +202,8 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
         node = node->next;
       }
       ASSERT (node->next->x > xpos && node->x <= xpos);
-      y = stbrp__skyline_find_min_y (node, xpos, width, &waste);
-      if (y + height <= c.height) {
+      y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
+      if (y + rect.h <= c_height) {
         if (y <= best_y) {
           if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
             best_x = xpos;
@@ -175,57 +221,8 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
   fr.prev_link = best;
   fr.x = best_x;
   fr.y = best_y;
-  return fr;
 }
 
-bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect *rects, int num_rects) {
-  size_t i;
-
-  stbrp__context context;
-  // init context
-  int num_nodes = c_width + 15;
-  stbrp_node nodes[num_nodes];
-
-  for (i = 0; i < num_nodes - 1; ++i)
-    nodes[i].next = &nodes[i + 1];
-  nodes[i].next = NULL;
-
-  context.heuristic = STBRP_HEURISTIC_Skyline_default;
-  context.free_head = &nodes[0];
-  context.active_head = &context.extra[0];
-  context.num_nodes = num_nodes;
-
-  // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
-  context.extra[0].x = 0;
-  context.extra[0].y = 0;
-  context.extra[0].next = &context.extra[1];
-  context.extra[1].x = c_width;
-  context.extra[1].y = (1 << 30);
-  context.extra[1].next = NULL;
-
-  // we use the 'was_packed' field internally to allow sorting/unsorting
-  for (i = 0; i < num_rects; ++i) {
-    rects[i].was_packed = i;
-  }
-
-  // sort according to heuristic
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
-    if (p.h != q.h)
-      return p.h > q.h;
-    return p.w > q.w;
-  });
-
-  for (i = 0; i < num_rects; ++i) {
-    stbi::rectpack::rect &rect = rects[i];
-    rect.x = c_width;
-    rect.y = c_height;
-    // empty rect needs no space, rect size over bin skipped
-    if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
-      continue;
-    }
-
-    // find best position according to heuristic
-    stbrp__findresult fr = stbrp__skyline_find_best_pos (context, rect.w, rect.h);
     // bail if:
     //    1. it failed
     //    2. the best node doesn't fit (we don't always check this)
@@ -292,7 +289,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
           cur = cur->next;
           ++count;
         }
-        ASSERT (count == context.num_nodes + 2);
+        ASSERT (count ==num_nodes + 2);
       }
 #endif
 
