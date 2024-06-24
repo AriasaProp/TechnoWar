@@ -16,18 +16,13 @@ struct stbrp_node {
   stbrp_node *next;
 };
 
-#include <algorithm>
+#include <cstdint>
 #include <cstdlib>
+#include <algorithm>
 
 #ifndef ASSERT
 #include <cassert>
 #define ASSERT assert
-#endif
-
-#ifdef _MSC_VER
-#define NO_USE(v) (void)(v)
-#else
-#define NO_USE(v) (void)sizeof (v)
 #endif
 
 struct stbrp__context {
@@ -271,7 +266,7 @@ static stbrp__findresult stbrp__skyline_pack_rectangle (stbrp__context &context,
 }
 
 bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect *rects, int num_rects) {
-  int i;
+  size_t i;
 
   stbrp__context context;
   // init context
@@ -296,6 +291,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.extra[1].x = c_width;
   context.extra[1].y = (1 << 30);
   context.extra[1].next = NULL;
+  
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -303,37 +299,42 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // sort according to heuristic
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     if (p.h != q.h)
       return p.h > q.h;
     return p.w > q.w;
   });
 
   for (i = 0; i < num_rects; ++i) {
-    if (rects[i].w == 0 || rects[i].h == 0) {
-      rects[i].x = rects[i].y = 0; // empty rect needs no space
+  	stbi::rectpack::rect &rect = rects[i];
+    if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
+      // empty rect needs no space, rect size over bin skipped
+      rect.x = c_width;
+      rect.y = c_height;
     } else {
-      stbrp__findresult fr = stbrp__skyline_pack_rectangle (context, rects[i].w, rects[i].h);
+      stbrp__findresult fr = stbrp__skyline_pack_rectangle (context, rect.w, rect.h);
       if (fr.prev_link) {
-        rects[i].x = (int)fr.x;
-        rects[i].y = (int)fr.y;
+        rect.x = fr.x;
+        rect.y = fr.y;
       } else {
-        rects[i].x = rects[i].y = 0x7fffffff;
+        rect.x = c_width;
+        rect.y = c_height;
       }
     }
   }
 
   // unsort 0, 1 ,2 ....
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     return p.was_packed < q.was_packed;
   });
 
   bool all_rects_packed = true;
   // set was_packed flags and all_rects_packed status
   for (i = 0; i < num_rects; ++i) {
-    rects[i].was_packed = !(rects[i].x == 0x7fffffff && rects[i].y == 0x7fffffff);
+    rects[i].was_packed = ((rects[i].x + rects[i].w) <= c_width) && ((rects[i].y + rects[i].h) <= c_height);
+    all_rects_packed &= rects[i].was_packed;
+    
     if (!rects[i].was_packed)
-      all_rects_packed &= false;
   }
 
   // return the all_rects_packed status

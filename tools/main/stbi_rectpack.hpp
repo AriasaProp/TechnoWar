@@ -10,8 +10,8 @@ namespace rectpack {
     unsigned int id;
     // output:
     int x, y;
-    int was_packed; // non-zero if valid packing
-  };                // 16 bytes, nominally
+    unsigned int was_packed; // non-zero if valid packing
+  }; // 16 bytes, nominally
 
   bool pack_rects (int, int, rect *, int);
   // Assign packed locations to rectangles. The rectangles are of type
