@@ -12,12 +12,11 @@ enum {
 // be visible so you can handle the memory allocations for them
 
 struct stbrp_node {
-  int x, y;
+  unsigned int x, y;
   stbrp_node *next;
 };
 
 #include <algorithm>
-#include <cstdint>
 #include <cstdlib>
 
 #ifndef ASSERT
@@ -33,10 +32,10 @@ struct stbrp__context {
 };
 
 // find minimum y position if it starts at x1
-static int stbrp__skyline_find_min_y (stbrp_node *first, int x0, int width, int *pwaste) {
+static unsigned int stbrp__skyline_find_min_y (stbrp_node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
   stbrp_node *node = first;
-  int x1 = x0 + width;
-  int min_y, visited_width, waste_area;
+  unsigned int x1 = x0 + width;
+  unsigned int min_y, visited_width, waste_area;
 
   ASSERT (first->x <= x0);
 
@@ -67,7 +66,7 @@ static int stbrp__skyline_find_min_y (stbrp_node *first, int x0, int width, int 
         visited_width += node->next->x - node->x;
     } else {
       // add waste area
-      int under_width = node->next->x - node->x;
+      unsigned int under_width = node->next->x - node->x;
       if (under_width + visited_width > width)
         under_width = width - visited_width;
       waste_area += under_width * (min_y - node->y);
@@ -80,12 +79,7 @@ static int stbrp__skyline_find_min_y (stbrp_node *first, int x0, int width, int 
   return min_y;
 }
 
-struct stbrp__findresult {
-  int x, y;
-  stbrp_node **prev_link;
-};
-
-bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect *rects, int num_rects) {
+bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, stbi::rectpack::rect *rects, size_t num_rects) {
   size_t i;
 
   stbrp__context context;
@@ -129,22 +123,21 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
     if (rect.w == 0 || rect.w >= c_width || rect.h == 0 || rect.h >= c_height) {
       continue;
     }
-
+{
+	stbrp_node **res_prev_link == NULL;
     // find best position according to heuristic
-    stbrp__findresult fr;
     {
-
-      int best_waste = (1 << 30), best_x, best_y = (1 << 30);
+      unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
       stbrp_node **prev, *node, *tail, **best = NULL;
 
       // align to multiple of 2
-      int r_width = rect.w + (rect.w % 2);
+      unsigned int r_width = rect.w + (rect.w % 2);
 
       node = context.active_head;
       prev = &context.active_head;
       while (node->x + r_width <= c_width) {
-        int y, waste;
-        y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
+        unsigned int waste;
+        unsigned int y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
         if (context.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
           // bottom left
           if (y < best_y) {
@@ -193,8 +186,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
         while (tail->x < r_width)
           tail = tail->next;
         while (tail) {
-          int xpos = tail->x - r_width;
-          int y, waste;
+          unsigned int xpos = tail->x - r_width;
           ASSERT (xpos >= 0);
           // find the left position that matches this
           while (node->next->x <= xpos) {
@@ -202,7 +194,8 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
             node = node->next;
           }
           ASSERT (node->next->x > xpos && node->x <= xpos);
-          y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
+          unsigned int waste;
+          unsigned int y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
           if (y + rect.h <= c_height) {
             if (y <= best_y) {
               if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
@@ -218,24 +211,23 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
         }
       }
 
-      fr.prev_link = best;
-      fr.x = best_x;
-      fr.y = best_y;
+      res_prev_link = best;
+      rect.x = best_x;
+      rect.y = best_y;
     }
-
     // bail if:
     //    1. it failed
     //    2. the best node doesn't fit (we don't always check this)
     //    3. we're out of memory
-    if (fr.prev_link == NULL || fr.y + rect.h > c_height || context.free_head == NULL)
+    if (res_prev_link == NULL || rect.y + rect.h > c_height || context.free_head == NULL)
       continue;
     {
       stbrp_node *node, *cur;
 
       // on success, create new node
       node = context.free_head;
-      node->x = (int)fr.x;
-      node->y = (int)(fr.y + rect.h);
+      node->x = rect.x;
+      node->y = rect.y + rect.h;
 
       context.free_head = node->next;
 
@@ -243,19 +235,19 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
       // let 'cur' point to the remaining nodes needing to be
       // stiched back in
 
-      cur = *fr.prev_link;
-      if (cur->x < fr.x) {
+      cur = *res_prev_link;
+      if (cur->x < rect.x) {
         // preserve the existing one, so start testing with the next one
         stbrp_node *next = cur->next;
         cur->next = node;
         cur = next;
       } else {
-        *fr.prev_link = node;
+        *res_prev_link = node;
       }
 
       // from here, traverse cur and free the nodes, until we get to one
       // that shouldn't be freed
-      while (cur->next && cur->next->x <= fr.x + rect.w) {
+      while (cur->next && cur->next->x <= rect.x + rect.w) {
         stbrp_node *next = cur->next;
         // move the current node to the free list
         cur->next = context.free_head;
@@ -266,8 +258,8 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
       // stitch the list back in
       node->next = cur;
 
-      if (cur->x < fr.x + rect.w)
-        cur->x = (int)(fr.x + rect.w);
+      if (cur->x < rect.x + rect.w)
+        cur->x = (rect.x + rect.w);
 
 #ifdef _DEBUG
       cur = context.active_head;
@@ -276,9 +268,8 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
         cur = cur->next;
       }
       ASSERT (cur->next == NULL);
-
       {
-        int count = 0;
+        unsigned int count = 0;
         cur = context.active_head;
         while (cur) {
           cur = cur->next;
@@ -293,9 +284,8 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
       }
 #endif
 
-      rect.x = fr.x;
-      rect.y = fr.y;
     }
+}
   }
 
   // unsort 0, 1 ,2 ....

@@ -1,19 +1,21 @@
 #ifndef STBI_RECTPACK_HPP
 #define STBI_RECTPACK_HPP
 
+#include <cstdint>
+
 namespace stbi {
 namespace rectpack {
 
   struct rect {
     // input:
-    int w, h;
+    unsigned int w, h;
     unsigned int id;
     // output:
-    int x, y;
+    unsigned int x, y;
     unsigned int was_packed; // non-zero if valid packing
-  };                         // 16 bytes, nominally
+  }; // 16 bytes, nominally
 
-  bool pack_rects (int, int, rect *, int);
+  bool pack_rects (unsigned int, unsigned int, rect *, size_t);
   // Assign packed locations to rectangles. The rectangles are of type
   // 'rect' defined below, stored in the array 'rects', and there
   // are 'num_rects' many of them.

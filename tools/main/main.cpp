@@ -13,25 +13,28 @@
 
 namespace fs = std::filesystem;
 
-#define PACKED_SIZE 235
+#define PACKED_SIZE 124
+#define RECTS 8
 
 int main (int argc, char *argv[]) {
   try {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
-    stbi::rectpack::rect rects[7] = {
-        {8, 21, (0xff0000ff), 0, 0, 0},   // red
+    
+    stbi::rectpack::rect rects[RECTS] = {
+        {08, 21, (0xff0000ff), 0, 0, 0},   // red
         {15, 10, (0x00ff00ff), 0, 0, 0},  // green
         {30, 20, (0x0000ffff), 0, 0, 0},  // blue
-        {21, 7, (0x00ffffff), 0, 0, 0},   // green+blue
-        {19, 19, (0x213473ff), 0, 0, 0},  // ?
-        {19, 19, (0xa2bf00ff), 0, 0, 0},  //
+        {21, 07, (0x00ffffff), 0, 0, 0},   // green+blue
+        {13, 21, (0x213473ff), 0, 0, 0},  // ?
+        {16, 44, (0xa2bf00ff), 0, 0, 0},  //
+        {16, 44, (0xa0bf0aff), 0, 0, 0},  //
         {30, 14, (0xffff00ff), 0, 0, 0}}; // red + green
 
-    if (stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, 7)) {
+    if (stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, RECTS)) {
       uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
-      for (size_t i = 0; i < 7; ++i) {
+      for (size_t i = 0; i < RECTS; ++i) {
         const stbi::rectpack::rect &r = rects[i];
         if (!r.was_packed) continue;
         for (size_t y = 0; y < r.h; y++)
