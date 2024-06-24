@@ -17,7 +17,6 @@ struct stbrp_node {
 };
 
 #include <algorithm>
-#include <cstdlib>
 
 #ifndef ASSERT
 #include <cassert>
