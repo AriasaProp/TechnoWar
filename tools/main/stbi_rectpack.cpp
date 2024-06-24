@@ -133,95 +133,95 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
     // find best position according to heuristic
     stbrp__findresult fr = stbrp__skyline_find_best_pos (context, rect.w, rect.h);
     {
-    	
-  int best_waste = (1 << 30), best_x, best_y = (1 << 30);
-  stbrp_node **prev, *node, *tail, **best = NULL;
 
-  // align to multiple of 2
-  int r_width  += rect.w + (rect.w % 2);
+      int best_waste = (1 << 30), best_x, best_y = (1 << 30);
+      stbrp_node **prev, *node, *tail, **best = NULL;
 
-  node = c.active_head;
-  prev = &c.active_head;
-  while (node->x + r_width <= c_width) {
-    int y, waste;
-    y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
-    if (c.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
-      // bottom left
-      if (y < best_y) {
-        best_y = y;
-        best = prev;
-      }
-    } else {
-      // best-fit
-      if (y + rect.h <= c_height) {
-        // can only use it if it first vertically
-        if (y < best_y || (y == best_y && waste < best_waste)) {
-          best_y = y;
-          best_waste = waste;
-          best = prev;
+      // align to multiple of 2
+      int r_width += rect.w + (rect.w % 2);
+
+      node = c.active_head;
+      prev = &c.active_head;
+      while (node->x + r_width <= c_width) {
+        int y, waste;
+        y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
+        if (c.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
+          // bottom left
+          if (y < best_y) {
+            best_y = y;
+            best = prev;
+          }
+        } else {
+          // best-fit
+          if (y + rect.h <= c_height) {
+            // can only use it if it first vertically
+            if (y < best_y || (y == best_y && waste < best_waste)) {
+              best_y = y;
+              best_waste = waste;
+              best = prev;
+            }
+          }
         }
-      }
-    }
-    prev = &node->next;
-    node = node->next;
-  }
-
-  best_x = (best == NULL) ? 0 : (*best)->x;
-
-  // if doing best-fit (BF), we also have to try aligning right edge to each node position
-  //
-  // e.g, if fitting
-  //
-  //     ____________________
-  //    |____________________|
-  //
-  //            into
-  //
-  //   |                         |
-  //   |             ____________|
-  //   |____________|
-  //
-  // then right-aligned reduces waste, but bottom-left BL is always chooses left-aligned
-  //
-  // This makes BF take about 2x the time
-
-  if (c.heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight) {
-    tail = c.active_head;
-    node = c.active_head;
-    prev = &c.active_head;
-    // find first node that's admissible
-    while (tail->x < r_width)
-      tail = tail->next;
-    while (tail) {
-      int xpos = tail->x - r_width;
-      int y, waste;
-      ASSERT (xpos >= 0);
-      // find the left position that matches this
-      while (node->next->x <= xpos) {
         prev = &node->next;
         node = node->next;
       }
-      ASSERT (node->next->x > xpos && node->x <= xpos);
-      y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
-      if (y + rect.h <= c_height) {
-        if (y <= best_y) {
-          if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
-            best_x = xpos;
-            ASSERT (y <= best_y);
-            best_y = y;
-            best_waste = waste;
-            best = prev;
+
+      best_x = (best == NULL) ? 0 : (*best)->x;
+
+      // if doing best-fit (BF), we also have to try aligning right edge to each node position
+      //
+      // e.g, if fitting
+      //
+      //     ____________________
+      //    |____________________|
+      //
+      //            into
+      //
+      //   |                         |
+      //   |             ____________|
+      //   |____________|
+      //
+      // then right-aligned reduces waste, but bottom-left BL is always chooses left-aligned
+      //
+      // This makes BF take about 2x the time
+
+      if (c.heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight) {
+        tail = c.active_head;
+        node = c.active_head;
+        prev = &c.active_head;
+        // find first node that's admissible
+        while (tail->x < r_width)
+          tail = tail->next;
+        while (tail) {
+          int xpos = tail->x - r_width;
+          int y, waste;
+          ASSERT (xpos >= 0);
+          // find the left position that matches this
+          while (node->next->x <= xpos) {
+            prev = &node->next;
+            node = node->next;
           }
+          ASSERT (node->next->x > xpos && node->x <= xpos);
+          y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
+          if (y + rect.h <= c_height) {
+            if (y <= best_y) {
+              if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
+                best_x = xpos;
+                ASSERT (y <= best_y);
+                best_y = y;
+                best_waste = waste;
+                best = prev;
+              }
+            }
+          }
+          tail = tail->next;
         }
       }
-      tail = tail->next;
-    }
-  }
 
-  fr.prev_link = best;
-  fr.x = best_x;
-  fr.y = best_y;
-}
+      fr.prev_link = best;
+      fr.x = best_x;
+      fr.y = best_y;
+    }
 
     // bail if:
     //    1. it failed
@@ -289,7 +289,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
           cur = cur->next;
           ++count;
         }
-        ASSERT (count ==num_nodes + 2);
+        ASSERT (count == num_nodes + 2);
       }
 #endif
 
