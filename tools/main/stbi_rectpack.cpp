@@ -124,7 +124,7 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
       continue;
     }
     {
-      stbrp_node **res_prev_link == NULL;
+      stbrp_node **res_prev_link = NULL;
       // find best position according to heuristic
       {
         unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
