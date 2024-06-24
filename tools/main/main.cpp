@@ -21,12 +21,12 @@ int main (int argc, char *argv[]) {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
-    
+
     stbi::rectpack::rect rects[RECTS] = {
-        {08, 21, (0xff0000ff), 0, 0, 0},   // red
+        {08, 21, (0xff0000ff), 0, 0, 0},  // red
         {15, 10, (0x00ff00ff), 0, 0, 0},  // green
         {30, 20, (0x0000ffff), 0, 0, 0},  // blue
-        {21, 07, (0x00ffffff), 0, 0, 0},   // green+blue
+        {21, 07, (0x00ffffff), 0, 0, 0},  // green+blue
         {13, 21, (0x213473ff), 0, 0, 0},  // ?
         {16, 44, (0xa2bf00ff), 0, 0, 0},  //
         {16, 44, (0xa0bf0aff), 0, 0, 0},  //
