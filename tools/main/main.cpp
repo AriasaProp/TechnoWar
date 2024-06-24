@@ -21,16 +21,16 @@ int main (int argc, char *argv[]) {
     std::cout << "Converting ... " << std::endl;
     if ((argc < 2) || !argv[1] || !argv[1][0])
       throw "Input empty";
-
+    
     stbi::rectpack::rect rects[RECTS] = {
-        {8, 21, (0xff0000ff), 0, 0, 0},   // red
-        {15, 10, (0x00ff00ff), 0, 0, 0},  // green
-        {30, 20, (0x0000ffff), 0, 0, 0},  // blue
-        {21, 7, (0x00ffffff), 0, 0, 0},   // green+blue
-        {13, 21, (0x213473ff), 0, 0, 0},  // ?
-        {16, 44, (0xa2bf00ff), 0, 0, 0},  //
-        {16, 44, (0xa0bf0aff), 0, 0, 0},  //
-        {30, 14, (0xffff00ff), 0, 0, 0}}; // red + green
+        { 8, 21, (0xff0000ff), 0, 0, 0},   // red
+        {15, 10, (0xff00ff00), 0, 0, 0},  // green
+        {30, 20, (0xffff0000), 0, 0, 0},  // blue
+        {21,  7, (0xffffff00), 0, 0, 0},   // green+blue
+        {13, 21, (0xff213473), 0, 0, 0},  // ?
+        {16, 44, (0xffa2bf00), 0, 0, 0},  //
+        {16, 44, (0xffa0bf0a), 0, 0, 0},  //
+        {30, 14, (0xff00ffff), 0, 0, 0}}; // red + green
 
     if (stbi::rectpack::pack_rects (PACKED_SIZE, PACKED_SIZE, rects, RECTS)) {
       uint32_t outBuffer[PACKED_SIZE * PACKED_SIZE] = {0};
