@@ -16,8 +16,8 @@ struct stbrp_node {
   stbrp_node *next;
 };
 
-#include <algorithm>
 #include <cstdlib>
+#include <algorithm>
 
 #ifndef ASSERT
 #include <cassert>
@@ -112,7 +112,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
   prev = &c.active_head;
   while (node->x + width <= c.width) {
     int y, waste;
-    y = stbrp__skyline_find_min_y (c, node, node->x, width, &waste);
+    y = stbrp__skyline_find_min_y (node, node->x, width, &waste);
     if (c.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
       // bottom left
       if (y < best_y) {
@@ -170,7 +170,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos (stbrp__context &c, int wi
         node = node->next;
       }
       ASSERT (node->next->x > xpos && node->x <= xpos);
-      y = stbrp__skyline_find_min_y (c, node, xpos, width, &waste);
+      y = stbrp__skyline_find_min_y (node, xpos, width, &waste);
       if (y + height <= c.height) {
         if (y <= best_y) {
           if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
@@ -296,6 +296,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   context.extra[1].x = c_width;
   context.extra[1].y = (1 << 30);
   context.extra[1].next = NULL;
+  
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -303,7 +304,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // sort according to heuristic
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     if (p.h != q.h)
       return p.h > q.h;
     return p.w > q.w;
@@ -324,7 +325,7 @@ bool stbi::rectpack::pack_rects (int c_width, int c_height, stbi::rectpack::rect
   }
 
   // unsort 0, 1 ,2 ....
-  std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
+  std::sort (rects, rects+num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
     return p.was_packed < q.was_packed;
   });
 
