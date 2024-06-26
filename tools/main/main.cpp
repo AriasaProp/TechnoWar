@@ -55,7 +55,7 @@ int main (int argc, char *argv[]) {
       rect.h = genRNG (5);                // 0 ~ 31
       area += rect.w * rect.h;
     }
-    unsigned int Packed_Size = rtInt (area);
+    unsigned int Packed_Size = rtInt (area) * 10;
     if (stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS)) {
       uint32_t outBuffer[Packed_Size * Packed_Size] = {0};
       for (size_t i = 0; i < RECTS; ++i) {
