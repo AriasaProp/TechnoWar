@@ -50,8 +50,8 @@ int main (int argc, char *argv[]) {
     unsigned int area = 0;
     for (stbi::rectpack::rect &rect : rects) {
       rect.id = 0xff000000 | genRNG (24); // 0 ~ 0x00ffffff
-      rect.w = genRNG (5) << 2;                // 0 ~ 31
-      rect.h = genRNG (5) << 2;                // 0 ~ 31
+      rect.w = genRNG (5) << 2;           // 0 ~ 31
+      rect.h = genRNG (5) << 2;           // 0 ~ 31
       area += rect.w * rect.h;
     }
     unsigned int Packed_Size = rtInt (area) * 2;
@@ -70,7 +70,7 @@ int main (int argc, char *argv[]) {
     }
     stbi::write::png (argv[1], Packed_Size, Packed_Size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
-    
+
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error reading directory: " << e.what () << std::endl;
     return EXIT_FAILURE;
