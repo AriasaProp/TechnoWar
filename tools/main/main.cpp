@@ -32,8 +32,7 @@ unsigned int genRNG (unsigned int numBits) {
 unsigned int rtInt (unsigned int n) {
   if (n == 0 || n == 1)
     return n;
-  double x = n;
-  double root = n;
+  double x, root = n;
   do {
     x = root;
     root = 0.5 * (x + n / x);
@@ -51,11 +50,11 @@ int main (int argc, char *argv[]) {
     unsigned int area = 0;
     for (stbi::rectpack::rect &rect : rects) {
       rect.id = 0xff000000 | genRNG (24); // 0 ~ 0x00ffffff
-      rect.w = genRNG (5);                // 0 ~ 31
-      rect.h = genRNG (5);                // 0 ~ 31
+      rect.w = genRNG (5) << 2;                // 0 ~ 31
+      rect.h = genRNG (5) << 2;                // 0 ~ 31
       area += rect.w * rect.h;
     }
-    unsigned int Packed_Size = rtInt (area) * 10;
+    unsigned int Packed_Size = rtInt (area) * 3;
     if (stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS)) {
       uint32_t outBuffer[Packed_Size * Packed_Size] = {0};
       for (size_t i = 0; i < RECTS; ++i) {
@@ -71,7 +70,7 @@ int main (int argc, char *argv[]) {
       stbi::write::png (argv[1], Packed_Size, Packed_Size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
       std::cout << "Output: " << argv[1] << " completed." << std::endl;
     } else
-      std::cout << "Error: All not packed!" << std::endl;
+      std::cout << "Error: All not packed! with " << Packed_Size << " px2" << std::endl;
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error reading directory: " << e.what () << std::endl;
     return EXIT_FAILURE;
