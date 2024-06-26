@@ -1,15 +1,7 @@
 #include "stbi_rectpack.hpp"
 
-enum {
-  STBRP_HEURISTIC_Skyline_default = 0,
-  STBRP_HEURISTIC_Skyline_BL_sortHeight = STBRP_HEURISTIC_Skyline_default,
-  STBRP_HEURISTIC_Skyline_BF_sortHeight
-};
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// the details of the following structures don't matter to you, but they must
-// be visible so you can handle the memory allocations for them
+// BOTTOM-LEFT 0, BEST-FIT 1
+#define HEURISTIC_SKYLINE 0
 
 struct stbrp_node {
   unsigned int x, y;
@@ -85,22 +77,20 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
   // init context
   const size_t num_nodes = c_width + 15;
   stbrp_node nodes[num_nodes];
-
+  stbrp_node *c_free_head = nodes;
   for (i = 0; i < num_nodes - 1; ++i)
-    nodes[i].next = &nodes[i + 1];
+    nodes[i].next = nodes + i + 1;
   nodes[i].next = NULL;
 
-  context.heuristic = STBRP_HEURISTIC_Skyline_default;
-  context.free_head = &nodes[0];
-  context.active_head = &context.extra[0];
-
+  stbrp_node extra_node[2];
+  stbrp_node *c_active_head = extra_node;
   // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
-  context.extra[0].x = 0;
-  context.extra[0].y = 0;
-  context.extra[0].next = &context.extra[1];
-  context.extra[1].x = c_width;
-  context.extra[1].y = (1 << 30);
-  context.extra[1].next = NULL;
+  extra_node[0].x = 0;
+  extra_node[0].y = 0;
+  extra_node[0].next = extra_node + 1;
+  extra_node[1].x = c_width;
+  extra_node[1].y = c_height;
+  extra_node[1].next = NULL;
 
   // we use the 'was_packed' field internally to allow sorting/unsorting
   for (i = 0; i < num_rects; ++i) {
@@ -126,40 +116,42 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
       stbrp_node **res_prev_link = NULL;
       // find best position according to heuristic
       {
-        unsigned int best_waste = (1 << 30), best_x, best_y = (1 << 30);
+        unsigned int best_waste = c_height, best_x, best_y = c_height;
         stbrp_node **prev, *node, *tail, **best = NULL;
 
         // align to multiple of 2
         unsigned int r_width = rect.w + (rect.w % 2);
 
-        node = context.active_head;
-        prev = &context.active_head;
+        node = c_active_head;
+        prev = &c_active_head;
         while (node->x + r_width <= c_width) {
           unsigned int waste;
           unsigned int y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
-          if (context.heuristic == STBRP_HEURISTIC_Skyline_BL_sortHeight) { // actually just want to test BL
-            // bottom left
-            if (y < best_y) {
+#if (HEURISTIC_SKYLINE == 0)
+          // bottom left
+        	// actually just want to test BL
+          if (y < best_y) {
+            best_y = y;
+            best = prev;
+          }
+#else
+          // best-fit
+          if (y + rect.h <= c_height) {
+            // can only use it if it first vertically
+            if (y < best_y || (y == best_y && waste < best_waste)) {
               best_y = y;
+              best_waste = waste;
               best = prev;
             }
-          } else {
-            // best-fit
-            if (y + rect.h <= c_height) {
-              // can only use it if it first vertically
-              if (y < best_y || (y == best_y && waste < best_waste)) {
-                best_y = y;
-                best_waste = waste;
-                best = prev;
-              }
-            }
           }
+#endif
           prev = &node->next;
           node = node->next;
         }
 
         best_x = (best == NULL) ? 0 : (*best)->x;
 
+#if (HEURISTIC_SKYLINE == 1)
         // if doing best-fit (BF), we also have to try aligning right edge to each node position
         //
         // e.g, if fitting
@@ -176,39 +168,37 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
         // then right-aligned reduces waste, but bottom-left BL is always chooses left-aligned
         //
         // This makes BF take about 2x the time
-
-        if (context.heuristic == STBRP_HEURISTIC_Skyline_BF_sortHeight) {
-          tail = context.active_head;
-          node = context.active_head;
-          prev = &context.active_head;
-          // find first node that's admissible
-          while (tail->x < r_width)
-            tail = tail->next;
-          while (tail) {
-            unsigned int xpos = tail->x - r_width;
-            ASSERT (xpos >= 0);
-            // find the left position that matches this
-            while (node->next->x <= xpos) {
-              prev = &node->next;
-              node = node->next;
-            }
-            ASSERT (node->next->x > xpos && node->x <= xpos);
-            unsigned int waste;
-            unsigned int y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
-            if (y + rect.h <= c_height) {
-              if (y <= best_y) {
-                if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
-                  best_x = xpos;
-                  ASSERT (y <= best_y);
-                  best_y = y;
-                  best_waste = waste;
-                  best = prev;
-                }
+        tail = c_active_head;
+        node = c_active_head;
+        prev = &c_active_head;
+        // find first node that's admissible
+        while (tail->x < r_width)
+          tail = tail->next;
+        while (tail) {
+          unsigned int xpos = tail->x - r_width;
+          ASSERT (xpos >= 0);
+          // find the left position that matches this
+          while (node->next->x <= xpos) {
+            prev = &node->next;
+            node = node->next;
+          }
+          ASSERT (node->next->x > xpos && node->x <= xpos);
+          unsigned int waste;
+          unsigned int y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
+          if (y + rect.h <= c_height) {
+            if (y <= best_y) {
+              if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
+                best_x = xpos;
+                ASSERT (y <= best_y);
+                best_y = y;
+                best_waste = waste;
+                best = prev;
               }
             }
-            tail = tail->next;
           }
+          tail = tail->next;
         }
+#endif
 
         res_prev_link = best;
         rect.x = best_x;
@@ -218,17 +208,17 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
       //    1. it failed
       //    2. the best node doesn't fit (we don't always check this)
       //    3. we're out of memory
-      if (res_prev_link == NULL || rect.y + rect.h > c_height || context.free_head == NULL)
+      if (res_prev_link == NULL || rect.y + rect.h > c_height || c_free_head == NULL)
         continue;
       {
         stbrp_node *node, *cur;
 
         // on success, create new node
-        node = context.free_head;
+        node = c_free_head;
         node->x = rect.x;
         node->y = rect.y + rect.h;
 
-        context.free_head = node->next;
+        c_free_head = node->next;
 
         // insert the new node into the right starting point, and
         // let 'cur' point to the remaining nodes needing to be
@@ -249,8 +239,8 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
         while (cur->next && cur->next->x <= rect.x + rect.w) {
           stbrp_node *next = cur->next;
           // move the current node to the free list
-          cur->next = context.free_head;
-          context.free_head = cur;
+          cur->next = c_free_head;
+          c_free_head = cur;
           cur = next;
         }
 
@@ -261,7 +251,7 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
           cur->x = (rect.x + rect.w);
 
 #ifdef _DEBUG
-        cur = context.active_head;
+        cur = c_active_head;
         while (cur->x < c_width) {
           ASSERT (cur->x < cur->next->x);
           cur = cur->next;
@@ -269,12 +259,12 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
         ASSERT (cur->next == NULL);
         {
           unsigned int count = 0;
-          cur = context.active_head;
+          cur = c_active_head;
           while (cur) {
             cur = cur->next;
             ++count;
           }
-          cur = context.free_head;
+          cur = c_free_head;
           while (cur) {
             cur = cur->next;
             ++count;
