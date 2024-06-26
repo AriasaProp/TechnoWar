@@ -54,7 +54,7 @@ int main (int argc, char *argv[]) {
       rect.w = genRNG (5);                // 0 ~ 31
       rect.h = genRNG (5);                // 0 ~ 31
       area += rect.w * rect.h;
-    };
+    }
     unsigned int Packed_Size = rtInt (area);
     if (stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS)) {
       uint32_t outBuffer[Packed_Size * Packed_Size] = {0};
@@ -79,5 +79,4 @@ int main (int argc, char *argv[]) {
     std::cout << " Error: " << err << std::endl;
     return EXIT_FAILURE;
   }
-}
 }
