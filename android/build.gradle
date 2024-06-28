@@ -32,7 +32,7 @@ android {
         }
     }
     externalNativeBuild {
-        cmake.path "CMakeLists.txt"
+        cmake.path "src/main/cpp/CMakeLists.txt"
     }
     lint {
         abortOnError false
