@@ -14,8 +14,7 @@ add_library(cpufeatures STATIC ${ANDROID_NDK}/sources/android/cpufeatures/cpu-fe
 
 # build google play games as a static lib
 add_library(gpg_sdk STATIC IMPORTED)
-set_target_properties(gpg_sdk PROPERTIES IMPORTED_LOCATION
-    ${GPG_SDK_PATH}/lib/c++/${ANDROID_ABI}/libgpg.a)
+set_target_properties(gpg_sdk PROPERTIES IMPORTED_LOCATION ${GPG_SDK_PATH}/lib/c++/${ANDROID_ABI}/libgpg.a)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -O3 -Wall -Wextra -Werror \
@@ -49,5 +48,3 @@ target_link_libraries(${PROJECT_NAME}
 # google play games, cpu features, log
                        gpg_sdk cpufeatures log
                        )
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-set_target_properties(cpufeatures PROPERTIES LINKER_LANGUAGE C)
