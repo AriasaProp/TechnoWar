@@ -21,7 +21,7 @@ set(CORE_SRC "../core/main")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
-file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true "main/cpp")
+file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true "src/main/cpp")
 file(GLOB_RECURSE Src_Files "src/main/cpp/**/*.cpp")
 add_subdirectory(${CORE_SRC} bin/core)
 
@@ -37,4 +37,4 @@ target_link_libraries(${PROJECT_NAME}
                        GLESv3 android EGL log
                        )
 
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+# set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
