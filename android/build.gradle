@@ -20,32 +20,19 @@ android {
         versionName "0"
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
-        testInstrumentationRunner 'android.support.test.runner.AndroidJUnitRunner'
     }
     
     buildTypes {
         debug {
             minifyEnabled false
-            testCoverageEnabled true
         }
         release {
             minifyEnabled true
-            testCoverageEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
-    testOptions.unitTests.all {
-        testLogging {
-            events "passed", "skipped", "failed", "standardOut", "standardError"
-            showStandardStreams true
-            exceptionFormat 'full'
-        }
-    }
     externalNativeBuild {
-        cmake {
-            path "src/main/cpp/CMakeLists.txt"
-        }
+        cmake.path "CMakeLists.txt"
     }
     lint {
         abortOnError false
@@ -53,12 +40,9 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+    implementation 'com.google.android.gms:play-services-games:11.8.0'
+    implementation 'com.google.android.gms:play-services-nearby:11.8.0'
+    implementation 'com.android.support:support-v4:27.0.2'
 }
 
 

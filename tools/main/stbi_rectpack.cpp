@@ -1,7 +1,7 @@
 #include "stbi_rectpack.hpp"
 
 // BOTTOM-LEFT 0, BEST-FIT 1
-#define HEURISTIC_SKYLINE 0
+#define HEURISTIC_SKYLINE 1
 
 struct stbrp_node {
   unsigned int x, y;
@@ -129,7 +129,7 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
           unsigned int y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
 #if (HEURISTIC_SKYLINE == 0)
           // bottom left
-          // actually just want to test BL
+        	// actually just want to test BL
           if (y < best_y) {
             best_y = y;
             best = prev;

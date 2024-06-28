@@ -18,6 +18,7 @@
         android:label="@string/app_name"
         android:largeHeap="true"
         android:theme="@style/MainTheme">
+
         <activity
             android:name=".MainActivity"
 						android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|density|screenSize|smallestScreenSize|layoutDirection|fontScale|screenLayout|uiMode"
