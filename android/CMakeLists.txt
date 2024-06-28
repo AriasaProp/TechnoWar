@@ -50,3 +50,4 @@ target_link_libraries(${PROJECT_NAME}
                        gpg_sdk cpufeatures log
                        )
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(cpufeatures PROPERTIES LINKER_LANGUAGE C)
