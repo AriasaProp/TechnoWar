@@ -36,3 +36,5 @@ target_link_libraries(${PROJECT_NAME}
 # android system library (main)
                        GLESv3 android EGL log
                        )
+
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
