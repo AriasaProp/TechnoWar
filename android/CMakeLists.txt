@@ -29,9 +29,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_o
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true "main/cpp")
-file(GLOB_RECURSE Src_Files "main/cpp/**/*.cpp")
-# Debugging: Print the files found
-message(STATUS "Source files found: ${Src_Files}")
+file(GLOB_RECURSE Src_Files "src/main/cpp/**/*.cpp")
 add_subdirectory(${CORE_SRC} bin/core)
 
 include_directories(${Include_Dir})
