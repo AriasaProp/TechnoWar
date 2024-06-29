@@ -40,8 +40,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.android.gms:play-services-games:11.8.0'
-    implementation 'com.google.android.gms:play-services-nearby:11.8.0'
     implementation 'com.android.support:support-v4:27.0.2'
 }
 
