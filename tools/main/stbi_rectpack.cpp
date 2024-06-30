@@ -97,11 +97,9 @@ bool stbi::rectpack::pack_rects (unsigned int c_width, unsigned int c_height, st
     rects[i].was_packed = i;
   }
 
-  // sort according to heuristic
+  // sort according to heuristic by it's size
   std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
-    if (p.h != q.h)
-      return p.h > q.h;
-    return p.w > q.w;
+    return p.w * p.h > q.w * q.h;
   });
 
   for (i = 0; i < num_rects; ++i) {
