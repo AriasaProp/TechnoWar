@@ -15,12 +15,6 @@ struct stbrp_node {
 #define ASSERT assert
 #endif
 
-struct stbrp__context {
-  stbrp_node *active_head;
-  stbrp_node *free_head;
-  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
-};
-
 // find minimum y position if it starts at x1
 static unsigned int stbrp__skyline_find_min_y (stbrp_node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
   stbrp_node *node = first;
@@ -72,8 +66,6 @@ static unsigned int stbrp__skyline_find_min_y (stbrp_node *first, unsigned int x
 bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int c_height, stbi::rectpack::rect *rects, const size_t num_rects) {
   size_t i;
 
-  stbrp__context context;
-  // init context
   const size_t num_nodes = c_width + 15;
   stbrp_node nodes[num_nodes];
   stbrp_node *c_free_head = nodes;
@@ -98,9 +90,7 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
 
   // sort according to heuristic
   std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
-    if (p.h != q.h)
-      return p.h > q.h;
-    return p.w > q.w;
+    return p.w * p.h > q.w * q.h;
   });
 
   for (i = 0; i < num_rects; ++i) {
