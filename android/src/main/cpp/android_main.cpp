@@ -50,7 +50,7 @@ enum APP_CMD : unsigned char {
 struct android_app {
   bool destroyed, wait_request = false;
   int msgread, msgwrite;
-  ANativeActivity *;
+  ANativeActivity *activity;
   AConfiguration *config;
   ALooper *looper;
   ANativeWindow *window = nullptr; // update in mainThread
@@ -64,7 +64,7 @@ struct android_app {
 static android_app *app = nullptr;
 
 static void *android_app_entry (void *) {
-  if (!app) return NULL;
+	if (!app) return NULL;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
   app->looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
@@ -85,7 +85,7 @@ static void *android_app_entry (void *) {
         a_input.process_sensor ();
         break;
       case 1: // android activity queue
-              // read cmd writer
+      	//read cmd writer
         if (read (app->msgread, read_cmd, sizeof read_cmd) != sizeof read_cmd) break;
         switch (read_cmd[0]) {
         case APP_CMD_INIT_WINDOW:
@@ -205,103 +205,104 @@ static void write_android_cmd (android_app *app, unsigned char cmd, unsigned cha
   pthread_mutex_unlock (&app->mutex);
 }
 
-void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
-  // initialize application
-  app = new android_app;
-  app->activity = activity;
-  pthread_mutex_init (&app->mutex, NULL);
-  pthread_cond_init (&app->cond, NULL);
-  if (pipe (&app->msgread) == -1) {
-    LOGE ("Failed to create pipe, %s", strerror (errno));
-  }
+void ANativeActivity_onCreate(ANativeActivity *activity, void *, size_t) {
+// initialize application
+    app = new android_app;
+    app->activity = activity;
+    pthread_mutex_init(&app->mutex, NULL);
+    pthread_cond_init(&app->cond, NULL);
+    if (pipe(&app->msgread) == -1) {
+        LOGE("Failed to create pipe, %s", strerror(errno));
+    }
+    
+    //initialize lifecycle
+    activity->callbacks->onStart = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_START, 0);
+    };
+    activity->callbacks->onResume = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_RESUME, 0);
+    };
+    activity->callbacks->onNativeWindowCreated = [](ANativeActivity *, ANativeWindow *window) {
+        pthread_mutex_lock(&app->mutex);
+        app->window = window;
+        pthread_mutex_unlock(&app->mutex);
+        write_android_cmd(app, APP_CMD_INIT_WINDOW, 0);
+    };
+    activity->callbacks->onInputQueueCreated = [](ANativeActivity *, AInputQueue *queue) {
+        if (app->inputQueue)
+            write_android_cmd(app, APP_CMD_INPUT_TERM, 0);
+        app->inputQueue = queue;
+        write_android_cmd(app, APP_CMD_INPUT_INIT, 0);
+    };
+    activity->callbacks->onConfigurationChanged = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_CONFIG_CHANGED, 0);
+    };
+    activity->callbacks->onLowMemory = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_LOW_MEMORY, 0);
+    };
+    activity->callbacks->onWindowFocusChanged = [](ANativeActivity *, int focused) {
+        write_android_cmd(app, APP_CMD_FOCUS_CHANGED, focused ? 1 : 0);
+    };
+    activity->callbacks->onNativeWindowResized = [](ANativeActivity *, ANativeWindow *) {
+        write_android_cmd(app, APP_CMD_WINDOW_RESIZED, 0);
+    };
+    activity->callbacks->onContentRectChanged = [](ANativeActivity *, const ARect *) {
+        write_android_cmd(app, APP_CMD_CONTENT_RECT_CHANGED, 0);
+    };
+    activity->callbacks->onSaveInstanceState = [](ANativeActivity *, size_t *outLen) -> void* {
+        write_android_cmd(app, APP_CMD_SAVE_STATE, 0);
+        *outLen = 0;
+        return nullptr;
+    };
+    activity->callbacks->onNativeWindowDestroyed = [](ANativeActivity *, ANativeWindow *) {
+        pthread_mutex_lock(&app->mutex);
+        app->window = nullptr;
+        pthread_mutex_unlock(&app->mutex);
+        write_android_cmd(app, APP_CMD_TERM_WINDOW, 0);
+    };
+    activity->callbacks->onInputQueueDestroyed = [](ANativeActivity *, AInputQueue *) {
+        if (!app->inputQueue) return;
+        write_android_cmd(app, APP_CMD_INPUT_TERM, 0);
+    };
+    activity->callbacks->onPause = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_PAUSE, 0);
+    };
+    activity->callbacks->onStop = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_STOP, 0);
+    };
+    activity->callbacks->onDestroy = [](ANativeActivity *) {
+        write_android_cmd(app, APP_CMD_DESTROY, 0);
+        pthread_mutex_lock(&app->mutex);
+        while (!app->destroyed)
+            pthread_cond_wait(&app->cond, &app->mutex);
+        pthread_mutex_unlock(&app->mutex);
+        close(app->msgread);
+        close(app->msgwrite);
+        pthread_cond_destroy(&app->cond);
+        pthread_mutex_destroy(&app->mutex);
+        delete app;
+    };
 
-  // initialize lifecycle
-  activity->callbacks->onStart = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_START, 0);
-  };
-  activity->callbacks->onResume = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_RESUME, 0);
-  };
-  activity->callbacks->onNativeWindowCreated = [] (ANativeActivity *, ANativeWindow *window) {
-    pthread_mutex_lock (&app->mutex);
-    app->window = window;
-    pthread_mutex_unlock (&app->mutex);
-    write_android_cmd (app, APP_CMD_INIT_WINDOW, 0);
-  };
-  activity->callbacks->onInputQueueCreated = [] (ANativeActivity *, AInputQueue *queue) {
-    if (app->inputQueue)
-      write_android_cmd (app, APP_CMD_INPUT_TERM, 0);
-    app->inputQueue = queue;
-    write_android_cmd (app, APP_CMD_INPUT_INIT, 0);
-  };
-  activity->callbacks->onConfigurationChanged = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_CONFIG_CHANGED, 0);
-  };
-  activity->callbacks->onLowMemory = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_LOW_MEMORY, 0);
-  };
-  activity->callbacks->onWindowFocusChanged = [] (ANativeActivity *, int focused) {
-    write_android_cmd (app, APP_CMD_FOCUS_CHANGED, focused ? 1 : 0);
-  };
-  activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
-    write_android_cmd (app, APP_CMD_WINDOW_RESIZED, 0);
-  };
-  activity->callbacks->onContentRectChanged = [] (ANativeActivity *, const ARect *) {
-    write_android_cmd (app, APP_CMD_CONTENT_RECT_CHANGED, 0);
-  };
-  activity->callbacks->onSaveInstanceState = [] (ANativeActivity *, size_t *outLen) -> void * {
-    write_android_cmd (app, APP_CMD_SAVE_STATE, 0);
-    *outLen = 0;
-    return nullptr;
-  };
-  activity->callbacks->onNativeWindowDestroyed = [] (ANativeActivity *, ANativeWindow *) {
-    pthread_mutex_lock (&app->mutex);
-    app->window = nullptr;
-    pthread_mutex_unlock (&app->mutex);
-    write_android_cmd (app, APP_CMD_TERM_WINDOW, 0);
-  };
-  activity->callbacks->onInputQueueDestroyed = [] (ANativeActivity *, AInputQueue *) {
-    if (!app->inputQueue) return;
-    write_android_cmd (app, APP_CMD_INPUT_TERM, 0);
-  };
-  activity->callbacks->onPause = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_PAUSE, 0);
-  };
-  activity->callbacks->onStop = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_STOP, 0);
-  };
-  activity->callbacks->onDestroy = [] (ANativeActivity *) {
-    write_android_cmd (app, APP_CMD_DESTROY, 0);
-    pthread_mutex_lock (&app->mutex);
-    while (!app->destroyed)
-      pthread_cond_wait (&app->cond, &app->mutex);
-    pthread_mutex_unlock (&app->mutex);
-    close (app->msgread);
-    close (app->msgwrite);
-    pthread_cond_destroy (&app->cond);
-    pthread_mutex_destroy (&app->mutex);
-    delete app;
-  };
-
-  // start thread game
-  pthread_attr_t attr;
-  pthread_attr_init (&attr);
-  pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create (&app->thread, &attr, android_app_entry, app);
-  pthread_attr_destroy (&attr);
+// start thread game
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    pthread_create(&app->thread, &attr, android_app_entry, app);
+    pthread_attr_destroy(&attr);
 }
+
 
 // native MainActivity.java
 
 extern "C" {
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
-  if (!app->graphics) return;
-  app->graphics->cur_safe_insets[0] = left;
-  app->graphics->cur_safe_insets[1] = top;
-  app->graphics->cur_safe_insets[2] = right;
-  app->graphics->cur_safe_insets[3] = bottom;
-}
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_OnPauseHandler (JNIEnv *, jobject) {
-  write_android_cmd (app, APP_CMD_PAUSE, 0);
-}
+	JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
+	  if (!app->graphics) return;
+	  app->graphics->cur_safe_insets[0] = left;
+	  app->graphics->cur_safe_insets[1] = top;
+	  app->graphics->cur_safe_insets[2] = right;
+	  app->graphics->cur_safe_insets[3] = bottom;
+	}
+	JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_OnPauseHandler (JNIEnv *, jobject) {
+		write_android_cmd (app, APP_CMD_PAUSE, 0);
+	}
 }
