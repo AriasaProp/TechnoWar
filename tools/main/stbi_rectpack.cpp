@@ -15,9 +15,64 @@ struct stbrp_node {
 #define ASSERT assert
 #endif
 
+struct stbrp__context {
+  stbrp_node *active_head;
+  stbrp_node *free_head;
+  stbrp_node extra[2]; // we allocate two extra nodes so optimal user-node-count is 'width' not 'width+2'
+};
+
+// find minimum y position if it starts at x1
+static unsigned int stbrp__skyline_find_min_y (stbrp_node *first, unsigned int x0, unsigned int width, unsigned int *pwaste) {
+  stbrp_node *node = first;
+  unsigned int x1 = x0 + width;
+  unsigned int min_y, visited_width, waste_area;
+
+  ASSERT (first->x <= x0);
+
+#if 0
+   // skip in case we're past the node
+   while (node->next->x <= x0)
+      ++node;
+#else
+  ASSERT (node->next->x > x0); // we ended up handling this in the caller for efficiency
+#endif
+
+  ASSERT (node->x <= x0);
+
+  min_y = 0;
+  waste_area = 0;
+  visited_width = 0;
+  while (node->x < x1) {
+    if (node->y > min_y) {
+      // raise min_y higher.
+      // we've accounted for all waste up to min_y,
+      // but we'll now add more waste for everything we've visted
+      waste_area += visited_width * (node->y - min_y);
+      min_y = node->y;
+      // the first time through, visited_width might be reduced
+      if (node->x < x0)
+        visited_width += node->next->x - x0;
+      else
+        visited_width += node->next->x - node->x;
+    } else {
+      // add waste area
+      unsigned int under_width = node->next->x - node->x;
+      if (under_width + visited_width > width)
+        under_width = width - visited_width;
+      waste_area += under_width * (min_y - node->y);
+      visited_width += under_width;
+    }
+    node = node->next;
+  }
+
+  *pwaste = waste_area;
+  return min_y;
+}
+
 bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int c_height, stbi::rectpack::rect *rects, const size_t num_rects) {
   size_t i;
 
+  stbrp__context context;
   // init context
   const size_t num_nodes = c_width + 15;
   stbrp_node nodes[num_nodes];
@@ -27,6 +82,7 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
   nodes[i].next = NULL;
 
   stbrp_node extra_node[2];
+  stbrp_node *c_active_head = extra_node;
   // node 0 is the full width, node 1 is the sentinel (lets us not store width explicitly)
   extra_node[0].x = 0;
   extra_node[0].y = 0;
@@ -40,9 +96,11 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
     rects[i].was_packed = i;
   }
 
-  // sort according to heuristic by it's size
+  // sort according to heuristic
   std::sort (rects, rects + num_rects, [] (const stbi::rectpack::rect &p, const stbi::rectpack::rect &q) -> bool {
-    return p.w * p.h > q.w * q.h;
+    if (p.h != q.h)
+      return p.h > q.h;
+    return p.w > q.w;
   });
 
   for (i = 0; i < num_rects; ++i) {
@@ -55,52 +113,19 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
     }
     {
       stbrp_node **res_prev_link = NULL;
-      stbrp_node *free_head = extra_node;
       // find best position according to heuristic
       {
         unsigned int best_waste = c_height, best_x, best_y = c_height;
+        stbrp_node **prev, *node, *tail, **best = NULL;
 
         // align to multiple of 2
-        const unsigned int r_width = rect.w + (rect.w % 2);
+        unsigned int r_width = rect.w + (rect.w % 2);
 
-        stbrp_node *node = free_head;
-        stbrp_node **prev = &free_head;
-        stbrp_node *tail;
-        stbrp_node **best = NULL;
+        node = c_active_head;
+        prev = &c_active_head;
         while (node->x + r_width <= c_width) {
-          unsigned int y = 0, waste = 0;
-
-          {
-            stbrp_node *_node = node;
-
-            ASSERT (_node->next->x > node->x); // we ended up handling this in the caller for efficiency
-
-            const unsigned int x1 = node->x + r_width;
-            unsigned int visited_width = 0;
-            while (_node->x < x1) {
-              if (_node->y > y) {
-                // raise y higher.
-                // we've accounted for all waste up to y,
-                // but we'll now add more waste for everything we've visted
-                waste += visited_width * (_node->y - y);
-                y = _node->y;
-                // the first time through, visited_width might be reduced
-                if (_node->x < node->x)
-                  visited_width += _node->next->x - node->x;
-                else
-                  visited_width += _node->next->x - _node->x;
-              } else {
-                // add waste area
-                unsigned int under_width = _node->next->x - _node->x;
-                if (under_width + visited_width > r_width)
-                  under_width = r_width - visited_width;
-                waste += under_width * (y - _node->y);
-                visited_width += under_width;
-              }
-              _node = _node->next;
-            }
-          }
-
+          unsigned int waste;
+          unsigned int y = stbrp__skyline_find_min_y (node, node->x, r_width, &waste);
 #if (HEURISTIC_SKYLINE == 0)
           // bottom left
           // actually just want to test BL
@@ -142,9 +167,9 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
         // then right-aligned reduces waste, but bottom-left BL is always chooses left-aligned
         //
         // This makes BF take about 2x the time
-        tail = free_head;
-        node = free_head;
-        prev = &free_head;
+        tail = c_active_head;
+        node = c_active_head;
+        prev = &c_active_head;
         // find first node that's admissible
         while (tail->x < r_width)
           tail = tail->next;
@@ -157,39 +182,8 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
             node = node->next;
           }
           ASSERT (node->next->x > xpos && node->x <= xpos);
-          unsigned int y = 0, waste = 0;
-          {
-            stbrp_node *_node = node;
-
-            ASSERT (_node->next->x > xpos); // we ended up handling this in the caller for efficiency
-            ASSERT (_node->x <= xpos);
-
-            const unsigned int x1 = xpos + r_width;
-            unsigned int visited_width = 0;
-            while (_node->x < x1) {
-              if (_node->y > y) {
-                // raise y higher.
-                // we've accounted for all waste up to y,
-                // but we'll now add more waste for everything we've visted
-                waste += visited_width * (_node->y - y);
-                y = _node->y;
-                // the first time through, visited_width might be reduced
-                if (_node->x < xpos)
-                  visited_width += _node->next->x - xpos;
-                else
-                  visited_width += _node->next->x - _node->x;
-              } else {
-                // add waste area
-                unsigned int under_width = _node->next->x - _node->x;
-                if (under_width + visited_width > r_width)
-                  under_width = r_width - visited_width;
-                waste += under_width * (y - _node->y);
-                visited_width += under_width;
-              }
-              _node = _node->next;
-            }
-          }
-
+          unsigned int waste;
+          unsigned int y = stbrp__skyline_find_min_y (node, xpos, r_width, &waste);
           if (y + rect.h <= c_height) {
             if (y <= best_y) {
               if (y < best_y || waste < best_waste || (waste == best_waste && xpos < best_x)) {
@@ -256,7 +250,7 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
           cur->x = (rect.x + rect.w);
 
 #ifdef _DEBUG
-        cur = free_head;
+        cur = c_active_head;
         while (cur->x < c_width) {
           ASSERT (cur->x < cur->next->x);
           cur = cur->next;
@@ -264,7 +258,7 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
         ASSERT (cur->next == NULL);
         {
           unsigned int count = 0;
-          cur = free_head;
+          cur = c_active_head;
           while (cur) {
             cur = cur->next;
             ++count;
