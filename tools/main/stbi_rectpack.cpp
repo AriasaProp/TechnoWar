@@ -67,37 +67,37 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
         prev = &extra_node;
         while (node->x + r_width <= c_width) {
           unsigned int y = 0, waste = 0;
-          
+
           {
-  stbrp_node *_node = node;
+            stbrp_node *_node = node;
 
-  ASSERT (_node->next->x > node->x); // we ended up handling this in the caller for efficiency
+            ASSERT (_node->next->x > node->x); // we ended up handling this in the caller for efficiency
 
-  const unsigned int x1 = node->x + r_width;
-  unsigned int visited_width = 0;
-  while (_node->x < x1) {
-    if (_node->y > y) {
-      // raise y higher.
-      // we've accounted for all waste up to y,
-      // but we'll now add more waste for everything we've visted
-      waste += visited_width * (_node->y - y);
-      y = _node->y;
-      // the first time through, visited_width might be reduced
-      if (_node->x < node->x)
-        visited_width += _node->next->x - node->x;
-      else
-        visited_width += _node->next->x - _node->x;
-    } else {
-      // add waste area
-      unsigned int under_width = _node->next->x - _node->x;
-      if (under_width + visited_width > r_width)
-        under_width = r_width - visited_width;
-      waste += under_width * (y - _node->y);
-      visited_width += under_width;
-    }
-    _node = _node->next;
-  }
-}
+            const unsigned int x1 = node->x + r_width;
+            unsigned int visited_width = 0;
+            while (_node->x < x1) {
+              if (_node->y > y) {
+                // raise y higher.
+                // we've accounted for all waste up to y,
+                // but we'll now add more waste for everything we've visted
+                waste += visited_width * (_node->y - y);
+                y = _node->y;
+                // the first time through, visited_width might be reduced
+                if (_node->x < node->x)
+                  visited_width += _node->next->x - node->x;
+                else
+                  visited_width += _node->next->x - _node->x;
+              } else {
+                // add waste area
+                unsigned int under_width = _node->next->x - _node->x;
+                if (under_width + visited_width > r_width)
+                  under_width = r_width - visited_width;
+                waste += under_width * (y - _node->y);
+                visited_width += under_width;
+              }
+              _node = _node->next;
+            }
+          }
 
 #if (HEURISTIC_SKYLINE == 0)
           // bottom left
@@ -156,39 +156,39 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
           }
           ASSERT (node->next->x > xpos && node->x <= xpos);
           unsigned int y = 0, waste = 0;
-					{
-					  stbrp_node *_node = node;
-					
-					  ASSERT (_node->next->x > xpos); // we ended up handling this in the caller for efficiency
-					  ASSERT (_node->x <= xpos);
-					
-					  const unsigned int x1 = xpos + r_width;
-					  unsigned int visited_width = 0;
-					  while (_node->x < x1) {
-					    if (_node->y > y) {
-					      // raise y higher.
-					      // we've accounted for all waste up to y,
-					      // but we'll now add more waste for everything we've visted
-					      waste += visited_width * (_node->y - y);
-					      y = _node->y;
-					      // the first time through, visited_width might be reduced
-					      if (_node->x < xpos)
-					        visited_width += _node->next->x - xpos;
-					      else
-					        visited_width += _node->next->x - _node->x;
-					    } else {
-					      // add waste area
-					      unsigned int under_width = _node->next->x - _node->x;
-					      if (under_width + visited_width > r_width)
-					        under_width = r_width - visited_width;
-					      waste += under_width * (y - _node->y);
-					      visited_width += under_width;
-					    }
-					    _node = _node->next;
-					  }
-					
-					  *pwaste = waste;
-					}
+          {
+            stbrp_node *_node = node;
+
+            ASSERT (_node->next->x > xpos); // we ended up handling this in the caller for efficiency
+            ASSERT (_node->x <= xpos);
+
+            const unsigned int x1 = xpos + r_width;
+            unsigned int visited_width = 0;
+            while (_node->x < x1) {
+              if (_node->y > y) {
+                // raise y higher.
+                // we've accounted for all waste up to y,
+                // but we'll now add more waste for everything we've visted
+                waste += visited_width * (_node->y - y);
+                y = _node->y;
+                // the first time through, visited_width might be reduced
+                if (_node->x < xpos)
+                  visited_width += _node->next->x - xpos;
+                else
+                  visited_width += _node->next->x - _node->x;
+              } else {
+                // add waste area
+                unsigned int under_width = _node->next->x - _node->x;
+                if (under_width + visited_width > r_width)
+                  under_width = r_width - visited_width;
+                waste += under_width * (y - _node->y);
+                visited_width += under_width;
+              }
+              _node = _node->next;
+            }
+
+            *pwaste = waste;
+          }
 
           if (y + rect.h <= c_height) {
             if (y <= best_y) {
