@@ -15,7 +15,7 @@ namespace rectpack {
     unsigned int was_packed; // non-zero if valid packing
   };                         // 16 bytes, nominally
 
-  bool pack_rects (unsigned int, unsigned int, rect *, size_t);
+  bool pack_rects (const unsigned int, const unsigned int, rect *, const size_t);
   // Assign packed locations to rectangles. The rectangles are of type
   // 'rect' defined below, stored in the array 'rects', and there
   // are 'num_rects' many of them.

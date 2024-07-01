@@ -11,9 +11,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     static {
         System.loadLibrary("ext");
     }
-
-    native void insetNative(int left, int top, int right, int bottom);
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -96,6 +94,14 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     @Override
     protected void onPause() {
         super.onPause();
+          // This call is to suppress 'E/WindowManager(): android.view.WindowLeaked...'
+  // errors.
+  // Since orientation change events in NativeActivity comes later than
+  // expected, we can not dismiss
+  // popupWindow gracefully from NativeActivity.
+  // So we are releasing popupWindows explicitly triggered from Java callback
+  // through JNI call.
+        OnPauseHandler();
     }
 
     @Override
@@ -111,4 +117,10 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     private void showToast(String message) {
         // Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+    
+    
+    // c++ implementation
+    native void insetNative(int left, int top, int right, int bottom);
+    native void OnPauseHandler();
+
 }

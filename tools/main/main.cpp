@@ -54,7 +54,7 @@ int main (int argc, char *argv[]) {
       rect.h = genRNG (6) + 10;           // (0 ~ 63) + 10
       area += rect.w * rect.h;
     }
-    unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.2);
+    unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.05);
     if (!stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS))
       std::cout << "Warning: All not packed! with " << Packed_Size << " px2" << std::endl;
     uint32_t outBuffer[Packed_Size * Packed_Size] = {0};
@@ -71,7 +71,7 @@ int main (int argc, char *argv[]) {
     stbi::write::png (argv[1], Packed_Size, Packed_Size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
     std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {
-    std::cerr << "Error reading directory: " << e.what () << std::endl;
+    std::cerr << "Error file: " << e.what () << std::endl;
     return EXIT_FAILURE;
   } catch (const char *err) {
     std::cout << " Error: " << err << std::endl;
