@@ -41,28 +41,28 @@ bool stbi_rectpack_test () {
   std::cout << "STBI RECTPACK Test" << std::endl;
   try {
     stbi::rectpack::rect rects[RECTS];
-    
-    for(unsigned int re = 0; re < RE_; ++re) {
-    unsigned int area = 0;
-    for (stbi::rectpack::rect &rect : rects) {
-      rect.w = genRNG (6) + 10;           // (0 ~ 63) + 10
-      rect.h = genRNG (6) + 10;           // (0 ~ 63) + 10
-      area += rect.w * rect.h;
+
+    for (unsigned int re = 0; re < RE_; ++re) {
+      unsigned int area = 0;
+      for (stbi::rectpack::rect &rect : rects) {
+        rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
+        rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
+        area += rect.w * rect.h;
+      }
+      const unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.05);
+      std::cout << "Packed size: " << Packed_Size << " x " << Packed_Size << std::endl;
+      bool result = stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS);
+      if (!result) {
+        for (const stbi::rectpack::rect &r : rects) {
+          if (r.was_packed)
+            std::cout << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;
+          else
+            std::cout << "× " << r.w << " x " << r.h << std::endl;
+        }
+        throw "All not packed within pack!";
+      }
+      std::cout << "Completed." << std::endl;
     }
-    const unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.05);
-    std::cout << "Packed size: " << Packed_Size << " x " << Packed_Size << std::endl;
-    bool result = stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS);
-    if (!result) {
-	    for (const stbi::rectpack::rect &r : rects) {
-	      if (r.was_packed)
-	        std::cout << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;
-	      else
-	        std::cout << "× " << r.w << " x " << r.h << std::endl;
-	    }
-    	throw "All not packed within pack!";
-    }
-    std::cout << "Completed." << std::endl;
-  }
     return true;
   } catch (const char *err) {
     std::cout << " Error: " << err << std::endl;

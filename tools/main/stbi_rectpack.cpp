@@ -1,6 +1,6 @@
 #include "stbi_rectpack.hpp"
 
-// BOTTOM-LEFT 0 
+// BOTTOM-LEFT 0
 // BEST-FIT 1 try every edge node
 #define HEURISTIC_SKYLINE 1
 
