@@ -54,14 +54,14 @@ int main (int argc, char *argv[]) {
 
         // as temporary data receive as data image holder (dih)
         int dih[3];
-        
-        //get all image files inside uiskin sub folder
-	    	for (const fs::directory_entry &image : fs::directory_iterator(skin.path())) {
-	    		if (!fs::is_regular_file(entry.status())) continue;
-          std::string image_path = entry.path().string();
-          if (!(image_path.ends_with(".9.png") || image_path.ends_with(".png"))) continue;
-          if (!stbi::load::info(image_path.c_str(), dih, dih+1, dih+2)) continue;
-          image_rects.push_back({(unsigned int)dih[0], (unsigned int)dih[1], (void*)new std::string(image_path), 0, 0, 0});
+
+        // get all image files inside uiskin sub folder
+        for (const fs::directory_entry &image : fs::directory_iterator (skin.path ())) {
+          if (!fs::is_regular_file (entry.status ())) continue;
+          std::string image_path = entry.path ().string ();
+          if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
+          if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2)) continue;
+          image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], (void *)new std::string (image_path), 0, 0, 0});
           rectpacked_size += dih[0] * dih[1];
         }
 
