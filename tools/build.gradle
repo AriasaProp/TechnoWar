@@ -6,10 +6,18 @@ plugins {
 application {
 		source.from file('main')
 		privateHeaders.from file('main')
+		binaries.configureEach {
+        compileTask.get().compilerArgs.addAll(['-std=c++20', '-O3'])
+        linkTask.get().linkerArgs.addAll(['-lm'])
+    }
 }
 
 unitTest {
     source.from file('test')
     privateHeaders.from file('test')
+		binaries.configureEach {
+        compileTask.get().compilerArgs.addAll(['-std=c++20', '-O3'])
+        linkTask.get().linkerArgs.addAll(['-lm'])
+    }
 }
 
