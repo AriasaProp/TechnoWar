@@ -1,6 +1,7 @@
 #include "stbi_rectpack.hpp"
 
-// BOTTOM-LEFT 0, BEST-FIT 1
+// BOTTOM-LEFT 0 
+// BEST-FIT 1 try every edge node
 #define HEURISTIC_SKYLINE 1
 
 struct stbrp_node {
@@ -141,22 +142,6 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
         best_x = (best == NULL) ? 0 : (*best)->x;
 
 #if (HEURISTIC_SKYLINE == 1)
-        // if doing best-fit (BF), we also have to try aligning right edge to each node position
-        //
-        // e.g, if fitting
-        //
-        //     ____________________
-        //    |____________________|
-        //
-        //            into
-        //
-        //   |                         |
-        //   |             ____________|
-        //   |____________|
-        //
-        // then right-aligned reduces waste, but bottom-left BL is always chooses left-aligned
-        //
-        // This makes BF take about 2x the time
         tail = c_active_head;
         node = c_active_head;
         prev = &c_active_head;
@@ -199,11 +184,10 @@ bool stbi::rectpack::pack_rects (const unsigned int c_width, const unsigned int 
       //    3. we're out of memory
       if (res_prev_link == NULL || rect.y + rect.h > c_height || c_free_head == NULL)
         continue;
-      {
-        stbrp_node *node, *cur;
 
+      {
         // on success, create new node
-        node = c_free_head;
+        stbrp_node *node = c_free_head, *cur;
         node->x = rect.x;
         node->y = rect.y + rect.h;
 

@@ -9,7 +9,7 @@ namespace rectpack {
   struct rect {
     // input:
     unsigned int w, h;
-    unsigned int id;
+    void *id;
     // output:
     unsigned int x, y;
     unsigned int was_packed; // non-zero if valid packing

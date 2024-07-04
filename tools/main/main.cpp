@@ -13,63 +13,101 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <vector>
+#include <casserr>
 
 namespace fs = std::filesystem;
 
-#define RECTS 30
-
-unsigned int genRNG (unsigned int numBits) {
-  static std::atomic<unsigned int> seed;
-  unsigned int lfsr = seed.load ();
-  lfsr += static_cast<unsigned int> (time (0));
-  seed.store (lfsr);
-  lfsr &= ((1u << numBits) - 1);
-  unsigned int bit = ((lfsr >> 0) ^ (lfsr >> 1) ^ (lfsr >> 3) ^ (lfsr >> 4)) & 1;
-  lfsr = (lfsr >> 1) | (bit << (numBits - 1));
-  return lfsr;
-}
-
-unsigned int rtInt (unsigned int n) {
-  if (n == 0 || n == 1)
-    return n;
-  double x, root = n;
-  do {
-    x = root;
-    root = 0.5 * (x + n / x);
-  } while (std::abs (root - x) > 0.0);
-  return std::ceil (root);
-}
-
 int main (int argc, char *argv[]) {
   try {
-    std::cout << "Converting ... " << std::endl;
-    if ((argc < 2) || !argv[1] || !argv[1][0])
-      throw "Input empty";
+  	std::cout << "Converting Assets" << std::endl;
+  	// path of source files
+  	fs::path assets = "assets";
+  	if (!fs::exists(assets)) throw "assets didn't exist!";
+  	//create converted directory result
+  	fs::path converted = "converted";
+  	fs::create_directory(converted);
+    //packing uiskins
+    try {
+    	std::cout << "Converting UISkin" << std::endl;
+	    fs::path uiskin_path = assets / "uiskin";
+	    
+	    if (!fs::exists(uiskin_path) || !fs::is_directory(uiskin_path))
+        throw "UISkins path isn't right!";
 
-    stbi::rectpack::rect rects[RECTS];
-    unsigned int area = 0;
-    for (stbi::rectpack::rect &rect : rects) {
-      rect.id = 0xff000000 | genRNG (24); // 0 ~ 0x00ffffff
-      rect.w = genRNG (6) + 10;           // (0 ~ 63) + 10
-      rect.h = genRNG (6) + 10;           // (0 ~ 63) + 10
-      area += rect.w * rect.h;
+  		//create converted directory for uiskin result
+  		fs::path uiskin_result_path = converted / "uiskin";
+	    fs::create_directory(uiskin_result_path);
+	    
+	    //find all subfolder inside uiskin
+	    for (const fs::directory_entry &skin : fs::directory_iterator(uiskin_path)) {
+        // skip non directory
+        if (!fs::is_directory(skin.status())) continue;
+        // make part skin
+        fs::path uiskin_part_path = uiskin_result_path / skin.filename();
+        fs::create_directory(uiskin_part_path);
+	    
+	    	// bin rects for hold rects
+    		std::vector<stbi::rectpack::rect> image_rects;
+        //safe total area and made square with that size
+        unsigned int rectpacked_size = 0;
+        
+        // as temporary data receive as data image holder (dih)
+        int dih[3];
+        
+        //get all image files inside uiskin sub folder
+	    	for (const fs::directory_entry &image : fs::directory_iterator(skin.path())) {
+	    		if (!fs::is_regular_file(entry.status())) continue;
+          std::string image_path = entry.path().string();
+          if (!(image_path.ends_with(".9.png") || image_path.ends_with(".png"))) continue;
+          if (!stbi::load::info(image_path.c_str(), dih, dih+1, dih+2)) continue;
+          image_rects.push_back({dih[0],dih[1], (void*)new std::string(image_path), 0, 0, 0});
+          rectpacked_size += dih[0] * dih[1];
+	    	}
+	    	
+	    	//square root to get dimension of rect packer
+    		{
+	    		//logically should bigger than 1
+	  			assert (rectpacked_size > 1);
+				  const double n = static_cast<double>(rectpacked_size) * 1.15;
+				  double x;
+				  double root = n;
+				  do {
+				    x = root;
+				    root = 0.5 * (x + n / x);
+				  } while (std::abs (root - x) > 0.0);
+				  root = std::ceil (root);
+				  rectpacked_size = static_cast<unsigned int>(root) + 5;
+        }
+        //packing
+        if (!stbi::rectpack::pack_rects (rectpacked_size, rectpacked_size, image_rects.data(), image_rects.size()))
+          std::cout << "Warning: All not packed!" << std::endl;
+        // write packed result
+        uint32_t outBuffer[rectpacked_size * rectpacked_size] = {0};
+        for (const stbi::rectpack::rect &r : image_rects) {
+        	std::string *filename = static_cast<std::string*>(r.id);
+        	if (r.was_packed) {
+	        	unsigned char *image_buffer = stbi::load::load_from_filename(filename->c_str() ,dih, dih+1, dih+2, stbi::load::channel::rgb_alpha);
+	    			if (image_buffer) {
+		          for (size_t y = 0; y < r.h; y++) {
+		            memcpy ( (void*)(outBuffer + ((r.y + y) * rectpacked_size) + r.x), (void*)(image_buffer + (y * r.w * 4)), r.w * 4);
+		    			}
+		    			stbi::load::image_free(image_buffer);
+	    			}
+        	}
+    			delete filename;
+    		}
+    		
+    		// create output directory skin name
+    		fs::path outfile = uiskin_part_path/"pack.png";
+    		stbi::write::png (outfile.c_str(), rectpacked_size, rectpacked_size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
+    		std::cout << "Output: " << outfile.c_str() << " completed." << std::endl;
+	    }
+    } catch (const fs::filesystem_error &e) {
+    	std::cerr << "Error filesystem: " << e.what () << std::endl;
+    } catch (const char *err) {
+    	std::cerr << "UISkin Conversion Error: "  << err << std::endl;
     }
-    unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.05);
-    if (!stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS))
-      std::cout << "Warning: All not packed! with " << Packed_Size << " px2" << std::endl;
-    uint32_t outBuffer[Packed_Size * Packed_Size] = {0};
-    for (size_t i = 0; i < RECTS; ++i) {
-      const stbi::rectpack::rect &r = rects[i];
-      if (r.was_packed) {
-        for (size_t y = 0; y < r.h; y++)
-          std::fill_n (outBuffer + ((r.y + y) * Packed_Size) + r.x, r.w, uint32_t (r.id));
-        std::cout << "packed " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;
-      } else {
-        std::cout << "not packed " << r.w << " x " << r.h << std::endl;
-      }
-    }
-    stbi::write::png (argv[1], Packed_Size, Packed_Size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
-    std::cout << "Output: " << argv[1] << " completed." << std::endl;
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error file: " << e.what () << std::endl;
     return EXIT_FAILURE;
@@ -78,3 +116,5 @@ int main (int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 }
+
+
