@@ -30,10 +30,10 @@ bool stbi_rectpack_test () {
   std::cout << "STBI RECTPACK Test" << std::endl;
   try {
     stbi::rectpack::rect rects[RECTS];
-    
+
     unsigned int area;
     for (unsigned int re = 0; re < RE_; ++re) {
-    	area = 0;
+      area = 0;
       for (stbi::rectpack::rect &rect : rects) {
         rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
         rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
@@ -52,10 +52,10 @@ bool stbi_rectpack_test () {
       }
       std::cout << "Packed size " << re << ": " << area << " x " << area << " is ";
       if (stbi::rectpack::pack_rects (area, area, rects, RECTS)) {
-      	std::cout << "Success" << std::endl;
+        std::cout << "Success" << std::endl;
       } else {
-      	std::cout << "Failure" << std::endl;
-      	std::cout << "There is the list: " << std::endl;
+        std::cout << "Failure" << std::endl;
+        std::cout << "There is the list: " << std::endl;
         for (const stbi::rectpack::rect &r : rects) {
           if (r.was_packed)
             std::cout << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;

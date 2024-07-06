@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cassert>
+#include <cerrno>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -14,12 +15,10 @@
 #include <iostream>
 #include <set>
 #include <string>
-#include <vector>
-#include <cerrno>
 #include <unistd.h>
+#include <vector>
 
 namespace fs = std::filesystem;
-
 
 int main (int argc, char *argv[]) {
   struct stat file_folder_info;
@@ -30,7 +29,7 @@ int main (int argc, char *argv[]) {
     if (!fs::exists (assets)) throw "assets didn't exist!";
     // create converted directory for result
     fs::path converted = "converted";
-    fs::create_directory(converted);
+    fs::create_directory (converted);
     // packing uiskins
     try {
       std::cout << "Converting UISkin" << std::endl;
@@ -48,7 +47,7 @@ int main (int argc, char *argv[]) {
         // skip non directory
         if (!fs::is_directory (skin.status ())) continue;
         // make part skin
-        fs::path uiskin_part_path = uiskin_result_path / skin.path().filename ();
+        fs::path uiskin_part_path = uiskin_result_path / skin.path ().filename ();
         fs::create_directory (uiskin_part_path);
 
         // bin rects for hold rects
@@ -58,14 +57,14 @@ int main (int argc, char *argv[]) {
 
         // as temporary data receive as data image holder (dih)
         int dih[3];
-        
-        //get all image files inside uiskin sub folder
-	    	for (const fs::directory_entry &image : fs::directory_iterator(skin.path())) {
-	    		if (!fs::is_regular_file(image.status())) continue;
-          std::string image_path = image.path().string();
-          if (!(image_path.ends_with(".9.png") || image_path.ends_with(".png"))) continue;
-          if (!stbi::load::info(image_path.c_str(), dih, dih+1, dih+2)) continue;
-          image_rects.push_back({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
+
+        // get all image files inside uiskin sub folder
+        for (const fs::directory_entry &image : fs::directory_iterator (skin.path ())) {
+          if (!fs::is_regular_file (image.status ())) continue;
+          std::string image_path = image.path ().string ();
+          if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
+          if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2)) continue;
+          image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
           rectpacked_size += dih[0] * dih[1];
         }
 
@@ -87,7 +86,7 @@ int main (int argc, char *argv[]) {
         if (!stbi::rectpack::pack_rects (rectpacked_size, rectpacked_size, image_rects.data (), image_rects.size ()))
           std::cout << "Warning: All not packed!" << std::endl;
         // write packed result
-        ofstream atlas_map((uiskin_part_path/"map.txt").c_str());
+        ofstream atlas_map ((uiskin_part_path / "map.txt").c_str ());
         atlas_map << "size " << rectpacked_size << " , " << rectpacked_size << std::endl;
         uint32_t outBuffer[rectpacked_size * rectpacked_size] = {0};
         for (const stbi::rectpack::rect &r : image_rects) {
@@ -100,7 +99,7 @@ int main (int argc, char *argv[]) {
           stbi::load::image_free (image_buffer);
           atlas_map << r.id << ": " << r.x << " , " << r.y << " , " << r.w << " , " << r.h << std::endl;
         }
-        atlas_map.close();
+        atlas_map.close ();
 
         // create output directory skin name
         fs::path outfile = uiskin_part_path / "pack.png";
@@ -121,4 +120,3 @@ int main (int argc, char *argv[]) {
   }
   return EXIT_SUCCESS;
 }
-
