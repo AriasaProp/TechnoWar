@@ -2,14 +2,14 @@
 #define STBI_RECTPACK_HPP
 
 #include <cstdlib>
+#include <string>
 
 namespace stbi {
 namespace rectpack {
-
   struct rect {
     // input:
     unsigned int w, h;
-    void *id;
+    std::string id;
     // output:
     unsigned int x, y;
     unsigned int was_packed; // non-zero if valid packing

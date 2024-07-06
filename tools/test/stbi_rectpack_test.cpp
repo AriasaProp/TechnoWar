@@ -12,8 +12,8 @@
 #include <set>
 #include <string>
 
-#define RE_ 30
-#define RECTS 30
+#define RE_ 50
+#define RECTS 50
 
 static inline unsigned int genRNG (unsigned int numBits) {
   static std::atomic<unsigned int> seed;
@@ -26,46 +26,48 @@ static inline unsigned int genRNG (unsigned int numBits) {
   return lfsr;
 }
 
-static unsigned int rtInt (unsigned int n) {
-  if (n == 0 || n == 1)
-    return n;
-  double x, root = n;
-  do {
-    x = root;
-    root = 0.5 * (x + n / x);
-  } while (std::abs (root - x) > 0.0);
-  return std::ceil (root);
-}
-
 bool stbi_rectpack_test () {
   std::cout << "STBI RECTPACK Test" << std::endl;
   try {
     stbi::rectpack::rect rects[RECTS];
-
+    
+    unsigned int area;
     for (unsigned int re = 0; re < RE_; ++re) {
-      unsigned int area = 0;
+    	area = 0;
       for (stbi::rectpack::rect &rect : rects) {
         rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
         rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
         area += rect.w * rect.h;
       }
-      const unsigned int Packed_Size = (unsigned int)(rtInt (area) * 1.05);
-      std::cout << "Packed size: " << Packed_Size << " x " << Packed_Size << std::endl;
-      bool result = stbi::rectpack::pack_rects (Packed_Size, Packed_Size, rects, RECTS);
-      if (!result) {
+      {
+        const double n = static_cast<double> (area) * 1.15;
+        double root = n;
+        double x;
+        do {
+          x = root;
+          root = 0.5 * (x + n / x);
+        } while (std::abs (root - x) > 0.0);
+        root = std::ceil (root);
+        area = static_cast<unsigned int> (root) + 5;
+      }
+      std::cout << "Packed size " << re << ": " << area << " x " << area << " is ";
+      if (stbi::rectpack::pack_rects (area, area, rects, RECTS)) {
+      	std::cout << "Success" << std::endl;
+      } else {
+      	std::cout << "Failure" << std::endl;
+      	std::cout << "There is the list: " << std::endl;
         for (const stbi::rectpack::rect &r : rects) {
           if (r.was_packed)
             std::cout << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;
           else
             std::cout << "× " << r.w << " x " << r.h << std::endl;
         }
-        throw "All not packed within pack!";
+        return false;
       }
-      std::cout << "Completed." << std::endl;
     }
     return true;
   } catch (const char *err) {
-    std::cout << " Error: " << err << std::endl;
+    std::cerr << " Error: " << err << std::endl;
     return false;
   }
 }
