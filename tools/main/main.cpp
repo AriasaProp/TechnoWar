@@ -21,7 +21,6 @@
 namespace fs = std::filesystem;
 
 int main (int argc, char *argv[]) {
-  struct stat file_folder_info;
   try {
     std::cout << "Converting Assets" << std::endl;
     // path of source files
