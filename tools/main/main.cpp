@@ -86,12 +86,12 @@ int main (int argc, char *argv[]) {
         if (!stbi::rectpack::pack_rects (rectpacked_size, rectpacked_size, image_rects.data (), image_rects.size ()))
           std::cout << "Warning: All not packed!" << std::endl;
         // write packed result
-        ofstream atlas_map ((uiskin_part_path / "map.txt").c_str ());
+        std::ofstream atlas_map((uiskin_part_path/"map.txt").c_str());
         atlas_map << "size " << rectpacked_size << " , " << rectpacked_size << std::endl;
         uint32_t outBuffer[rectpacked_size * rectpacked_size] = {0};
         for (const stbi::rectpack::rect &r : image_rects) {
           if (!r.was_packed) continue;
-          unsigned char *image_buffer = stbi::load::load_from_filename (r.id, dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+          unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str(), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
           if (!image_buffer) continue;
           for (size_t y = 0; y < r.h; y++) {
             memcpy ((void *)(outBuffer + ((r.y + y) * rectpacked_size) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
