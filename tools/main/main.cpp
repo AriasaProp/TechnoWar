@@ -109,7 +109,7 @@ int main (int argc, char *argv[]) {
             std::cerr << "image file failed load cause " << strerror (errno) << std::endl;
             continue;
           }
-          unsigned char *image_buffer = stbi::load::load_from_callbacks (image_io_call, NULL, dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+          unsigned char *image_buffer = stbi::load::load_from_callbacks (&image_io_call, NULL, dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
           fclose (_ifile);
           if (!image_buffer) continue;
 
@@ -124,7 +124,7 @@ int main (int argc, char *argv[]) {
           temp |= r.y & 0xFFF;
           temp <<= 12;
           temp |= r.x & 0xFFF;
-          fwrite (reinterpret_cast<void *> (r.id.c_str ()), sizeof (char), r.id.len (), atlas_out);
+          fwrite (reinterpret_cast<void *> (r.id.data ()), sizeof (char), r.id.size (), atlas_out);
           fwrite (reinterpret_cast<void *> (&temp), sizeof (temp), 1, atlas_out);
           fwrite ("\n", sizeof (char), 1, atlas_out);
         }
