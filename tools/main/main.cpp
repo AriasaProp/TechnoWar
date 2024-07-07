@@ -86,7 +86,7 @@ int main (int argc, char *argv[]) {
             std::cerr << "image info failed load cause " << strerror (errno) << std::endl;
             continue;
           }
-          if (!stbi::load::info_from_callbacks (image_io_call, NULL, dih, dih + 1, dih + 2)) continue;
+          if (!stbi::load::info_from_callbacks (&image_io_call, NULL, dih, dih + 1, dih + 2)) continue;
           fclose (_ifile);
 
           image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
@@ -96,7 +96,8 @@ int main (int argc, char *argv[]) {
         if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
           std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
-        if (!(atlas_out = fopen ((uiskin_part_path / uiskin_part_path.filename () + ".pack").c_str (), "wb"))) {
+        fs::path outfile = uiskin_part_path / uiskin_part_path.path().filename () + ".pack";
+        if (!(atlas_out = fopen (outfile.c_str (), "wb"))) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
           continue;
         }
