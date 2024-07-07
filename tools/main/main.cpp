@@ -47,7 +47,7 @@ int main (int argc, char *argv[]) {
       // for file stream
       FILE *_ifile = NULL, *atlas_out = NULL;
       // callback for load images info
-      static const stbi::load::io_callbacks image_io_call{
+      static stbi::load::io_callbacks image_io_call{
           [&] (void *, char *data, int size) -> int {
             return (int)fread (data, 1, size, _ifile);
           },
