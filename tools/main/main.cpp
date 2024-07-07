@@ -48,7 +48,7 @@ int main (int argc, char *argv[]) {
       FILE *_ifile = NULL, *atlas_out = NULL;
       // callback for load images info
       static const stbi::load::io_callbacks image_io_call{
-          [&] (void *, char *data, int size) int -> {
+          [&] (void *, char *data, int size) -> int {
             return (int)fread (data, 1, size, _ifile);
           },
           [&] (void *, int n) {
@@ -59,7 +59,7 @@ int main (int argc, char *argv[]) {
               ungetc (ch, _ifile); /* push byte back onto stream if valid. */
             }
           },
-          [&] (void *) int -> {
+          [&] (void *) -> int {
             return feof (_ifile) || ferror (_ifile);
           }};
 
@@ -129,9 +129,9 @@ int main (int argc, char *argv[]) {
         }
 
         // create output directory skin name
-        stbi::write::png_to_func ([&] (void *, void *mem, int len) {
+        stbi::write::png_to_func (&([&] (void *, void *mem, int len) {
           fwrite (mem, 1, len, atlas_out);
-        },
+        }),
                                   NULL,
                                   PACK_SIZE,
                                   PACK_SIZE,
