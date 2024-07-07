@@ -96,7 +96,7 @@ int main (int argc, char *argv[]) {
         if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
           std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
-        fs::path outfile = uiskin_part_path / uiskin_part_path.path().filename () + ".pack";
+        fs::path outfile = uiskin_part_path / uiskin_part_path.path ().filename () + ".pack";
         if (!(atlas_out = fopen (outfile.c_str (), "wb"))) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
           continue;
