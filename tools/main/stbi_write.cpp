@@ -9,6 +9,20 @@
 #endif
 #endif
 
+#if defined(_MSC_VER) && (_MSC_VER < 1600)
+typedef signed __int16 int16_t;
+typedef unsigned __int16 uint16_t;
+typedef signed __int32 int32_t;
+typedef unsigned __int32 uint32_t;
+#elif defined(__SYMBIAN32__)
+typedef unsigned short uint16_t;
+typedef signed short int16_t;
+typedef unsigned int uint32_t;
+typedef signed int int32_t;
+#else
+#include <cstdint>
+#endif
+
 #ifndef STBI_WRITE_NO_STDIO
 #include <cstdio>
 #endif // STBI_WRITE_NO_STDIO
@@ -93,7 +107,7 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
   return f;
 }
 
-static int stbi__start_write_file (stbi__write_context *s, const char *filename) {
+static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
   stbi__start_write_callbacks (s, stbi__stdio_write, (void *)f);
   return f != NULL;
@@ -105,8 +119,7 @@ static void stbi__end_write_file (stbi__write_context *s) {
 
 #endif // !STBI_WRITE_NO_STDIO
 
-typedef unsigned int stbiw_uint32;
-typedef int stb_image_write_test[sizeof (stbiw_uint32) == 4 ? 1 : -1];
+typedef int stb_image_write_test[sizeof (uint32_t) == 4 ? 1 : -1];
 
 static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) {
   while (*fmt) {
@@ -127,7 +140,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       break;
     }
     case '4': {
-      stbiw_uint32 x = va_arg (v, int);
+      uint32_t x = va_arg (v, int);
       unsigned char b[4];
       b[0] = STBIW_UCHAR (x);
       b[1] = STBIW_UCHAR (x >> 8);
@@ -211,7 +224,7 @@ static void stbiw__write_pixel (stbi__write_context *s, int rgb_dir, int comp, i
 }
 
 static void stbiw__write_pixels (stbi__write_context *s, int rgb_dir, int vdir, int x, int y, int comp, void *data, int write_alpha, int scanline_pad, int expand_mono) {
-  stbiw_uint32 zero = 0;
+  uint32_t zero = 0;
   int i, j, j_end;
 
   if (y <= 0)
@@ -657,7 +670,7 @@ static unsigned int stbiw__zlib_countm (unsigned char *a, unsigned char *b, int 
 }
 
 static unsigned int stbiw__zhash (unsigned char *data) {
-  stbiw_uint32 hash = data[0] + (data[1] << 8) + (data[2] << 16);
+  uint32_t hash = data[0] + (data[1] << 8) + (data[2] << 16);
   hash ^= hash << 3;
   hash += hash >> 5;
   hash ^= hash << 4;
@@ -1007,12 +1020,11 @@ static unsigned char *stbi__write_png_to_mem (const unsigned char *pixels, int s
 
 #ifndef STBI_WRITE_NO_STDIO
 int stbi::write::png (char const *filename, int x, int y, int comp, const void *data, int stride_bytes) {
-  FILE *f;
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
 
-  f = stbiw__fopen (filename, "wb");
+  FILE *f = stbiw__fopen (filename, "wb");
   if (!f) {
     free (png);
     return 0;

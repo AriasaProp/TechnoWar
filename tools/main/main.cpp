@@ -11,14 +11,17 @@
 #include <cstring>
 #include <ctime>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <set>
+#include <cstdio>
 #include <string>
 #include <unistd.h>
 #include <vector>
 
 namespace fs = std::filesystem;
+
+//static size for how maximum size of image that can be process on any platform (mobile)@
+#define PACK_SIZE 2048
 
 int main (int argc, char *argv[]) {
   try {
@@ -40,6 +43,26 @@ int main (int argc, char *argv[]) {
       // create converted directory for uiskin result
       fs::path uiskin_result_path = converted / "uiskin";
       fs::create_directory (uiskin_result_path);
+      
+      //for file stream
+      FILE *_ifile = NULL, *atlas_out = NULL;
+      //callback for load images info
+      static const stbi::load::io_callbacks image_io_call {
+			  [&](void *, char *data, int size) int -> {
+				  return (int)fread (data, 1, size, _ifile);
+				},
+			  [&](void *, int n) {
+				  int ch;
+				  fseek (_ifile, n, SEEK_CUR);
+				  ch = fgetc (_ifile); /* have to read a byte to reset feof()'s flag */
+				  if (ch != EOF) {
+				    ungetc (ch, _ifile); /* push byte back onto stream if valid. */
+				  }
+				},
+			  [&](void *) int -> {
+				  return feof (_ifile) || ferror (_ifile);
+				}
+			};
 
       // find all subfolder inside uiskin
       for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
@@ -51,8 +74,6 @@ int main (int argc, char *argv[]) {
 
         // bin rects for hold rects
         std::vector<stbi::rectpack::rect> image_rects;
-        // safe total area and made square with that size
-        unsigned int rectpacked_size = 0;
 
         // as temporary data receive as data image holder (dih)
         int dih[3];
@@ -62,47 +83,59 @@ int main (int argc, char *argv[]) {
           if (!fs::is_regular_file (image.status ())) continue;
           std::string image_path = image.path ().string ();
           if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
-          if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2)) continue;
+          if (!(_ifile = fopen(image_path.c_str(),"r"))) {
+          	std::cerr << "image info failed load cause " << strerror(errno) << std::endl;
+          	continue;
+          }
+          if (!stbi::load::info_from_callbacks (image_io_call, NULL, dih, dih + 1, dih + 2)) continue;
+          fclose(_ifile);
+          
           image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
-          rectpacked_size += dih[0] * dih[1];
         }
 
-        // square root to get dimension of rect packer
-        {
-          // logically should bigger than 1
-          assert (rectpacked_size > 1);
-          const double n = static_cast<double> (rectpacked_size) * 1.15;
-          double x;
-          double root = n;
-          do {
-            x = root;
-            root = 0.5 * (x + n / x);
-          } while (std::abs (root - x) > 0.0);
-          root = std::ceil (root);
-          rectpacked_size = static_cast<unsigned int> (root) + 5;
-        }
         // packing
-        if (!stbi::rectpack::pack_rects (rectpacked_size, rectpacked_size, image_rects.data (), image_rects.size ()))
-          std::cout << "Warning: All not packed!" << std::endl;
+        if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
+          std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
-        std::ofstream atlas_map ((uiskin_part_path / "map.txt").c_str ());
-        atlas_map << "size " << rectpacked_size << " , " << rectpacked_size << std::endl;
-        uint32_t outBuffer[rectpacked_size * rectpacked_size] = {0};
+        if (!(atlas_out = fopen((uiskin_part_path / uiskin_part_path.filename() + ".pack").c_str (), "wb"))) {
+        	std::cerr << "pack file failed to create cause " << strerror(errno) << std::endl;
+        	continue;
+        }
+        uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
         for (const stbi::rectpack::rect &r : image_rects) {
           if (!r.was_packed) continue;
-          unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+          
+          if (!(_ifile = fopen(r.id.c_str(),"rb"))) {
+          	std::cerr << "image file failed load cause " << strerror(errno) << std::endl;
+          	continue;
+          }
+          unsigned char *image_buffer = stbi::load::load_from_callbacks (image_io_call, NULL, dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+          fclose(_ifile);
           if (!image_buffer) continue;
+          
           for (size_t y = 0; y < r.h; y++) {
-            memcpy ((void *)(outBuffer + ((r.y + y) * rectpacked_size) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
+            memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
           }
           stbi::load::image_free (image_buffer);
-          atlas_map << r.id << ": " << r.x << " , " << r.y << " , " << r.w << " , " << r.h << std::endl;
+          uint64_t temp = r.h & 0xFFF;
+          temp <<= 12;
+          temp |= r.w & 0xFFF;
+          temp <<= 12;
+          temp |= r.y & 0xFFF;
+          temp <<= 12;
+          temp |= r.x & 0xFFF;
+          fwrite(reinterpret_cast<void*>(r.id.c_str()), sizeof(char), r.id.len(), atlas_out);
+          fwrite(reinterpret_cast<void*>(&temp), sizeof(temp), 1, atlas_out);
+          fwrite("\n", sizeof(char), 1, atlas_out);
         }
-        atlas_map.close ();
 
         // create output directory skin name
-        fs::path outfile = uiskin_part_path / "pack.png";
-        stbi::write::png (outfile.c_str (), rectpacked_size, rectpacked_size, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
+        stbi::write::png_to_func ([&](void*,void *mem,int len) {
+				  fwrite (mem, 1, len, atlas_out);
+				}, NULL, PACK_SIZE, PACK_SIZE, stbi::load::channel::rgb_alpha, (void *)outBuffer, 0);
+        
+        fclose(atlas_out);
+        
         std::cout << "Output: " << outfile.c_str () << " completed." << std::endl;
       }
     } catch (const fs::filesystem_error &e) {

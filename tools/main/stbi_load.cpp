@@ -217,28 +217,21 @@ static void stbi__start_callbacks (stbi__context *s, stbi::load::io_callbacks *c
 
 #ifndef STBI_NO_STDIO
 
-static int stbi__stdio_read (void *user, char *data, int size) {
-  return (int)fread (data, 1, size, (FILE *)user);
-}
-
-static void stbi__stdio_skip (void *user, int n) {
-  int ch;
-  fseek ((FILE *)user, n, SEEK_CUR);
-  ch = fgetc ((FILE *)user); /* have to read a byte to reset feof()'s flag */
-  if (ch != EOF) {
-    ungetc (ch, (FILE *)user); /* push byte back onto stream if valid. */
-  }
-}
-
-static int stbi__stdio_eof (void *user) {
-  return feof ((FILE *)user) || ferror ((FILE *)user);
-}
-
-static stbi::load::io_callbacks stbi__stdio_callbacks =
-    {
-        stbi__stdio_read,
-        stbi__stdio_skip,
-        stbi__stdio_eof,
+static const stbi::load::io_callbacks stbi__stdio_callbacks {
+  [](void *user, char *data, int size) int -> {
+	  return (int)fread (data, 1, size, (FILE *)user);
+	},
+  [](void *user, int n) {
+	  int ch;
+	  fseek ((FILE *)user, n, SEEK_CUR);
+	  ch = fgetc ((FILE *)user); /* have to read a byte to reset feof()'s flag */
+	  if (ch != EOF) {
+	    ungetc (ch, (FILE *)user); /* push byte back onto stream if valid. */
+	  }
+	},
+  [](void *user) int -> {
+	  return feof ((FILE *)user) || ferror ((FILE *)user);
+	}
 };
 
 static void stbi__start_file (stbi__context *s, FILE *f) {
