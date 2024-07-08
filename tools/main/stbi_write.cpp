@@ -55,10 +55,6 @@ struct stbi__write_context {
 
 #ifndef STBI_WRITE_NO_STDIO
 
-static void stbi__stdio_write (void *context, void *data, int size) {
-  fwrite (data, 1, size, (FILE *)context);
-}
-
 #if defined(_WIN32) && defined(STBIW_WINDOWS_UTF8)
 extern "C" __declspec(dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
 extern "C" __declspec(dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
@@ -97,7 +93,10 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
-  s->func = stbi::write::write_func{(void *)f, stbi__stdio_write};
+  s->func = stbi::write::write_func{
+  	(void *)f,
+  	[&](void *data, int size) { fwrite (data, 1, size, f); }
+  };
   return f != NULL;
 }
 
