@@ -65,10 +65,10 @@ int main (int argc, char *argv[]) {
           if (!fs::is_regular_file (image.status ())) continue;
           std::string image_path = image.path ().string ();
           if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
-          if (!stbi::load::info_from_callbacks (image_path.c_str (), dih, dih + 1, dih + 2)) {
-            continue;
+          if (!stbi::load::info_from_filename (image_path.c_str (), dih, dih + 1, dih + 2)) {
+          	std::cerr << "image info load failure: " << stbi::load::failure_reason() << std::endl;
+          	continue;
           }
-
           image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
         }
 
@@ -77,7 +77,7 @@ int main (int argc, char *argv[]) {
           std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
         fs::path outfile = uiskin_part_path / skin.path ().filename () + ".pack";
-        FILE *atlas_out = fopen (outfile.c_str (), "wb");
+      	FILE *atlas_out = fopen (outfile.c_str (), "wb");
         if (atlas_out == NULL) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
           continue;
@@ -88,8 +88,8 @@ int main (int argc, char *argv[]) {
 
           unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
           if (!image_buffer) {
-            std::cerr << "image load failure: " << stbi::load::failure_reason () << std::endl;
-            continue;
+          	std::cerr << "image load failure: " << stbi::load::failure_reason() << std::endl;
+          	continue;
           }
 
           for (size_t y = 0; y < r.h; y++) {
@@ -110,14 +110,15 @@ int main (int argc, char *argv[]) {
 
         // create output directory skin name
         stbi::write::png_to_func (
-            stbi::write::write_func{
-                (void *)atlas_out,
-                [this] (void *mem, int len) { fwrite (mem, 1, len, (FILE *)this->func.context); }},
-            PACK_SIZE,
-            PACK_SIZE,
-            stbi::load::channel::rgb_alpha,
-            (void *)outBuffer,
-            0);
+        	stbi::write::write_func {
+        		(void*)atlas_out,
+        		[this] (void *mem, int len) { fwrite (mem, 1, len, (FILE*)this->func.context);}
+        	},
+          PACK_SIZE,
+          PACK_SIZE,
+          stbi::load::channel::rgb_alpha,
+          (void *)outBuffer,
+          0);
 
         fclose (atlas_out);
 
