@@ -2,7 +2,6 @@
 #define STBI_WRITE
 
 #include <cstdlib>
-#include <functional>
 
 namespace stbi {
 namespace write {
@@ -28,17 +27,20 @@ namespace write {
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 #endif
-  typedef std::function<void (void *, void *, int)> write_func;
+	struct write_func {
+		void *context;
+		void (*write)(void*, int);
+	};
   // func, context, width, height, channel type, data, stride_in_bytes
-  int png_to_func (write_func, void *, int, int, int, const void *, int);
+  int png_to_func (write_func, int, int, int, const void *, int);
   // func, context, width, height, channel type, data
-  int bmp_to_func (write_func, void *, int, int, int, const void *);
+  int bmp_to_func (write_func, int, int, int, const void *);
   // func, context, width, height, channel type, data
-  int tga_to_func (write_func, void *, int, int, int, const void *);
+  int tga_to_func (write_func, int, int, int, const void *);
   // func, context, width, height, channel type, data
-  int hdr_to_func (write_func, void *, int, int, int, const float *);
+  int hdr_to_func (write_func, int, int, int, const float *);
   // func, context, width, height, channel type, data, quality
-  int jpg_to_func (write_func, void *, int, int, int, const void *, int);
+  int jpg_to_func (write_func, int, int, int, const void *, int);
 
 } // namespace write
 } // namespace stbi

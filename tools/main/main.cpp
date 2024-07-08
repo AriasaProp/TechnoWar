@@ -45,23 +45,6 @@ int main (int argc, char *argv[]) {
       fs::create_directory (uiskin_result_path);
 
       // for file stream
-      FILE *_ifile = NULL, *atlas_out = NULL;
-      // callback for load images info
-      static stbi::load::io_callbacks image_io_call{
-          [&] (void *, char *data, int size) -> int {
-            return (int)fread (data, 1, size, _ifile);
-          },
-          [&] (void *, int n) {
-            int ch;
-            fseek (_ifile, n, SEEK_CUR);
-            ch = fgetc (_ifile); /* have to read a byte to reset feof()'s flag */
-            if (ch != EOF) {
-              ungetc (ch, _ifile); /* push byte back onto stream if valid. */
-            }
-          },
-          [&] (void *) -> int {
-            return feof (_ifile) || ferror (_ifile);
-          }};
 
       // find all subfolder inside uiskin
       for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
@@ -82,12 +65,9 @@ int main (int argc, char *argv[]) {
           if (!fs::is_regular_file (image.status ())) continue;
           std::string image_path = image.path ().string ();
           if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
-          if (!(_ifile = fopen (image_path.c_str (), "r"))) {
-            std::cerr << "image info failed load cause " << strerror (errno) << std::endl;
-            continue;
+          if (!stbi::load::info_from_callbacks (image_path.c_str (), dih, dih + 1, dih + 2)) {
+          	continue;
           }
-          if (!stbi::load::info_from_callbacks (&image_io_call, NULL, dih, dih + 1, dih + 2)) continue;
-          fclose (_ifile);
 
           image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
         }
@@ -97,7 +77,8 @@ int main (int argc, char *argv[]) {
           std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
         fs::path outfile = uiskin_part_path / skin.path ().filename () + ".pack";
-        if (!(atlas_out = fopen (outfile.c_str (), "wb"))) {
+      	FILE *atlas_out = fopen (outfile.c_str (), "wb");
+        if (atlas_out == NULL) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
           continue;
         }
@@ -105,19 +86,17 @@ int main (int argc, char *argv[]) {
         for (const stbi::rectpack::rect &r : image_rects) {
           if (!r.was_packed) continue;
 
-          if (!(_ifile = fopen (r.id.c_str (), "rb"))) {
-            std::cerr << "image file failed load cause " << strerror (errno) << std::endl;
-            continue;
+          unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+          if (!image_buffer) {
+          	std::cerr << "image load failure: " << stbi::load::failure_reason() << std::endl;
+          	continue;
           }
-          unsigned char *image_buffer = stbi::load::load_from_callbacks (&image_io_call, NULL, dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
-          fclose (_ifile);
-          if (!image_buffer) continue;
 
           for (size_t y = 0; y < r.h; y++) {
             memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
           }
           stbi::load::image_free (image_buffer);
-          fwrite (reinterpret_cast<void *> (r.id.data ()), sizeof (char), r.id.size (), atlas_out);
+          fwrite (r.id.data (), sizeof (char), r.id.size (), atlas_out);
           uint64_t temp = r.h & 0xFFF;
           temp <<= 12;
           temp |= r.w & 0xFFF;
@@ -130,15 +109,17 @@ int main (int argc, char *argv[]) {
         }
 
         // create output directory skin name
-        stbi::write::png_to_func ([&] (void *, void *mem, int len) {
-          fwrite (mem, 1, len, atlas_out);
-        },
-                                  NULL,
-                                  PACK_SIZE,
-                                  PACK_SIZE,
-                                  stbi::load::channel::rgb_alpha,
-                                  (void *)outBuffer,
-                                  0);
+        stbi::write::png_to_func (
+        	stbi::write::write_func {
+        		(void*)atlas_out,
+        		[] (void *c, void *mem, int len) { fwrite (mem, 1, len, (FILE*)c);}
+        	},
+          NULL,
+          PACK_SIZE,
+          PACK_SIZE,
+          stbi::load::channel::rgb_alpha,
+          (void *)outBuffer,
+          0);
 
         fclose (atlas_out);
 
