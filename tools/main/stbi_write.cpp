@@ -97,7 +97,7 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
-  s->func = stbi::write::write_func{(void *)f,stbi__stdio_write};
+  s->func = stbi::write::write_func{(void *)f, stbi__stdio_write};
   return f != NULL;
 }
 
@@ -458,14 +458,14 @@ static void stbiw__linear_to_rgbe (unsigned char *rgbe, float *linear) {
 static void stbiw__write_run_data (stbi__write_context *s, int length, unsigned char databyte) {
   unsigned char lengthbyte = STBIW_UCHAR (length + 128);
   ASSERT (length + 128 <= 255);
-  s->func.write (s&lengthbyte, 1);
-  s->func.write (s&databyte, 1);
+  s->func.write (s & lengthbyte, 1);
+  s->func.write (s & databyte, 1);
 }
 
 static void stbiw__write_dump_data (stbi__write_context *s, int length, unsigned char *data) {
   unsigned char lengthbyte = STBIW_UCHAR (length);
   ASSERT (length <= 128); // inconsistent with spec but consistent with official code
-  s->func.write (s&lengthbyte, 1);
+  s->func.write (s & lengthbyte, 1);
   s->func.write (sdata, length);
 }
 
@@ -1248,23 +1248,23 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     static const unsigned char head0[] = {0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F', 'I', 'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xFF, 0xDB, 0, 0x84, 0};
     static const unsigned char head2[] = {0xFF, 0xDA, 0, 0xC, 3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3F, 0};
     const unsigned char head1[] = {0xFF, 0xC0, 0, 0x11, 8, (unsigned char)(height >> 8), STBIW_UCHAR (height), (unsigned char)(width >> 8), STBIW_UCHAR (width), 3, 1, (unsigned char)(subsample ? 0x22 : 0x11), 0, 2, 0x11, 1, 3, 0x11, 1, 0xFF, 0xC4, 0x01, 0xA2, 0};
-    s->func.write (s(void *)head0, sizeof (head0));
-    s->func.write (s(void *)YTable, sizeof (YTable));
+    s->func.write (s (void *) head0, sizeof (head0));
+    s->func.write (s (void *) YTable, sizeof (YTable));
     stbiw__putc (s, 1);
     s->func.write (sUVTable, sizeof (UVTable));
-    s->func.write (s(void *)head1, sizeof (head1));
-    s->func.write (s(void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write (s(void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
+    s->func.write (s (void *) head1, sizeof (head1));
+    s->func.write (s (void *) (std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func.write (s (void *) std_dc_luminance_values, sizeof (std_dc_luminance_values));
     stbiw__putc (s, 0x10); // HTYACinfo
-    s->func.write (s(void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
-    s->func.write (s(void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
+    s->func.write (s (void *) (std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
+    s->func.write (s (void *) std_ac_luminance_values, sizeof (std_ac_luminance_values));
     stbiw__putc (s, 1); // HTUDCinfo
-    s->func.write (s(void *)(std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
-    s->func.write (s(void *)std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
+    s->func.write (s (void *) (std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
+    s->func.write (s (void *) std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
     stbiw__putc (s, 0x11); // HTUACinfo
-    s->func.write (s(void *)(std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
-    s->func.write (s(void *)std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
-    s->func.write (s(void *)head2, sizeof (head2));
+    s->func.write (s (void *) (std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
+    s->func.write (s (void *) std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
+    s->func.write (s (void *) head2, sizeof (head2));
   }
 
   // Encode 8x8 macroblocks
