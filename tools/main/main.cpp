@@ -117,6 +117,7 @@ int main (int argc, char *argv[]) {
             memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
           }
           stbi::load::image_free (image_buffer);
+          fwrite (reinterpret_cast<void *> (r.id.data ()), sizeof (char), r.id.size (), atlas_out);
           uint64_t temp = r.h & 0xFFF;
           temp <<= 12;
           temp |= r.w & 0xFFF;
@@ -124,15 +125,14 @@ int main (int argc, char *argv[]) {
           temp |= r.y & 0xFFF;
           temp <<= 12;
           temp |= r.x & 0xFFF;
-          fwrite (reinterpret_cast<void *> (r.id.data ()), sizeof (char), r.id.size (), atlas_out);
           fwrite (reinterpret_cast<void *> (&temp), sizeof (temp), 1, atlas_out);
           fwrite ("\n", sizeof (char), 1, atlas_out);
         }
 
         // create output directory skin name
-        stbi::write::png_to_func (&([&] (void *, void *mem, int len) {
+        stbi::write::png_to_func ([&] (void *, void *mem, int len) {
           fwrite (mem, 1, len, atlas_out);
-        }),
+        },
                                   NULL,
                                   PACK_SIZE,
                                   PACK_SIZE,

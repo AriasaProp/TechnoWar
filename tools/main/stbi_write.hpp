@@ -2,6 +2,7 @@
 #define STBI_WRITE
 
 #include <cstdlib>
+#include <functional>
 
 namespace stbi {
 namespace write {
@@ -9,6 +10,7 @@ namespace write {
   extern int tga_with_rle;
   extern int png_compression_level;
   extern int force_png_filter;
+  extern bool flip_vertically_on_write;
 
 #ifndef STBI_WRITE_NO_STDIO
   // filename, width, height, channel type, data
@@ -26,20 +28,18 @@ namespace write {
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 #endif
-
-  typedef void write_func (void *, void *data, int size);
+	typedef std::function<void(void*, void*, int)> write_func;
   // func, context, width, height, channel type, data, stride_in_bytes
-  int png_to_func (write_func *, void *, int, int, int, const void *, int);
+  int png_to_func (write_func, void *, int, int, int, const void *, int);
   // func, context, width, height, channel type, data
-  int bmp_to_func (write_func *, void *, int, int, int, const void *);
+  int bmp_to_func (write_func, void *, int, int, int, const void *);
   // func, context, width, height, channel type, data
-  int tga_to_func (write_func *, void *, int, int, int, const void *);
+  int tga_to_func (write_func, void *, int, int, int, const void *);
   // func, context, width, height, channel type, data
-  int hdr_to_func (write_func *, void *, int, int, int, const float *);
+  int hdr_to_func (write_func, void *, int, int, int, const float *);
   // func, context, width, height, channel type, data, quality
-  int jpg_to_func (write_func *, void *, int, int, int, const void *, int);
+  int jpg_to_func (write_func, void *, int, int, int, const void *, int);
 
-  void flip_vertically_on_write (bool flip_boolean);
 } // namespace write
 } // namespace stbi
 #endif // STBI_WRITE

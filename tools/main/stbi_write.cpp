@@ -45,22 +45,17 @@ typedef signed int int32_t;
 int stbi::write::png_compression_level = 8;
 int stbi::write::tga_with_rle = 1;
 int stbi::write::force_png_filter = -1;
-
-static bool stbi__flip_vertically_on_write = 0;
-
-void stbi::write::flip_vertically_on_write (bool flag) {
-  stbi__flip_vertically_on_write = flag;
-}
+bool stbi::write::flip_vertically_on_write = false;
 
 struct stbi__write_context {
-  stbi::write::write_func *func;
+  stbi::write::write_func func;
   void *context;
   unsigned char buffer[64];
   int buf_used;
 };
 
 // initialize a callback-based context
-static void stbi__start_write_callbacks (stbi__write_context *s, stbi::write::write_func *c, void *context) {
+static void stbi__start_write_callbacks (stbi__write_context *s, stbi::write::write_func c, void *context) {
   s->func = c;
   s->context = context;
 }
@@ -230,7 +225,7 @@ static void stbiw__write_pixels (stbi__write_context *s, int rgb_dir, int vdir, 
   if (y <= 0)
     return;
 
-  if (stbi__flip_vertically_on_write)
+  if (stbi::write::flip_vertically_on_write)
     vdir *= -1;
 
   if (vdir < 0) {
@@ -330,7 +325,7 @@ static int stbi_write_bmp_core (stbi__write_context *s, int x, int y, int comp, 
   }
 }
 
-int stbi::write::bmp_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const void *data) {
+int stbi::write::bmp_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
   stbi__start_write_callbacks (&s, func, context);
   return stbi_write_bmp_core (&s, x, y, comp, data);
@@ -364,7 +359,7 @@ static int stbi_write_tga_core (stbi__write_context *s, int x, int y, int comp, 
 
     stbiw__writef (s, "111 221 2222 11", 0, 0, format + 8, 0, 0, 0, 0, 0, x, y, (colorbytes + has_alpha) * 8, has_alpha * 8);
 
-    if (stbi__flip_vertically_on_write) {
+    if (stbi::write::flip_vertically_on_write) {
       j = 0;
       jend = y;
       jdir = 1;
@@ -425,7 +420,7 @@ static int stbi_write_tga_core (stbi__write_context *s, int x, int y, int comp, 
   return 1;
 }
 
-int stbi::write::tga_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const void *data) {
+int stbi::write::tga_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
   stbi__start_write_callbacks (&s, func, context);
   return stbi_write_tga_core (&s, x, y, comp, (void *)data);
@@ -590,13 +585,13 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
     s->func (s->context, buffer, len);
 
     for (i = 0; i < y; i++)
-      stbiw__write_hdr_scanline (s, x, comp, scratch, data + comp * x * (stbi__flip_vertically_on_write ? y - 1 - i : i));
+      stbiw__write_hdr_scanline (s, x, comp, scratch, data + comp * x * (stbi::write::flip_vertically_on_write ? y - 1 - i : i));
     free (scratch);
     return 1;
   }
 }
 
-int stbi::write::hdr_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const float *data) {
+int stbi::write::hdr_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const float *data) {
   stbi__write_context s = {0};
   stbi__start_write_callbacks (&s, func, context);
   return stbi_write_hdr_core (&s, x, y, comp, (float *)data);
@@ -874,8 +869,8 @@ static void stbiw__encode_png_line (unsigned char *pixels, int stride_bytes, int
   int *mymap = (y != 0) ? mapping : firstmap;
   int i;
   int type = mymap[filter_type];
-  unsigned char *z = pixels + stride_bytes * (stbi__flip_vertically_on_write ? height - 1 - y : y);
-  int signed_stride = stbi__flip_vertically_on_write ? -stride_bytes : stride_bytes;
+  unsigned char *z = pixels + stride_bytes * (stbi::write::flip_vertically_on_write ? height - 1 - y : y);
+  int signed_stride = stbi::write::flip_vertically_on_write ? -stride_bytes : stride_bytes;
 
   if (type == 0) {
     memcpy (line_buffer, z, width * n);
@@ -1036,7 +1031,7 @@ int stbi::write::png (char const *filename, int x, int y, int comp, const void *
 }
 #endif
 
-int stbi::write::png_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
+int stbi::write::png_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
@@ -1297,7 +1292,7 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
           for (row = y, pos = 0; row < y + 16; ++row) {
             // row >= height => use last input row
             int clamped_row = (row < height) ? row : height - 1;
-            int base_p = (stbi__flip_vertically_on_write ? (height - 1 - clamped_row) : clamped_row) * width * comp;
+            int base_p = (stbi::write::flip_vertically_on_write ? (height - 1 - clamped_row) : clamped_row) * width * comp;
             for (col = x; col < x + 16; ++col, ++pos) {
               // if col >= width => use pixel from last input column
               int p = base_p + ((col < width) ? col : (width - 1)) * comp;
@@ -1335,7 +1330,7 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
           for (row = y, pos = 0; row < y + 8; ++row) {
             // row >= height => use last input row
             int clamped_row = (row < height) ? row : height - 1;
-            int base_p = (stbi__flip_vertically_on_write ? (height - 1 - clamped_row) : clamped_row) * width * comp;
+            int base_p = (stbi::write::flip_vertically_on_write ? (height - 1 - clamped_row) : clamped_row) * width * comp;
             for (col = x; col < x + 8; ++col, ++pos) {
               // if col >= width => use pixel from last input column
               int p = base_p + ((col < width) ? col : (width - 1)) * comp;
@@ -1364,7 +1359,7 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
   return 1;
 }
 
-int stbi::write::jpg_to_func (stbi::write::write_func *func, void *context, int x, int y, int comp, const void *data, int quality) {
+int stbi::write::jpg_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int quality) {
   stbi__write_context s = {0};
   stbi__start_write_callbacks (&s, func, context);
   return stbi_write_jpg_core (&s, x, y, comp, (void *)data, quality);
