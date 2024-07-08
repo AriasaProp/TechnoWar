@@ -95,7 +95,7 @@ static inline bool stbi__start_write_file (stbi__write_context *s, const char *f
   FILE *f = stbiw__fopen (filename, "wb");
   s->func = stbi::write::write_func{
       (void *)f,
-      [] (void *data, int size) { fwrite (data, 1, size, (FILE *)s->func.context); }};
+      [this] (void *data, int size) { fwrite (data, 1, size, (FILE *)this->func.context); }};
   return f != NULL;
 }
 
