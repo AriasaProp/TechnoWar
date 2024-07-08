@@ -27,10 +27,10 @@ namespace write {
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 #endif
-	struct write_func {
-		void *context;
-		void (*write)(void*, int);
-	};
+  struct write_func {
+    void *context;
+    void (*write) (void *, int);
+  };
   // func, context, width, height, channel type, data, stride_in_bytes
   int png_to_func (write_func, int, int, int, const void *, int);
   // func, context, width, height, channel type, data
