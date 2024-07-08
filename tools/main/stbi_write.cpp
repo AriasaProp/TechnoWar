@@ -1249,17 +1249,10 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     s->func.write ((void *)head0, sizeof (head0));
     s->func.write ((void *)YTable, sizeof (YTable));
     stbiw__putc (s, 1);
-<<<<<<< HEAD
-    s->func.write (sUVTable, sizeof (UVTable));
-    s->func.write ((void *)head1, sizeof (head1));
-    s->func.write ((void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write ((void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
-=======
     s->func.write (UVTable, sizeof (UVTable));
-    s->func.write ((void *)head1, sizeof (head1));
-    s->func.write ((void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write ((void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
->>>>>>> 2bc604c (08/07/2024)
+    s->func.write ((void *) head1, sizeof (head1));
+    s->func.write ((void *) (std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func.write ((void *) std_dc_luminance_values, sizeof (std_dc_luminance_values));
     stbiw__putc (s, 0x10); // HTYACinfo
     s->func.write ((void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
     s->func.write ((void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
