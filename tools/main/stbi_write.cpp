@@ -95,8 +95,7 @@ static inline bool stbi__start_write_file (stbi__write_context *s, const char *f
   FILE *f = stbiw__fopen (filename, "wb");
   s->func = stbi::write::write_func{
       (void *)f,
-      [&f] (void *data, int size) { fwrite (data, 1, size, f); }
-  };
+      [&f] (void *data, int size) { fwrite (data, 1, size, f); }};
   return f != NULL;
 }
 
@@ -1247,23 +1246,23 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     static const unsigned char head0[] = {0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F', 'I', 'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xFF, 0xDB, 0, 0x84, 0};
     static const unsigned char head2[] = {0xFF, 0xDA, 0, 0xC, 3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3F, 0};
     const unsigned char head1[] = {0xFF, 0xC0, 0, 0x11, 8, (unsigned char)(height >> 8), STBIW_UCHAR (height), (unsigned char)(width >> 8), STBIW_UCHAR (width), 3, 1, (unsigned char)(subsample ? 0x22 : 0x11), 0, 2, 0x11, 1, 3, 0x11, 1, 0xFF, 0xC4, 0x01, 0xA2, 0};
-    s->func.write ((void *) head0, sizeof (head0));
-    s->func.write ((void *) YTable, sizeof (YTable));
+    s->func.write ((void *)head0, sizeof (head0));
+    s->func.write ((void *)YTable, sizeof (YTable));
     stbiw__putc (s, 1);
     s->func.write (sUVTable, sizeof (UVTable));
-    s->func.write ((void *) head1, sizeof (head1));
-    s->func.write ((void *) (std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write ((void *) std_dc_luminance_values, sizeof (std_dc_luminance_values));
+    s->func.write ((void *)head1, sizeof (head1));
+    s->func.write ((void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func.write ((void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
     stbiw__putc (s, 0x10); // HTYACinfo
-    s->func.write ((void *) (std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
-    s->func.write ((void *) std_ac_luminance_values, sizeof (std_ac_luminance_values));
+    s->func.write ((void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
+    s->func.write ((void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
     stbiw__putc (s, 1); // HTUDCinfo
-    s->func.write ((void *) (std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
-    s->func.write ((void *) std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
+    s->func.write ((void *)(std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
+    s->func.write ((void *)std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
     stbiw__putc (s, 0x11); // HTUACinfo
-    s->func.write ((void *) (std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
-    s->func.write ((void *) std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
-    s->func.write ((void *) head2, sizeof (head2));
+    s->func.write ((void *)(std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
+    s->func.write ((void *)std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
+    s->func.write ((void *)head2, sizeof (head2));
   }
 
   // Encode 8x8 macroblocks
