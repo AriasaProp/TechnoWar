@@ -28,7 +28,7 @@ namespace write {
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
 #endif
-	typedef std::function<void(void*, void*, int)> write_func;
+  typedef std::function<void (void *, void *, int)> write_func;
   // func, context, width, height, channel type, data, stride_in_bytes
   int png_to_func (write_func, void *, int, int, int, const void *, int);
   // func, context, width, height, channel type, data
