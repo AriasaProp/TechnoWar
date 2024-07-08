@@ -97,12 +97,12 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
-  s->func{(void *)f, stbi__stdio_write};
+  s->func = stbi::write::write_func{(void *)f,stbi__stdio_write};
   return f != NULL;
 }
 
 static void stbi__end_write_file (stbi__write_context *s) {
-  fclose ((FILE *)s->context);
+  fclose ((FILE *)s->func.context);
 }
 
 #endif // !STBI_WRITE_NO_STDIO
@@ -116,7 +116,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       break;
     case '1': {
       unsigned char x = STBIW_UCHAR (va_arg (v, int));
-      s->func.write (s & x, 1);
+      s->func.write (&x, 1);
       break;
     }
     case '2': {
@@ -124,7 +124,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       unsigned char b[2];
       b[0] = STBIW_UCHAR (x);
       b[1] = STBIW_UCHAR (x >> 8);
-      s->func.write (sb, 2);
+      s->func.write (b, 2);
       break;
     }
     case '4': {
@@ -134,7 +134,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       b[1] = STBIW_UCHAR (x >> 8);
       b[2] = STBIW_UCHAR (x >> 16);
       b[3] = STBIW_UCHAR (x >> 24);
-      s->func.write (sb, 4);
+      s->func.write (b, 4);
       break;
     }
     default:
@@ -153,13 +153,13 @@ static void stbiw__writef (stbi__write_context *s, const char *fmt, ...) {
 
 static void stbiw__write_flush (stbi__write_context *s) {
   if (s->buf_used) {
-    s->func.write (s & s->buffer, s->buf_used);
+    s->func.write (s->buffer, s->buf_used);
     s->buf_used = 0;
   }
 }
 
 static void stbiw__putc (stbi__write_context *s, unsigned char c) {
-  s->func.write (s & c, 1);
+  s->func.write (c, 1);
 }
 
 static void stbiw__write1 (stbi__write_context *s, unsigned char a) {
@@ -235,7 +235,7 @@ static void stbiw__write_pixels (stbi__write_context *s, int rgb_dir, int vdir, 
       stbiw__write_pixel (s, rgb_dir, comp, write_alpha, expand_mono, d);
     }
     stbiw__write_flush (s);
-    s->func.write (s & zero, scanline_pad);
+    s->func.write (&zero, scanline_pad);
   }
 }
 
@@ -318,7 +318,7 @@ static int stbi_write_bmp_core (stbi__write_context *s, int x, int y, int comp, 
   }
 }
 
-int stbi::write::bmp_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
+int stbi::write::bmp_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
   s.func = func;
   return stbi_write_bmp_core (&s, x, y, comp, data);
@@ -413,7 +413,7 @@ static int stbi_write_tga_core (stbi__write_context *s, int x, int y, int comp, 
   return 1;
 }
 
-int stbi::write::tga_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
+int stbi::write::tga_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
   s.func = func;
   return stbi_write_tga_core (&s, x, y, comp, (void *)data);
@@ -458,14 +458,14 @@ static void stbiw__linear_to_rgbe (unsigned char *rgbe, float *linear) {
 static void stbiw__write_run_data (stbi__write_context *s, int length, unsigned char databyte) {
   unsigned char lengthbyte = STBIW_UCHAR (length + 128);
   ASSERT (length + 128 <= 255);
-  s->func.write (s & lengthbyte, 1);
-  s->func.write (s & databyte, 1);
+  s->func.write (s&lengthbyte, 1);
+  s->func.write (s&databyte, 1);
 }
 
 static void stbiw__write_dump_data (stbi__write_context *s, int length, unsigned char *data) {
   unsigned char lengthbyte = STBIW_UCHAR (length);
   ASSERT (length <= 128); // inconsistent with spec but consistent with official code
-  s->func.write (s & lengthbyte, 1);
+  s->func.write (s&lengthbyte, 1);
   s->func.write (sdata, length);
 }
 
@@ -1248,23 +1248,23 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     static const unsigned char head0[] = {0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F', 'I', 'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xFF, 0xDB, 0, 0x84, 0};
     static const unsigned char head2[] = {0xFF, 0xDA, 0, 0xC, 3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3F, 0};
     const unsigned char head1[] = {0xFF, 0xC0, 0, 0x11, 8, (unsigned char)(height >> 8), STBIW_UCHAR (height), (unsigned char)(width >> 8), STBIW_UCHAR (width), 3, 1, (unsigned char)(subsample ? 0x22 : 0x11), 0, 2, 0x11, 1, 3, 0x11, 1, 0xFF, 0xC4, 0x01, 0xA2, 0};
-    s->func.write (s (void *) head0, sizeof (head0));
-    s->func.write (s (void *) YTable, sizeof (YTable));
+    s->func.write (s(void *)head0, sizeof (head0));
+    s->func.write (s(void *)YTable, sizeof (YTable));
     stbiw__putc (s, 1);
     s->func.write (sUVTable, sizeof (UVTable));
-    s->func.write (s (void *) head1, sizeof (head1));
-    s->func.write (s (void *) (std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write (s (void *) std_dc_luminance_values, sizeof (std_dc_luminance_values));
+    s->func.write (s(void *)head1, sizeof (head1));
+    s->func.write (s(void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func.write (s(void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
     stbiw__putc (s, 0x10); // HTYACinfo
-    s->func.write (s (void *) (std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
-    s->func.write (s (void *) std_ac_luminance_values, sizeof (std_ac_luminance_values));
+    s->func.write (s(void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
+    s->func.write (s(void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
     stbiw__putc (s, 1); // HTUDCinfo
-    s->func.write (s (void *) (std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
-    s->func.write (s (void *) std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
+    s->func.write (s(void *)(std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
+    s->func.write (s(void *)std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
     stbiw__putc (s, 0x11); // HTUACinfo
-    s->func.write (s (void *) (std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
-    s->func.write (s (void *) std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
-    s->func.write (s (void *) head2, sizeof (head2));
+    s->func.write (s(void *)(std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
+    s->func.write (s(void *)std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
+    s->func.write (s(void *)head2, sizeof (head2));
   }
 
   // Encode 8x8 macroblocks
