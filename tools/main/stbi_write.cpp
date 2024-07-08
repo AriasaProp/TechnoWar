@@ -94,8 +94,9 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
   s->func = stbi::write::write_func{
-      (void *)f,
-      [&] (void *data, int size) { fwrite (data, 1, size, f); }};
+  	(void *)f,
+  	[](void *data, int size) { fwrite (data, 1, size, (FILE*)s->func.context); }
+  };
   return f != NULL;
 }
 
@@ -157,7 +158,7 @@ static void stbiw__write_flush (stbi__write_context *s) {
 }
 
 static void stbiw__putc (stbi__write_context *s, unsigned char c) {
-  s->func.write (c, 1);
+  s->func.write (&c, 1);
 }
 
 static void stbiw__write1 (stbi__write_context *s, unsigned char a) {
@@ -456,15 +457,15 @@ static void stbiw__linear_to_rgbe (unsigned char *rgbe, float *linear) {
 static void stbiw__write_run_data (stbi__write_context *s, int length, unsigned char databyte) {
   unsigned char lengthbyte = STBIW_UCHAR (length + 128);
   ASSERT (length + 128 <= 255);
-  s->func.write (s & lengthbyte, 1);
-  s->func.write (s & databyte, 1);
+  s->func.write (&lengthbyte, 1);
+  s->func.write (&databyte, 1);
 }
 
 static void stbiw__write_dump_data (stbi__write_context *s, int length, unsigned char *data) {
   unsigned char lengthbyte = STBIW_UCHAR (length);
   ASSERT (length <= 128); // inconsistent with spec but consistent with official code
-  s->func.write (s & lengthbyte, 1);
-  s->func.write (sdata, length);
+  s->func.write (&lengthbyte, 1);
+  s->func.write (data, length);
 }
 
 static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int ncomp, unsigned char *scratch, float *scanline) {
@@ -491,7 +492,7 @@ static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int nc
         break;
       }
       stbiw__linear_to_rgbe (rgbe, linear);
-      s->func.write (srgbe, 4);
+      s->func.write (rgbe, 4);
     }
   } else {
     int c, r;
@@ -515,7 +516,7 @@ static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int nc
       scratch[x + width * 3] = rgbe[3];
     }
 
-    s->func.write (sscanlineheader, 4);
+    s->func.write (scanlineheader, 4);
 
     /* RLE each component separately */
     for (c = 0; c < 4; c++) {
@@ -566,14 +567,14 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
     int i, len;
     char buffer[128];
     char header[] = "#?RADIANCE\n# Written by stbi_write \nFORMAT=32-bit_rle_rgbe\n";
-    s->func.write (sheader, sizeof (header) - 1);
+    s->func.write (header, sizeof (header) - 1);
 
 #ifdef __STDC_LIB_EXT1__
     len = sprintf_s (buffer, sizeof (buffer), "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #else
     len = sprintf (buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #endif
-    s->func.write (sbuffer, len);
+    s->func.write (buffer, len);
 
     for (i = 0; i < y; i++)
       stbiw__write_hdr_scanline (s, x, comp, scratch, data + comp * x * (stbi::write::flip_vertically_on_write ? y - 1 - i : i));
@@ -582,7 +583,7 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
   }
 }
 
-int stbi::write::hdr_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const float *data) {
+int stbi::write::hdr_to_func (stbi::write::write_func func, int x, int y, int comp, const float *data) {
   stbi__write_context s = {0};
   s.func = func;
   return stbi_write_hdr_core (&s, x, y, comp, (float *)data);
@@ -1022,7 +1023,7 @@ int stbi::write::png (char const *filename, int x, int y, int comp, const void *
 }
 #endif
 
-int stbi::write::png_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
+int stbi::write::png_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
