@@ -94,8 +94,9 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
   s->func = stbi::write::write_func{
-      (void *)f,
-      [&f] (void *data, int size) { fwrite (data, 1, size, f); }};
+    (void *)f,
+    [f] (void *data, int size) { fwrite (data, 1, size, f); }
+  };
   return f != NULL;
 }
 
@@ -1249,10 +1250,17 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     s->func.write ((void *)head0, sizeof (head0));
     s->func.write ((void *)YTable, sizeof (YTable));
     stbiw__putc (s, 1);
+<<<<<<< HEAD
     s->func.write (sUVTable, sizeof (UVTable));
     s->func.write ((void *)head1, sizeof (head1));
     s->func.write ((void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
     s->func.write ((void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
+=======
+    s->func.write (UVTable, sizeof (UVTable));
+    s->func.write ((void *) head1, sizeof (head1));
+    s->func.write ((void *) (std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func.write ((void *) std_dc_luminance_values, sizeof (std_dc_luminance_values));
+>>>>>>> 2bc604c (08/07/2024)
     stbiw__putc (s, 0x10); // HTYACinfo
     s->func.write ((void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
     s->func.write ((void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
