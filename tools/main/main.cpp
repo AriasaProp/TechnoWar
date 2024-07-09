@@ -32,7 +32,7 @@ int main (int argc, char *argv[]) {
     // create converted directory for result
     fs::path converted = "converted";
     fs::create_directory (converted);
-    
+
     // packing uiskins
     try {
       std::cout << "Converting UISkin" << std::endl;
@@ -44,7 +44,6 @@ int main (int argc, char *argv[]) {
       // create converted directory for uiskin result
       fs::path uiskin_result_path = converted / "uiskin";
       fs::create_directory (uiskin_result_path);
-
 
       // find all subfolder inside uiskin
       for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
