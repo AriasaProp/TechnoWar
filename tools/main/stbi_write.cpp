@@ -48,7 +48,7 @@ int stbi::write::force_png_filter = -1;
 bool stbi::write::flip_vertically_on_write = false;
 
 struct stbi__write_context {
-	void *context;
+  void *context;
   stbi::write::write_func func;
   unsigned char buffer[64];
   int buf_used;
@@ -95,7 +95,7 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
   s->context = f;
-  s->func = [] (void *context, void *data, int size) { fwrite (data, 1, size, (FILE *) context); };
+  s->func = [] (void *context, void *data, int size) { fwrite (data, 1, size, (FILE *)context); };
   return f != NULL;
 }
 
