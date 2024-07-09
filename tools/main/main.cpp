@@ -60,18 +60,20 @@ int main (int argc, char *argv[]) {
         // as temporary data receive as data image holder (dih)
         int dih[3];
 
+        std::cout << "0" << std::endl;
         // get all image files inside uiskin sub folder
         for (const fs::directory_entry &image : fs::directory_iterator (skin.path ())) {
           if (!fs::is_regular_file (image.status ())) continue;
           std::string image_path = image.path ().string ();
           if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
           if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2)) {
-            std::cerr << "image info load failure: " << stbi::load::failure_reason () << std::endl;
+            std::cerr << "image info load for " << image_path << " , cause " << stbi::load::failure_reason () << std::endl;
             continue;
           }
           image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
         }
 
+        std::cout << "1" << std::endl;
         // packing
         if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
           std::cerr << "Warning: All not packed!" << std::endl;
@@ -83,6 +85,7 @@ int main (int argc, char *argv[]) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
           continue;
         }
+        std::cout << "2" << std::endl;
         uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
         for (const stbi::rectpack::rect &r : image_rects) {
           if (!r.was_packed) continue;
@@ -110,6 +113,7 @@ int main (int argc, char *argv[]) {
         }
 
         // create output directory skin name
+        std::cout << "3" << std::endl;
         stbi::write::png_to_func (
             [] (void *context, void *mem, int len) { fwrite (mem, 1, len, (FILE *)context); },
             (void *)atlas_out,
@@ -121,6 +125,7 @@ int main (int argc, char *argv[]) {
 
         fclose (atlas_out);
 
+        std::cout << "4" << std::endl;
         std::cout << "Output: " << outfile.c_str () << " completed." << std::endl;
       }
     } catch (const fs::filesystem_error &e) {
