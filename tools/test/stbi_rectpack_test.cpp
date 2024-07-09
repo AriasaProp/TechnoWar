@@ -33,14 +33,16 @@ bool stbi_rectpack_test () {
 
     unsigned int area;
     for (unsigned int re = 0; re < RE_; ++re) {
+      std::cout << "Packed size " << re << ": ";
       area = 0;
       for (stbi::rectpack::rect &rect : rects) {
         rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
         rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
         area += rect.w * rect.h;
       }
+      std::cout << "\n  total area " << area << " is ";
       {
-        const double n = static_cast<double> (area) * 1.15;
+        const double n = static_cast<double> (area) * 1.19;
         double root = n;
         double x;
         do {
@@ -50,7 +52,7 @@ bool stbi_rectpack_test () {
         root = std::ceil (root);
         area = static_cast<unsigned int> (root) + 5;
       }
-      std::cout << "Packed size " << re << ": " << area << " x " << area << " is ";
+      std::cout << "\n  used area " << area << " x " << area << " = " << area * area << " is ";
       if (stbi::rectpack::pack_rects (area, area, rects, RECTS)) {
         std::cout << "Success" << std::endl;
       } else {
@@ -62,7 +64,7 @@ bool stbi_rectpack_test () {
           else
             std::cout << "× " << r.w << " x " << r.h << std::endl;
         }
-        return false;
+        throw "there is not enough space!";
       }
     }
     return true;
