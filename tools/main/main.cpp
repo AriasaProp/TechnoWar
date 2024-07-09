@@ -21,7 +21,7 @@
 namespace fs = std::filesystem;
 
 // static size for how maximum size of image that can be process on any platform (mobile)@
-#define PACK_SIZE 2048
+#define PACK_SIZE 1024
 
 int main (int argc, char *argv[]) {
   try {
@@ -32,6 +32,7 @@ int main (int argc, char *argv[]) {
     // create converted directory for result
     fs::path converted = "converted";
     fs::create_directory (converted);
+    
     // packing uiskins
     try {
       std::cout << "Converting UISkin" << std::endl;
@@ -44,7 +45,6 @@ int main (int argc, char *argv[]) {
       fs::path uiskin_result_path = converted / "uiskin";
       fs::create_directory (uiskin_result_path);
 
-      // for file stream
 
       // find all subfolder inside uiskin
       for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {

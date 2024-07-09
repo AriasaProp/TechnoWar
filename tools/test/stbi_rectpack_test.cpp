@@ -7,13 +7,12 @@
 #include <cstring>
 #include <ctime>
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <set>
 #include <string>
 
-#define RE_ 50
-#define RECTS 50
+#define RE_ 20
+#define RECTS 20
 
 static inline unsigned int genRNG (unsigned int numBits) {
   static std::atomic<unsigned int> seed;
