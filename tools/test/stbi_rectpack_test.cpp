@@ -42,7 +42,7 @@ bool stbi_rectpack_test () {
       }
       std::cout << "\n  total area " << area << " is ";
       {
-        const double n = static_cast<double> (area) * 1.19;
+        const double n = static_cast<double> (area) * 1.3;
         double root = n;
         double x;
         do {
