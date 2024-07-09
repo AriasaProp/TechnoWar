@@ -65,7 +65,7 @@ int main (int argc, char *argv[]) {
           if (!fs::is_regular_file (image.status ())) continue;
           std::string image_path = image.path ().string ();
           if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
-          if (!stbi::load::info_from_filename (image_path.c_str (), dih, dih + 1, dih + 2)) {
+          if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2)) {
             std::cerr << "image info load failure: " << stbi::load::failure_reason () << std::endl;
             continue;
           }
@@ -76,7 +76,8 @@ int main (int argc, char *argv[]) {
         if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
           std::cerr << "Warning: All not packed!" << std::endl;
         // write packed result
-        fs::path outfile = uiskin_part_path / skin.path ().filename () + ".pack";
+        fs::path outfile = uiskin_part_path / skin.path ().filename ();
+        outfile += ".pack";
         FILE *atlas_out = fopen (outfile.c_str (), "wb");
         if (atlas_out == NULL) {
           std::cerr << "pack file failed to create cause " << strerror (errno) << std::endl;
