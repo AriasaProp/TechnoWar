@@ -48,6 +48,7 @@ int stbi::write::force_png_filter = -1;
 bool stbi::write::flip_vertically_on_write = false;
 
 struct stbi__write_context {
+	void *context;
   stbi::write::write_func func;
   unsigned char buffer[64];
   int buf_used;
@@ -93,14 +94,13 @@ static FILE *stbiw__fopen (char const *filename, char const *mode) {
 
 static inline bool stbi__start_write_file (stbi__write_context *s, const char *filename) {
   FILE *f = stbiw__fopen (filename, "wb");
-  s->func = stbi::write::write_func{
-      (void *)f,
-      [this] (void *data, int size) { fwrite (data, 1, size, (FILE *)this->func.context); }};
+  s->context = f;
+  s->func = [] (void *context, void *data, int size) { fwrite (data, 1, size, (FILE *) context); };
   return f != NULL;
 }
 
 static void stbi__end_write_file (stbi__write_context *s) {
-  fclose ((FILE *)s->func.context);
+  fclose ((FILE *)s->context);
 }
 
 #endif // !STBI_WRITE_NO_STDIO
@@ -114,7 +114,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       break;
     case '1': {
       unsigned char x = STBIW_UCHAR (va_arg (v, int));
-      s->func.write (&x, 1);
+      s->func (s->context, &x, 1);
       break;
     }
     case '2': {
@@ -122,7 +122,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       unsigned char b[2];
       b[0] = STBIW_UCHAR (x);
       b[1] = STBIW_UCHAR (x >> 8);
-      s->func.write (b, 2);
+      s->func (s->context, b, 2);
       break;
     }
     case '4': {
@@ -132,7 +132,7 @@ static void stbiw__writefv (stbi__write_context *s, const char *fmt, va_list v) 
       b[1] = STBIW_UCHAR (x >> 8);
       b[2] = STBIW_UCHAR (x >> 16);
       b[3] = STBIW_UCHAR (x >> 24);
-      s->func.write (b, 4);
+      s->func (s->context, b, 4);
       break;
     }
     default:
@@ -151,13 +151,13 @@ static void stbiw__writef (stbi__write_context *s, const char *fmt, ...) {
 
 static void stbiw__write_flush (stbi__write_context *s) {
   if (s->buf_used) {
-    s->func.write (s->buffer, s->buf_used);
+    s->func (s->context, s->buffer, s->buf_used);
     s->buf_used = 0;
   }
 }
 
 static void stbiw__putc (stbi__write_context *s, unsigned char c) {
-  s->func.write (&c, 1);
+  s->func (s->context, &c, 1);
 }
 
 static void stbiw__write1 (stbi__write_context *s, unsigned char a) {
@@ -233,7 +233,7 @@ static void stbiw__write_pixels (stbi__write_context *s, int rgb_dir, int vdir, 
       stbiw__write_pixel (s, rgb_dir, comp, write_alpha, expand_mono, d);
     }
     stbiw__write_flush (s);
-    s->func.write (&zero, scanline_pad);
+    s->func (s->context, &zero, scanline_pad);
   }
 }
 
@@ -316,8 +316,9 @@ static int stbi_write_bmp_core (stbi__write_context *s, int x, int y, int comp, 
   }
 }
 
-int stbi::write::bmp_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data) {
+int stbi::write::bmp_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
+  s.context = context;
   s.func = func;
   return stbi_write_bmp_core (&s, x, y, comp, data);
 }
@@ -411,8 +412,9 @@ static int stbi_write_tga_core (stbi__write_context *s, int x, int y, int comp, 
   return 1;
 }
 
-int stbi::write::tga_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data) {
+int stbi::write::tga_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data) {
   stbi__write_context s = {0};
+  s.context = context;
   s.func = func;
   return stbi_write_tga_core (&s, x, y, comp, (void *)data);
 }
@@ -456,15 +458,15 @@ static void stbiw__linear_to_rgbe (unsigned char *rgbe, float *linear) {
 static void stbiw__write_run_data (stbi__write_context *s, int length, unsigned char databyte) {
   unsigned char lengthbyte = STBIW_UCHAR (length + 128);
   ASSERT (length + 128 <= 255);
-  s->func.write (&lengthbyte, 1);
-  s->func.write (&databyte, 1);
+  s->func (s->context, &lengthbyte, 1);
+  s->func (s->context, &databyte, 1);
 }
 
 static void stbiw__write_dump_data (stbi__write_context *s, int length, unsigned char *data) {
   unsigned char lengthbyte = STBIW_UCHAR (length);
   ASSERT (length <= 128); // inconsistent with spec but consistent with official code
-  s->func.write (&lengthbyte, 1);
-  s->func.write (data, length);
+  s->func (s->context, &lengthbyte, 1);
+  s->func (s->context, data, length);
 }
 
 static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int ncomp, unsigned char *scratch, float *scanline) {
@@ -491,7 +493,7 @@ static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int nc
         break;
       }
       stbiw__linear_to_rgbe (rgbe, linear);
-      s->func.write (rgbe, 4);
+      s->func (s->context, rgbe, 4);
     }
   } else {
     int c, r;
@@ -515,7 +517,7 @@ static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int nc
       scratch[x + width * 3] = rgbe[3];
     }
 
-    s->func.write (scanlineheader, 4);
+    s->func (s->context, scanlineheader, 4);
 
     /* RLE each component separately */
     for (c = 0; c < 4; c++) {
@@ -566,14 +568,14 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
     int i, len;
     char buffer[128];
     char header[] = "#?RADIANCE\n# Written by stbi_write \nFORMAT=32-bit_rle_rgbe\n";
-    s->func.write (header, sizeof (header) - 1);
+    s->func (s->context, header, sizeof (header) - 1);
 
 #ifdef __STDC_LIB_EXT1__
     len = sprintf_s (buffer, sizeof (buffer), "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #else
     len = sprintf (buffer, "EXPOSURE=          1.0000000000000\n\n-Y %d +X %d\n", y, x);
 #endif
-    s->func.write (buffer, len);
+    s->func (s->context, buffer, len);
 
     for (i = 0; i < y; i++)
       stbiw__write_hdr_scanline (s, x, comp, scratch, data + comp * x * (stbi::write::flip_vertically_on_write ? y - 1 - i : i));
@@ -582,8 +584,9 @@ static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, 
   }
 }
 
-int stbi::write::hdr_to_func (stbi::write::write_func func, int x, int y, int comp, const float *data) {
+int stbi::write::hdr_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const float *data) {
   stbi__write_context s = {0};
+  s.context = context;
   s.func = func;
   return stbi_write_hdr_core (&s, x, y, comp, (float *)data);
 }
@@ -1022,11 +1025,11 @@ int stbi::write::png (char const *filename, int x, int y, int comp, const void *
 }
 #endif
 
-int stbi::write::png_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data, int stride_bytes) {
+int stbi::write::png_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
   if (png == NULL) return 0;
-  func.write (png, len);
+  func (context, png, len);
   free (png);
   return 1;
 }
@@ -1246,23 +1249,23 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
     static const unsigned char head0[] = {0xFF, 0xD8, 0xFF, 0xE0, 0, 0x10, 'J', 'F', 'I', 'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0xFF, 0xDB, 0, 0x84, 0};
     static const unsigned char head2[] = {0xFF, 0xDA, 0, 0xC, 3, 1, 0, 2, 0x11, 3, 0x11, 0, 0x3F, 0};
     const unsigned char head1[] = {0xFF, 0xC0, 0, 0x11, 8, (unsigned char)(height >> 8), STBIW_UCHAR (height), (unsigned char)(width >> 8), STBIW_UCHAR (width), 3, 1, (unsigned char)(subsample ? 0x22 : 0x11), 0, 2, 0x11, 1, 3, 0x11, 1, 0xFF, 0xC4, 0x01, 0xA2, 0};
-    s->func.write ((void *)head0, sizeof (head0));
-    s->func.write ((void *)YTable, sizeof (YTable));
+    s->func (s->context, (void *)head0, sizeof (head0));
+    s->func (s->context, (void *)YTable, sizeof (YTable));
     stbiw__putc (s, 1);
-    s->func.write (UVTable, sizeof (UVTable));
-    s->func.write ((void *)head1, sizeof (head1));
-    s->func.write ((void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
-    s->func.write ((void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
+    s->func (s->context, UVTable, sizeof (UVTable));
+    s->func (s->context, (void *)head1, sizeof (head1));
+    s->func (s->context, (void *)(std_dc_luminance_nrcodes + 1), sizeof (std_dc_luminance_nrcodes) - 1);
+    s->func (s->context, (void *)std_dc_luminance_values, sizeof (std_dc_luminance_values));
     stbiw__putc (s, 0x10); // HTYACinfo
-    s->func.write ((void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
-    s->func.write ((void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
+    s->func (s->context, (void *)(std_ac_luminance_nrcodes + 1), sizeof (std_ac_luminance_nrcodes) - 1);
+    s->func (s->context, (void *)std_ac_luminance_values, sizeof (std_ac_luminance_values));
     stbiw__putc (s, 1); // HTUDCinfo
-    s->func.write ((void *)(std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
-    s->func.write ((void *)std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
+    s->func (s->context, (void *)(std_dc_chrominance_nrcodes + 1), sizeof (std_dc_chrominance_nrcodes) - 1);
+    s->func (s->context, (void *)std_dc_chrominance_values, sizeof (std_dc_chrominance_values));
     stbiw__putc (s, 0x11); // HTUACinfo
-    s->func.write ((void *)(std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
-    s->func.write ((void *)std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
-    s->func.write ((void *)head2, sizeof (head2));
+    s->func (s->context, (void *)(std_ac_chrominance_nrcodes + 1), sizeof (std_ac_chrominance_nrcodes) - 1);
+    s->func (s->context, (void *)std_ac_chrominance_values, sizeof (std_ac_chrominance_values));
+    s->func (s->context, (void *)head2, sizeof (head2));
   }
 
   // Encode 8x8 macroblocks
@@ -1350,8 +1353,9 @@ static int stbi_write_jpg_core (stbi__write_context *s, int width, int height, i
   return 1;
 }
 
-int stbi::write::jpg_to_func (stbi::write::write_func func, int x, int y, int comp, const void *data, int quality) {
+int stbi::write::jpg_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int quality) {
   stbi__write_context s = {0};
+  s.context = context;
   s.func = func;
   return stbi_write_jpg_core (&s, x, y, comp, (void *)data, quality);
 }
