@@ -1,4 +1,4 @@
-#include "stbi_rectpack.hpp"
+#include "stbi/stbi_rectpack.hpp"
 
 #include <algorithm>
 #include <atomic>
