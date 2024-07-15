@@ -21,6 +21,6 @@ unitTest {
     }
 }
 
-dependecies {
+dependencies {
 		implementation project(':core')
 }
