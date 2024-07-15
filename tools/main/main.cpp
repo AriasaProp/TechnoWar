@@ -3,7 +3,7 @@
 
 namespace fs = std::filesystem;
 
-extern bool uiskin_packing(fs::path, fs::path);
+extern bool uiskin_packing (fs::path, fs::path);
 
 int main (int argc, char *argv[]) {
   try {
@@ -14,8 +14,8 @@ int main (int argc, char *argv[]) {
     // create converted directory for result
     fs::path converted = "converted";
     if (!fs::create_directory (converted)) throw "";
-    if (!uiskin_packing(assets, converted)) throw "uisking packing state was error";
-    
+    if (!uiskin_packing (assets, converted)) throw "uisking packing state was error";
+
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error file: " << e.what () << std::endl;
     return EXIT_FAILURE;

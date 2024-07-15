@@ -1,7 +1,7 @@
+#include "assets/uiskin.hpp"
 #include "stbi/stbi_load.hpp"
 #include "stbi/stbi_rectpack.hpp"
 #include "stbi/stbi_write.hpp"
-#include "assets/uiskin.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -20,7 +20,7 @@
 
 namespace fs = std::filesystem;
 
-bool uiskin_packing(fs::path assets, fs::path converted) {
+bool uiskin_packing (fs::path assets, fs::path converted) {
   std::cout << "Packing UISkin - Start" << std::endl;
   try {
     fs::path uiskin_path = assets / "uiskin";
@@ -84,18 +84,18 @@ bool uiskin_packing(fs::path assets, fs::path converted) {
         }
         stbi::load::image_free (image_buffer);
         std::string name = r.id;
-         {
-    size_t lastSlashPos = name.find_last_of("/\\");
-    lastSlashPos = (lastSlashPos == std::string::npos)?0:lastSlashPos + 1;
-    
-    size_t lastDotPos = name.find_last_of('.');
-    if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
-        lastDotPos = filePath.length();
-    }
-    
-    // Ambil substring antara slash terakhir dan titik terakhir
-    name = name.substr(lastSlashPos, lastDotPos - lastSlashPos);
-}
+        {
+          size_t lastSlashPos = name.find_last_of ("/\\");
+          lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
+
+          size_t lastDotPos = name.find_last_of ('.');
+          if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
+            lastDotPos = filePath.length ();
+          }
+
+          // Ambil substring antara slash terakhir dan titik terakhir
+          name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
+        }
         fwrite (name.data (), sizeof (char), name.size (), atlas_out);
         uint32_t tempWrite[4]{r.x, r.y, r.w, r.h};
         fwrite (reinterpret_cast<void *> (tempWrite), sizeof (tempWrite), 1, atlas_out);

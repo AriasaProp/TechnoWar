@@ -4,27 +4,25 @@
 // static size for how maximum size of image that can be process on any platform (mobile)@
 #define PACK_SIZE 1024
 
+#include "../engine.hpp"
 #include <string>
 #include <vector>
-#include "../engine.hpp"
 
 struct region {
-	std::string id;
-	unsigned int x, y, w, h;
+  std::string id;
+  unsigned int x, y, w, h;
 };
 
 struct uiskin {
 private:
-	unsigned int atlas_size;
-	std::vector<region> regions;
-	texture_core tex;
+  unsigned int atlas_size;
+  std::vector<region> regions;
+  texture_core tex;
+
 public:
-	uiskin(unsigned int atlas_size_);
-	~uiskin();
-	static uiskin read_from_filename(const char *);
+  uiskin (unsigned int atlas_size_);
+  ~uiskin ();
+  static uiskin read_from_filename (const char *);
 };
-
-
-
 
 #endif UISKIN_INCLUDE_
