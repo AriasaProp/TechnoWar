@@ -30,10 +30,8 @@ static inline bool readFile (FILE *file, char *buffer, size_t size) {
 static uiskin uiskin::read_from_filename (const char *filename) {
 
   FILE *atlas_pack = fopen (filename, "rb");
-  if (!atlas_pack) return NULL;
+  if (!atlas_pack) uiskin(0);
   try {
-
-    char *buffer = (char *)malloc (64);
 
     // read regions
     for (char reading = 0; (reading = std::getc (atlas_pack)) != '\$';) {
@@ -49,8 +47,6 @@ static uiskin uiskin::read_from_filename (const char *filename) {
       if (!readFile (atlas_pack, (char *)(&reg.x), 16)) // 16 bytes -> 4 * 32 bit
         throw "file invalid";
     }
-
-    free (buffer);
 
   } catch (...) {
   }
