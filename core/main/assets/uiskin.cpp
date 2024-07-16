@@ -30,7 +30,7 @@ static inline bool readFile (FILE *file, char *buffer, size_t size) {
 static uiskin uiskin::read_from_filename (const char *filename) {
 
   FILE *atlas_pack = fopen (filename, "rb");
-  if (!atlas_pack) uiskin(0);
+  if (!atlas_pack) uiskin (0);
   try {
 
     // read regions
