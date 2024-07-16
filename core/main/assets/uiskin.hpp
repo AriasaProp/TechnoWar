@@ -12,8 +12,8 @@
 struct uiskin {
 public:
   uiskin ();
+  uiskin(const char *);
   ~uiskin ();
-  static uiskin read_from_filename (const char *);
 
   struct region {
     std::string id;
