@@ -12,7 +12,7 @@
 struct uiskin {
 public:
   uiskin ();
-  uiskin(const char *);
+  uiskin (const char *);
   ~uiskin ();
 
   struct region {
