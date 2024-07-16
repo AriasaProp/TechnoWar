@@ -169,13 +169,11 @@ static int stbi__sse2_available (void) {
 #define STBI_MAX_DIMENSIONS (1 << 24)
 #endif
 
-
 struct stbi__io_callbacks {
   size_t (*read) (void *, char *, size_t); // fill 'data' with 'size' bytes.  return number of bytes actually read
-  void (*skip) (void *, int);               // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
-  bool (*eof) (void *);                        // returns false if we are at end of file/data
+  void (*skip) (void *, int);              // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+  bool (*eof) (void *);                    // returns false if we are at end of file/data
 };
-
 
 ///////////////////////////////////////////////
 //
@@ -185,9 +183,9 @@ struct stbi__io_callbacks {
 // contains all the IO context, plus some basic image information
 struct stbi__context {
   bool read_from_callbacks;
-  
+
   unsigned char buffer_start[128];
-  
+
   uint32_t img_x, img_y;
 
   int img_n, img_out_n;
