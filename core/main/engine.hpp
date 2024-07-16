@@ -67,7 +67,7 @@ struct input_core {
   virtual ~input_core () {}
 };
 struct asset_core {
-  virtual int read (void *, unsigned int) = 0;
+  virtual size_t read (void *, size_t) = 0;
   virtual void seek (int) = 0;
   virtual bool eof () = 0;
   virtual ~asset_core () {}

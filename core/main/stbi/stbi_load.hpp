@@ -15,19 +15,13 @@ namespace load {
     rgb_alpha = 4
   };
 
-  struct io_callbacks {
-    int (*read) (void *user, char *data, int size); // fill 'data' with 'size' bytes.  return number of bytes actually read
-    void (*skip) (void *user, int n);               // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
-    int (*eof) (void *user);                        // returns nonzero if we are at end of file/data
-  };
-
   ////////////////////////////////////
   //
   // 8-bits-per-channel interface
   //
 
-  unsigned char *load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-  unsigned char *load_from_callbacks (io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
+  unsigned char *load_from_memory (unsigned char const *, int, int *, int *, int *, int);
+	unsigned char *load_from_assets (const char *, int *, int *, int *, int);
 
 #ifndef STBI_NO_STDIO
   unsigned char *load_from_filename (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -42,14 +36,13 @@ namespace load {
 #ifdef STBI_WINDOWS_UTF8
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
-
+	
   ////////////////////////////////////
   //
   // 16-bits-per-channel interface
   //
 
   unsigned short *load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-  unsigned short *load_16_from_callbacks (io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
   unsigned short *load_16 (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -62,7 +55,6 @@ namespace load {
 //
 #ifndef STBI_NO_LINEAR
   float *loadf_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels);
-  float *loadf_from_callbacks (io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels);
 
 #ifndef STBI_NO_STDIO
   float *loadf (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -81,7 +73,6 @@ namespace load {
 #endif // STBI_NO_LINEAR
 
   // is_hdr is always defined, but always returns false if STBI_NO_HDR
-  int is_hdr_from_callbacks (io_callbacks const *clbk, void *user);
   int is_hdr_from_memory (unsigned char const *buffer, int len);
 #ifndef STBI_NO_STDIO
   int is_hdr (char const *filename);
@@ -97,9 +88,7 @@ namespace load {
 
   // get image dimensions & components without fully decoding
   int info_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp);
-  int info_from_callbacks (io_callbacks const *clbk, void *user, int *x, int *y, int *comp);
   int is_16_bit_from_memory (unsigned char const *buffer, int len);
-  int is_16_bit_from_callbacks (io_callbacks const *clbk, void *user);
 
 #ifndef STBI_NO_STDIO
   int info (char const *filename, int *x, int *y, int *comp);

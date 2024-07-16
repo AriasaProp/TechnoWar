@@ -41,11 +41,13 @@ typedef signed __int16 int16_t;
 typedef unsigned __int16 uint16_t;
 typedef signed __int32 int32_t;
 typedef unsigned __int32 uint32_t;
+typedef unsigned __int32 size_t;
 #elif defined(__SYMBIAN32__)
-typedef unsigned short uint16_t;
 typedef signed short int16_t;
-typedef unsigned int uint32_t;
+typedef unsigned short uint16_t;
 typedef signed int int32_t;
+typedef unsigned int uint32_t;
+typedef unsigned int size_t;
 #else
 #include <cstdint>
 #endif
@@ -60,10 +62,6 @@ typedef unsigned char validate_uint32[sizeof (uint32_t) == 4 ? 1 : -1];
 #define INLINE inline
 #define NO_USE(v) (void)sizeof (v)
 #define _lrotl(x, y) (((x) << (y)) | ((x) >> (-(y)&31)))
-#endif
-
-#ifndef REALLOC_SIZED
-#define REALLOC_SIZED(p, oldsz, newsz) realloc (p, newsz)
 #endif
 
 // x86/x64 detection
@@ -170,6 +168,14 @@ static int stbi__sse2_available (void) {
 #define STBI_MAX_DIMENSIONS (1 << 24)
 #endif
 
+
+struct stbi__io_callbacks {
+  size_t (*read) (void *, char *, size_t); // fill 'data' with 'size' bytes.  return number of bytes actually read
+  void (*skip) (void *, int);               // skip the next 'n' bytes, or 'unget' the last -n bytes if negative
+  bool (*eof) (void *);                        // returns false if we are at end of file/data
+};
+
+
 ///////////////////////////////////////////////
 //
 //  stbi__context struct and start_xxx functions
@@ -177,19 +183,21 @@ static int stbi__sse2_available (void) {
 // stbi__context structure is our basic context used by all images, so it
 // contains all the IO context, plus some basic image information
 struct stbi__context {
-  uint32_t img_x, img_y;
-  int img_n, img_out_n;
-
-  stbi::load::io_callbacks io;
-  void *io_user_data;
-
-  int read_from_callbacks;
-  int buflen;
+  bool read_from_callbacks;
+  
   unsigned char buffer_start[128];
+  
+  uint32_t img_x, img_y;
+
+  int img_n, img_out_n;
+  int buflen;
   int callback_already_read;
 
+  void *io_user_data;
   unsigned char *img_buffer, *img_buffer_end;
   unsigned char *img_buffer_original, *img_buffer_original_end;
+
+  stbi__io_callbacks io;
 };
 
 static void stbi__refill_buffer (stbi__context *s);
@@ -197,18 +205,18 @@ static void stbi__refill_buffer (stbi__context *s);
 // initialize a memory-decode context
 static void stbi__start_mem (stbi__context *s, unsigned char const *buffer, int len) {
   s->io.read = NULL;
-  s->read_from_callbacks = 0;
+  s->read_from_callbacks = false;
   s->callback_already_read = 0;
   s->img_buffer = s->img_buffer_original = (unsigned char *)buffer;
   s->img_buffer_end = s->img_buffer_original_end = (unsigned char *)buffer + len;
 }
 
 // initialize a callback-based context
-static void stbi__start_callbacks (stbi__context *s, stbi::load::io_callbacks *c, void *user) {
+static void stbi__start_callbacks (stbi__context *s, stbi__io_callbacks *c, void *user) {
   s->io = *c;
   s->io_user_data = user;
   s->buflen = sizeof (s->buffer_start);
-  s->read_from_callbacks = 1;
+  s->read_from_callbacks = true;
   s->callback_already_read = 0;
   s->img_buffer = s->img_buffer_original = s->buffer_start;
   stbi__refill_buffer (s);
@@ -217,9 +225,9 @@ static void stbi__start_callbacks (stbi__context *s, stbi::load::io_callbacks *c
 
 #ifndef STBI_NO_STDIO
 
-static stbi::load::io_callbacks stbi__stdio_callbacks{
-    [] (void *user, char *data, int size) -> int {
-      return (int)fread (data, 1, size, (FILE *)user);
+static stbi__io_callbacks stbi__stdio_callback{
+    [] (void *user, char *data, size_t size) -> size_t {
+      return fread (data, 1, size, (FILE *)user);
     },
     [] (void *user, int n) {
       fseek ((FILE *)user, n, SEEK_CUR);
@@ -228,13 +236,9 @@ static stbi::load::io_callbacks stbi__stdio_callbacks{
         ungetc (ch, (FILE *)user); /* push byte back onto stream if valid. */
       }
     },
-    [] (void *user) -> int {
-      return feof ((FILE *)user) || ferror ((FILE *)user);
+    [] (void *user) -> bool {
+      return feof ((FILE *)user);
     }};
-
-static void stbi__start_file (stbi__context *s, FILE *f) {
-  stbi__start_callbacks (s, &stbi__stdio_callbacks, (void *)f);
-}
 
 // static void stop_file(stbi__context *s) { }
 
@@ -688,7 +692,7 @@ unsigned char *stbi::load::load_from_filename (char const *filename, int *x, int
 unsigned char *stbi::load::load_from_file (FILE *f, int *x, int *y, int *comp, int req_comp) {
   unsigned char *result;
   stbi__context s;
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   result = stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
   if (result) {
     // need to 'unget' all the characters in the IO buffer
@@ -700,7 +704,7 @@ unsigned char *stbi::load::load_from_file (FILE *f, int *x, int *y, int *comp, i
 uint16_t *stbi::load::load_from_file_16 (FILE *f, int *x, int *y, int *comp, int req_comp) {
   uint16_t *result;
   stbi__context s;
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   result = stbi__load_and_postprocess_16bit (&s, x, y, comp, req_comp);
   if (result) {
     // need to 'unget' all the characters in the IO buffer
@@ -720,27 +724,34 @@ unsigned short *stbi::load::load_16 (char const *filename, int *x, int *y, int *
 
 #endif //! STBI_NO_STDIO
 
+static stbi__io_callbacks stbi_assets_callback = {
+    [] (void *a, char *b, size_t l) -> size_t {
+      return ((engine::asset_core *)a)->read (b, l);
+    },
+    [] (void *a, int l) -> void {
+      ((engine::asset_core *)a)->seek (l);
+    },
+    [] (void *a) -> bool {
+      return ((engine::asset_core *)a)->eof ();
+    }};
+unsigned char *stbi::load::load_from_assets (const char *filename, int *x, int *y, int *comp, int req_comp) {
+  engine::asset_core *user = engine::asset->open_asset (filename);
+  stbi__context s;
+  stbi__start_callbacks (&s, &stbi_assets_callback, user);
+  unsigned char *r = stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
+  delete user;
+  return r;
+}
+
 unsigned short *stbi::load::load_16_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *channels_in_file, int desired_channels) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
   return stbi__load_and_postprocess_16bit (&s, x, y, channels_in_file, desired_channels);
 }
 
-unsigned short *stbi::load::load_16_from_callbacks (stbi::load::io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels) {
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)clbk, user);
-  return stbi__load_and_postprocess_16bit (&s, x, y, channels_in_file, desired_channels);
-}
-
 unsigned char *stbi::load::load_from_memory (unsigned char const *buffer, int len, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
-  return stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
-}
-
-unsigned char *stbi::load::load_from_callbacks (stbi::load::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)clbk, user);
   return stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
 }
 
@@ -783,12 +794,6 @@ float *stbi::load::loadf_from_memory (unsigned char const *buffer, int len, int 
   return stbi__loadf_main (&s, x, y, comp, req_comp);
 }
 
-float *stbi::load::loadf_from_callbacks (stbi::load::io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp) {
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)clbk, user);
-  return stbi__loadf_main (&s, x, y, comp, req_comp);
-}
-
 #ifndef STBI_NO_STDIO
 float *stbi::load::loadf (char const *filename, int *x, int *y, int *comp, int req_comp) {
   float *result;
@@ -801,7 +806,7 @@ float *stbi::load::loadf (char const *filename, int *x, int *y, int *comp, int r
 
 float *stbi::load::loadf_from_file (FILE *f, int *x, int *y, int *comp, int req_comp) {
   stbi__context s;
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   return stbi__loadf_main (&s, x, y, comp, req_comp);
 }
 #endif // !STBI_NO_STDIO
@@ -840,7 +845,7 @@ int stbi::load::is_hdr_from_file (FILE *f) {
   long pos = ftell (f);
   int res;
   stbi__context s;
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   res = stbi__hdr_test (&s);
   fseek (f, pos, SEEK_SET);
   return res;
@@ -850,18 +855,6 @@ int stbi::load::is_hdr_from_file (FILE *f) {
 #endif
 }
 #endif // !STBI_NO_STDIO
-
-int stbi::load::is_hdr_from_callbacks (stbi::load::io_callbacks const *clbk, void *user) {
-#ifndef STBI_NO_HDR
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)clbk, user);
-  return stbi__hdr_test (&s);
-#else
-  NO_USE (clbk);
-  NO_USE (user);
-  return 0;
-#endif
-}
 
 #ifndef STBI_NO_LINEAR
 static float stbi__l2h_gamma = 2.2f, stbi__l2h_scale = 1.0f;
@@ -892,7 +885,7 @@ static void stbi__refill_buffer (stbi__context *s) {
   if (n == 0) {
     // at end of file, treat same as if from memory, but need to handle case
     // where s->img_buffer isn't pointing to safe memory, e.g. 0-byte file
-    s->read_from_callbacks = 0;
+    s->read_from_callbacks = false;
     s->img_buffer = s->buffer_start;
     s->img_buffer_end = s->buffer_start + 1;
     *s->img_buffer = 0;
@@ -920,7 +913,7 @@ INLINE static int stbi__at_eof (stbi__context *s) {
     if (!(s->io.eof) (s->io_user_data)) return 0;
     // if feof() is true, check if buffer = end
     // special case: we've only got the special 0 character at the end
-    if (s->read_from_callbacks == 0) return 1;
+    if (!s->read_from_callbacks) return 1;
   }
 
   return s->img_buffer >= s->img_buffer_end;
@@ -3706,18 +3699,17 @@ INLINE static int stbi__zhuffman_decode (stbi__zbuf *a, stbi__zhuffman *z) {
 static int stbi__zexpand (stbi__zbuf *z, char *zout, int n) // need to make room for n bytes
 {
   char *q;
-  unsigned int cur, limit, old_limit;
+  unsigned int cur, limit;
   z->zout = zout;
   if (!z->z_expandable) return stbi__err ("output buffer limit : Corrupt PNG");
   cur = (unsigned int)(z->zout - z->zout_start);
-  limit = old_limit = (unsigned)(z->zout_end - z->zout_start);
+  limit = (unsigned)(z->zout_end - z->zout_start);
   if (UINT_MAX - cur < (unsigned)n) return stbi__err ("Out of memory");
   while (cur + n > limit) {
     if (limit > UINT_MAX / 2) return stbi__err ("Out of memory");
     limit *= 2;
   }
-  q = (char *)REALLOC_SIZED (z->zout_start, old_limit, limit);
-  NO_USE (old_limit);
+  q = (char *)realloc (z->zout_start, limit);
   if (q == NULL) return stbi__err ("Out of memory");
   z->zout_start = q;
   z->zout = q + cur;
@@ -4593,13 +4585,11 @@ static int stbi__parse_png_file (stbi__png *z, int scan, int req_comp) {
       if (c.length > (1u << 30)) return stbi__err ("IDAT size limit : IDAT section larger than 2^30 bytes");
       if ((int)(ioff + c.length) < (int)ioff) return 0;
       if (ioff + c.length > idata_limit) {
-        uint32_t idata_limit_old = idata_limit;
         unsigned char *p;
         if (idata_limit == 0) idata_limit = c.length > 4096 ? c.length : 4096;
         while (ioff + c.length > idata_limit)
           idata_limit *= 2;
-        NO_USE (idata_limit_old);
-        p = (unsigned char *)REALLOC_SIZED (z->idata, idata_limit_old, idata_limit);
+        p = (unsigned char *)realloc (z->idata, idata_limit);
         if (p == NULL) return stbi__err ("Out of memory");
         z->idata = p;
       }
@@ -6404,7 +6394,7 @@ static void *stbi__load_gif_main (stbi__context *s, int **delays, int *x, int *y
         stride = g.w * g.h * 4;
 
         if (out) {
-          void *tmp = (unsigned char *)REALLOC_SIZED (out, out_size, layers * stride);
+          void *tmp = (unsigned char *)realloc (out, layers * stride);
           if (!tmp)
             return stbi__load_gif_main_outofmem (&g, out, delays);
           else {
@@ -6413,7 +6403,7 @@ static void *stbi__load_gif_main (stbi__context *s, int **delays, int *x, int *y
           }
 
           if (delays) {
-            int *new_delays = (int *)REALLOC_SIZED (*delays, delays_size, sizeof (int) * layers);
+            int *new_delays = (int *)realloc (*delays, sizeof (int) * layers);
             if (!new_delays)
               return stbi__load_gif_main_outofmem (&g, out, delays);
             *delays = new_delays;
@@ -7108,7 +7098,7 @@ int stbi::load::info_from_file (FILE *f, int *x, int *y, int *comp) {
   int r;
   stbi__context s;
   long pos = ftell (f);
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   r = stbi__info_main (&s, x, y, comp);
   fseek (f, pos, SEEK_SET);
   return r;
@@ -7127,7 +7117,7 @@ int stbi::load::is_16_bit_from_file (FILE *f) {
   int r;
   stbi__context s;
   long pos = ftell (f);
-  stbi__start_file (&s, f);
+  stbi__start_callbacks (&s, &stbi__stdio_callback, (void *)f);
   r = stbi__is_16_main (&s);
   fseek (f, pos, SEEK_SET);
   return r;
@@ -7140,20 +7130,8 @@ int stbi::load::info_from_memory (unsigned char const *buffer, int len, int *x, 
   return stbi__info_main (&s, x, y, comp);
 }
 
-int stbi::load::info_from_callbacks (stbi::load::io_callbacks const *c, void *user, int *x, int *y, int *comp) {
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)c, user);
-  return stbi__info_main (&s, x, y, comp);
-}
-
 int stbi::load::is_16_bit_from_memory (unsigned char const *buffer, int len) {
   stbi__context s;
   stbi__start_mem (&s, buffer, len);
-  return stbi__is_16_main (&s);
-}
-
-int stbi::load::is_16_bit_from_callbacks (stbi::load::io_callbacks const *c, void *user) {
-  stbi__context s;
-  stbi__start_callbacks (&s, (stbi::load::io_callbacks *)c, user);
   return stbi__is_16_main (&s);
 }

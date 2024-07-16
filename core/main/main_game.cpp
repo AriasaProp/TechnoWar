@@ -1,7 +1,7 @@
 #include "main_game.hpp"
 #include "engine.hpp"
 
-#include "assets/stb_image.hpp"
+#include "stbi/stbi_load.hpp"
 #include "utils/math.hpp"
 #include "utils/uistage.hpp"
 #include <cmath>
@@ -71,19 +71,19 @@ void start () {
   {
     int x, y;
     unsigned char *t;
-    t = stbi_load_from_assets ("btn1.png", &x, &y, nullptr, STBI_rgb_alpha);
+    t = stbi::load::load_from_assets ("btn1.png", &x, &y, nullptr, STBI_rgb_alpha);
     engine::texture_core *tex;
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
-    stbi_image_free (t);
-    t = stbi_load_from_assets ("btn1_.png", &x, &y, nullptr, STBI_rgb_alpha);
+    stbi::load::image_free (t);
+    t = stbi::load::load_from_assets ("btn1_.png", &x, &y, nullptr, STBI_rgb_alpha);
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1_", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
-    stbi_image_free (t);
-    t = stbi_load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
+    stbi::load::image_free (t);
+    t = stbi::load::load_from_assets ("test.jpeg", &x, &y, nullptr, STBI_rgb_alpha);
     tex = engine::graph->gen_texture (x, y, t);
     uistage::addTextureRegion ("test", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {}});
-    stbi_image_free (t);
+    stbi::load::image_free (t);
   }
 
   uistage::makeText (Vector2 (0, 0, ALIGN_TOP), ALIGN_TOP, DATESTR);

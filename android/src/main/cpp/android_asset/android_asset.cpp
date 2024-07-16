@@ -7,7 +7,7 @@
 struct a_asset : public engine::asset_core {
   AAsset *asset;
   a_asset (AAsset *a) : asset (a) {}
-  int read (void *buff, unsigned int len) override {
+  size_t read (void *buff, size_t len) override {
     return AAsset_read (asset, buff, len);
   }
   void seek (int n) override {

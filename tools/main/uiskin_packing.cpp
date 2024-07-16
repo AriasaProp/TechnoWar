@@ -93,14 +93,16 @@ bool uiskin_packing (fs::path assets, fs::path converted) {
             lastDotPos = name.length ();
           }
 
-          // Ambil substring antara slash terakhir dan titik terakhir
           name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
         }
+        fwrite ("\"", sizeof (char), 1, atlas_out);
         fwrite (name.data (), sizeof (char), name.size (), atlas_out);
+        fwrite ("\"\:", sizeof (char), 2, atlas_out);
         uint32_t tempWrite[4]{r.x, r.y, r.w, r.h};
-        fwrite (reinterpret_cast<void *> (tempWrite), sizeof (tempWrite), 1, atlas_out);
+        fwrite (tempWrite, sizeof (tempWrite), 1, atlas_out);
         fwrite ("\n", sizeof (char), 1, atlas_out);
       }
+      fwrite ("\$", sizeof (char), 1, atlas_out);
 
       // create output directory skin name
       stbi::write::png_to_func (
