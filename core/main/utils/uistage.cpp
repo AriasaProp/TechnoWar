@@ -1,6 +1,6 @@
 #include "uistage.hpp"
-#include "../stbi/stbi_load.hpp"
 #include "../engine.hpp"
+#include "../stbi/stbi_load.hpp"
 
 #include <cstdarg>
 #include <cstdio>

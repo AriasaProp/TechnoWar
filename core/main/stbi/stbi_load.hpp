@@ -21,7 +21,7 @@ namespace load {
   //
 
   unsigned char *load_from_memory (unsigned char const *, int, int *, int *, int *, int);
-	unsigned char *load_from_assets (const char *, int *, int *, int *, int);
+  unsigned char *load_from_assets (const char *, int *, int *, int *, int);
 
 #ifndef STBI_NO_STDIO
   unsigned char *load_from_filename (char const *filename, int *x, int *y, int *channels_in_file, int desired_channels);
@@ -36,7 +36,7 @@ namespace load {
 #ifdef STBI_WINDOWS_UTF8
   int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input);
 #endif
-	
+
   ////////////////////////////////////
   //
   // 16-bits-per-channel interface
