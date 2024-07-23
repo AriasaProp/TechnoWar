@@ -23,8 +23,8 @@ static inline bool readFile (FILE *file, char *buffer, size_t size) {
 
 // constructor
 uiskin::uiskin (const char *f) {
-	filename = std::string(f);
-	uiskns.insert(filename);
+  filename = std::string (f);
+  uiskns.insert (filename);
   FILE *atlas_pack = fopen (filename, "rb");
   if (!atlas_pack) return;
   try {
@@ -51,7 +51,7 @@ uiskin::uiskin (const char *f) {
 
 // destructor
 uiskin::~uiskin () {
-	uiskns.erase(filename);
+  uiskns.erase (filename);
 }
 
 size_t uiskin::region::hash::operator() (const uiskin::region &r) const {
@@ -60,5 +60,3 @@ size_t uiskin::region::hash::operator() (const uiskin::region &r) const {
 size_t uiskin::region::hash::operator() (const char *r) const {
   return std::hash<std::string> () (std::string (r));
 }
-
-
