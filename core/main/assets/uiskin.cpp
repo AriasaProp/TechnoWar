@@ -1,4 +1,5 @@
 #include "uiskin.hpp"
+#include "../engine.hpp"
 
 #include <cstdio>
 #include <memory>
@@ -23,24 +24,23 @@ static inline bool readFile (FILE *file, char *buffer, size_t size) {
 
 // constructor
 uiskin::uiskin (const char *f) {
-  filename = std::string (f);
-  uiskns.insert (filename);
-  FILE *atlas_pack = fopen (filename, "rb");
-  if (!atlas_pack) return;
+	engine::asset_core *ast = engine::assets->open_asset(f);
   try {
 
     // read regions
-    for (char reading = 0; (reading = std::getc (atlas_pack)) != '\$';) {
+    char reading;
+    while (!ast->eof()) {
+    	if (ast->read((void*)&reading, 1)) continue;
       if (reading == '\n') continue; // skip char
       if (reading != '\"') throw "file invalid!";
       uiskin::region reg;
       // get id
-      while ((reading = std::getc (atlas_pack)) != '\"') {
+      while ((ast->read((void*)&reading, 1) && (reading != '\"')) {
         reg.id += reading;
       }
-      if ((reading = std::getc (atlas_pack)) != ':') throw "file invalid!";
+      while ((ast->read((void*)&reading, 1) && (reading != ':')) throw "file invalid!";
 
-      if (!readFile (atlas_pack, (char *)(&reg.x), 16)) // 16 bytes -> 4 * 32 bit
+      if (!ast->read((void *)(&reg.x), 16) != 16) // 16 bytes -> 4 * 32 bit
         throw "file invalid";
     }
 
@@ -51,7 +51,6 @@ uiskin::uiskin (const char *f) {
 
 // destructor
 uiskin::~uiskin () {
-  uiskns.erase (filename);
 }
 
 size_t uiskin::region::hash::operator() (const uiskin::region &r) const {
@@ -60,3 +59,5 @@ size_t uiskin::region::hash::operator() (const uiskin::region &r) const {
 size_t uiskin::region::hash::operator() (const char *r) const {
   return std::hash<std::string> () (std::string (r));
 }
+
+

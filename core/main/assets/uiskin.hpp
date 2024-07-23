@@ -10,7 +10,7 @@
 
 struct uiskin {
 public:
-  uiskin (const char *);
+  uiskin(const char *);
   ~uiskin ();
 
   struct region {
@@ -22,13 +22,11 @@ public:
       size_t operator() (const char *) const;
     };
   };
-  friend void validate_uiskin ();
-  friend void invalidate_uiskin ();
 
 private:
-  std::string filename;
   std::unordered_set<region, region::hash> regions;
   engine::texture_core *tex;
+  
 };
 
 #endif // UISKIN_INCLUDE_
