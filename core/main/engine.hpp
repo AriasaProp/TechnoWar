@@ -77,9 +77,13 @@ struct assets_core {
   virtual void *asset_buffer (const char *, unsigned int *) = 0;
   virtual ~assets_core () {}
 };
+struct info_core {
+	virtual size_t memory() = 0;
+};
 extern graphics_core *graph;
 extern input_core *inpt;
 extern assets_core *asset;
+extern info_core *info;
 } // namespace engine
 
 #endif //_Included_Engine

@@ -16,21 +16,8 @@ static union {
   struct {
     float x, y;
   } vec;
-  struct rusage myusage;
 } tmp;
 
-const char *memory_usage::mem_usage () {
-  getrusage (RUSAGE_SELF, &tmp.myusage);
-  static char result[64];
-  snprintf (result, sizeof result, "%3ld.%03ld MB", tmp.myusage.ru_maxrss / 1000, tmp.myusage.ru_maxrss % 1000);
-  return result;
-}
-const char *memory_usage::cpu_time () {
-  getrusage (RUSAGE_SELF, &tmp.myusage);
-  static char result[512];
-  snprintf (result, sizeof result, "CPU Time: [user] %ld.%06ld s; [system] %ld.%06ld s", tmp.myusage.ru_utime.tv_sec, tmp.myusage.ru_utime.tv_usec, tmp.myusage.ru_stime.tv_sec, tmp.myusage.ru_stime.tv_usec);
-  return result;
-}
 static std::chrono::time_point<std::chrono::steady_clock> start_clock;
 static float delta_result;
 static float delta_count;

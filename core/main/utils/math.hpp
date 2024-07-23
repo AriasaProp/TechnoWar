@@ -19,11 +19,6 @@ enum Align : unsigned char {
   ALIGN_BOTTOM_RIGHT = 10
 };
 
-namespace memory_usage {
-const char *mem_usage ();
-const char *cpu_time ();
-} // namespace memory_usage
-namespace clock_count {
 void start ();
 void render ();
 void end ();
