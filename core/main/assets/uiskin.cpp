@@ -24,13 +24,13 @@ static inline bool readFile (FILE *file, char *buffer, size_t size) {
 
 // constructor
 uiskin::uiskin (const char *f) {
-	engine::asset_core *ast = engine::assets->open_asset(f);
+  engine::asset_core *ast = engine::assets->open_asset (f);
   try {
 
     // read regions
     char reading;
-    while (!ast->eof()) {
-    	if (ast->read((void*)&reading, 1)) continue;
+    while (!ast->eof ()) {
+      if (ast->read ((void *)&reading, 1)) continue;
       if (reading == '\n') continue; // skip char
       if (reading != '\"') throw "file invalid!";
       uiskin::region reg;
@@ -59,5 +59,3 @@ size_t uiskin::region::hash::operator() (const uiskin::region &r) const {
 size_t uiskin::region::hash::operator() (const char *r) const {
   return std::hash<std::string> () (std::string (r));
 }
-
-
