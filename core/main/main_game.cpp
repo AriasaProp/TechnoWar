@@ -118,7 +118,7 @@ void render () {
   float delta = clock_count::getDelta ();
 
   t_dlt->setText ("%03.3f sec", delta);
-  t_mem->setText ("%05.0f byte", engine::info->memory ());
+  t_mem->setText ("%05d byte", engine::info->memory ());
   //
 
   engine::graph->clear (7);
