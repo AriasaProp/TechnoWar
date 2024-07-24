@@ -92,7 +92,7 @@ void start () {
   t_fps = uistage::makeText (Vector2 (10, 0, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### FPS");
   t_dlt = uistage::makeText (Vector2 (10, 40, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### sec");
   t_mem = uistage::makeText (Vector2 (10, 80, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "##### MB");
-  //t_cpu = uistage::makeText (Vector2 (10, 120, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "CPU Time: [user] ##### s; [system] ##### s");
+  // t_cpu = uistage::makeText (Vector2 (10, 120, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "CPU Time: [user] ##### s; [system] ##### s");
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), [] () -> void {
     uistage::temporaryTooltip ("Tooltip test 1 for button 1. Hello!");
@@ -118,7 +118,7 @@ void render () {
   float delta = clock_count::getDelta ();
 
   t_dlt->setText ("%03.3f sec", delta);
-  t_mem->setText ("%05.0f byte", engine::info->memory());
+  t_mem->setText ("%05.0f byte", engine::info->memory ());
   //
 
   engine::graph->clear (7);
