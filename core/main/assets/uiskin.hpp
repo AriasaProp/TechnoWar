@@ -5,13 +5,13 @@
 #define PACK_SIZE 1024
 
 #include "../engine.hpp"
-#include <unordered_set>
 #include <cstdint>
 #include <string>
+#include <unordered_set>
 
 struct uiskin {
 public:
-  uiskin(const char *);
+  uiskin (const char *);
   ~uiskin ();
 
   struct region {
@@ -26,8 +26,7 @@ public:
 
 private:
   std::unordered_set<region, region::hash> regions;
-  //engine::texture_core *tex;
-  
+  // engine::texture_core *tex;
 };
 
 #endif // UISKIN_INCLUDE_
