@@ -5,8 +5,16 @@
 
 struct rusage usage;
 
-long android_info::memory () {
-  if (getrusage (RUSAGE_SELF, &usage) < 0)
-    return -1;
-  return usage.ru_maxrss;
+android_info::android_info() {
+	engine::info = this;
+}
+android_info::~android_info() {
+	
+	engine::info = nullptr;
+}
+
+long android_info::memory() {
+	if (getrusage(RUSAGE_SELF, &usage) < 0)
+		return -1;
+	return usage.ru_maxrss;
 }
