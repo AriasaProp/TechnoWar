@@ -17,7 +17,7 @@ uiskin::uiskin (const char *f) {
       if (reading != '\"') throw "file invalid!";
       uiskin::region reg;
       // get id
-      while (ast->read((void*)&reading, 1) && (reading != '\"')) {
+      while (ast->read ((void *)&reading, 1) && (reading != '\"')) {
         reg.id += reading;
       }
       if ((ast->read((void*)&reading, 1) && (reading != ':')) throw "file invalid!";
