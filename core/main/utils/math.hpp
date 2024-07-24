@@ -18,7 +18,7 @@ enum Align : unsigned char {
   ALIGN_RIGHT = 6,
   ALIGN_BOTTOM_RIGHT = 10
 };
-
+namespace clock_count {
 void start ();
 void render ();
 void end ();
