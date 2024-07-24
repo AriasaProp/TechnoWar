@@ -4,10 +4,9 @@
 #include "../engine.hpp"
 
 struct android_info : public engine::info_core {
-	private:
-
-	public:
-	long memory() override;
+private:
+public:
+  long memory () override;
 };
 
 #endif // Included_Android_Info
