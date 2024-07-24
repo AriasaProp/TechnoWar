@@ -453,7 +453,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   memcpy (strstr (texfile, ".fnt"), ".png", 4);
   void *datR = engine::asset->asset_buffer (texfile, &datRI);
   delete[] texfile;
-  unsigned char *tD = stbi::load::load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, STBI_rgb_alpha);
+  unsigned char *tD = stbi::load::load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, stbi::load::channel::rgb_alpha);
   free (datR);
   ftexid = engine::graph->gen_texture (x, y, tD);
   stbi::load::image_free (tD);
