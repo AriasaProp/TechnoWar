@@ -22,7 +22,7 @@ uiskin::uiskin (const char *f) {
       }
       if ((ast->read((void*)&reading, 1) && (reading != ':')) throw "file invalid!";
 
-      if (!ast->read((void *)(&reg.x), 16) != 16) // 16 bytes -> 4 * 32 bit
+      if (ast->read((void *)(&reg.x), 16) != 16) // 16 bytes -> 4 * 32 bit
         throw "file invalid";
     }
 
