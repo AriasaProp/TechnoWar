@@ -96,8 +96,8 @@ static void *android_app_entry (void *) {
   AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
   app->graphics = new opengles_graphics{};
   {
-	  ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-	  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
+    ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+    ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     bool created = false;
     bool running = false,
          started = false,
@@ -110,16 +110,16 @@ static void *android_app_entry (void *) {
         0};
     do {
       switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
-    	case ALOOPER_POLL_WAKE:
+      case ALOOPER_POLL_WAKE:
         break;
-    	case ALOOPER_POLL_CALLBACK:
-    		// there is no callback
+      case ALOOPER_POLL_CALLBACK:
+        // there is no callback
         break;
-    	case ALOOPER_POLL_TIMEOUT:
-    		// there is no timeout
+      case ALOOPER_POLL_TIMEOUT:
+        // there is no timeout
         break;
-    	case ALOOPER_POLL_ERROR:
-    		// i don't know about how to handle this error
+      case ALOOPER_POLL_ERROR:
+        // i don't know about how to handle this error
         break;
       case 2: // input queue
         a_input.process_input ();
