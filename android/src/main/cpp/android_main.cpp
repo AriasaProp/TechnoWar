@@ -82,7 +82,6 @@ struct android_app {
       msgwrite;
   ANativeActivity *activity;
   AConfiguration *config;
-  ALooper *looper;
   ANativeWindow *window = nullptr; // update in mainThread
   AInputQueue *inputQueue;
   pthread_mutex_t mutex;
@@ -95,22 +94,33 @@ static void *android_app_entry (void *) {
   if (!app) return NULL;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
-  app->looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   app->graphics = new opengles_graphics{};
   {
+	  ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+	  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     bool created = false;
     bool running = false,
          started = false,
          resume = false;
     android_asset a_asset (app->activity->assetManager);
-    android_input a_input (app->looper);
+    android_input a_input (looper);
     android_info inf;
     unsigned char read_cmd[2]{
         APP_CMD_CREATE,
         0};
-    while (read_cmd[0] != APP_CMD_DESTROY) {
-      switch (ALooper_pollAll ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
+    do {
+      switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
+    	case ALOOPER_POLL_WAKE:
+        break;
+    	case ALOOPER_POLL_CALLBACK:
+    		// there is no callback
+        break;
+    	case ALOOPER_POLL_TIMEOUT:
+    		// there is no timeout
+        break;
+    	case ALOOPER_POLL_ERROR:
+    		// i don't know about how to handle this error
+        break;
       case 2: // input queue
         a_input.process_input ();
         break;
@@ -133,11 +143,11 @@ static void *android_app_entry (void *) {
             a_input.detach_sensor ();
           break;
         case APP_CMD_INPUT_INIT:
-          a_input.set_input_queue (app->looper, app->inputQueue);
+          a_input.set_input_queue (looper, app->inputQueue);
           break;
         case APP_CMD_INPUT_TERM:
           if (app->inputQueue == NULL) break;
-          a_input.set_input_queue (app->looper, NULL);
+          a_input.set_input_queue (looper, NULL);
           app->inputQueue = NULL;
           break;
         case APP_CMD_TERM_WINDOW:
@@ -206,7 +216,7 @@ static void *android_app_entry (void *) {
         app->graphics->postRender (false);
         break;
       }
-    }
+    } while (read_cmd[0] != APP_CMD_DESTROY);
     // when destroy
     if (app->graphics->preRender ())
       Main::end ();
