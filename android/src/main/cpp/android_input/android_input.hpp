@@ -28,9 +28,7 @@ public:
   void process_event () override;
 
   void set_input_queue (ALooper *, AInputQueue *);
-  void process_input ();
   void attach_sensor ();
-  void process_sensor ();
   void detach_sensor ();
 
   android_input (ALooper *);

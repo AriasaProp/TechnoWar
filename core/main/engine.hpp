@@ -78,6 +78,7 @@ struct assets_core {
   virtual ~assets_core () {}
 };
 struct info_core {
+	virtual const char *get_platform_info() = 0;
   virtual long memory () = 0;
 };
 extern graphics_core *graph;
