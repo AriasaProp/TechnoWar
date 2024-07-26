@@ -182,7 +182,7 @@ static int process_input (int, int, void *data) {
     break;
   }
   }
-  AInputQueue_finishEvent (m->inputQueue, minput->i_event, handled);
+  AInputQueue_finishEvent (m->inputQueue, m->i_event, handled);
   return 0;
 }
 void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
@@ -190,7 +190,7 @@ void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
     AInputQueue_detachLooper (minput->inputQueue);
   minput->inputQueue = i;
   if (minput->inputQueue)
-    AInputQueue_attachLooper (m->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void *)minput);
+    AInputQueue_attachLooper (minput->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void*)minput);
 }
 static int inline android_button_type (int32_t btn) {
   switch (btn) {
