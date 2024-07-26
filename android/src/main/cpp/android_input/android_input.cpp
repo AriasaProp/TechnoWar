@@ -79,8 +79,8 @@ void android_input::process_event () {
   }
   minput->key_events.clear ();
 }
-static int process_input (int, int, void* data) {
-	ainput *m = (ainput*)data;
+static int process_input (int, int, void *data) {
+  ainput *m = (ainput *)data;
   if (!m->inputQueue) return 0;
   if (AInputQueue_getEvent (m->inputQueue, &m->i_event) < 0) return 0;
   if (AInputQueue_preDispatchEvent (m->inputQueue, m->i_event) != 0) return 0;
@@ -190,7 +190,7 @@ void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
     AInputQueue_detachLooper (minput->inputQueue);
   minput->inputQueue = i;
   if (minput->inputQueue)
-    AInputQueue_attachLooper (m->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void*)minput);
+    AInputQueue_attachLooper (m->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void *)minput);
 }
 static int inline android_button_type (int32_t btn) {
   switch (btn) {
@@ -219,7 +219,7 @@ void android_input::attach_sensor () {
   ASensorEventQueue_enableSensor (minput->sensorEventQueue, minput->gyroscopeSensor);
   ASensorEventQueue_setEventRate (minput->sensorEventQueue, minput->gyroscopeSensor, 50000 / 3);
   minput->sensor_enabled = true;
-  process_sensor_event(0,0,(void*)minput);
+  process_sensor_event (0, 0, (void *)minput);
 }
 void android_input::detach_sensor () {
   if (!minput->sensor_enabled) return;
@@ -229,8 +229,8 @@ void android_input::detach_sensor () {
   ASensorEventQueue_disableSensor (minput->sensorEventQueue, minput->gyroscopeSensor);
   minput->sensor_enabled = false;
 }
-static int process_sensor_event (int, int, void* data) {
-	ainput *m = (ainput*)data;
+static int process_sensor_event (int, int, void *data) {
+  ainput *m = (ainput *)data;
   if (!m->sensor_enabled) return 0;
   unsigned int i, j;
   while ((i = ASensorEventQueue_getEvents (m->sensorEventQueue, m->s_event, 2)) > 0) {
@@ -256,7 +256,7 @@ static int process_sensor_event (int, int, void* data) {
       }
     }
   }
-	return 0;
+  return 0;
 }
 android_input::android_input (ALooper *looper) {
   minput = new ainput{};
@@ -265,7 +265,7 @@ android_input::android_input (ALooper *looper) {
   minput->sensorManager = ASensorManager_getInstance ();
   minput->accelerometerSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
   minput->gyroscopeSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_GYROSCOPE);
-  minput->sensorEventQueue = ASensorManager_createEventQueue (minput->sensorManager, looper, ALOOPER_POLL_CALLBACK, process_sensor_event, (void*)minput);
+  minput->sensorEventQueue = ASensorManager_createEventQueue (minput->sensorManager, looper, ALOOPER_POLL_CALLBACK, process_sensor_event, (void *)minput);
   // input
   engine::inpt = this;
 }

@@ -6,11 +6,11 @@
 struct android_info : public engine::info_core {
 private:
   void *instance;
-  
+
 public:
   android_info ();
   ~android_info ();
-	const char *get_platform_info() override;
+  const char *get_platform_info () override;
   long memory () override;
 };
 
