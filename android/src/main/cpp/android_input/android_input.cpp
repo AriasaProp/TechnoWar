@@ -36,48 +36,54 @@ struct ainput {
   AInputEvent *i_event;
   bool sensor_enabled;
 };
-// funct
-engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
-void android_input::getPointerPos (float *out, unsigned int p = 0) {
-  out[0] = minput->input_pointer_cache[p].x;
-  out[1] = minput->input_pointer_cache[p].y;
-}
-void android_input::getPointerDelta (float *out, unsigned int p = 0) {
-  out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
-  out[1] = minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys;
-}
-bool android_input::justTouched () { return false; }
-bool android_input::onTouched () {
-  for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
-    if (minput->input_pointer_cache[i].active)
-      return true;
+//
+static int inline android_button_type (int32_t btn) {
+  switch (btn) {
+  case AMOTION_EVENT_BUTTON_PRIMARY:
+  case AMOTION_EVENT_BUTTON_SECONDARY:
+    return 0;
+  case AMOTION_EVENT_BUTTON_TERTIARY:
+    return 1;
+  case AMOTION_EVENT_BUTTON_BACK:
+    return 2;
+  case AMOTION_EVENT_BUTTON_FORWARD:
+    return 3;
+  case AMOTION_EVENT_BUTTON_STYLUS_PRIMARY:
+    return 4;
+  case AMOTION_EVENT_BUTTON_STYLUS_SECONDARY:
+    return 5;
+  default:
+    return -1;
   }
-  return false;
 }
-bool android_input::isTouched (unsigned int p = 0) { return minput->input_pointer_cache[p].active; }
-float android_input::getPressure (unsigned int) { return false; }
-bool android_input::isButtonPressed (int) { return false; }
-bool android_input::isButtonJustPressed (int) { return false; }
-bool android_input::isKeyPressed (int key) { return minput->key_pressed.find (key) != minput->key_pressed.end (); }
-bool android_input::isKeyJustPressed (int key) { return minput->justKey_pressed.find (key) != minput->justKey_pressed.end (); }
-void android_input::process_event () {
-  if (minput->justKey_pressed.size () > 0) {
-    minput->justKey_pressed.clear ();
-  }
-  for (const key_event *k : minput->key_events) {
-    switch (k->type) {
-    case key_event::event::KEY_UP: {
-    } break;
-    case key_event::event::KEY_DOWN: {
-      std::unordered_set<int>::iterator key = minput->justKey_pressed.find (k->keyCode);
-      if (key != minput->justKey_pressed.end ()) {
-        minput->justKey_pressed.insert (k->keyCode);
+static int process_sensor_event (int, int, void *data) {
+  ainput *m = (ainput *)data;
+  if (!m->sensor_enabled) return 0;
+  unsigned int i, j;
+  while ((i = ASensorEventQueue_getEvents (m->sensorEventQueue, m->s_event, 2)) > 0) {
+    for (j = 0; j < i; j++) {
+      ASensorEvent &e = m->s_event[j];
+      switch (e.type) {
+      case ASENSOR_TYPE_ACCELEROMETER: {
+        engine::sensor_value &t = m->sensors["accelerometer"];
+        t.x = e.acceleration.x / 2.f + 0.5f;
+        t.y = e.acceleration.y / 2.f + 0.5f;
+        t.z = e.acceleration.z / 2.f + 0.5f;
+        break;
       }
-    } break;
+      case ASENSOR_TYPE_GYROSCOPE: {
+        engine::sensor_value &t = m->sensors["gyroscope"];
+        t.x = e.acceleration.x / 2.f + 0.5f;
+        t.y = e.acceleration.y / 2.f + 0.5f;
+        t.z = e.acceleration.z / 2.f + 0.5f;
+        break;
+      }
+      default:
+        break;
+      }
     }
-    delete k;
   }
-  minput->key_events.clear ();
+  return 0;
 }
 static int process_input (int, int, void *data) {
   ainput *m = (ainput *)data;
@@ -185,31 +191,56 @@ static int process_input (int, int, void *data) {
   AInputQueue_finishEvent (m->inputQueue, m->i_event, handled);
   return 0;
 }
+// funct
+engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
+void android_input::getPointerPos (float *out, unsigned int p = 0) {
+  out[0] = minput->input_pointer_cache[p].x;
+  out[1] = minput->input_pointer_cache[p].y;
+}
+void android_input::getPointerDelta (float *out, unsigned int p = 0) {
+  out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
+  out[1] = minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys;
+}
+bool android_input::justTouched () { return false; }
+bool android_input::onTouched () {
+  for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
+    if (minput->input_pointer_cache[i].active)
+      return true;
+  }
+  return false;
+}
+bool android_input::isTouched (unsigned int p = 0) { return minput->input_pointer_cache[p].active; }
+float android_input::getPressure (unsigned int) { return false; }
+bool android_input::isButtonPressed (int) { return false; }
+bool android_input::isButtonJustPressed (int) { return false; }
+bool android_input::isKeyPressed (int key) { return minput->key_pressed.find (key) != minput->key_pressed.end (); }
+bool android_input::isKeyJustPressed (int key) { return minput->justKey_pressed.find (key) != minput->justKey_pressed.end (); }
+void android_input::process_event () {
+  if (minput->justKey_pressed.size () > 0) {
+    minput->justKey_pressed.clear ();
+  }
+  for (const key_event *k : minput->key_events) {
+    switch (k->type) {
+    case key_event::event::KEY_UP: {
+    } break;
+    case key_event::event::KEY_DOWN: {
+      std::unordered_set<int>::iterator key = minput->justKey_pressed.find (k->keyCode);
+      if (key != minput->justKey_pressed.end ()) {
+        minput->justKey_pressed.insert (k->keyCode);
+      }
+    } break;
+    }
+    delete k;
+  }
+  minput->key_events.clear ();
+}
+
 void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
   if (minput->inputQueue)
     AInputQueue_detachLooper (minput->inputQueue);
   minput->inputQueue = i;
   if (minput->inputQueue)
     AInputQueue_attachLooper (minput->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void *)minput);
-}
-static int inline android_button_type (int32_t btn) {
-  switch (btn) {
-  case AMOTION_EVENT_BUTTON_PRIMARY:
-  case AMOTION_EVENT_BUTTON_SECONDARY:
-    return 0;
-  case AMOTION_EVENT_BUTTON_TERTIARY:
-    return 1;
-  case AMOTION_EVENT_BUTTON_BACK:
-    return 2;
-  case AMOTION_EVENT_BUTTON_FORWARD:
-    return 3;
-  case AMOTION_EVENT_BUTTON_STYLUS_PRIMARY:
-    return 4;
-  case AMOTION_EVENT_BUTTON_STYLUS_SECONDARY:
-    return 5;
-  default:
-    return -1;
-  }
 }
 
 void android_input::attach_sensor () {
@@ -229,35 +260,7 @@ void android_input::detach_sensor () {
   ASensorEventQueue_disableSensor (minput->sensorEventQueue, minput->gyroscopeSensor);
   minput->sensor_enabled = false;
 }
-static int process_sensor_event (int, int, void *data) {
-  ainput *m = (ainput *)data;
-  if (!m->sensor_enabled) return 0;
-  unsigned int i, j;
-  while ((i = ASensorEventQueue_getEvents (m->sensorEventQueue, m->s_event, 2)) > 0) {
-    for (j = 0; j < i; j++) {
-      ASensorEvent &e = m->s_event[j];
-      switch (e.type) {
-      case ASENSOR_TYPE_ACCELEROMETER: {
-        engine::sensor_value &t = m->sensors["accelerometer"];
-        t.x = e.acceleration.x / 2.f + 0.5f;
-        t.y = e.acceleration.y / 2.f + 0.5f;
-        t.z = e.acceleration.z / 2.f + 0.5f;
-        break;
-      }
-      case ASENSOR_TYPE_GYROSCOPE: {
-        engine::sensor_value &t = m->sensors["gyroscope"];
-        t.x = e.acceleration.x / 2.f + 0.5f;
-        t.y = e.acceleration.y / 2.f + 0.5f;
-        t.z = e.acceleration.z / 2.f + 0.5f;
-        break;
-      }
-      default:
-        break;
-      }
-    }
-  }
-  return 0;
-}
+
 android_input::android_input (ALooper *looper) {
   minput = new ainput{};
   minput->sensors["accelerometer"] = {0, 0, 0};
