@@ -191,6 +191,7 @@ static int process_input (int, int, void *data) {
   AInputQueue_finishEvent (m->inputQueue, m->i_event, handled);
   return 0;
 }
+
 // funct
 engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
 void android_input::getPointerPos (float *out, unsigned int p = 0) {
