@@ -190,7 +190,7 @@ void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
     AInputQueue_detachLooper (minput->inputQueue);
   minput->inputQueue = i;
   if (minput->inputQueue)
-    AInputQueue_attachLooper (minput->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void*)minput);
+    AInputQueue_attachLooper (minput->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void *)minput);
 }
 static int inline android_button_type (int32_t btn) {
   switch (btn) {
