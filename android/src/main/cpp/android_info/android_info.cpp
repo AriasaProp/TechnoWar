@@ -20,7 +20,7 @@ android_info::~android_info () {
   engine::info = nullptr;
 }
 const char *android_info::get_platform_info () {
-  ((ty *)instance)->tmp = "Android SDK " + std::to_string (sdk_version);
+  ((ty *)instance)->tmp = "Android SDK " + std::to_string (((ty *)instance)->sdk_version);
   return ((ty *)instance)->tmp.c_str ();
 }
 
