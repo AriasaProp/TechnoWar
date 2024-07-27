@@ -58,7 +58,7 @@ static int inline android_button_type (int32_t btn) {
 }
 static int process_sensor_event (int, int, void *data) {
   ainput *m = (ainput *)data;
-  if (!m->sensor_enabled) return 0;
+  if (!m->sensor_enabled) return 1;
   unsigned int i, j;
   while ((i = ASensorEventQueue_getEvents (m->sensorEventQueue, m->s_event, 2)) > 0) {
     for (j = 0; j < i; j++) {
@@ -83,13 +83,13 @@ static int process_sensor_event (int, int, void *data) {
       }
     }
   }
-  return 0;
+  return 1;
 }
 static int process_input (int, int, void *data) {
   ainput *m = (ainput *)data;
-  if (!m->inputQueue) return 0;
-  if (AInputQueue_getEvent (m->inputQueue, &m->i_event) < 0) return 0;
-  if (AInputQueue_preDispatchEvent (m->inputQueue, m->i_event) != 0) return 0;
+  if (!m->inputQueue) return 1;
+  if (AInputQueue_getEvent (m->inputQueue, &m->i_event) < 0) return 1;
+  if (AInputQueue_preDispatchEvent (m->inputQueue, m->i_event) != 0) return 1;
   int32_t handled = 0;
   switch (AInputEvent_getType (m->i_event)) {
   case AINPUT_EVENT_TYPE_KEY: {
@@ -189,7 +189,7 @@ static int process_input (int, int, void *data) {
   }
   }
   AInputQueue_finishEvent (m->inputQueue, m->i_event, handled);
-  return 0;
+  return 1;
 }
 
 // funct
