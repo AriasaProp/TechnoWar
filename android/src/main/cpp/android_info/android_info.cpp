@@ -27,5 +27,5 @@ const char *android_info::get_platform_info () {
 long android_info::memory () {
   if (getrusage (RUSAGE_SELF, &(((ty *)instance)->usage)) < 0)
     return -1;
-  return usage.ru_maxrss;
+  return ((ty *)instance)->usage.ru_maxrss;
 }
