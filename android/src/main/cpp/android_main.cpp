@@ -217,7 +217,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     pthread_mutex_unlock (&app->mutex);                                            \
     write_cmd.cmd = A;                                                             \
     write_cmd.data = B;                                                            \
-    while (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd) \
+    while (write (app->msgwrite, &write_cmd, sizeof write_cmd) != sizeof write_cmd) \
       LOGE ("cannot write on pipe , %s", strerror (errno));                        \
     pthread_mutex_lock (&app->mutex);                                              \
     while (app->wait_request)                                                      \
@@ -229,7 +229,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   {                                                                                \
     write_cmd.cmd = A;                                                             \
     write_cmd.data = B;                                                            \
-    while (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd) \
+    while (write (app->msgwrite, &write_cmd, sizeof write_cmd) != sizeof write_cmd) \
       LOGE ("cannot write on pipe , %s", strerror (errno));                        \
   }
   // initialize lifecycle
