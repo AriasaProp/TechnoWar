@@ -60,13 +60,16 @@ struct android_app {
   int msgread,
       msgwrite;
   ANativeActivity *activity;
-  ANativeWindow *window = nullptr; // update in mainThread
-  AInputQueue *inputQueue;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
   android_graphics *graphics;
 } *app = nullptr;
+
+struct msg_pipe {
+	unsigned char cmd;
+	void *data;
+};
 
 static void *android_app_entry (void *) {
   if (!app) return NULL;
@@ -74,18 +77,18 @@ static void *android_app_entry (void *) {
   AConfiguration_fromAssetManager (aconfig, app->activity->assetManager);
   app->graphics = new opengles_graphics{};
   bool created = false;
+  bool running = false,
+       started = false,
+       resume = false;
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   try {
-    bool running = false,
-         started = false,
-         resume = false;
-    ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
     android_asset a_asset (app->activity->assetManager);
     android_input a_input (looper);
     android_info inf (app->activity->sdkVersion);
-    unsigned char read_cmd[2]{
+    msg_pipe read_cmd {
         APP_CMD_CREATE,
-        0};
+        nullptr};
     for (;;) {
       if (ALooper_pollAll ((started && running) ? 0 : -1, nullptr, nullptr, nullptr) == 1) {
         if (read (app->msgread, read_cmd, sizeof read_cmd) != sizeof read_cmd) continue;
@@ -95,29 +98,26 @@ static void *android_app_entry (void *) {
   pthread_cond_broadcast (&app->cond); \
   pthread_mutex_unlock (&app->mutex);
 
-        switch (read_cmd[0]) {
+        switch (read_cmd.cmd) {
         case APP_CMD_INIT_WINDOW:
           pthread_mutex_lock (&app->mutex);
-          app->graphics->onWindowInit (app->window);
+          app->graphics->onWindowInit ((ANativeWindow*)read_cmd.data);
           pthread_mutex_unlock (&app->mutex);
           END_WAITING
           break;
         case APP_CMD_FOCUS_CHANGED:
-          if (read_cmd[1])
+          if (*((bool*)read_cmd.data))
             a_input.attach_sensor ();
           else
             a_input.detach_sensor ();
           END_WAITING
           break;
         case APP_CMD_INPUT_INIT:
-          a_input.set_input_queue (looper, app->inputQueue);
+          a_input.set_input_queue (looper, (AInputQueue*)read_cmd.data);
           END_WAITING
           break;
         case APP_CMD_INPUT_TERM:
-          if (app->inputQueue) {
-            a_input.set_input_queue (looper, NULL);
-            app->inputQueue = NULL;
-          }
+          a_input.set_input_queue (looper, NULL);
           END_WAITING
           break;
         case APP_CMD_TERM_WINDOW:
@@ -199,7 +199,7 @@ static void *android_app_entry (void *) {
   return NULL;
 }
 
-static unsigned char write_cmd[2];
+static msg_pipe write_cmd;
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   // initialize application
   app = new android_app;
@@ -210,13 +210,12 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     // force loop foor provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
-#define WRITE_ANDROID_CMD_W(A, B)                                                  \
-  {                                                                                \
+#define WRITE_ANDROID_CMD_W(A, B) {                                                                         \
     pthread_mutex_lock (&app->mutex);                                              \
     app->wait_request = true;                                                      \
     pthread_mutex_unlock (&app->mutex);                                            \
-    write_cmd[0] = A;                                                              \
-    write_cmd[1] = B;                                                              \
+    write_cmd.cmd = A;                                                              \
+    write_cmd.data = B;                                                              \
     while (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd) \
       LOGE ("cannot write on pipe , %s", strerror (errno));                        \
     pthread_mutex_lock (&app->mutex);                                              \
@@ -225,70 +224,61 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     pthread_mutex_unlock (&app->mutex);                                            \
   }
 
-#define WRITE_ANDROID_CMD(A, B)                                                    \
-  {                                                                                \
-    write_cmd[0] = A;                                                              \
-    write_cmd[1] = B;                                                              \
+#define WRITE_ANDROID_CMD(A, B) {                                                                         \
+    write_cmd.cmd = A;                                                              \
+    write_cmd.data = B;                                                              \
     while (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd) \
       LOGE ("cannot write on pipe , %s", strerror (errno));                        \
   }
   // initialize lifecycle
-  activity->callbacks->onStart = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_START, 0)
+  activity->callbacks->onStart = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_START, nullptr)
   };
-  activity->callbacks->onResume = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_RESUME, 0)
+  activity->callbacks->onResume = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_RESUME, nullptr)
   };
-  activity->callbacks->onNativeWindowCreated = [] (ANativeActivity *, ANativeWindow *window) {
-    pthread_mutex_lock (&app->mutex);
-    app->window = window;
-    pthread_mutex_unlock (&app->mutex);
-    WRITE_ANDROID_CMD_W (APP_CMD_INIT_WINDOW, 0)
+  activity->callbacks->onNativeWindowCreated = [](ANativeActivity *, ANativeWindow *window) {
+    WRITE_ANDROID_CMD_W(APP_CMD_INIT_WINDOW, (void*)window)
   };
-  activity->callbacks->onInputQueueCreated = [] (ANativeActivity *, AInputQueue *queue) {
-    if (app->inputQueue)
-      WRITE_ANDROID_CMD_W (APP_CMD_INPUT_TERM, 0)
-    app->inputQueue = queue;
-    WRITE_ANDROID_CMD_W (APP_CMD_INPUT_INIT, 0)
+  activity->callbacks->onInputQueueCreated = [](ANativeActivity *, AInputQueue *queue) {
+    WRITE_ANDROID_CMD_W(APP_CMD_INPUT_INIT, (void*)queue)
   };
-  activity->callbacks->onConfigurationChanged = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_CONFIG_CHANGED, 0)
+  activity->callbacks->onConfigurationChanged = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_CONFIG_CHANGED, nullptr)
   };
-  activity->callbacks->onLowMemory = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, 0)
+  activity->callbacks->onLowMemory = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_LOW_MEMORY, nullptr)
   };
-  activity->callbacks->onWindowFocusChanged = [] (ANativeActivity *, int focused) {
-    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, focused ? 1 : 0);
+  activity->callbacks->onWindowFocusChanged = [](ANativeActivity *, int focused) {
+  	bool *focus = new bool(focused);
+    WRITE_ANDROID_CMD_W(APP_CMD_FOCUS_CHANGED, focus);
+    delete focus;
   };
-  activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
-    WRITE_ANDROID_CMD (APP_CMD_WINDOW_RESIZED, 0)
+  activity->callbacks->onNativeWindowResized = [](ANativeActivity *, ANativeWindow *) {
+    WRITE_ANDROID_CMD(APP_CMD_WINDOW_RESIZED, nullptr)
   };
-  activity->callbacks->onContentRectChanged = [] (ANativeActivity *, const ARect *) {
-    WRITE_ANDROID_CMD (APP_CMD_CONTENT_RECT_CHANGED, 0)
+  activity->callbacks->onContentRectChanged = [](ANativeActivity *, const ARect *) {
+    WRITE_ANDROID_CMD(APP_CMD_CONTENT_RECT_CHANGED, nullptr)
   };
-  activity->callbacks->onSaveInstanceState = [] (ANativeActivity *, size_t *outLen) -> void * {
-    WRITE_ANDROID_CMD (APP_CMD_SAVE_STATE, 0)
+  activity->callbacks->onSaveInstanceState = [](ANativeActivity *, size_t *outLen) -> void * {
+    WRITE_ANDROID_CMD(APP_CMD_SAVE_STATE, nullptr)
     *outLen = 0;
     return nullptr;
   };
-  activity->callbacks->onNativeWindowDestroyed = [] (ANativeActivity *, ANativeWindow *) {
-    pthread_mutex_lock (&app->mutex);
-    app->window = nullptr;
-    pthread_mutex_unlock (&app->mutex);
-    WRITE_ANDROID_CMD_W (APP_CMD_TERM_WINDOW, 0)
+  activity->callbacks->onNativeWindowDestroyed = [](ANativeActivity *, ANativeWindow *) {
+    WRITE_ANDROID_CMD_W(APP_CMD_TERM_WINDOW, nullptr)
   };
-  activity->callbacks->onInputQueueDestroyed = [] (ANativeActivity *, AInputQueue *) {
-    if (app->inputQueue)
-      WRITE_ANDROID_CMD_W (APP_CMD_INPUT_TERM, 0)
+  activity->callbacks->onInputQueueDestroyed = [](ANativeActivity *, AInputQueue *) {
+    WRITE_ANDROID_CMD_W(APP_CMD_INPUT_TERM, nullptr)
   };
-  activity->callbacks->onPause = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD_W (APP_CMD_PAUSE, 0)
+  activity->callbacks->onPause = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD_W(APP_CMD_PAUSE, nullptr)
   };
-  activity->callbacks->onStop = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_STOP, 0)
+  activity->callbacks->onStop = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_STOP, nullptr)
   };
-  activity->callbacks->onDestroy = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_DESTROY, 0)
+  activity->callbacks->onDestroy = [](ANativeActivity *) {
+    WRITE_ANDROID_CMD(APP_CMD_DESTROY, nullptr)
     pthread_mutex_lock (&app->mutex);
     while (!app->destroyed)
       pthread_cond_wait (&app->cond, &app->mutex);
