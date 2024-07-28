@@ -210,7 +210,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
   unsigned char write_cmd[2];
-#define WRITE_ANDROID_CMD_W(A, B) {                                                                         \
+#define WRITE_ANDROID_CMD_W(A, B)                                                  \
+  {                                                                                \
     pthread_mutex_lock (&app->mutex);                                              \
     app->wait_request = true;                                                      \
     pthread_mutex_unlock (&app->mutex);                                            \
@@ -224,7 +225,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     pthread_mutex_unlock (&app->mutex);                                            \
   }
 
-#define WRITE_ANDROID_CMD(A, B) {                                                                         \
+#define WRITE_ANDROID_CMD(A, B)                                                    \
+  {                                                                                \
     write_cmd[0] = A;                                                              \
     write_cmd[1] = B;                                                              \
     while (write (app->msgwrite, write_cmd, sizeof write_cmd) != sizeof write_cmd) \
