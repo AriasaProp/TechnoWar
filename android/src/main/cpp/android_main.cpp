@@ -210,27 +210,27 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     // force loop foor provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
-#define WRITE_ANDROID_CMD_W(A, B)                                                  \
-  {                                                                                \
-    pthread_mutex_lock (&app->mutex);                                              \
-    app->wait_request = true;                                                      \
-    pthread_mutex_unlock (&app->mutex);                                            \
-    write_cmd.cmd = A;                                                             \
-    write_cmd.data = B;                                                            \
+#define WRITE_ANDROID_CMD_W(A, B)                                                   \
+  {                                                                                 \
+    pthread_mutex_lock (&app->mutex);                                               \
+    app->wait_request = true;                                                       \
+    pthread_mutex_unlock (&app->mutex);                                             \
+    write_cmd.cmd = A;                                                              \
+    write_cmd.data = B;                                                             \
     while (write (app->msgwrite, &write_cmd, sizeof write_cmd) != sizeof write_cmd) \
-      LOGE ("cannot write on pipe , %s", strerror (errno));                        \
-    pthread_mutex_lock (&app->mutex);                                              \
-    while (app->wait_request)                                                      \
-      pthread_cond_wait (&app->cond, &app->mutex);                                 \
-    pthread_mutex_unlock (&app->mutex);                                            \
+      LOGE ("cannot write on pipe , %s", strerror (errno));                         \
+    pthread_mutex_lock (&app->mutex);                                               \
+    while (app->wait_request)                                                       \
+      pthread_cond_wait (&app->cond, &app->mutex);                                  \
+    pthread_mutex_unlock (&app->mutex);                                             \
   }
 
-#define WRITE_ANDROID_CMD(A, B)                                                    \
-  {                                                                                \
-    write_cmd.cmd = A;                                                             \
-    write_cmd.data = B;                                                            \
+#define WRITE_ANDROID_CMD(A, B)                                                     \
+  {                                                                                 \
+    write_cmd.cmd = A;                                                              \
+    write_cmd.data = B;                                                             \
     while (write (app->msgwrite, &write_cmd, sizeof write_cmd) != sizeof write_cmd) \
-      LOGE ("cannot write on pipe , %s", strerror (errno));                        \
+      LOGE ("cannot write on pipe , %s", strerror (errno));                         \
   }
   // initialize lifecycle
   activity->callbacks->onStart = [] (ANativeActivity *) {
