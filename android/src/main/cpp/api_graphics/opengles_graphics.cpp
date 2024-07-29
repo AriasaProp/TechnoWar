@@ -93,7 +93,7 @@ void opengles_graphics::killEGL (const unsigned int EGLTermReq) {
   }
 }
 void opengles_graphics::onWindowChange (ANativeWindow *w) {
-  if (window != nullptr)
+  if (window)
     killEGL (TERM_EGL_SURFACE);
   window = w;
 }
@@ -356,11 +356,6 @@ void opengles_graphics::postRender (bool isDestroy) {
     }
   }
   killEGL (EGLTermReq);
-}
-void opengles_graphics::onWindowTerm () {
-  if (window == nullptr) return;
-  killEGL (TERM_EGL_SURFACE); // EGLSurface destroy
-  window = nullptr;
 }
 void opengles_graphics::clear (const unsigned int &m) {
   GLuint c = 0;

@@ -15,7 +15,6 @@ public:
   void onWindowResize (unsigned char) override;
   bool preRender () override;
   void postRender (bool) override;
-  void onWindowTerm () override;
   // core
   float getWidth () override;
   float getHeight () override;
