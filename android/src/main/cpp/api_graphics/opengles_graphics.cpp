@@ -92,19 +92,17 @@ void opengles_graphics::killEGL (const unsigned int EGLTermReq) {
     mgl_data->display = EGL_NO_DISPLAY;
   }
 }
-void opengles_graphics::onWindowInit (ANativeWindow *w) {
-  if (ready ())
+void opengles_graphics::onWindowChange (ANativeWindow *w) {
+  if (window != nullptr)
     killEGL (TERM_EGL_SURFACE);
   window = w;
 }
-bool inline opengles_graphics::ready () {
-  return window != nullptr;
-}
+
 void opengles_graphics::onWindowResize (unsigned char par) {
   mgl_data->resize_state |= par;
 }
 bool opengles_graphics::preRender () {
-  if (!ready ()) return false;
+  if (window == nullptr) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
       // proof
@@ -360,7 +358,7 @@ void opengles_graphics::postRender (bool isDestroy) {
   killEGL (EGLTermReq);
 }
 void opengles_graphics::onWindowTerm () {
-  if (!ready ()) return;
+  if (window == nullptr) return;
   killEGL (TERM_EGL_SURFACE); // EGLSurface destroy
   window = nullptr;
 }
