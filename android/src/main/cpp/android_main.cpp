@@ -88,21 +88,24 @@ static void *android_app_entry (void *n) {
         APP_CMD_CREATE,
         nullptr};
     for (;;) {
-      if (ALooper_pollAll ((started && running) ? 0 : -1, nullptr, nullptr, nullptr) == 1) {
+    	int result, timeout = (started && running) ? 0 : -1;
+    	do {
+    		result = ALooper_pollOnce(timeout, nullptr, nullptr, nullptr);
+    	} while (result == ALOOPER_POLL_CALLBACK);
+      if (result == 1) {
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) != sizeof (msg_pipe)) continue;
 #define END_WAITING                    \
   pthread_mutex_lock (&app->mutex);    \
   app->wait_request = false;           \
   pthread_cond_broadcast (&app->cond); \
   pthread_mutex_unlock (&app->mutex);
-
         switch (read_cmd.cmd) {
         case APP_CMD_WINDOW_UPDATE:
           app->graphics->onWindowChange ((ANativeWindow *)read_cmd.data);
           END_WAITING
           break;
         case APP_CMD_FOCUS_CHANGED:
-          if (*((bool *)read_cmd.data))
+          if (read_cmd.data)
             a_input.attach_sensor ();
           else
             a_input.detach_sensor ();
@@ -235,9 +238,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, nullptr)
   };
   activity->callbacks->onWindowFocusChanged = [] (ANativeActivity *, int focused) {
-    bool *focus = new bool (focused);
-    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, focus);
-    delete focus;
+    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, (void*)focused);
   };
   activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
     WRITE_ANDROID_CMD (APP_CMD_WINDOW_RESIZED, nullptr)
