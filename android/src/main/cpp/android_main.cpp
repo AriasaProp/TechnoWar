@@ -57,7 +57,6 @@ struct android_app {
       wait_request = false;
   int msgread,
       msgwrite;
-  ANativeActivity *activity;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
@@ -69,10 +68,11 @@ struct msg_pipe {
   void *data;
 };
 
-static void *android_app_entry (void *) {
+static void *android_app_entry (void *n) {
   if (!app) return NULL;
+  ANativeActivity *activity = (ANativeActivity *)n;
   AConfiguration *aconfig = AConfiguration_new ();
-  AConfiguration_fromAssetManager (aconfig, app->activity->assetManager);
+  AConfiguration_fromAssetManager (aconfig, activity->assetManager);
   app->graphics = new opengles_graphics{};
   bool created = false;
   bool running = false,
@@ -81,9 +81,9 @@ static void *android_app_entry (void *) {
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   try {
-    android_asset a_asset (app->activity->assetManager);
+    android_asset a_asset (activity->assetManager);
     android_input a_input (looper);
-    android_info inf (app->activity->sdkVersion);
+    android_info inf (activity->sdkVersion);
     msg_pipe read_cmd{
         APP_CMD_CREATE,
         nullptr};
@@ -123,7 +123,7 @@ static void *android_app_entry (void *) {
         case APP_CMD_SAVE_STATE:
           break;
         case APP_CMD_CONFIG_CHANGED:
-          AConfiguration_fromAssetManager (aconfig, app->activity->assetManager);
+          AConfiguration_fromAssetManager (aconfig, activity->assetManager);
           break;
         case APP_CMD_STOP:
           started = false;
@@ -190,7 +190,6 @@ static msg_pipe write_cmd;
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   // initialize application
   app = new android_app;
-  app->activity = activity;
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
   while (pipe (&app->msgread) == -1) {
@@ -282,7 +281,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   pthread_attr_t attr;
   pthread_attr_init (&attr);
   pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create (&app->thread, &attr, android_app_entry, app);
+  pthread_create (&app->thread, &attr, android_app_entry, activity);
   pthread_attr_destroy (&attr);
 }
 
