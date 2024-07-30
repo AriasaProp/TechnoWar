@@ -88,10 +88,10 @@ static void *android_app_entry (void *n) {
         APP_CMD_CREATE,
         nullptr};
     for (;;) {
-    	int result, timeout = (started && running) ? 0 : -1;
-    	do {
-    		result = ALooper_pollOnce(timeout, nullptr, nullptr, nullptr);
-    	} while (result == ALOOPER_POLL_CALLBACK);
+      int result, timeout = (started && running) ? 0 : -1;
+      do {
+        result = ALooper_pollOnce (timeout, nullptr, nullptr, nullptr);
+      } while (result == ALOOPER_POLL_CALLBACK);
       if (result == 1) {
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) != sizeof (msg_pipe)) continue;
 #define END_WAITING                    \
@@ -238,7 +238,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, nullptr)
   };
   activity->callbacks->onWindowFocusChanged = [] (ANativeActivity *, int focused) {
-    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, (void*)focused);
+    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, (void *)focused);
   };
   activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
     WRITE_ANDROID_CMD (APP_CMD_WINDOW_RESIZED, nullptr)
