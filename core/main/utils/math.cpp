@@ -15,10 +15,10 @@ static union {
   struct {
     float x, y;
   } vec;
-  std::chrono::time_point<std::chrono::steady_clock> tmp_clock;
+  std::chrono::time_point<double, std::chrono::steady_clock> tmp_clock;
 } tmp;
 
-static std::chrono::time_point<std::chrono::steady_clock> start_clock;
+static std::chrono::time_point<double, std::chrono::steady_clock> start_clock;
 static std::chrono::duration<double> delta_result, delta_count;
 static size_t FPS_result = 0;
 static size_t frame_count = 0;
