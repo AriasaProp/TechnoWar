@@ -26,32 +26,32 @@ void clock_count::start () {
   start_clock = std::chrono::steady_clock::now ();
   frame_count = 0;
   FPS_result = 0;
-  delta_count = std::chrono::duration<double>(0);
-  delta_result = std::chrono::duration<double>(0);
+  delta_count = std::chrono::duration<double> (0);
+  delta_result = std::chrono::duration<double> (0);
 }
 void clock_count::render () {
-  tmp.tmp_clock = std::chrono::steady_clock::now();
-  delta_result = std::chrono::duration_cast<std::chrono::duration<double>>(tmp.tmp_clock - start_clock);
-	delta_count += delta_result;
-	frame_count++;
-	
-	if (delta_count.count() >= 1.0) {
-	  delta_count -= std::chrono::duration<double>(1.0);
-	  FPS_result = frame_count;
-	  frame_count = 0;
-	}
-	
-	start_clock = tmp.tmp_clock;
+  tmp.tmp_clock = std::chrono::steady_clock::now ();
+  delta_result = std::chrono::duration_cast<std::chrono::duration<double>> (tmp.tmp_clock - start_clock);
+  delta_count += delta_result;
+  frame_count++;
+
+  if (delta_count.count () >= 1.0) {
+    delta_count -= std::chrono::duration<double> (1.0);
+    FPS_result = frame_count;
+    frame_count = 0;
+  }
+
+  start_clock = tmp.tmp_clock;
 }
 void clock_count::end () {
   frame_count = 0;
-  delta_count = std::chrono::duration<double>(0);
+  delta_count = std::chrono::duration<double> (0);
 }
 size_t clock_count::getFPS () const {
   return FPS_result;
 }
 double clock_count::getDelta () const {
-  return delta_result.count();
+  return delta_result.count ();
 }
 
 // matrix4 definition
