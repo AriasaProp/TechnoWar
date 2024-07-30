@@ -238,7 +238,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, nullptr)
   };
   activity->callbacks->onWindowFocusChanged = [] (ANativeActivity *, int focused) {
-    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, (void *)focused);
+    WRITE_ANDROID_CMD_W (APP_CMD_FOCUS_CHANGED, reinterpret_cast<void*>(focused));
   };
   activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
     WRITE_ANDROID_CMD (APP_CMD_WINDOW_RESIZED, nullptr)
