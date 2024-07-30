@@ -15,10 +15,9 @@ static union {
   struct {
     float x, y;
   } vec;
-  std::chrono::time_point<double, std::chrono::steady_clock> tmp_clock;
 } tmp;
 
-static std::chrono::time_point<double, std::chrono::steady_clock> start_clock;
+static std::chrono::time_point<std::chrono::steady_clock> start_clock;
 static std::chrono::duration<double> delta_result, delta_count;
 static size_t FPS_result = 0;
 static size_t frame_count = 0;
@@ -30,8 +29,8 @@ void clock_count::start () {
   delta_result = std::chrono::duration<double> (0);
 }
 void clock_count::render () {
-  tmp.tmp_clock = std::chrono::steady_clock::now ();
-  delta_result = std::chrono::duration_cast<std::chrono::duration<double>> (tmp.tmp_clock - start_clock);
+  auto tmp_clock = std::chrono::steady_clock::now ();
+  delta_result = std::chrono::duration_cast<std::chrono::duration<double>> (tmp_clock - start_clock);
   delta_count += delta_result;
   frame_count++;
 
@@ -41,7 +40,7 @@ void clock_count::render () {
     frame_count = 0;
   }
 
-  start_clock = tmp.tmp_clock;
+  start_clock = tmp_clock;
 }
 void clock_count::end () {
   frame_count = 0;
