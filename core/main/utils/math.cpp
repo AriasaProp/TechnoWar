@@ -47,10 +47,10 @@ void clock_count::end () {
   frame_count = 0;
   delta_count = std::chrono::duration<double> (0);
 }
-size_t clock_count::getFPS () const {
+size_t clock_count::getFPS () {
   return FPS_result;
 }
-double clock_count::getDelta () const {
+double clock_count::getDelta () {
   return delta_result.count ();
 }
 

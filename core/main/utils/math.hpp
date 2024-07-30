@@ -23,8 +23,8 @@ void start ();
 void render ();
 void end ();
 
-size_t getFPS () const;
-double getDelta () const;
+size_t getFPS ();
+double getDelta ();
 } // namespace clock_count
 namespace matrix4 {
 void idt (float *);
