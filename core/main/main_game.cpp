@@ -27,7 +27,7 @@
 
 namespace Main {
 engine::mesh_core *mp;
-uistage::text_actor *t_fps, *t_dlt, *t_mem /*, *t_cpu*/;
+uistage::text_actor *t_fps, *t_dlt, *t_mem , *t_dev;
 
 void start () {
   uistage::clear ();
@@ -92,7 +92,7 @@ void start () {
   t_fps = uistage::makeText (Vector2 (10, 0, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### FPS");
   t_dlt = uistage::makeText (Vector2 (10, 40, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### sec");
   t_mem = uistage::makeText (Vector2 (10, 80, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "##### MB");
-  // t_cpu = uistage::makeText (Vector2 (10, 120, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "CPU Time: [user] ##### s; [system] ##### s");
+  t_dev = uistage::makeText (Vector2 (10, 120, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "Device");
 
   uistage::makeButton ({"btn1", "btn1_"}, Rect (100, 200, 200, 200, ALIGN_BOTTOM_LEFT, ALIGN_CENTER), [] () -> void {
     uistage::temporaryTooltip ("Tooltip test 1 for button 1. Hello!");
@@ -119,7 +119,7 @@ void render () {
 
   t_dlt->setText ("%03.3f sec", delta);
   t_mem->setText ("%d kByte", engine::info->memory ());
-  //
+  t_dev->setText ("Platform: %s", engine::info->get_platform_info ());
 
   engine::graph->clear (7);
   matrix4::rotate (mp->trans,
