@@ -87,15 +87,15 @@ static void *android_app_entry (void *n) {
     msg_pipe read_cmd{
         APP_CMD_CREATE,
         nullptr};
-  	int poll_result, poll_timeout;
+    int poll_result, poll_timeout;
     for (;;) {
-    	poll_timeout = (started && running) ? 0 : -1;
-    	do {
-    		poll_result = ALooper_pollOnce (poll_timeout, nullptr, nullptr, nullptr);
-    	} while (poll_result == ALOOPER_POLL_CALLBACK);
+      poll_timeout = (started && running) ? 0 : -1;
+      do {
+        poll_result = ALooper_pollOnce (poll_timeout, nullptr, nullptr, nullptr);
+      } while (poll_result == ALOOPER_POLL_CALLBACK);
       switch (poll_result) {
       case 1:
-      	//activity handler
+        // activity handler
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) == sizeof (msg_pipe)) {
 #define END_WAITING                    \
   pthread_mutex_lock (&app->mutex);    \
@@ -158,7 +158,7 @@ static void *android_app_entry (void *n) {
         }
         break;
       default:
-      	//base render
+        // base render
         if (app->graphics->preRender ()) {
           a_input.process_event ();
 
