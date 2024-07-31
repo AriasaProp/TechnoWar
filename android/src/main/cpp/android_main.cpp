@@ -87,11 +87,10 @@ static void *android_app_entry (void *n) {
     msg_pipe read_cmd{
         APP_CMD_CREATE,
         nullptr};
-    int poll_result, poll_timeout;
+    int poll_result;
     for (;;) {
-      poll_timeout = (started && running) ? 0 : -1;
       do {
-        poll_result = ALooper_pollOnce (poll_timeout, nullptr, nullptr, nullptr);
+        poll_result = ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr);
       } while (poll_result == ALOOPER_POLL_CALLBACK);
       switch (poll_result) {
       case 1:
