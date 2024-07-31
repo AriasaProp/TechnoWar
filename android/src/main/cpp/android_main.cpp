@@ -87,12 +87,10 @@ static void *android_app_entry (void *n) {
     msg_pipe read_cmd{
         APP_CMD_CREATE,
         nullptr};
-    int poll_result;
     for (;;) {
-      do {
-        poll_result = ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr);
-      } while (poll_result == ALOOPER_POLL_CALLBACK);
-      switch (poll_result) {
+      switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      case ALOOPER_POLL_CALLBACK:
+      	break;
       case 1:
         // activity handler
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) == sizeof (msg_pipe)) {
