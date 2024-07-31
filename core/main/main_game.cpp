@@ -27,7 +27,7 @@
 
 namespace Main {
 engine::mesh_core *mp;
-uistage::text_actor *t_fps, *t_dlt, *t_mem , *t_dev;
+uistage::text_actor *t_fps, *t_dlt, *t_mem, *t_dev;
 
 void start () {
   uistage::clear ();
