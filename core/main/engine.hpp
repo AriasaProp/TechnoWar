@@ -33,38 +33,8 @@ struct mesh_core {
   unsigned short *index;
   float trans[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
 };
-struct graphics_core {
-  virtual float getWidth () = 0;
-  virtual float getHeight () = 0;
-  virtual void clear (const unsigned int &) = 0;
-  virtual void clearcolor (const float &, const float &, const float &, const float &) = 0;
-  virtual texture_core *gen_texture (const int &, const int &, unsigned char *) = 0;
-  virtual void bind_texture (texture_core *) = 0;
-  virtual void set_texture_param (const int &, const int &) = 0;
-  virtual void delete_texture (texture_core *) = 0;
-  virtual void flat_render (texture_core *, flat_vertex *, const unsigned int) = 0;
-  virtual mesh_core *gen_mesh (mesh_core::data *, unsigned int, unsigned short *, unsigned int) = 0;
-  virtual void mesh_render (mesh_core **, const unsigned int &) = 0;
-  virtual void delete_mesh (mesh_core *) = 0;
-  virtual void to_flat_coordinate (float &, float &) = 0;
-};
 struct sensor_value {
   float x, y, z;
-};
-struct input_core {
-  virtual sensor_value getSensorValue (const char *) const = 0;
-  virtual void getPointerPos (float *, unsigned int) = 0;
-  virtual void getPointerDelta (float *, unsigned int) = 0;
-  virtual bool justTouched () = 0;
-  virtual bool onTouched () = 0;
-  virtual bool isTouched (unsigned int) = 0;
-  virtual float getPressure (unsigned int) = 0;
-  virtual bool isButtonPressed (int button) = 0;
-  virtual bool isButtonJustPressed (int button) = 0;
-  virtual bool isKeyPressed (int key) = 0;
-  virtual bool isKeyJustPressed (int key) = 0;
-  virtual void process_event () = 0;
-  virtual ~input_core () {}
 };
 struct asset_core {
   virtual size_t read (void *, size_t) = 0;
@@ -72,19 +42,52 @@ struct asset_core {
   virtual bool eof () = 0;
   virtual ~asset_core () {}
 };
-struct assets_core {
-  virtual asset_core *open_asset (const char *) = 0;
-  virtual void *asset_buffer (const char *, unsigned int *) = 0;
-  virtual ~assets_core () {}
-};
-struct info_core {
-  virtual const char *get_platform_info () = 0;
-  virtual long memory () = 0;
-};
-extern graphics_core *graph;
-extern input_core *inpt;
-extern assets_core *asset;
-extern info_core *info;
+
+// Pointer definitions for graphics namespace
+namespace graphics {
+  extern float (*getWidth)();
+  extern float (*getHeight)();
+  extern void (*clear)(const unsigned int &);
+  extern void (*clearcolor)(const float &, const float &, const float &, const float &);
+  extern texture_core* (*gen_texture)(const int &, const int &, unsigned char *);
+  extern void (*bind_texture)(texture_core *);
+  extern void (*set_texture_param)(const int &, const int &);
+  extern void (*delete_texture)(texture_core *);
+  extern void (*flat_render)(texture_core *, flat_vertex *, const unsigned int);
+  extern mesh_core* (*gen_mesh)(mesh_core::data *, unsigned int, unsigned short *, unsigned int);
+  extern void (*mesh_render)(mesh_core **, const unsigned int &);
+  extern void (*delete_mesh)(mesh_core *);
+  extern void (*to_flat_coordinate)(float &, float &);
+}
+
+// Pointer definitions for input namespace
+namespace input {
+  extern sensor_value (*getSensorValue)(const char *) const;
+  extern void (*getPointerPos)(float *, unsigned int);
+  extern void (*getPointerDelta)(float *, unsigned int);
+  extern bool (*justTouched)();
+  extern bool (*onTouched)();
+  extern bool (*isTouched)(unsigned int);
+  extern float (*getPressure)(unsigned int);
+  extern bool (*isButtonPressed)(int button);
+  extern bool (*isButtonJustPressed)(int button);
+  extern bool (*isKeyPressed)(int key);
+  extern bool (*isKeyJustPressed)(int key);
+  extern void (*process_event)();
+}
+
+// Pointer definitions for assets namespace
+namespace assets {
+  extern asset* (*open_asset)(const char *);
+  extern void* (*asset_buffer)(const char *, unsigned int *);
+}
+
+// Pointer definitions for info namespace
+namespace info {
+  extern const char* (*get_platform_info)();
+  extern long (*memory)();
+}
+
 } // namespace engine
 
 #endif //_Included_Engine

@@ -1,9 +1,15 @@
-#include "opengles_graphics.hpp"
-
 #include <cstddef>
 #include <unordered_set>
 // make opengles lastest possible version
 #include <GLES3/gl32.h> //API 24
+#include <EGL/egl.h>
+
+#include "../android_engine.hpp"
+#define TERM_EGL_SURFACE 1
+#define TERM_EGL_CONTEXT 2
+#define TERM_EGL_DISPLAY 4
+
+namespace graphics_opengles {
 
 struct opengles_texture : public engine::texture_core {
   GLuint id;
@@ -24,10 +30,6 @@ struct opengles_texture : public engine::texture_core {
   }
 };
 
-#include <EGL/egl.h>
-#define TERM_EGL_SURFACE 1
-#define TERM_EGL_CONTEXT 2
-#define TERM_EGL_DISPLAY 4
 struct gl_data {
   bool dirty_uiProj;
   bool dirty_worldProj;
@@ -51,12 +53,10 @@ struct gl_data {
   float worldProj[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
   std::unordered_set<opengles_texture *> managedTexture;
   std::unordered_set<engine::mesh_core *> managedMesh;
-};
+} *mgl_data = nullptr;
 
-float opengles_graphics::getWidth () { return mgl_data->game_width; }
-float opengles_graphics::getHeight () { return mgl_data->game_height; }
-
-void opengles_graphics::killEGL (const unsigned int EGLTermReq) {
+//self
+static void killEGL (const unsigned int EGLTermReq) {
   if (!EGLTermReq || !mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (mgl_data->surface && (EGLTermReq & 5)) {
@@ -92,16 +92,31 @@ void opengles_graphics::killEGL (const unsigned int EGLTermReq) {
     mgl_data->display = EGL_NO_DISPLAY;
   }
 }
-void opengles_graphics::onWindowChange (ANativeWindow *w) {
+static inline void update_layout () {
+  const float fixedWidth = mgl_data->wWidth;
+  const float fixedHeight = mgl_data->wHeight;
+
+  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
+  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
+  // ui safe insets update
+  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f;
+  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3] / fixedHeight) - 1.0f;
+  mgl_data->game_width = fixedWidth - cur_safe_insets[0] - cur_safe_insets[2];
+  mgl_data->game_height = fixedHeight - cur_safe_insets[1] - cur_safe_insets[3];
+  mgl_data->dirty_uiProj = true;
+  mgl_data->dirty_worldProj = true;
+}
+
+//android
+static void onWindowChange (ANativeWindow *w) {
   if (window)
     killEGL (TERM_EGL_SURFACE);
   window = w;
 }
-
-void opengles_graphics::onWindowResize (unsigned char par) {
+static void onWindowResize (unsigned char par) {
   mgl_data->resize_state |= par;
 }
-bool opengles_graphics::preRender () {
+static bool preRender () {
   if (window == nullptr) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
@@ -334,7 +349,7 @@ bool opengles_graphics::preRender () {
   }
   return true;
 }
-void opengles_graphics::postRender (bool isDestroy) {
+static void postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;
   if (!eglSwapBuffers (mgl_data->display, mgl_data->surface)) {
     switch (eglGetError ()) {
@@ -357,7 +372,10 @@ void opengles_graphics::postRender (bool isDestroy) {
   }
   killEGL (EGLTermReq);
 }
-void opengles_graphics::clear (const unsigned int &m) {
+//core
+static float getWidth () { return mgl_data->game_width; }
+static float getHeight () { return mgl_data->game_height; }
+static void clear (const unsigned int &m) {
   GLuint c = 0;
   if (m & 1)
     c |= GL_COLOR_BUFFER_BIT;
@@ -367,10 +385,10 @@ void opengles_graphics::clear (const unsigned int &m) {
     c |= GL_STENCIL_BUFFER_BIT;
   glClear (c);
 }
-void opengles_graphics::clearcolor (const float &r, const float &g, const float &b, const float &a) {
+static void clearcolor (const float &r, const float &g, const float &b, const float &a) {
   glClearColor (r, g, b, a);
 }
-engine::texture_core *opengles_graphics::gen_texture (const int &tw, const int &th, unsigned char *data) {
+static engine::texture_core *gen_texture (const int &tw, const int &th, unsigned char *data) {
   opengles_texture *t = new opengles_texture (0, tw, th, data);
   glGenTextures (1, &t->id);
   glBindTexture (GL_TEXTURE_2D, t->id);
@@ -384,13 +402,13 @@ engine::texture_core *opengles_graphics::gen_texture (const int &tw, const int &
   mgl_data->managedTexture.insert (t);
   return t;
 }
-void opengles_graphics::bind_texture (engine::texture_core *t) {
+static void bind_texture (engine::texture_core *t) {
   glBindTexture (GL_TEXTURE_2D, t ? static_cast<opengles_texture *> (t)->id : 0);
 }
-void opengles_graphics::set_texture_param (const int &param, const int &val) {
+static void set_texture_param (const int &param, const int &val) {
   glTexParameteri (GL_TEXTURE_2D, param, val);
 }
-void opengles_graphics::delete_texture (engine::texture_core *t) {
+static void delete_texture (engine::texture_core *t) {
   opengles_texture *i = static_cast<opengles_texture *> (t);
   auto it = mgl_data->managedTexture.find (i);
   if (it == mgl_data->managedTexture.end ()) return;
@@ -398,7 +416,7 @@ void opengles_graphics::delete_texture (engine::texture_core *t) {
   glDeleteTextures (1, &i->id);
   delete i;
 }
-void opengles_graphics::flat_render (engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
+static void flat_render (engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
   glDisable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->ui_shader);
   glActiveTexture (GL_TEXTURE0);
@@ -416,7 +434,7 @@ void opengles_graphics::flat_render (engine::texture_core *tex, engine::flat_ver
   glBindTexture (GL_TEXTURE_2D, 0);
   glUseProgram (0);
 }
-engine::mesh_core *opengles_graphics::gen_mesh (engine::mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
+static engine::mesh_core *gen_mesh (engine::mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
   engine::mesh_core *r = new engine::mesh_core;
   r->vertex_len = v_len;
   r->vertex = new engine::mesh_core::data[v_len];
@@ -439,7 +457,7 @@ engine::mesh_core *opengles_graphics::gen_mesh (engine::mesh_core::data *v, unsi
   mgl_data->managedMesh.insert (r);
   return r;
 }
-void opengles_graphics::mesh_render (engine::mesh_core **meshes, const unsigned int &count) {
+static void mesh_render (engine::mesh_core **meshes, const unsigned int &count) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->world_shader);
   if (mgl_data->dirty_worldProj) {
@@ -465,7 +483,7 @@ void opengles_graphics::mesh_render (engine::mesh_core **meshes, const unsigned 
   glBindVertexArray (0);
   glUseProgram (0);
 }
-void opengles_graphics::delete_mesh (engine::mesh_core *m) {
+static void delete_mesh (engine::mesh_core *m) {
   auto it = mgl_data->managedMesh.find (m);
   if (it == mgl_data->managedMesh.end ()) return;
   mgl_data->managedMesh.erase (it);
@@ -475,35 +493,58 @@ void opengles_graphics::delete_mesh (engine::mesh_core *m) {
   delete[] m->index;
   delete m;
 }
-
-void opengles_graphics::to_flat_coordinate (float &x, float &y) {
+static void to_flat_coordinate (float &x, float &y) {
   x -= cur_safe_insets[0];
   y = mgl_data->wHeight - y - cur_safe_insets[3];
 }
 
-inline void opengles_graphics::update_layout () {
-  const float fixedWidth = mgl_data->wWidth;
-  const float fixedHeight = mgl_data->wHeight;
-
-  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
-  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
-  // ui safe insets update
-  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f;
-  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3] / fixedHeight) - 1.0f;
-  mgl_data->game_width = fixedWidth - cur_safe_insets[0] - cur_safe_insets[2];
-  mgl_data->game_height = fixedHeight - cur_safe_insets[1] - cur_safe_insets[3];
-  mgl_data->dirty_uiProj = true;
-  mgl_data->dirty_worldProj = true;
-}
-
-opengles_graphics::opengles_graphics () {
+void init () {
   mgl_data = new gl_data{};
-  engine::graph = this;
+
+  engine::graphics::getWidth = getWidth;
+  engine::graphics::getHeight = getHeight;
+  engine::graphics::clear = clear;
+  engine::graphics::clearcolor = clearcolor;
+  engine::graphics::gen_texture = gen_texture;
+  engine::graphics::bind_texture = bind_texture;
+  engine::graphics::set_texture_param = set_texture_param;
+  engine::graphics::delete_texture = delete_texture;
+  engine::graphics::flat_render = flat_render;
+  engine::graphics::gen_mesh = gen_mesh;
+  engine::graphics::mesh_render = mesh_render;
+  engine::graphics::delete_mesh = delete_mesh;
+  engine::graphics::to_flat_coordinate = to_flat_coordinate;
+
+  android_graphics::onWindowChange = onWindowChange;
+  android_graphics::onWindowResize = onWindowResize;
+  android_graphics::preRender = preRender;
+  android_graphics::postRender = postRender;
 }
 
-opengles_graphics::~opengles_graphics () {
+void term () {
   mgl_data->managedTexture.clear ();
   mgl_data->managedMesh.clear ();
   delete mgl_data;
-  engine::graph = nullptr;
+  mgl_data = nullptr;
+  
+  // Set the function pointers to nullptr
+  engine::graphics::getWidth = nullptr;
+  engine::graphics::getHeight = nullptr;
+  engine::graphics::clear = nullptr;
+  engine::graphics::clearcolor = nullptr;
+  engine::graphics::gen_texture = nullptr;
+  engine::graphics::bind_texture = nullptr;
+  engine::graphics::set_texture_param = nullptr;
+  engine::graphics::delete_texture = nullptr;
+  engine::graphics::flat_render = nullptr;
+  engine::graphics::gen_mesh = nullptr;
+  engine::graphics::mesh_render = nullptr;
+  engine::graphics::delete_mesh = nullptr;
+  engine::graphics::to_flat_coordinate = nullptr;
+  
+  android_graphics::onWindowChange = nullptr;
+  android_graphics::onWindowResize = nullptr;
+  android_graphics::preRender = nullptr;
+  android_graphics::postRender = nullptr;
+}
 }

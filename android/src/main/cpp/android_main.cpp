@@ -24,9 +24,7 @@
 #include "main_game.hpp"
 #include <jni.h>
 
-#include "android_asset/android_asset.hpp"
-#include "android_info/android_info.hpp"
-#include "android_input/android_input.hpp"
+#include "android_engine.hpp"
 #include "api_graphics/android_graphics.hpp"
 #include "api_graphics/opengles_graphics.hpp"
 
@@ -60,7 +58,6 @@ struct android_app {
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-  android_graphics *graphics;
 } *app = nullptr;
 
 struct msg_pipe {
@@ -73,24 +70,21 @@ static void *android_app_entry (void *n) {
   ANativeActivity *activity = (ANativeActivity *)n;
   AConfiguration *aconfig = AConfiguration_new ();
   AConfiguration_fromAssetManager (aconfig, activity->assetManager);
-  app->graphics = new opengles_graphics{};
+  ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
   bool created = false;
   bool running = false,
        started = false,
        resume = false;
-  ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
+  init_engine (activity->assetManager, activity->sdkVersion, looper, android_graphics::GRAPHICS_TYPE::OPENGLES);
   try {
-    android_asset a_asset (activity->assetManager);
-    android_input a_input (looper);
-    android_info inf (activity->sdkVersion);
     msg_pipe read_cmd{
         APP_CMD_CREATE,
         nullptr};
     for (;;) {
       switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case ALOOPER_POLL_CALLBACK:
-        break;
+      	break;
       case 1:
         // activity handler
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) == sizeof (msg_pipe)) {
@@ -101,24 +95,24 @@ static void *android_app_entry (void *n) {
   pthread_mutex_unlock (&app->mutex);
           switch (read_cmd.cmd) {
           case APP_CMD_WINDOW_UPDATE:
-            app->graphics->onWindowChange ((ANativeWindow *)read_cmd.data);
+            android_graphics::onWindowChange ((ANativeWindow *)read_cmd.data);
             END_WAITING
             break;
           case APP_CMD_FOCUS_CHANGED:
             if (read_cmd.data)
-              a_input.attach_sensor ();
+              android_input::attach_sensor ();
             else
-              a_input.detach_sensor ();
+              android_input::detach_sensor ();
             END_WAITING
             break;
           case APP_CMD_INPUT_UPDATE:
-            a_input.set_input_queue (looper, (AInputQueue *)read_cmd.data);
+            android_input::set_input_queue (looper, (AInputQueue *)read_cmd.data);
             END_WAITING
             break;
           case APP_CMD_PAUSE:
-            if (app->graphics->preRender ()) {
+            if (android_graphics::preRender ()) {
               Main::pause ();
-              app->graphics->postRender (false);
+              android_graphics::postRender (false);
               running = false;
             }
             END_WAITING
@@ -139,10 +133,10 @@ static void *android_app_entry (void *n) {
             resume = true;
             break;
           case APP_CMD_CONTENT_RECT_CHANGED:
-            app->graphics->onWindowResize (1);
+            android_graphics::onWindowResize (1);
             break;
           case APP_CMD_WINDOW_RESIZED:
-            app->graphics->onWindowResize (2);
+            android_graphics::onWindowResize (2);
             break;
           case APP_CMD_LOW_MEMORY:
             break;
@@ -156,8 +150,8 @@ static void *android_app_entry (void *n) {
         break;
       default:
         // base render
-        if (app->graphics->preRender ()) {
-          a_input.process_event ();
+        if (android_graphics::preRender ()) {
+          engine::input::process_event ();
 
           if (!created) {
             Main::start ();
@@ -168,7 +162,7 @@ static void *android_app_entry (void *n) {
             resume = false;
           }
           Main::render ();
-          app->graphics->postRender (false);
+          android_graphics::postRender (false);
         }
         break;
       }
@@ -176,15 +170,14 @@ static void *android_app_entry (void *n) {
 
   } catch (...) {
     // when destroy
-    if (app->graphics->preRender ())
+    if (android_graphics::preRender ())
       Main::end ();
     created = false;
-    app->graphics->postRender (true);
+    android_graphics::postRender (true);
   }
+  term_engine ();
   // loop ends
   ALooper_removeFd (looper, app->msgread);
-  delete app->graphics;
-  app->graphics = nullptr;
   AConfiguration_delete (aconfig);
   pthread_mutex_lock (&app->mutex);
   app->destroyed = true;
@@ -294,8 +287,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 extern "C" JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   if (!app->graphics) return;
-  app->graphics->cur_safe_insets[0] = left;
-  app->graphics->cur_safe_insets[1] = top;
-  app->graphics->cur_safe_insets[2] = right;
-  app->graphics->cur_safe_insets[3] = bottom;
+  android_graphics::cur_safe_insets[0] = left;
+  android_graphics::cur_safe_insets[1] = top;
+  android_graphics::cur_safe_insets[2] = right;
+  android_graphics::cur_safe_insets[3] = bottom;
 }

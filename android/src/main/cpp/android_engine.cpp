@@ -1,12 +1,107 @@
-#include "android_input.hpp"
-#include "../api_graphics/android_graphics.hpp"
-#include "../utils/uistage.hpp"
-
+#include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
+#include <cstring>
 #include <unordered_map>
 #include <unordered_set>
+#include <cstdint>
 
+#include <sys/resource.h>
+#include <sys/time.h>
+
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include <android/looper.h>
+#include <android/native_activity.h>
+#include <android/sensor.h>
+
+#include "engine.hpp"
+#include "utils/uistage.hpp"
+#include "api_graphics/opengles_graphics.hpp"
+
+namespace android_asset {
+	static AAssetManager *assetmanager;
+
+	struct a_asset: public engine::asset_core {
+		AAsset *asset;
+		a_asset (AAsset *a): asset (a) {}
+		size_t read (void *buff, size_t len) override {
+			return AAsset_read (asset, buff, len);
+		}
+		void seek (int n) override {
+			AAsset_seek (asset, n, SEEK_CUR);
+		}
+		bool eof () override {
+			return AAsset_getRemainingLength (asset) <= 0;
+		}
+		~a_asset () {
+			AAsset_close (asset);
+		}
+	};
+	static engine::asset_core *open_asset (const char *filename) {
+		return new a_asset (AAssetManager_open (assetmanager, filename, AASSET_MODE_STREAMING));
+	}
+	static void *asset_buffer (const char *filename, unsigned int *o) {
+		AAsset *asset = AAssetManager_open (assetmanager, filename, AASSET_MODE_BUFFER);
+		unsigned int *outLen = (o ? o: new unsigned int);
+		*outLen = AAsset_getLength (asset);
+		void *result = malloc (*outLen);
+		memcpy (result, AAsset_getBuffer (asset), *outLen);
+		AAsset_close (asset);
+		if (!o) delete outLen;
+		return result;
+	}
+	static void init (AAssetManager *mngr) {
+		assetmanager = mngr;
+
+		//set engine;:assets
+		engine::assets::open_asset = open_asset;
+		engine::assets::asset_buffer = asset_buffer;
+	}
+	static void term () {
+
+		//unset engine;:assets
+		engine::assets::open_asset = nullptr;
+		engine::assets::asset_buffer = nullptr;
+	}
+}
+
+namespace android_info {
+
+	static int sdk_version;
+
+	static const char *get_platform_info () {
+		static std::string tmp;
+		tmp = "Android SDK " + std::to_string (sdk_version);
+		return tmp.c_str ();
+	}
+
+	static long memory () {
+		static struct rusage usage;
+		if (getrusage (RUSAGE_SELF, &(usage)) < 0)
+		return -1;
+		return usage.ru_maxrss;
+	}
+
+	static void init (int sdk) {
+		sdk_version = sdk;
+
+		//set engine::info
+		engine::info::get_platform_info = get_platform_info;
+		engine::info::memory = memory;
+	}
+	static void term () {
+
+		//set engine::info
+		engine::info::get_platform_info = nullptr;
+		engine::info::memory = nullptr;
+	}
+}
+
+
+namespace android_input {
+#define MAX_TOUCH_POINTERS_COUNT 30
 struct touch_pointer {
   bool active;
   int32_t id, button;
@@ -20,7 +115,7 @@ struct key_event {
     KEY_DOWN
   } type;
 };
-struct ainput {
+static struct ainput {
   touch_pointer input_pointer_cache[MAX_TOUCH_POINTERS_COUNT]{};
   std::unordered_set<key_event *> key_events;
   std::unordered_map<std::string, engine::sensor_value> sensors;
@@ -35,7 +130,7 @@ struct ainput {
   // cache only
   AInputEvent *i_event;
   bool sensor_enabled;
-};
+} *minput = nullptr;
 //
 static int inline android_button_type (int32_t btn) {
   switch (btn) {
@@ -193,30 +288,30 @@ static int process_input (int, int, void *data) {
 }
 
 // funct
-engine::sensor_value android_input::getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
-void android_input::getPointerPos (float *out, unsigned int p = 0) {
+static engine::sensor_value getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
+static void getPointerPos (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x;
   out[1] = minput->input_pointer_cache[p].y;
 }
-void android_input::getPointerDelta (float *out, unsigned int p = 0) {
+static void getPointerDelta (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x - minput->input_pointer_cache[p].xs;
   out[1] = minput->input_pointer_cache[p].y - minput->input_pointer_cache[p].ys;
 }
-bool android_input::justTouched () { return false; }
-bool android_input::onTouched () {
+static bool justTouched () { return false; }
+static bool onTouched () {
   for (size_t i = 0; i < MAX_TOUCH_POINTERS_COUNT; ++i) {
     if (minput->input_pointer_cache[i].active)
       return true;
   }
   return false;
 }
-bool android_input::isTouched (unsigned int p = 0) { return minput->input_pointer_cache[p].active; }
-float android_input::getPressure (unsigned int) { return false; }
-bool android_input::isButtonPressed (int) { return false; }
-bool android_input::isButtonJustPressed (int) { return false; }
-bool android_input::isKeyPressed (int key) { return minput->key_pressed.find (key) != minput->key_pressed.end (); }
-bool android_input::isKeyJustPressed (int key) { return minput->justKey_pressed.find (key) != minput->justKey_pressed.end (); }
-void android_input::process_event () {
+static bool isTouched (unsigned int p = 0) { return minput->input_pointer_cache[p].active; }
+static float getPressure (unsigned int) { return false; }
+static bool isButtonPressed (int) { return false; }
+static bool isButtonJustPressed (int) { return false; }
+static bool isKeyPressed (int key) { return minput->key_pressed.find (key) != minput->key_pressed.end (); }
+static bool isKeyJustPressed (int key) { return minput->justKey_pressed.find (key) != minput->justKey_pressed.end (); }
+static void process_event () {
   if (minput->justKey_pressed.size () > 0) {
     minput->justKey_pressed.clear ();
   }
@@ -236,7 +331,8 @@ void android_input::process_event () {
   minput->key_events.clear ();
 }
 
-void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
+//android funct
+void set_input_queue (ALooper *looper, AInputQueue *i) {
   if (minput->inputQueue)
     AInputQueue_detachLooper (minput->inputQueue);
   minput->inputQueue = i;
@@ -244,7 +340,7 @@ void android_input::set_input_queue (ALooper *looper, AInputQueue *i) {
     AInputQueue_attachLooper (minput->inputQueue, looper, ALOOPER_POLL_CALLBACK, process_input, (void *)minput);
 }
 
-void android_input::attach_sensor () {
+void attach_sensor () {
   if (minput->sensor_enabled) return;
   ASensorEventQueue_enableSensor (minput->sensorEventQueue, minput->accelerometerSensor);
   ASensorEventQueue_setEventRate (minput->sensorEventQueue, minput->accelerometerSensor, 50000 / 3);
@@ -253,7 +349,7 @@ void android_input::attach_sensor () {
   minput->sensor_enabled = true;
   process_sensor_event (0, 0, (void *)minput);
 }
-void android_input::detach_sensor () {
+void detach_sensor () {
   if (!minput->sensor_enabled) return;
   for (auto i = minput->sensors.begin (), n = minput->sensors.end (); i != n; i++)
     i->second = engine::sensor_value{};
@@ -262,7 +358,7 @@ void android_input::detach_sensor () {
   minput->sensor_enabled = false;
 }
 
-android_input::android_input (ALooper *looper) {
+static void init (ALooper *looper) {
   minput = new ainput{};
   minput->sensors["accelerometer"] = {0, 0, 0};
   minput->sensors["gyroscope"] = {0, 0, 0};
@@ -270,15 +366,79 @@ android_input::android_input (ALooper *looper) {
   minput->accelerometerSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
   minput->gyroscopeSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_GYROSCOPE);
   minput->sensorEventQueue = ASensorManager_createEventQueue (minput->sensorManager, looper, ALOOPER_POLL_CALLBACK, process_sensor_event, (void *)minput);
-  // input
-  engine::inpt = this;
+  
+  //set engine::input
+  engine::input::getSensorValue = getSensorValue;
+	engine::input::getPointerPos = getPointerPos;
+	engine::input::getPointerDelta = getPointerDelta;
+	engine::input::justTouched = justTouched;
+	engine::input::onTouched = onTouched;
+	engine::input::isTouched = isTouched;
+	engine::input::getPressure = getPressure;
+	engine::input::isButtonPressed = isButtonPressed;
+	engine::input::isButtonJustPressed = isButtonJustPressed;
+	engine::input::isKeyPressed = isKeyPressed;
+	engine::input::isKeyJustPressed = isKeyJustPressed;
+	engine::input::process_event = process_event;
 }
-android_input::~android_input () {
+static void term () {
   detach_sensor ();
   if (minput->inputQueue)
     AInputQueue_detachLooper (minput->inputQueue);
   minput->sensors.clear ();
   minput->key_pressed.clear ();
   delete minput;
-  engine::inpt = nullptr;
+  minput = nullptr;
+  
+  //unset engine::input
+  engine::input::getSensorValue = nullptr;
+	engine::input::getPointerPos = nullptr;
+	engine::input::getPointerDelta = nullptr;
+	engine::input::justTouched = nullptr;
+	engine::input::onTouched = nullptr;
+	engine::input::isTouched = nullptr;
+	engine::input::getPressure = nullptr;
+	engine::input::isButtonPressed = nullptr;
+	engine::input::isButtonJustPressed = nullptr;
+	engine::input::isKeyPressed = nullptr;
+	engine::input::isKeyJustPressed = nullptr;
+	engine::input::process_event = nullptr;
+}
+#undef MAX_TOUCH_POINTERS_COUNT
+}
+
+namespace android_graphics {
+  float cur_safe_insets[4];
+  // android
+  void (*onWindowChange) (ANativeWindow *);
+  void (*onWindowResize) (unsigned char);
+  bool (*preRender) ();
+  void (*postRender) (bool);
+  
+  //api
+  //opengles
+  void init() {
+  	opengles_graphics::init();
+  	
+  }
+  void term() {
+  	opengles_graphics::term();
+  }
+}
+//at last
+
+//set engine
+void init_engine(AAssetManager *mngr, int sdk,ALooper *looper) {
+	android_asset::init(mngr);
+	android_info::init(sdk);
+	android_input::init(looper);
+	android_graphics::init();
+}
+//unset engine
+void term_engine() {
+	
+	android_asset::term();
+	android_info::term();
+	android_input::term();
+	android_graphics::term();
 }

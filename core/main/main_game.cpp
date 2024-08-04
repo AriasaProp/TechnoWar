@@ -65,7 +65,7 @@ void start () {
       {{+250.0f, -250.0f, +250.0f}, 0xffff0000},
       {{+250.0f, +250.0f, +250.0f}, 0xff00ff00}};
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
-  mp = engine::graph->gen_mesh (vert, 24, indices, 36);
+  mp = engine::graphics::gen_mesh (vert, 24, indices, 36);
 
   // add texture regions
   {
@@ -73,15 +73,15 @@ void start () {
     unsigned char *t;
     t = stbi::load::load_from_assets ("btn1.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
     engine::texture_core *tex;
-    tex = engine::graph->gen_texture (x, y, t);
+    tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
     stbi::load::image_free (t);
     t = stbi::load::load_from_assets ("btn1_.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
-    tex = engine::graph->gen_texture (x, y, t);
+    tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1_", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
     stbi::load::image_free (t);
     t = stbi::load::load_from_assets ("test.jpeg", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
-    tex = engine::graph->gen_texture (x, y, t);
+    tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("test", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {}});
     stbi::load::image_free (t);
   }
@@ -118,17 +118,17 @@ void render () {
   float delta = clock_count::getDelta ();
 
   t_dlt->setText ("%03.3f sec", delta);
-  t_mem->setText ("%d kByte", engine::info->memory ());
-  t_dev->setText ("Platform: %s", engine::info->get_platform_info ());
+  t_mem->setText ("%d kByte", engine::info::memory ());
+  t_dev->setText ("Platform: %s", engine::info::get_platform_info ());
 
-  engine::graph->clear (7);
+  engine::graphics::clear (7);
   matrix4::rotate (mp->trans,
                    M_PI / 2.f * delta,  // 90° /s
                    M_PI / 10.f * delta, // 18° /s
                    M_PI / 18.0f * delta // 10° /s
   );
 
-  engine::graph->mesh_render (&mp, 1);
+  engine::graphics::mesh_render (&mp, 1);
 
   uistage::draw (delta);
   clock_count::render ();
@@ -139,7 +139,7 @@ void pause () {
 void end () {
   pause ();
   uistage::clear ();
-  engine::graph->delete_mesh (mp);
+  engine::graphics::delete_mesh (mp);
 }
 
 } // namespace Main
