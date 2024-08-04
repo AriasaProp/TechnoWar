@@ -1,10 +1,11 @@
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
+#include <cstring>
 #include <unordered_map>
 #include <unordered_set>
+#include <cstdint>
 
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -15,88 +16,89 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
-#include "api_graphics/opengles_graphics.hpp"
 #include "engine.hpp"
 #include "utils/uistage.hpp"
+#include "api_graphics/opengles_graphics.hpp"
 
 namespace android_asset {
-static AAssetManager *assetmanager;
+	static AAssetManager *assetmanager;
 
-struct a_asset : public engine::asset {
-  AAsset *asset;
-  a_asset (AAsset *a) : asset (a) {}
-  size_t read (void *buff, size_t len) override {
-    return AAsset_read (asset, buff, len);
-  }
-  void seek (int n) override {
-    AAsset_seek (asset, n, SEEK_CUR);
-  }
-  bool eof () override {
-    return AAsset_getRemainingLength (asset) <= 0;
-  }
-  ~a_asset () {
-    AAsset_close (asset);
-  }
-};
-static engine::asset *open_asset (const char *filename) {
-  return new a_asset (AAssetManager_open (assetmanager, filename, AASSET_MODE_STREAMING));
-}
-static void *asset_buffer (const char *filename, unsigned int *o) {
-  AAsset *asset = AAssetManager_open (assetmanager, filename, AASSET_MODE_BUFFER);
-  unsigned int *outLen = (o ? o : new unsigned int);
-  *outLen = AAsset_getLength (asset);
-  void *result = malloc (*outLen);
-  memcpy (result, AAsset_getBuffer (asset), *outLen);
-  AAsset_close (asset);
-  if (!o) delete outLen;
-  return result;
-}
-static void init (AAssetManager *mngr) {
-  assetmanager = mngr;
+	struct a_asset: public engine::asset {
+		AAsset *asset;
+		a_asset (AAsset *a): asset (a) {}
+		size_t read (void *buff, size_t len) override {
+			return AAsset_read (asset, buff, len);
+		}
+		void seek (int n) override {
+			AAsset_seek (asset, n, SEEK_CUR);
+		}
+		bool eof () override {
+			return AAsset_getRemainingLength (asset) <= 0;
+		}
+		~a_asset () {
+			AAsset_close (asset);
+		}
+	};
+	static engine::asset *open_asset (const char *filename) {
+		return new a_asset (AAssetManager_open (assetmanager, filename, AASSET_MODE_STREAMING));
+	}
+	static void *asset_buffer (const char *filename, unsigned int *o) {
+		AAsset *asset = AAssetManager_open (assetmanager, filename, AASSET_MODE_BUFFER);
+		unsigned int *outLen = (o ? o: new unsigned int);
+		*outLen = AAsset_getLength (asset);
+		void *result = malloc (*outLen);
+		memcpy (result, AAsset_getBuffer (asset), *outLen);
+		AAsset_close (asset);
+		if (!o) delete outLen;
+		return result;
+	}
+	static void init (AAssetManager *mngr) {
+		assetmanager = mngr;
 
-  // set engine;:assets
-  engine::assets::open_asset = open_asset;
-  engine::assets::asset_buffer = asset_buffer;
-}
-static void term () {
 
-  // unset engine;:assets
-  engine::assets::open_asset = nullptr;
-  engine::assets::asset_buffer = nullptr;
+		//set engine;:assets
+		engine::assets::open_asset = open_asset;
+		engine::assets::asset_buffer = asset_buffer;
+	}
+	static void term () {
+
+		//unset engine;:assets
+		engine::assets::open_asset = nullptr;
+		engine::assets::asset_buffer = nullptr;
+	}
 }
-} // namespace android_asset
 
 namespace android_info {
 
-static int sdk_version;
+	static int sdk_version;
 
-static const char *get_platform_info () {
-  static std::string tmp;
-  tmp = "Android SDK " + std::to_string (sdk_version);
-  return tmp.c_str ();
+	static const char *get_platform_info () {
+		static std::string tmp;
+		tmp = "Android SDK " + std::to_string (sdk_version);
+		return tmp.c_str ();
+	}
+
+	static long memory () {
+		static struct rusage usage;
+		if (getrusage (RUSAGE_SELF, &(usage)) < 0)
+		return -1;
+		return usage.ru_maxrss;
+	}
+
+	static void init (int sdk) {
+		sdk_version = sdk;
+
+		//set engine::info
+		engine::info::get_platform_info = get_platform_info;
+		engine::info::memory = memory;
+	}
+	static void term () {
+
+		//set engine::info
+		engine::info::get_platform_info = nullptr;
+		engine::info::memory = nullptr;
+	}
 }
-
-static long memory () {
-  static struct rusage usage;
-  if (getrusage (RUSAGE_SELF, &(usage)) < 0)
-    return -1;
-  return usage.ru_maxrss;
-}
-
-static void init (int sdk) {
-  sdk_version = sdk;
-
-  // set engine::info
-  engine::info::get_platform_info = get_platform_info;
-  engine::info::memory = memory;
-}
-static void term () {
-
-  // set engine::info
-  engine::info::get_platform_info = nullptr;
-  engine::info::memory = nullptr;
-}
-} // namespace android_info
 
 namespace android_input {
 #define MAX_TOUCH_POINTERS_COUNT 30
@@ -329,7 +331,7 @@ static void process_event () {
   minput->key_events.clear ();
 }
 
-// android funct
+//android funct
 void set_input_queue (ALooper *looper, AInputQueue *i) {
   if (minput->inputQueue)
     AInputQueue_detachLooper (minput->inputQueue);
@@ -364,20 +366,20 @@ static void init (ALooper *looper) {
   minput->accelerometerSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
   minput->gyroscopeSensor = ASensorManager_getDefaultSensor (minput->sensorManager, ASENSOR_TYPE_GYROSCOPE);
   minput->sensorEventQueue = ASensorManager_createEventQueue (minput->sensorManager, looper, ALOOPER_POLL_CALLBACK, process_sensor_event, (void *)minput);
-
-  // set engine::input
+  
+  //set engine::input
   engine::input::getSensorValue = getSensorValue;
-  engine::input::getPointerPos = getPointerPos;
-  engine::input::getPointerDelta = getPointerDelta;
-  engine::input::justTouched = justTouched;
-  engine::input::onTouched = onTouched;
-  engine::input::isTouched = isTouched;
-  engine::input::getPressure = getPressure;
-  engine::input::isButtonPressed = isButtonPressed;
-  engine::input::isButtonJustPressed = isButtonJustPressed;
-  engine::input::isKeyPressed = isKeyPressed;
-  engine::input::isKeyJustPressed = isKeyJustPressed;
-  engine::input::process_event = process_event;
+	engine::input::getPointerPos = getPointerPos;
+	engine::input::getPointerDelta = getPointerDelta;
+	engine::input::justTouched = justTouched;
+	engine::input::onTouched = onTouched;
+	engine::input::isTouched = isTouched;
+	engine::input::getPressure = getPressure;
+	engine::input::isButtonPressed = isButtonPressed;
+	engine::input::isButtonJustPressed = isButtonJustPressed;
+	engine::input::isKeyPressed = isKeyPressed;
+	engine::input::isKeyJustPressed = isKeyJustPressed;
+	engine::input::process_event = process_event;
 }
 static void term () {
   detach_sensor ();
@@ -387,55 +389,56 @@ static void term () {
   minput->key_pressed.clear ();
   delete minput;
   minput = nullptr;
-
-  // unset engine::input
+  
+  //unset engine::input
   engine::input::getSensorValue = nullptr;
-  engine::input::getPointerPos = nullptr;
-  engine::input::getPointerDelta = nullptr;
-  engine::input::justTouched = nullptr;
-  engine::input::onTouched = nullptr;
-  engine::input::isTouched = nullptr;
-  engine::input::getPressure = nullptr;
-  engine::input::isButtonPressed = nullptr;
-  engine::input::isButtonJustPressed = nullptr;
-  engine::input::isKeyPressed = nullptr;
-  engine::input::isKeyJustPressed = nullptr;
-  engine::input::process_event = nullptr;
+	engine::input::getPointerPos = nullptr;
+	engine::input::getPointerDelta = nullptr;
+	engine::input::justTouched = nullptr;
+	engine::input::onTouched = nullptr;
+	engine::input::isTouched = nullptr;
+	engine::input::getPressure = nullptr;
+	engine::input::isButtonPressed = nullptr;
+	engine::input::isButtonJustPressed = nullptr;
+	engine::input::isKeyPressed = nullptr;
+	engine::input::isKeyJustPressed = nullptr;
+	engine::input::process_event = nullptr;
 }
 #undef MAX_TOUCH_POINTERS_COUNT
-} // namespace android_input
+}
 
 namespace android_graphics {
-float cur_safe_insets[4];
-// android
-void (*onWindowChange) (ANativeWindow *);
-void (*onWindowResize) (unsigned char);
-bool (*preRender) ();
-void (*postRender) (bool);
-
-// api
-// opengles
-void init () {
-  opengles_graphics::init ();
+  float cur_safe_insets[4];
+  // android
+  void (*onWindowChange) (ANativeWindow *);
+  void (*onWindowResize) (unsigned char);
+  bool (*preRender) ();
+  void (*postRender) (bool);
+  
+  //api
+  //opengles
+  void init() {
+  	opengles_graphics::init();
+  	
+  }
+  void term() {
+  	opengles_graphics::term();
+  }
 }
-void term () {
-  opengles_graphics::term ();
-}
-} // namespace android_graphics
-// at last
+//at last
 
-// set engine
-void init_engine (AAssetManager *mngr, int sdk, ALooper *looper) {
-  android_asset::init (mngr);
-  android_info::init (sdk);
-  android_input::init (looper);
-  android_graphics::init ();
+//set engine
+void init_engine(AAssetManager *mngr, int sdk,ALooper *looper) {
+	android_asset::init(mngr);
+	android_info::init(sdk);
+	android_input::init(looper);
+	android_graphics::init();
 }
-// unset engine
-void term_engine () {
-
-  android_asset::term ();
-  android_info::term ();
-  android_input::term ();
-  android_graphics::term ();
+//unset engine
+void term_engine() {
+	
+	android_asset::term();
+	android_info::term();
+	android_input::term();
+	android_graphics::term();
 }
