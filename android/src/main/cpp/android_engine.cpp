@@ -221,7 +221,7 @@ static int process_input (int, int, void *data) {
         ip.button = android_button_type (AMotionEvent_getButtonState (m->i_event));
         ip.x = AMotionEvent_getX (m->i_event, pointer_index);
         ip.y = AMotionEvent_getY (m->i_event, pointer_index);
-        engine::graph->to_flat_coordinate (ip.x, ip.y);
+        engine::graphics::to_flat_coordinate (ip.x, ip.y);
         ip.xs = ip.x;
         ip.ys = ip.y;
         uistage::touchDown (ip.x, ip.y, pointer_index, ip.button);
@@ -234,7 +234,7 @@ static int process_input (int, int, void *data) {
         if (!ip.active || (ip.id != pointer_id)) continue;
         ip.x = AMotionEvent_getX (m->i_event, i);
         ip.y = AMotionEvent_getY (m->i_event, i);
-        engine::graph->to_flat_coordinate (ip.x, ip.y);
+        engine::graphics::to_flat_coordinate (ip.x, ip.y);
         uistage::touchMove (ip.x, ip.y, ip.xs - ip.x, ip.ys - ip.y, i, ip.button);
       }
       break;
@@ -249,7 +249,7 @@ static int process_input (int, int, void *data) {
         ip.active = false;
         ip.x = AMotionEvent_getX (m->i_event, i);
         ip.y = AMotionEvent_getY (m->i_event, i);
-        engine::graph->to_flat_coordinate (ip.x, ip.y);
+        engine::graphics::to_flat_coordinate (ip.x, ip.y);
         uistage::touchUp (ip.x, ip.y, i, ip.button);
         break;
       }
@@ -263,7 +263,7 @@ static int process_input (int, int, void *data) {
         ip.active = false;
         ip.x = AMotionEvent_getX (m->i_event, i);
         ip.y = AMotionEvent_getY (m->i_event, i);
-        engine::graph->to_flat_coordinate (ip.x, ip.y);
+        engine::graphics::to_flat_coordinate (ip.x, ip.y);
         uistage::touchCanceled (ip.x, ip.y, i, ip.button);
         break;
       }

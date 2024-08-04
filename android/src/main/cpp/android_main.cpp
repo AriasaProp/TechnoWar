@@ -25,8 +25,6 @@
 #include <jni.h>
 
 #include "android_engine.hpp"
-#include "api_graphics/android_graphics.hpp"
-#include "api_graphics/opengles_graphics.hpp"
 
 enum APP_CMD : unsigned char {
   APP_CMD_CREATE = 0,
