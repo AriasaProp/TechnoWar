@@ -10,7 +10,7 @@
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 
-namespace graphics_opengles {
+namespace opengles_graphics {
 
 struct opengles_texture : public engine::texture_core {
   GLuint id;
