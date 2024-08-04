@@ -1,8 +1,8 @@
 #include <cstddef>
 #include <unordered_set>
 // make opengles lastest possible version
-#include <GLES3/gl32.h> //API 24
 #include <EGL/egl.h>
+#include <GLES3/gl32.h> //API 24
 
 #include "../android_engine.hpp"
 #define TERM_EGL_SURFACE 1
@@ -55,7 +55,7 @@ struct gl_data {
   std::unordered_set<engine::mesh_core *> managedMesh;
 } *mgl_data = nullptr;
 
-//self
+// self
 static void killEGL (const unsigned int EGLTermReq) {
   if (!EGLTermReq || !mgl_data->display) return;
   eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -107,7 +107,7 @@ static inline void update_layout () {
   mgl_data->dirty_worldProj = true;
 }
 
-//android
+// android
 static void onWindowChange (ANativeWindow *w) {
   if (window)
     killEGL (TERM_EGL_SURFACE);
@@ -372,7 +372,7 @@ static void postRender (bool isDestroy) {
   }
   killEGL (EGLTermReq);
 }
-//core
+// core
 static float getWidth () { return mgl_data->game_width; }
 static float getHeight () { return mgl_data->game_height; }
 static void clear (const unsigned int &m) {
@@ -526,7 +526,7 @@ void term () {
   mgl_data->managedMesh.clear ();
   delete mgl_data;
   mgl_data = nullptr;
-  
+
   // Set the function pointers to nullptr
   engine::graphics::getWidth = nullptr;
   engine::graphics::getHeight = nullptr;
@@ -541,10 +541,10 @@ void term () {
   engine::graphics::mesh_render = nullptr;
   engine::graphics::delete_mesh = nullptr;
   engine::graphics::to_flat_coordinate = nullptr;
-  
+
   android_graphics::onWindowChange = nullptr;
   android_graphics::onWindowResize = nullptr;
   android_graphics::preRender = nullptr;
   android_graphics::postRender = nullptr;
 }
-}
+} // namespace graphics_opengles
