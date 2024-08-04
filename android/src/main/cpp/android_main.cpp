@@ -284,7 +284,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 // native MainActivity.java
 
 extern "C" JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
-  if (!app->graphics) return;
   android_graphics::cur_safe_insets[0] = left;
   android_graphics::cur_safe_insets[1] = top;
   android_graphics::cur_safe_insets[2] = right;
