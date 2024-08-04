@@ -319,7 +319,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
     unsigned int asl;
-    const char *as = (const char *)engine::asset->asset_buffer (fontfile, &asl);
+    const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
     std::string buffer (as, asl);
     std::stringstream buffer_stream (buffer);
     std::string Line, Read, Key, Value;
@@ -451,7 +451,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   char *texfile = new char[strlen (fontfile)];
   memcpy (texfile, fontfile, strlen (fontfile));
   memcpy (strstr (texfile, ".fnt"), ".png", 4);
-  void *datR = engine::asset->asset_buffer (texfile, &datRI);
+  void *datR = engine::assets::asset_buffer (texfile, &datRI);
   delete[] texfile;
   unsigned char *tD = stbi::load::load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, stbi::load::channel::rgb_alpha);
   free (datR);

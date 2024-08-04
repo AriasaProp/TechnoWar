@@ -6,7 +6,7 @@
 
 // constructor
 uiskin::uiskin (const char *f) {
-  engine::asset_core *ast = engine::assets::open_asset (f);
+  engine::asset *ast = engine::assets::open_asset (f);
   try {
 
     // read regions
