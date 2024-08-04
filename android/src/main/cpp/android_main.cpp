@@ -74,7 +74,7 @@ static void *android_app_entry (void *n) {
   bool running = false,
        started = false,
        resume = false;
-  init_engine (activity->assetManager, activity->sdkVersion, looper, android_graphics::GRAPHICS_TYPE::OPENGLES);
+  init_engine (activity->assetManager, activity->sdkVersion, looper);
   try {
     msg_pipe read_cmd{
         APP_CMD_CREATE,
