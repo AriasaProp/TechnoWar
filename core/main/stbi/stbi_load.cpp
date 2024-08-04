@@ -725,16 +725,16 @@ unsigned short *stbi::load::load_16 (char const *filename, int *x, int *y, int *
 
 static stbi__io_callbacks stbi_assets_callback = {
     [] (void *a, char *b, size_t l) -> size_t {
-      return ((engine::asset_core *)a)->read (b, l);
+      return ((engine::asset *)a)->read (b, l);
     },
     [] (void *a, int l) -> void {
-      ((engine::asset_core *)a)->seek (l);
+      ((engine::asset *)a)->seek (l);
     },
     [] (void *a) -> bool {
-      return ((engine::asset_core *)a)->eof ();
+      return ((engine::asset *)a)->eof ();
     }};
 unsigned char *stbi::load::load_from_assets (const char *filename, int *x, int *y, int *comp, int req_comp) {
-  engine::asset_core *user = engine::asset->open_asset (filename);
+  engine::asset *user = engine::assets::open_asset (filename);
   stbi__context s;
   stbi__start_callbacks (&s, &stbi_assets_callback, user);
   unsigned char *r = stbi__load_and_postprocess_8bit (&s, x, y, comp, req_comp);
