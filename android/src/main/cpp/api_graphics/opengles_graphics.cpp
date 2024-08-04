@@ -55,6 +55,8 @@ struct gl_data {
   std::unordered_set<engine::mesh_core *> managedMesh;
 } *mgl_data = nullptr;
 
+static ANativeWindow *window = nullptr;
+
 // self
 static void killEGL (const unsigned int EGLTermReq) {
   if (!EGLTermReq || !mgl_data->display) return;
@@ -99,10 +101,10 @@ static inline void update_layout () {
   mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
   mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
   // ui safe insets update
-  mgl_data->uiProj[12] = (2.0f * cur_safe_insets[0] / fixedWidth) - 1.0f;
-  mgl_data->uiProj[13] = (2.0f * cur_safe_insets[3] / fixedHeight) - 1.0f;
-  mgl_data->game_width = fixedWidth - cur_safe_insets[0] - cur_safe_insets[2];
-  mgl_data->game_height = fixedHeight - cur_safe_insets[1] - cur_safe_insets[3];
+  mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
+  mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
+  mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
+  mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
   mgl_data->dirty_uiProj = true;
   mgl_data->dirty_worldProj = true;
 }
@@ -494,8 +496,8 @@ static void delete_mesh (engine::mesh_core *m) {
   delete m;
 }
 static void to_flat_coordinate (float &x, float &y) {
-  x -= cur_safe_insets[0];
-  y = mgl_data->wHeight - y - cur_safe_insets[3];
+  x -= android_graphics::cur_safe_insets[0];
+  y = mgl_data->wHeight - y - android_graphics::cur_safe_insets[3];
 }
 
 void init () {
