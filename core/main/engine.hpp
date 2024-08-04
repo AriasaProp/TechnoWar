@@ -45,48 +45,48 @@ struct asset_core {
 
 // Pointer definitions for graphics namespace
 namespace graphics {
-  extern float (*getWidth)();
-  extern float (*getHeight)();
-  extern void (*clear)(const unsigned int &);
-  extern void (*clearcolor)(const float &, const float &, const float &, const float &);
-  extern texture_core* (*gen_texture)(const int &, const int &, unsigned char *);
-  extern void (*bind_texture)(texture_core *);
-  extern void (*set_texture_param)(const int &, const int &);
-  extern void (*delete_texture)(texture_core *);
-  extern void (*flat_render)(texture_core *, flat_vertex *, const unsigned int);
-  extern mesh_core* (*gen_mesh)(mesh_core::data *, unsigned int, unsigned short *, unsigned int);
-  extern void (*mesh_render)(mesh_core **, const unsigned int &);
-  extern void (*delete_mesh)(mesh_core *);
-  extern void (*to_flat_coordinate)(float &, float &);
-}
+  extern float (*getWidth) ();
+  extern float (*getHeight) ();
+  extern void (*clear) (const unsigned int &);
+  extern void (*clearcolor) (const float &, const float &, const float &, const float &);
+  extern texture_core *(*gen_texture) (const int &, const int &, unsigned char *);
+  extern void (*bind_texture) (texture_core *);
+  extern void (*set_texture_param) (const int &, const int &);
+  extern void (*delete_texture) (texture_core *);
+  extern void (*flat_render) (texture_core *, flat_vertex *, const unsigned int);
+  extern mesh_core *(*gen_mesh) (mesh_core::data *, unsigned int, unsigned short *, unsigned int);
+  extern void (*mesh_render) (mesh_core **, const unsigned int &);
+  extern void (*delete_mesh) (mesh_core *);
+  extern void (*to_flat_coordinate) (float &, float &);
+} // namespace graphics
 
 // Pointer definitions for input namespace
 namespace input {
-  extern sensor_value (*getSensorValue)(const char *);
-  extern void (*getPointerPos)(float *, unsigned int);
-  extern void (*getPointerDelta)(float *, unsigned int);
-  extern bool (*justTouched)();
-  extern bool (*onTouched)();
-  extern bool (*isTouched)(unsigned int);
-  extern float (*getPressure)(unsigned int);
-  extern bool (*isButtonPressed)(int button);
-  extern bool (*isButtonJustPressed)(int button);
-  extern bool (*isKeyPressed)(int key);
-  extern bool (*isKeyJustPressed)(int key);
-  extern void (*process_event)();
-}
+  extern sensor_value (*getSensorValue) (const char *);
+  extern void (*getPointerPos) (float *, unsigned int);
+  extern void (*getPointerDelta) (float *, unsigned int);
+  extern bool (*justTouched) ();
+  extern bool (*onTouched) ();
+  extern bool (*isTouched) (unsigned int);
+  extern float (*getPressure) (unsigned int);
+  extern bool (*isButtonPressed) (int button);
+  extern bool (*isButtonJustPressed) (int button);
+  extern bool (*isKeyPressed) (int key);
+  extern bool (*isKeyJustPressed) (int key);
+  extern void (*process_event) ();
+} // namespace input
 
 // Pointer definitions for assets namespace
 namespace assets {
-  extern asset* (*open_asset)(const char *);
-  extern void* (*asset_buffer)(const char *, unsigned int *);
-}
+  extern asset *(*open_asset) (const char *);
+  extern void *(*asset_buffer) (const char *, unsigned int *);
+} // namespace assets
 
 // Pointer definitions for info namespace
 namespace info {
-  extern const char* (*get_platform_info)();
-  extern long (*memory)();
-}
+  extern const char *(*get_platform_info) ();
+  extern long (*memory) ();
+} // namespace info
 
 } // namespace engine
 
