@@ -127,19 +127,19 @@ void Vector2::getFloats (float *outFloats) {
     outFloats[0] = x;
     break;
   case 1: // center
-    outFloats[0] = (engine::graph->getWidth () * 0.5f) + x;
+    outFloats[0] = (engine::graphics::getWidth () * 0.5f) + x;
     break;
   case 2: // right
-    outFloats[0] = engine::graph->getWidth () - x;
+    outFloats[0] = engine::graphics::getWidth () - x;
     break;
   }
   unsigned char hor = (pivot_align >> 2) & 3;
   switch (hor) {
   default: // top
-    outFloats[1] = engine::graph->getHeight () - y;
+    outFloats[1] = engine::graphics::getHeight () - y;
     break;
   case 1: // center
-    outFloats[1] = (engine::graph->getHeight () * 0.5f) + y;
+    outFloats[1] = (engine::graphics::getHeight () * 0.5f) + y;
     break;
   case 2: // bottom
     outFloats[1] = y;
@@ -191,25 +191,25 @@ void Rect::getFloats (float *outFloats) {
     default: // left
       break;
     case 1: // center
-      outFloats[0] += engine::graph->getWidth () * 0.5f;
-      outFloats[2] += engine::graph->getWidth () * 0.5f;
+      outFloats[0] += engine::graphics::getWidth () * 0.5f;
+      outFloats[2] += engine::graphics::getWidth () * 0.5f;
       break;
     case 2: // right
       static float temp = outFloats[0], temp1 = outFloats[2];
-      outFloats[0] = engine::graph->getWidth () - temp1;
-      outFloats[2] = engine::graph->getWidth () - temp;
+      outFloats[0] = engine::graphics::getWidth () - temp1;
+      outFloats[2] = engine::graphics::getWidth () - temp;
       break;
     }
     unsigned char hor = (main_align >> 2) & 3;
     switch (hor) {
     default: // top
       static float temp = outFloats[1], temp1 = outFloats[3];
-      outFloats[1] = engine::graph->getHeight () - temp1;
-      outFloats[3] = engine::graph->getHeight () - temp;
+      outFloats[1] = engine::graphics::getHeight () - temp1;
+      outFloats[3] = engine::graphics::getHeight () - temp;
       break;
     case 1: // center
-      outFloats[1] += engine::graph->getHeight () * 0.5f;
-      outFloats[3] += engine::graph->getHeight () * 0.5f;
+      outFloats[1] += engine::graphics::getHeight () * 0.5f;
+      outFloats[3] += engine::graphics::getHeight () * 0.5f;
       break;
     case 2: // bottom
       break;
