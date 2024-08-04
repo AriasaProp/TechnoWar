@@ -5,6 +5,7 @@
 #include <GLES3/gl32.h> //API 24
 
 #include "../android_engine.hpp"
+#include "../engine.hpp"
 #define TERM_EGL_SURFACE 1
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
