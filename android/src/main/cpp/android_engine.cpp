@@ -286,7 +286,7 @@ static int process_input (int, int, void *data) {
 }
 
 // funct
-static engine::sensor_value getSensorValue (const char *sensor_name) const { return minput->sensors[sensor_name]; }
+static engine::sensor_value getSensorValue (const char *sensor_name) { return minput->sensors[sensor_name]; }
 static void getPointerPos (float *out, unsigned int p = 0) {
   out[0] = minput->input_pointer_cache[p].x;
   out[1] = minput->input_pointer_cache[p].y;
