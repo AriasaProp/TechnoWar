@@ -550,4 +550,4 @@ void term () {
   android_graphics::preRender = nullptr;
   android_graphics::postRender = nullptr;
 }
-} // namespace graphics_opengles
+} // namespace opengles_graphics
