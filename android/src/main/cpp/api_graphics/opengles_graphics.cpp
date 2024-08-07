@@ -525,7 +525,13 @@ void init () {
 }
 
 void term () {
+	for (opengles_texture *i : mgl_data->managedTexture) {
+    delete i;
+  }
   mgl_data->managedTexture.clear ();
+  for (engine::mesh_core *i : mgl_data->managedMesh) {
+    delete i;
+  }
   mgl_data->managedMesh.clear ();
   delete mgl_data;
   mgl_data = nullptr;
