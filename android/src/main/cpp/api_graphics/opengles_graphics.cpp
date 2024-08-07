@@ -525,7 +525,7 @@ void init () {
 }
 
 void term () {
-	for (opengles_texture *i : mgl_data->managedTexture) {
+  for (opengles_texture *i : mgl_data->managedTexture) {
     delete i;
   }
   mgl_data->managedTexture.clear ();
