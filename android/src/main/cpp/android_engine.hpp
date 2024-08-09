@@ -22,7 +22,8 @@ namespace android_graphics {
 extern float cur_safe_insets[4];
 // android
 extern void (*onWindowChange) (ANativeWindow *);
-extern void (*onWindowResize) (unsigned char);
+extern void (*onWindowResizeDisplay) ();
+extern void (*onWindowResize) ();
 extern bool (*preRender) ();
 extern void (*postRender) (bool);
 } // namespace android_graphics
