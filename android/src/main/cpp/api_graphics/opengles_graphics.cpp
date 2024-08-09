@@ -30,13 +30,9 @@ struct opengles_texture : public engine::texture_core {
     delete[] d;
   }
 };
-#define AGRAPH_RESIZE_FLAG_DISPLAY_RESIZE 0x01
-#define AGRAPH_RESIZE_FLAG_DISPLAY_CHANGE 0x02
-#define AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE 0x04
-#define AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE 0x08
 
 struct gl_data {
-  unsigned char resize_flags = 0;
+	bool ui_proj_update, world_proj_update, resize_display, resize;
   GLint ui_shader;
   GLint u_uiProj;
   GLint u_uiTex;
@@ -104,23 +100,13 @@ static void onWindowChange (ANativeWindow *w) {
     killEGL (TERM_EGL_SURFACE);
   window = w;
 }
-static void onWindowResize (unsigned char par) {
-  mgl_data->resize_flags |= par;
+static void onWindowResizeDisplay () {
+  mgl_data->display_resize = true;
 }
-static inline void update_layout () {
-  const float fixedWidth = mgl_data->wWidth;
-  const float fixedHeight = mgl_data->wHeight;
-
-  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
-  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
-  // ui safe insets update
-  mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
-  mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
-  mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
-  mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
-
-  mgl_data->resize_flags = AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE | AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE;
+static void onWindowResize () {
+  mgl_data->resize = true;
 }
+
 static bool preRender () {
   if (!window) return false;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
@@ -343,15 +329,31 @@ static bool preRender () {
       glBindTexture (GL_TEXTURE_2D, 0);
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    update_layout ();
-  } else if (mgl_data->resize_flags & (AGRAPH_RESIZE_FLAG_DISPLAY_CHANGE | AGRAPH_RESIZE_FLAG_DISPLAY_RESIZE)) {
-    if (mgl_data->resize_flags & AGRAPH_RESIZE_FLAG_DISPLAY_CHANGE) {
-      eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-      eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
-      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
-      eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
-    }
-    update_layout ();
+    mgl_data->resize = true;
+    mgl_data->resize_display = false;
+  } else if (mgl_data->resize_display) {
+    eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
+    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
+    eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
+    mgl_data->resize = true;
+    mgl_data->resize_display = false;
+  }
+  if (mgl_data->resize) {
+  	const float fixedWidth = mgl_data->wWidth;
+		const float fixedHeight = mgl_data->wHeight;
+	
+		mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
+		mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
+		// ui safe insets update
+		mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
+		mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
+		mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
+		mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
+		
+		mgl_data->ui_proj_update = true;
+		mgl_data->world_proj_update = true;
+  	mgl_data->resize = false;
   }
   return true;
 }
@@ -428,9 +430,9 @@ static void flat_render (engine::texture_core *tex, engine::flat_vertex *v, cons
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, tex ? ((opengles_texture *)tex)->id : mgl_data->nullTextureId);
   glUniform1i (mgl_data->u_uiTex, 0);
-  if (mgl_data->resize_flags & AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE) {
+  if (mgl_data->ui_proj_update) {
     glUniformMatrix4fv (mgl_data->u_uiProj, 1, false, mgl_data->uiProj);
-    mgl_data->resize_flags &= ~AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE;
+    mgl_data->ui_proj_update = false;
   }
   glBindVertexArray (mgl_data->ui_vao);
   glBindBuffer (GL_ARRAY_BUFFER, mgl_data->ui_vbo);
@@ -466,9 +468,9 @@ static engine::mesh_core *gen_mesh (engine::mesh_core::data *v, unsigned int v_l
 static void mesh_render (engine::mesh_core **meshes, const unsigned int &count) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->world_shader);
-  if (mgl_data->resize_flags & AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE) {
+  if (mgl_data->world_proj_update) {
     glUniformMatrix4fv (mgl_data->u_worldProj, 1, false, mgl_data->worldProj);
-    mgl_data->resize_flags &= ~AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE;
+    mgl_data->world_proj_update = false;
   }
   for (size_t i = 0; i < count; i++) {
     engine::mesh_core *m = *(meshes + i);
@@ -522,6 +524,7 @@ void init () {
   engine::graphics::to_flat_coordinate = to_flat_coordinate;
 
   android_graphics::onWindowChange = onWindowChange;
+  android_graphics::onWindowResizeDisplay = onWindowResizeDisplay;
   android_graphics::onWindowResize = onWindowResize;
   android_graphics::preRender = preRender;
   android_graphics::postRender = postRender;
@@ -555,6 +558,7 @@ void term () {
   engine::graphics::to_flat_coordinate = nullptr;
 
   android_graphics::onWindowChange = nullptr;
+  android_graphics::onWindowResizeDisplay = nullptr;
   android_graphics::onWindowResize = nullptr;
   android_graphics::preRender = nullptr;
   android_graphics::postRender = nullptr;

@@ -409,7 +409,8 @@ namespace android_graphics {
 float cur_safe_insets[4];
 // android
 void (*onWindowChange) (ANativeWindow *);
-void (*onWindowResize) (unsigned char);
+void (*onWindowResizeDisplay) ();
+void (*onWindowResize) ();
 bool (*preRender) ();
 void (*postRender) (bool);
 
