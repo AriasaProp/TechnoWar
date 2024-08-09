@@ -108,18 +108,18 @@ static void onWindowResize (unsigned char par) {
   mgl_data->resize_flags |= par;
 }
 static inline void update_layout () {
-  const float fixedWidth = mgl_data->wWidth;
-  const float fixedHeight = mgl_data->wHeight;
+	const float fixedWidth = mgl_data->wWidth;
+	const float fixedHeight = mgl_data->wHeight;
 
-  mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
-  mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
-  // ui safe insets update
-  mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
-  mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
-  mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
-  mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
-
-  mgl_data->resize_flags = AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE | AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE;
+	mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
+	mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
+	// ui safe insets update
+	mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
+	mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
+	mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
+	mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
+	
+	mgl_data->resize_flags = AGRAPH_RESIZE_FLAG_UI_PROJECTION_UPDATE | AGRAPH_RESIZE_FLAG_WORLD_PROJECTION_UPDATE;
 }
 static bool preRender () {
   if (!window) return false;
@@ -141,8 +141,8 @@ static bool preRender () {
       eglChooseConfig (mgl_data->display, configAttr, configs, temp, &temp);
       mgl_data->eConfig = *configs;
       size_t k = 0, l;
-      while (configs < configs_end) {
-        EGLConfig &cfg = *(configs++);
+      do {
+        EGLConfig &cfg = *configs;
         eglGetConfigAttrib (mgl_data->display, cfg, EGL_BUFFER_SIZE, &temp);
         l = temp;
         eglGetConfigAttrib (mgl_data->display, cfg, EGL_DEPTH_SIZE, &temp);
@@ -153,7 +153,7 @@ static bool preRender () {
           k = l;
           mgl_data->eConfig = cfg;
         }
-      }
+      } while (++configs < configs_end);
     }
     bool newCntx = false;
     while (!mgl_data->context) {
@@ -343,7 +343,7 @@ static bool preRender () {
       glBindTexture (GL_TEXTURE_2D, 0);
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    update_layout ();
+    update_layout();
   } else if (mgl_data->resize_flags & (AGRAPH_RESIZE_FLAG_DISPLAY_CHANGE | AGRAPH_RESIZE_FLAG_DISPLAY_RESIZE)) {
     if (mgl_data->resize_flags & AGRAPH_RESIZE_FLAG_DISPLAY_CHANGE) {
       eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -351,7 +351,7 @@ static bool preRender () {
       eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
       eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
     }
-    update_layout ();
+    update_layout();
   }
   return true;
 }

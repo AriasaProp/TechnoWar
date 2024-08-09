@@ -33,6 +33,7 @@ enum APP_CMD : unsigned char {
   APP_CMD_INPUT_UPDATE,
   APP_CMD_WINDOW_UPDATE,
   APP_CMD_WINDOW_RESIZED,
+  APP_CMD_WINDOW_REDRAW_NEEDED,
   APP_CMD_CONTENT_RECT_CHANGED,
   APP_CMD_CONFIG_CHANGED,
   APP_CMD_FOCUS_CHANGED,
@@ -76,9 +77,7 @@ static void *android_app_entry (void *n) {
        resume = false;
   init_engine (activity->assetManager, activity->sdkVersion, looper);
   try {
-    msg_pipe read_cmd{
-        APP_CMD_CREATE,
-        nullptr};
+    msg_pipe read_cmd{ APP_CMD_CREATE, nullptr};
     for (;;) {
       switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case ALOOPER_POLL_CALLBACK:
@@ -118,7 +117,7 @@ static void *android_app_entry (void *n) {
           case APP_CMD_SAVE_STATE:
             break;
           case APP_CMD_CONFIG_CHANGED:
-            AConfiguration_fromAssetManager (aconfig, activity->assetManager);
+            AConfiguration_fromAssetManager (aconfig, (AAssetManager*)read_cmd.data);
             break;
           case APP_CMD_STOP:
             started = false;
@@ -129,6 +128,8 @@ static void *android_app_entry (void *n) {
           case APP_CMD_RESUME:
             running = true;
             resume = true;
+            break;
+          case APP_CMD_WINDOW_REDRAW_NEEDED:
             break;
           case APP_CMD_CONTENT_RECT_CHANGED:
             android_graphics::onWindowResize (1);
@@ -194,24 +195,22 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     // force loop foor provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
-#define WRITE_ANDROID_CMD_W(A, B)                                                   \
-  pthread_mutex_lock (&app->mutex);                                                 \
-  app->wait_request = true;                                                         \
-  pthread_mutex_unlock (&app->mutex);                                               \
-  write_cmd.cmd = A;                                                                \
-  write_cmd.data = B;                                                               \
-  while (write (app->msgwrite, &write_cmd, sizeof (msg_pipe)) != sizeof (msg_pipe)) \
-    LOGE ("cannot write on pipe , %s", strerror (errno));                           \
-  pthread_mutex_lock (&app->mutex);                                                 \
-  while (app->wait_request)                                                         \
-    pthread_cond_wait (&app->cond, &app->mutex);                                    \
-  pthread_mutex_unlock (&app->mutex);
 
 #define WRITE_ANDROID_CMD(A, B)                                                     \
   write_cmd.cmd = A;                                                                \
   write_cmd.data = B;                                                               \
   while (write (app->msgwrite, &write_cmd, sizeof (msg_pipe)) != sizeof (msg_pipe)) \
     LOGE ("cannot write on pipe , %s", strerror (errno));
+
+#define WRITE_ANDROID_CMD_W(A, B)                                                   \
+  pthread_mutex_lock (&app->mutex);                                                 \
+  app->wait_request = true;                                                         \
+  pthread_mutex_unlock (&app->mutex);                                               \
+  WRITE_ANDROID_CMD(A, B)                           \
+  pthread_mutex_lock (&app->mutex);                                                 \
+  while (app->wait_request)                                                         \
+    pthread_cond_wait (&app->cond, &app->mutex);                                    \
+  pthread_mutex_unlock (&app->mutex);
 
   // initialize lifecycle
   activity->callbacks->onStart = [] (ANativeActivity *) {
@@ -226,8 +225,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   activity->callbacks->onInputQueueCreated = [] (ANativeActivity *, AInputQueue *queue) {
     WRITE_ANDROID_CMD_W (APP_CMD_INPUT_UPDATE, (void *)queue)
   };
-  activity->callbacks->onConfigurationChanged = [] (ANativeActivity *) {
-    WRITE_ANDROID_CMD (APP_CMD_CONFIG_CHANGED, nullptr)
+  activity->callbacks->onConfigurationChanged = [] (ANativeActivity *activity) {
+    WRITE_ANDROID_CMD (APP_CMD_CONFIG_CHANGED, (void*)activity->assetManager)
   };
   activity->callbacks->onLowMemory = [] (ANativeActivity *) {
     WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, nullptr)
@@ -237,6 +236,9 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   };
   activity->callbacks->onNativeWindowResized = [] (ANativeActivity *, ANativeWindow *) {
     WRITE_ANDROID_CMD (APP_CMD_WINDOW_RESIZED, nullptr)
+  };
+  activity->callbacks->onNativeWindowRedrawNeeded = [] (ANativeActivity *, ANativeWindow *) {
+    WRITE_ANDROID_CMD (APP_CMD_WINDOW_REDRAW_NEEDED, nullptr)
   };
   activity->callbacks->onContentRectChanged = [] (ANativeActivity *, const ARect *) {
     WRITE_ANDROID_CMD (APP_CMD_CONTENT_RECT_CHANGED, nullptr)
