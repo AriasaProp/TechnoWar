@@ -32,7 +32,7 @@ struct opengles_texture : public engine::texture_core {
 };
 
 struct gl_data {
-  bool ui_proj_update, world_proj_update, resize_display, resize;
+	bool ui_proj_update, world_proj_update, resize_display, resize;
   GLint ui_shader;
   GLint u_uiProj;
   GLint u_uiTex;
@@ -101,7 +101,7 @@ static void onWindowChange (ANativeWindow *w) {
   window = w;
 }
 static void onWindowResizeDisplay () {
-  mgl_data->display_resize = true;
+  mgl_data->resize_display = true;
 }
 static void onWindowResize () {
   mgl_data->resize = true;
@@ -340,20 +340,20 @@ static bool preRender () {
     mgl_data->resize_display = false;
   }
   if (mgl_data->resize) {
-    const float fixedWidth = mgl_data->wWidth;
-    const float fixedHeight = mgl_data->wHeight;
-
-    mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
-    mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
-    // ui safe insets update
-    mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
-    mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
-    mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
-    mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
-
-    mgl_data->ui_proj_update = true;
-    mgl_data->world_proj_update = true;
-    mgl_data->resize = false;
+  	const float fixedWidth = mgl_data->wWidth;
+		const float fixedHeight = mgl_data->wHeight;
+	
+		mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
+		mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
+		// ui safe insets update
+		mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
+		mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
+		mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
+		mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
+		
+		mgl_data->ui_proj_update = true;
+		mgl_data->world_proj_update = true;
+  	mgl_data->resize = false;
   }
   return true;
 }
