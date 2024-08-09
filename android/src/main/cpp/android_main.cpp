@@ -77,7 +77,7 @@ static void *android_app_entry (void *n) {
        resume = false;
   init_engine (activity->assetManager, activity->sdkVersion, looper);
   try {
-    msg_pipe read_cmd{ APP_CMD_CREATE, nullptr};
+    msg_pipe read_cmd{APP_CMD_CREATE, nullptr};
     for (;;) {
       switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
       case ALOOPER_POLL_CALLBACK:
@@ -117,7 +117,7 @@ static void *android_app_entry (void *n) {
           case APP_CMD_SAVE_STATE:
             break;
           case APP_CMD_CONFIG_CHANGED:
-            AConfiguration_fromAssetManager (aconfig, (AAssetManager*)read_cmd.data);
+            AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
             break;
           case APP_CMD_STOP:
             started = false;
@@ -202,14 +202,14 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   while (write (app->msgwrite, &write_cmd, sizeof (msg_pipe)) != sizeof (msg_pipe)) \
     LOGE ("cannot write on pipe , %s", strerror (errno));
 
-#define WRITE_ANDROID_CMD_W(A, B)                                                   \
-  pthread_mutex_lock (&app->mutex);                                                 \
-  app->wait_request = true;                                                         \
-  pthread_mutex_unlock (&app->mutex);                                               \
-  WRITE_ANDROID_CMD(A, B)                           \
-  pthread_mutex_lock (&app->mutex);                                                 \
-  while (app->wait_request)                                                         \
-    pthread_cond_wait (&app->cond, &app->mutex);                                    \
+#define WRITE_ANDROID_CMD_W(A, B)                \
+  pthread_mutex_lock (&app->mutex);              \
+  app->wait_request = true;                      \
+  pthread_mutex_unlock (&app->mutex);            \
+  WRITE_ANDROID_CMD (A, B)                       \
+  pthread_mutex_lock (&app->mutex);              \
+  while (app->wait_request)                      \
+    pthread_cond_wait (&app->cond, &app->mutex); \
   pthread_mutex_unlock (&app->mutex);
 
   // initialize lifecycle
@@ -226,7 +226,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     WRITE_ANDROID_CMD_W (APP_CMD_INPUT_UPDATE, (void *)queue)
   };
   activity->callbacks->onConfigurationChanged = [] (ANativeActivity *activity) {
-    WRITE_ANDROID_CMD (APP_CMD_CONFIG_CHANGED, (void*)activity->assetManager)
+    WRITE_ANDROID_CMD (APP_CMD_CONFIG_CHANGED, (void *)activity->assetManager)
   };
   activity->callbacks->onLowMemory = [] (ANativeActivity *) {
     WRITE_ANDROID_CMD (APP_CMD_LOW_MEMORY, nullptr)
@@ -291,5 +291,5 @@ extern "C" JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNat
   android_graphics::cur_safe_insets[2] = right;
   android_graphics::cur_safe_insets[3] = bottom;
   if (android_graphics::onWindowResize)
-  	android_graphics::onWindowResize();
+    android_graphics::onWindowResize ();
 }
