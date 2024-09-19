@@ -1,8 +1,8 @@
 #include "assets/uiskin.hpp"
-#include "qoi/qoi.hpp"
 #include "stbi/stbi_load.hpp"
 #include "stbi/stbi_rectpack.hpp"
 #include "stbi/stbi_write.hpp"
+#include "qoi/qoi.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -106,16 +106,16 @@ bool uiskin_packing (fs::path assets, fs::path converted) {
       fwrite ("\$", sizeof (char), 1, atlas_out);
       // create output directory skin name
       {
-        qoi_desc desc{PACK_SIZE, PACK_SIZE, 4, 1};
-        int size;
-        unsigned char *encoded = qoi_encode (outBuffer, desc, &size);
-        fwrite (encoded, 1, size, atlas_out);
-
-        QOI_FREE (encoded);
+				qoi_desc desc{PACK_SIZE,PACK_SIZE,4,1};
+				int size;
+				unsigned char *encoded = qoi_encode((unsigned char*1)outBuffer, desc, &size);
+				fwrite(encoded, 1, size, atlas_out);
+			
+				QOI_FREE(encoded);
       }
-      fflush (atlas_out);
-      if (ferror (atlas_out)) throw "file error";
-      fclose (atlas_out);
+			fflush(atlas_out);
+			if (ferror(atlas_out)) throw "file error";
+			fclose(atlas_out);
       std::cout << "Output: " << outfile.c_str () << " completed." << std::endl;
     }
   } catch (const fs::filesystem_error &e) {
