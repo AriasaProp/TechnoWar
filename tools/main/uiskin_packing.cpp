@@ -108,7 +108,7 @@ bool uiskin_packing (fs::path assets, fs::path converted) {
       {
         qoi_desc desc{PACK_SIZE, PACK_SIZE, 4, 1};
         int size;
-        unsigned char *encoded = qoi_encode ((unsigned char *)outBuffer, desc, &size);
+        unsigned char *encoded = qoi_encode ((unsigned char *)outBuffer, &desc, &size);
         fwrite (encoded, 1, size, atlas_out);
 
         delete[] encoded;
