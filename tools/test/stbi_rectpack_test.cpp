@@ -26,49 +26,40 @@ static inline unsigned int genRNG (unsigned int numBits) {
 }
 
 bool stbi_rectpack_test () {
-  std::cout << "STBI RECTPACK Test" << std::endl;
-  try {
-    stbi::rectpack::rect rects[RECTS];
-
-    unsigned int area;
-    for (unsigned int re = 0; re < RE_; ++re) {
-      std::cout << "Packed size " << re << ": ";
-      area = 0;
-      for (stbi::rectpack::rect &rect : rects) {
-        rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
-        rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
-        area += rect.w * rect.h;
-      }
-      std::cout << "\n  total area " << area << " is ";
-      {
-        const double n = static_cast<double> (area) * 1.3;
-        double root = n;
-        double x;
-        do {
-          x = root;
-          root = 0.5 * (x + n / x);
-        } while (std::abs (root - x) > 0.0);
-        root = std::ceil (root);
-        area = static_cast<unsigned int> (root) + 5;
-      }
-      std::cout << "\n  used area " << area << " x " << area << " = " << area * area << " is ";
-      if (stbi::rectpack::pack_rects (area, area, rects, RECTS)) {
-        std::cout << "Success" << std::endl;
-      } else {
-        std::cout << "Failure" << std::endl;
-        std::cout << "There is the list: " << std::endl;
-        for (const stbi::rectpack::rect &r : rects) {
-          if (r.was_packed)
-            std::cout << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")" << std::endl;
-          else
-            std::cout << "× " << r.w << " x " << r.h << std::endl;
-        }
-        throw "there is not enough space!";
-      }
+  std::cout << "STBI RECTPACK Test: ";
+  stbi::rectpack::rect rects[RECTS];
+  unsigned int area_total, area_used;
+  for (unsigned int re = 0; re < RE_; ++re) {
+    area_total = 0;
+    for (stbi::rectpack::rect &rect : rects) {
+      rect.w = genRNG (6) + 10; // (0 ~ 63) + 10
+      rect.h = genRNG (6) + 10; // (0 ~ 63) + 10
+      area_total += rect.w * rect.h;
     }
-    return true;
-  } catch (const char *err) {
-    std::cerr << " Error: " << err << std::endl;
-    return false;
+    {
+      const double n = static_cast<double> (area_total) * 1.3;
+      double root = n;
+      double x;
+      do {
+        x = root;
+        root = 0.5 * (x + n / x);
+      } while (std::abs (root - x) > 0.0);
+      root = std::ceil (root);
+      area_used = static_cast<unsigned int> (root) + 5;
+    }
+    if (!stbi::rectpack::pack_rects (area_used, area_used, rects, RECTS)) {
+    	std::cout << "Failure" << std::endl;
+      std::cout << "Packing rect with container " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:" << std::endl;
+      for (const stbi::rectpack::rect &r : rects) {
+        if (r.was_packed)
+          std::cout << "[√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")]";
+        else
+          std::cout << "[× " << r.w << " x " << r.h << "]";
+      }
+      std::cout << std::endl;
+      return false;
+    }
   }
+  std::cout << "Success" << std::endl;
+  return true;
 }

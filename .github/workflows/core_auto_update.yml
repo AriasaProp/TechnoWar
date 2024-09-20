@@ -9,9 +9,10 @@ on:
       - 'tools/**'
 
 jobs:
-  core:
+  format:
     runs-on: ubuntu-latest
     outputs:
+      core: ${{ steps.changes.outputs.core }}
       android: ${{ steps.changes.outputs.android }}
       desktop: ${{ steps.changes.outputs.desktop }}
       tools: ${{ steps.changes.outputs.tools }}
@@ -47,9 +48,8 @@ jobs:
               - 'android/src/main/java/**/*.java'
               - 'android/src/test/java/**/*.java'
 
-      - name: Format Java Code
+      - uses: axel-op/googlejavaformat-action@v3.6.0
         if: steps.changes.outputs.java-src == 'true'
-        uses: axel-op/googlejavaformat-action@v3.6.0
         continue-on-error: true
         with:
           files: "android/src/**/*.java"
@@ -57,38 +57,54 @@ jobs:
 
       - name: Format Code C++
         if: steps.changes.outputs.cpp-src == 'true'
-        continue-on-error: true
+        run: |
+          sudo apt-get install -y clang-format
+          echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
+
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.10.1
+
+      - name: Gradle update
+        run: |
+          gradle help --scan
+          gradle help --warning-mode=all
+          gradle wrapper --gradle-version 8.10.1
+
+      - name: Push changes
         run: |
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"
-          sudo apt-get install -y clang-format
-          echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
           git add .
-          git commit -m "Core Reformatting Sources"
+          git commit -m "Reformatting Code Sources"
           git push
 
+  core:
+    runs-on: ubuntu-latest
+    needs: format
+    if: needs.format.outputs.core == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
       - name: Setup JDK 21
-        if: steps.changes.outputs.core == 'true'
         uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
-
+ 
       - name: Gradle Check Core
-        if: steps.changes.outputs.core == 'true'
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.7
+          gradle-version: 8.10.1
 
-      - name: Run Check
-        if: steps.changes.outputs.core == 'true'
-        run: gradle :core:check 
+      - run: gradle :core:check 
 
   android:
     runs-on: ubuntu-latest
-    needs: core
-    if: needs.core.outputs.android == 'true'
+    needs: format
+    if: needs.format.outputs.android == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
@@ -103,10 +119,9 @@ jobs:
       - name: Gradle Build Android
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.7
+          gradle-version: 8.10.1
 
-      - name: Run Build Release
-        run: gradle :android:build -Prelease
+      - run: gradle :android:build -Prelease
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4.3.3
@@ -116,8 +131,8 @@ jobs:
 
   desktop:
     runs-on: ubuntu-latest
-    needs: core
-    if: needs.core.outputs.desktop == 'true'
+    needs: format
+    if: needs.format.outputs.desktop == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
@@ -132,10 +147,9 @@ jobs:
       - name: Gradle Build Desktop
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.7
+          gradle-version: 8.10.1
 
-      - name: Run Build
-        run: gradle :desktop:build
+      - run: gradle :desktop:build
 
       - name: Upload Desktop EXE
         uses: actions/upload-artifact@v4.3.3
@@ -145,8 +159,8 @@ jobs:
 
   tools:
     runs-on: ubuntu-latest
-    needs: core
-    if: needs.core.outputs.tools == 'true'
+    needs: format
+    if: needs.format.outputs.tools == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1
@@ -161,10 +175,9 @@ jobs:
       - name: Gradle Build Tools
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: 8.7
+          gradle-version: 8.10.1
 
-      - name: Run Build Tools
-        run: |
+      - run: |
           gradle :tools:build
           cd tools
           build/exe/main/debug/tools
