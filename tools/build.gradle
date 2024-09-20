@@ -6,17 +6,20 @@ plugins {
 application {
 		source.from file('main')
 		privateHeaders.from file('main')
-		
-		compilerArgs.add '-std=c++20'
-		linkerArgs.add '-lm'
+		binaries.configureEach {
+				compilerArgs.add '-std=c++20'
+				linkerArgs.add '-lm'
+		}
 }
 
 unitTest {
     source.from file('test')
     privateHeaders.from file('test')
     
-		compilerArgs.add '-std=c++20'
-		linkerArgs.add '-lm'
+		binaries.configureEach {
+				compilerArgs.add '-std=c++20'
+				linkerArgs.add '-lm'
+		}
 }
 
 dependencies {
