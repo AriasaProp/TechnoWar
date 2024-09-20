@@ -71,13 +71,11 @@ jobs:
         with:
           gradle-version: 8.10.1
 
-      - name: Gradle update
-        run: |
-          gradle help --scan
-          gradle help --warning-mode=all
-          gradle wrapper --gradle-version 8.10.1
+      - name: Gradle Tasks
+        run: gradle tasks
 
       - name: Push changes
+        continue-on-error: true
         run: |
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"

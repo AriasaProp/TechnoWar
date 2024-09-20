@@ -119,7 +119,6 @@ bool uiskin_packing (fs::path assets, fs::path converted) {
       std::cout << "Output: " << outfile.c_str () << " completed." << std::endl;
     }
   } catch (const fs::filesystem_error &e) {
-
     std::cerr << "Error filesystem: " << e.what () << std::endl;
     return false;
   } catch (const char *err) {
