@@ -51,12 +51,12 @@ jobs:
           files: "android/src/**/*.java"
           args: "-r -a"
 
-      - name: Format Code C++
-        if: steps.changes.outputs.cpp-src == 'true'
           #echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
+        #if: steps.changes.outputs.cpp-src == 'true'
+      - name: Format Code C++
         run: |
           sudo apt-get install -y clang-format
-          find . -iname '*.hpp' -o -iname '*.cpp' | xargs clang-format -i
+          find . -iname '*.hpp' -o -iname '*.cpp' | xargs -n 1 clang-format -i
  
       - uses: actions/setup-java@v4.2.1
         with:
@@ -74,6 +74,7 @@ jobs:
 
       - name: Push changes
         continue-on-error: true
+        if: always()
         run: |
           git config --global user.email "ikomangwidiadaariasa12@gmail.com"
           git config --global user.name "AriasaProp"
