@@ -59,10 +59,10 @@ struct android_app {
   pthread_t thread;
 } *app = nullptr;
 
-struct msg_pipe {
+typedef struct {
   unsigned char cmd;
   void *data;
-};
+} msg_pipe;
 
 static void *android_app_entry (void *n) {
   if (!app) return NULL;
