@@ -34,7 +34,8 @@ int main (int argc, char *argv[]) {
 	    assets_for_desktop(rootDir/"desktop/assets", assets);
 	    
 		} catch (const fs::filesystem_error &e) {
-			std::string thr_er = "(Filesystem) " + e.what();
+			std::string thr_er = "(Filesystem) ";
+			thr_er += e.what();
 			throw thr_er.c_str();
 		}
   } catch (const char *err) {

@@ -63,7 +63,7 @@ void stbi_rectpack_test () {
     }
   }
 	} catch (const char *err) {
-		ser.str({});
+		serr.str({});
 		serr << "STBI RectPack Failure: " << err;
 		throw serr.str().c_str();
 	}
