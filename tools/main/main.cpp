@@ -16,7 +16,7 @@ int main (int argc, char *argv[]) {
   try {
   	stbi_rectpack_test ();
   } catch (const char *err) {
-  	std::cout << "\nError -> " << err << std::endl;
+  	std::cout << " Error!\n " << err << std::endl;
   	return EXIT_FAILURE;
   }
 	std::cout << " Done!" << std::endl;

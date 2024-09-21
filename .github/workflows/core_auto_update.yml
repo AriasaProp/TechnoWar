@@ -53,9 +53,10 @@ jobs:
 
       - name: Format Code C++
         if: steps.changes.outputs.cpp-src == 'true'
+          #echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
         run: |
           sudo apt-get install -y clang-format
-          echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
+          find / -iname '*.hpp' -o -iname '*.cpp' | xargs clang-format -i
  
       - uses: actions/setup-java@v4.2.1
         with:
