@@ -20,7 +20,7 @@ void assets_for_android(fs::path des_path, fs::path res_path) {
 		  
 		  fs::copy(res_path/"fonts", des_path/"fonts", fs::copy_options::recursive);
 		  fs::copy(res_path/"images", des_path/"images", fs::copy_options::recursive);
-			uiskin_packing(res_path, des_path);
+			uiskin_packing_android(res_path, des_path);
 		} catch (const fs::filesystem_error &e) {
 	  	serr.str("");
 			serr << "(Filesystem) " << e.what();
