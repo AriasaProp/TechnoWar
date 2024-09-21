@@ -1,45 +1,32 @@
 #include <iostream>
 #include <filesystem>
+#include <sstream>
 
 namespace fs = std::filesystem;
 
-//test group
-extern void stbi_rectpack_test ();
-
 //converting group
-extern void uiskin_packing (fs::path, fs::path);
-extern void copy_others (fs::path, fs::path);
-extern void android_asset_match (fs::path, fs::path);
+extern void assets_for_android(fs::path, fs::path);
+extern void assets_for_desktop(fs::path, fs::path);
 
 int main (int argc, char *argv[]) {
-  std::cout << "Test Tools";
-  try {
-  	stbi_rectpack_test ();
-  } catch (const char *err) {
-  	std::cout << "\nError -> " << err << std::endl;
-  	return EXIT_FAILURE;
-  }
-	std::cout << " Done!" << std::endl;
-	
   std::cout << "Converting Assets";
   try {
   	try {
 	    // path of source files
-	    fs::path projectDir = argv[1];
+	    fs::path rootDir = argv[1];
+	    fs::path projectDir = argv[2];
 	    fs::path assets = projectDir / "assets";
 	    if (!fs::exists (assets) || !fs::is_directory (assets)) throw "assets folder didn't exist!";
-	    // create converted directory for result
-	    fs::path converted = projectDir /  "converted/assets";
-	    if (!fs::create_directory (converted)) throw "cannot make a directory";
-	    uiskin_packing (assets, converted);
-	    copy_others (assets, converted);
-	    android_asset_match (converted, projectDir/"../src/main");
+	    
+	    assets_for_android(rootDir/"android/src/main/assets", assets);
+	    assets_for_desktop(rootDir/"desktop/assets", assets);
+	    
 		} catch (const fs::filesystem_error &e) {
 			std::string thr_er = "(Filesystem) " + e.what();
 			throw thr_er.c_str();
 		}
   } catch (const char *err) {
-    std::cout << "\n Error " << err << std::endl;
+  	std::cout << " Error!\n" << err << std::endl;
     return EXIT_FAILURE;
   }
   std::cout << " Done!" << std::endl;

@@ -1,17 +1,28 @@
 plugins {
+    id 'cpp-application'
     id 'cpp-unit-test'
 }
 
-unitTest {
+application {
     source.from file('main')
     privateHeaders.from file('main')
+    publicHeaders.from file('main')
+    binaries.configureEach {
+        compileTask.get().compilerArgs.addAll(['-std=c++20'])
+        linkTask.get().linkerArgs.addAll(['-lm'])
+				runTask.get().args "${rootProject.layout.projectDirectory} ${projectDir}"
+    }
+}
+
+unitTest {
+    source.from file('test')
+    privateHeaders.from file('test')
 		binaries.configureEach {
         compileTask.get().compilerArgs.addAll(['-std=c++20'])
         linkTask.get().linkerArgs.addAll(['-lm'])
-				runTask.get().args "${projectDir}"
     }
 }
 
 dependencies {
-		testImplementation project(':core')
+		implementation project(':core')
 }

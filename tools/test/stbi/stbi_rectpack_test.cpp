@@ -25,6 +25,8 @@ static inline unsigned int genRNG (unsigned int numBits) {
 }
 
 void stbi_rectpack_test () {
+	std::stringstream serr;
+	try {
   stbi::rectpack::rect rects[RECTS];
   unsigned int area_total, area_used;
   for (unsigned int re = 0; re < RE_; ++re) {
@@ -46,8 +48,8 @@ void stbi_rectpack_test () {
       area_used = static_cast<unsigned int> (root) + 5;
     }
     if (!stbi::rectpack::pack_rects (area_used, area_used, rects, RECTS)) {
-    	std::stringstream serr;
-    	serr << "STBI RectPack Failure - Packing rect with container " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:\n";
+    	ser.str({});
+    	serr << "Packing with rect " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:\n";
       for (const stbi::rectpack::rect &r : rects) {
       	serr << "[";
         if (r.was_packed)
@@ -60,4 +62,9 @@ void stbi_rectpack_test () {
       throw serr.str().c_str();
     }
   }
+	} catch (const char *err) {
+		ser.str({});
+		serr << "STBI RectPack Failure: " << err;
+		throw serr.str().c_str();
+	}
 }
