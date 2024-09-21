@@ -50,13 +50,11 @@ jobs:
         with:
           files: "android/src/**/*.java"
           args: "-r -a"
-
-          #echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
-        #if: steps.changes.outputs.cpp-src == 'true'
       - name: Format Code C++
+        if: steps.changes.outputs.cpp-src == 'true'
         run: |
           sudo apt-get install -y clang-format
-          find . -iname '*.hpp' -o -iname '*.cpp' | xargs -n 1 clang-format -i
+          echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
  
       - uses: actions/setup-java@v4.2.1
         with:
