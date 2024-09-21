@@ -8,29 +8,29 @@ static std::stringstream serr;
 
 void uiskin_packing_android (fs::path, fs::path);
 
-void assets_for_android(fs::path des_path, fs::path res_path) {
-	try {
-		try {
-		  if (fs::exists (des_path)) fs::remove_all(des_path);
-		  if (!fs::create_directory (des_path)) {
-		  	serr.str("");
-		  	serr << "failed create assets folder in android";
-		  	throw serr.str();
-		  }
-		  
-		  fs::copy(res_path/"fonts", des_path/"fonts", fs::copy_options::recursive);
-		  fs::copy(res_path/"images", des_path/"images", fs::copy_options::recursive);
-			uiskin_packing_android(res_path, des_path);
-		} catch (const fs::filesystem_error &e) {
-	  	serr.str("");
-			serr << "(Filesystem) " << e.what();
-  		throw serr.str();
-		}
-	} catch (const std::string err) {
-  	serr.str("");
-		serr << "Android Assets Generator " << err;
-  	throw serr.str();
-	}
+void assets_for_android (fs::path des_path, fs::path res_path) {
+  try {
+    try {
+      if (fs::exists (des_path)) fs::remove_all (des_path);
+      if (!fs::create_directory (des_path)) {
+        serr.str ("");
+        serr << "failed create assets folder in android";
+        throw serr.str ();
+      }
+
+      fs::copy (res_path / "fonts", des_path / "fonts", fs::copy_options::recursive);
+      fs::copy (res_path / "images", des_path / "images", fs::copy_options::recursive);
+      uiskin_packing_android (res_path, des_path);
+    } catch (const fs::filesystem_error &e) {
+      serr.str ("");
+      serr << "(Filesystem) " << e.what ();
+      throw serr.str ();
+    }
+  } catch (const std::string err) {
+    serr.str ("");
+    serr << "Android Assets Generator " << err;
+    throw serr.str ();
+  }
 }
 
 #include "assets/uiskin.hpp"
@@ -79,7 +79,7 @@ void uiskin_packing_android (fs::path assets, fs::path converted) {
       std::string image_path = image.path ().string ();
       if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
       if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2))
-      	throw stbi::load::failure_reason ();
+        throw stbi::load::failure_reason ();
       image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
     }
 
@@ -91,13 +91,13 @@ void uiskin_packing_android (fs::path assets, fs::path converted) {
     outfile += ".pack";
     FILE *atlas_out = fopen (outfile.c_str (), "wb");
     if (atlas_out == NULL) {
-    	throw strerror (errno);
+      throw strerror (errno);
     }
     uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
     for (const stbi::rectpack::rect &r : image_rects) {
       unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
       if (!image_buffer)
-      	throw stbi::load::failure_reason ();
+        throw stbi::load::failure_reason ();
 
       for (size_t y = 0; y < r.h; y++) {
         memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
@@ -132,7 +132,7 @@ void uiskin_packing_android (fs::path assets, fs::path converted) {
       delete[] encoded;
     }
     fflush (atlas_out);
-    if (ferror (atlas_out)) throw strerror(errno);
+    if (ferror (atlas_out)) throw strerror (errno);
     fclose (atlas_out);
   }
 }
