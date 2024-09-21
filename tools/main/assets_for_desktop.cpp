@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 static std::stringstream serr;
 
-void uiskin_packing (fs::path, fs::path);
+void uiskin_packing_desktop (fs::path, fs::path);
 
 void assets_for_desktop(fs::path des_path, fs::path res_path) {
 	try {
@@ -52,7 +52,7 @@ void assets_for_desktop(fs::path des_path, fs::path res_path) {
 #include <unistd.h>
 #include <vector>
 
-void uiskin_packing (fs::path assets, fs::path converted) {
+void uiskin_packing_desktop (fs::path assets, fs::path converted) {
   fs::path uiskin_path = assets / "uiskin";
   if (!fs::exists (uiskin_path) || !fs::is_directory (uiskin_path))
     throw "uiskin folder not exist!";
