@@ -27,7 +27,7 @@ int main (int argc, char *argv[]) {
 	    // path of source files
 	    fs::path projectDir = argv[1];
 	    fs::path assets = projectDir / "assets";
-	    if (!fs::exists (assets) || !fs::is_directory (assets))) throw "assets folder didn't exist!";
+	    if (!fs::exists (assets) || !fs::is_directory (assets)) throw "assets folder didn't exist!";
 	    // create converted directory for result
 	    fs::path converted = projectDir /  "converted/assets";
 	    if (!fs::create_directory (converted)) throw "cannot make a directory";

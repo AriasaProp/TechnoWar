@@ -46,7 +46,7 @@ void stbi_rectpack_test () {
       area_used = static_cast<unsigned int> (root) + 5;
     }
     if (!stbi::rectpack::pack_rects (area_used, area_used, rects, RECTS)) {
-    	std::stringstream serr;
+    	std::istringstream serr;
     	serr << "STBI RectPack Failure - Packing rect with container " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:\n";
       for (const stbi::rectpack::rect &r : rects) {
       	serr << "[";
