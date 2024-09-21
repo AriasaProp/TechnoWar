@@ -1,8 +1,8 @@
-#include "../assets/uiskin.hpp"
-#include ". /qoi/qoi.hpp"
-#include "../stbi/stbi_load.hpp"
-#include "../stbi/stbi_rectpack.hpp"
-#include "../stbi/stbi_write.hpp"
+#include "assets/uiskin.hpp"
+#include "qoi/qoi.hpp"
+#include "stbi/stbi_load.hpp"
+#include "stbi/stbi_rectpack.hpp"
+#include "stbi/stbi_write.hpp"
 
 #include <algorithm>
 #include <cassert>
