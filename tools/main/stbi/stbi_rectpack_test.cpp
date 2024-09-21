@@ -1,4 +1,4 @@
-#include "stbi/stbi_rectpack.hpp"
+#include "stbi_rectpack.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -6,7 +6,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
-#include <filesystem>
 #include <iostream>
 #include <set>
 #include <string>
@@ -25,8 +24,7 @@ static inline unsigned int genRNG (unsigned int numBits) {
   return lfsr;
 }
 
-bool stbi_rectpack_test () {
-  std::cout << "STBI RECTPACK Test: ";
+void stbi_rectpack_test () {
   stbi::rectpack::rect rects[RECTS];
   unsigned int area_total, area_used;
   for (unsigned int re = 0; re < RE_; ++re) {
@@ -48,18 +46,18 @@ bool stbi_rectpack_test () {
       area_used = static_cast<unsigned int> (root) + 5;
     }
     if (!stbi::rectpack::pack_rects (area_used, area_used, rects, RECTS)) {
-    	std::cout << "Failure" << std::endl;
-      std::cout << "Packing rect with container " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:" << std::endl;
+    	std::stringstream serr;
+    	serr << "STBI RectPack Failure - Packing rect with container " << area_used * area_used << " px² and total rect area " << area_total << " px², there is:\n";
       for (const stbi::rectpack::rect &r : rects) {
+      	serr << "[";
         if (r.was_packed)
-          std::cout << "[√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")]";
+          serr << "√ " << r.w << " x " << r.h << " in (" << r.x << "," << r.y << ")";
         else
-          std::cout << "[× " << r.w << " x " << r.h << "]";
+          serr << "× " << r.w << " x " << r.h;
+      	serr << "]";
       }
-      std::cout << std::endl;
-      return false;
+      serr << "\n";
+      throw serr.str().c_str();
     }
   }
-  std::cout << "Success" << std::endl;
-  return true;
 }

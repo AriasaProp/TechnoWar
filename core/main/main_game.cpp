@@ -31,7 +31,7 @@ uistage::text_actor *t_fps, *t_dlt, *t_mem, *t_dev;
 
 void start () {
   uistage::clear ();
-  uistage::loadBMFont ("default.fnt");
+  uistage::loadBMFont ("fonts/default/default.fnt");
   engine::mesh_core::data vert[24] = {
       //{{x,y,z}, 0xabgr
       // front red
@@ -71,16 +71,16 @@ void start () {
   {
     int x, y;
     unsigned char *t;
-    t = stbi::load::load_from_assets ("btn1.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
+    t = stbi::load::load_from_assets ("images/btn1.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
     engine::texture_core *tex;
     tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
     stbi::load::image_free (t);
-    t = stbi::load::load_from_assets ("btn1_.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
+    t = stbi::load::load_from_assets ("images/btn1_.png", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
     tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("btn1_", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {10, 10, 10, 10}});
     stbi::load::image_free (t);
-    t = stbi::load::load_from_assets ("test.jpeg", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
+    t = stbi::load::load_from_assets ("images/test.jpeg", &x, &y, nullptr, stbi::load::channel::rgb_alpha);
     tex = engine::graphics::gen_texture (x, y, t);
     uistage::addTextureRegion ("test", tex, uistage::texture_region{{0, 0}, {(unsigned int)x, (unsigned int)y}, {}});
     stbi::load::image_free (t);
