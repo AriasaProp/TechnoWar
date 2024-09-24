@@ -343,7 +343,7 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
     unsigned int asl;
-    void *as = engine::assets::asset_buffer (fontfile, &asl);
+    const char *as = (const char*)engine::assets::asset_buffer (fontfile, &asl);
     std::string buffer (as, asl);
     free (as);
     std::stringstream buffer_stream (buffer);
