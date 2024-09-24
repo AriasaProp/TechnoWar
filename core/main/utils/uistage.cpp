@@ -511,10 +511,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -522,10 +522,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     if (split[2]) {
@@ -533,10 +533,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
   }
@@ -551,10 +551,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -562,10 +562,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     if (split[2]) {
@@ -573,10 +573,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
   }
@@ -591,10 +591,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -602,10 +602,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
     if (split[2]) {
@@ -613,10 +613,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
-      *(verts++) = {xList[0], yList[0], ta.clr, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.clr, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.clr, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.clr, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
+      *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
+      *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
+      *(verts++) = {xList[1], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[1]};
       quadCount++;
     }
   }
