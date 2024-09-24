@@ -1,7 +1,7 @@
 #include "uistage.hpp"
 #include "../engine.hpp"
-#include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
+#include "../qoi/qoi.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -67,7 +67,7 @@ void uistage::loadUISkin (const char *uiSkin) {
     std::string atlasFile = uiSkin;
     atlasFile += ".txt";
     unsigned int asl;
-    void *as = engine::assets::asset_buffer (atlasFile, &asl);
+    void *as = engine::assets::asset_buffer (atlasFile.c_str(), &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
     free (as);
 
