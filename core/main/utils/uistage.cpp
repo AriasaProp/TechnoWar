@@ -67,7 +67,7 @@ void uistage::loadUISkin (const char *uiSkin) {
     std::string atlasFile = uiSkin;
     atlasFile += ".txt";
     unsigned int asl;
-    void *as = engine::assets::asset_buffer (fontfile, &asl);
+    void *as = engine::assets::asset_buffer (atlasFile, &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
     free (as);
 
