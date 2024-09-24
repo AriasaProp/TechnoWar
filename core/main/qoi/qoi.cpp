@@ -1,5 +1,5 @@
-#include "../engine.hpp"
 #include "qoi.hpp"
+#include "../engine.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
@@ -287,11 +287,11 @@ bool qoi_write (const char *filename, const unsigned char *data, const qoi_desc 
 }
 
 unsigned char *qoi_from_asset (const char *filename, qoi_desc *desc, int channels) {
-	unsigned int l;
-	void *user = engine::assets::asset_buffer (filename, &l);
-	unsigned char *result = qoi_decode (data, l, desc, channels);
-	free(user);
-	return result;
+  unsigned int l;
+  void *user = engine::assets::asset_buffer (filename, &l);
+  unsigned char *result = qoi_decode (data, l, desc, channels);
+  free (user);
+  return result;
 }
 unsigned char *qoi_read (const char *filename, qoi_desc *desc, int channels) {
   FILE *f = fopen (filename, "rb");

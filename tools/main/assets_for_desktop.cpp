@@ -6,7 +6,7 @@ namespace fs = std::filesystem;
 
 static std::stringstream serr;
 
-void uiskin_packer(fs::path, fs::path);
+void uiskin_packer (fs::path, fs::path);
 
 void assets_for_desktop (fs::path des_path, fs::path res_path) {
   try {

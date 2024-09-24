@@ -1,20 +1,20 @@
-#include "../utils/uistage.hpp"
 #include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
 #include "../stbi/stbi_rectpack.hpp"
 #include "../stbi/stbi_write.hpp"
+#include "../utils/uistage.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <cerrno>
 #include <cmath>
-#include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <set>
+#include <string>
 #include <unistd.h>
 #include <vector>
-#include <string>
 
 void uiskin_packer (fs::path assets, fs::path converted) {
   fs::path uiskin_path = assets / "uiskin";
@@ -54,8 +54,8 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       throw "cannot pack image for size PACK_SIZE x PACK_SIZE!";
     // write packed result
     fs::path outfile = uiskin_part_path / skin.path ().filename ();
-    std::ofstream atlas_out(outfile + ".txt", std::ios::out | std::ios::trunc);
-    if (!atlas_out.is_open()) {
+    std::ofstream atlas_out (outfile + ".txt", std::ios::out | std::ios::trunc);
+    if (!atlas_out.is_open ()) {
       throw "fail stream atlas text"
     }
     uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
@@ -82,9 +82,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       }
       atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << rh << std::endl;
     }
-    atlas_out.close();
-    atlas_out.open(outfile + ".qoi", std::ios::out | std::ios::trunc | std::ios::binary);
-    if (!atlas_out.is_open()) {
+    atlas_out.close ();
+    atlas_out.open (outfile + ".qoi", std::ios::out | std::ios::trunc | std::ios::binary);
+    if (!atlas_out.is_open ()) {
       throw "fail stream atlas binary"
     }
     // create output directory skin name
@@ -95,7 +95,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       atlas_out.write (encoded, size);
       delete[] encoded;
     }
-    atlas_out.close();
+    atlas_out.close ();
     fflush (atlas_out);
     if (ferror (atlas_out)) throw strerror (errno);
     fclose (atlas_out);

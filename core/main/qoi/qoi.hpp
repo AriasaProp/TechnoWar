@@ -13,7 +13,7 @@ struct qoi_desc {
 
 bool qoi_write (const char *filename, const unsigned char *data, const qoi_desc *desc);
 
-unsigned char *qoi_from_asset(const char *filename, qoi_desc *desc, int channels);
+unsigned char *qoi_from_asset (const char *filename, qoi_desc *desc, int channels);
 unsigned char *qoi_read (const char *filename, qoi_desc *desc, int channels);
 
 unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, int *out_len);
