@@ -62,8 +62,7 @@ struct texture_region {
   unsigned int patch[4];
 };
 void loadBMFont (const char *);
-void addTextureRegion (std::string, engine::texture_core *, const texture_region &);
-void addTextureRegion (std::string, engine::texture_core *, const texture_region &, const uint32_t);
+void loadUISkin (const char *);
 void draw (float);
 void clear ();
 
