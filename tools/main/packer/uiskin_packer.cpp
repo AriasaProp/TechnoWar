@@ -55,7 +55,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       throw "cannot pack image for size PACK_SIZE x PACK_SIZE!";
     // write packed result
     fs::path outfile = uiskin_part_path / skin.path ().filename ();
-    std::ofstream atlas_out ((outfile + ".txt").c_str (), std::ios::out | std::ios::trunc);
+    fs::path outfile_txt = outfile;
+    outfile_txt += ".txt";
+    std::ofstream atlas_out (outfile_txt.c_str(), std::ios::out | std::ios::trunc);
     if (!atlas_out.is_open ()) throw "fail stream atlas text";
     uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
     for (const stbi::rectpack::rect &r : image_rects) {
@@ -82,7 +84,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << rh << std::endl;
     }
     atlas_out.close ();
-    atlas_out.open ((outfile + ".qoi").c_str (), std::ios::out | std::ios::trunc | std::ios::binary);
+    fs::path outfile_qoi = outfile;
+    outfile_qoi+= ".qoi";
+    atlas_out.open (outfile_qoi.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
     if (!atlas_out.is_open ()) throw "fail stream atlas binary";
     // create output directory skin name
     {
