@@ -1,8 +1,8 @@
-#include "../qoi/qoi.hpp"
-#include "../stbi/stbi_load.hpp"
-#include "../stbi/stbi_rectpack.hpp"
-#include "../stbi/stbi_write.hpp"
-#include "../utils/uistage.hpp"
+#include "qoi/qoi.hpp"
+#include "stbi/stbi_load.hpp"
+#include "stbi/stbi_rectpack.hpp"
+#include "stbi/stbi_write.hpp"
+#include "utils/uistage.hpp"
 
 #include <algorithm>
 #include <cassert>
