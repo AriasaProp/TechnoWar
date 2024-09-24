@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <vector>
 
+#define PACK_SIZE 2048
+
 namespace fs = std::filesystem;
 
 void uiskin_packer (fs::path assets, fs::path converted) {
@@ -57,7 +59,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     fs::path outfile = uiskin_part_path / skin.path ().filename ();
     fs::path outfile_txt = outfile;
     outfile_txt += ".txt";
-    std::ofstream atlas_out (outfile_txt.c_str (), std::ios::out | std::ios::trunc);
+    std::ofstream atlas_out (outfile_txt.c_str(), std::ios::out | std::ios::trunc);
     if (!atlas_out.is_open ()) throw "fail stream atlas text";
     uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {0};
     for (const stbi::rectpack::rect &r : image_rects) {
@@ -81,12 +83,12 @@ void uiskin_packer (fs::path assets, fs::path converted) {
 
         name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
       }
-      atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << rh << std::endl;
+      atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
     }
     atlas_out.close ();
     fs::path outfile_qoi = outfile;
-    outfile_qoi += ".qoi";
-    atlas_out.open (outfile_qoi.c_str (), std::ios::out | std::ios::trunc | std::ios::binary);
+    outfile_qoi+= ".qoi";
+    atlas_out.open (outfile_qoi.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
     if (!atlas_out.is_open ()) throw "fail stream atlas binary";
     // create output directory skin name
     {
