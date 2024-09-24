@@ -1,7 +1,7 @@
 #include "uistage.hpp"
 #include "../engine.hpp"
-#include "../stbi/stbi_load.hpp"
 #include "../qoi/qoi.hpp"
+#include "../stbi/stbi_load.hpp"
 
 #include <cstdarg>
 #include <cstdio>
