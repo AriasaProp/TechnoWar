@@ -18,8 +18,8 @@
 #define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
 namespace uiskin {
-static engine::texture_core *tex;
-static std::unordered_map<std::string, uistage::texture_region> regions;
+engine::texture_core *tex;
+std::unordered_map<std::string, uistage::texture_region> regions;
 } // namespace uiskin
 engine::flat_vertex temp_vert[MAX_UI_DRAW * 4]; //= 20 KB, approximate 1024 actors can be drawn at once
 char temp_char_buffer[1024];                    // for 1 kB => 4 kbit
