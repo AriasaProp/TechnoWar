@@ -1,6 +1,7 @@
 #include "uistage.hpp"
 #include "../engine.hpp"
 #include "../stbi/stbi_load.hpp"
+#include "../qoi/qoi.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -66,8 +67,8 @@ void uistage::loadUISkin (const char *uiSkin) {
     std::string atlasFile = uiSkin;
     atlasFile += ".txt";
     unsigned int asl;
-    const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
-    std::stringstream buffer_stream (std::string (as, asl)), line_stream;
+    void *as = engine::assets::asset_buffer (fontfile, &asl);
+    std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
     free (as);
 
     unsigned int sparator;
@@ -90,7 +91,7 @@ void uistage::loadUISkin (const char *uiSkin) {
     atlasFile += ".qoi";
     qoi_desc desc;
     unsigned char *tex_px = qoi_from_asset (atlasFile.c_str (), &desc, 4);
-    tex = engine::graphics::gen_texture (d.widhth, d.height, tex_px);
+    uiskin::tex = engine::graphics::gen_texture (d.widhth, d.height, tex_px);
     delete[] tex_px;
   }
 }
@@ -343,10 +344,9 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
     unsigned int asl;
-    const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
-    std::string buffer (as, asl);
+    void *as = engine::assets::asset_buffer (fontfile, &asl);
+    std::stringstream buffer_stream (std::string ((const char *)as, asl));
     free (as);
-    std::stringstream buffer_stream (buffer);
     std::string Line, Read, Key, Value;
     unsigned int i;
 
