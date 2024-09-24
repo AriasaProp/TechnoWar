@@ -504,13 +504,13 @@ void uistage::actor::draw (float delta) {
   if (split[3]) { // horizontally
     yList[0] = rectangle[1];
     yList[1] = rectangle[1] + split[3];
-    vList[0] = float (ta.pos[1] + ta.size[1]) / float (tex->height ());
-    vList[1] = float (ta.pos[1] + ta.size[1] - split[3]) / float (tex->height ());
+    vList[0] = float (ta.pos[1] + ta.size[1]) / float (uiskin::tex->height ());
+    vList[1] = float (ta.pos[1] + ta.size[1] - split[3]) / float (uiskin::tex->height ());
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -520,8 +520,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -531,8 +531,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -544,13 +544,13 @@ void uistage::actor::draw (float delta) {
   yList[0] = rectangle[1] + split[3];
   yList[1] = rectangle[3] - split[1];
   if (yList[1] > yList[0]) { // horizontally
-    vList[0] = float (ta.pos[1] + ta.size[1] - split[3]) / float (tex->height ());
-    vList[1] = float (ta.pos[1] + split[1]) / float (tex->height ());
+    vList[0] = float (ta.pos[1] + ta.size[1] - split[3]) / float (uiskin::tex->height ());
+    vList[1] = float (ta.pos[1] + split[1]) / float (uiskin::tex->height ());
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -560,8 +560,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -571,8 +571,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -584,13 +584,13 @@ void uistage::actor::draw (float delta) {
   if (split[1]) { // horizontally
     yList[0] = rectangle[3] - split[1];
     yList[1] = rectangle[3];
-    vList[0] = float (ta.pos[1] + split[1]) / float (tex->height ());
-    vList[1] = float (ta.pos[1]) / float (tex->height ());
+    vList[0] = float (ta.pos[1] + split[1]) / float (uiskin::tex->height ());
+    vList[1] = float (ta.pos[1]) / float (uiskin::tex->height ());
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -600,8 +600,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
@@ -611,8 +611,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
       *(verts++) = {xList[0], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], 0xffffffff /*TODO: replace with region color property*/, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], 0xffffffff /*TODO: replace with region color property*/, uList[1], vList[0]};
