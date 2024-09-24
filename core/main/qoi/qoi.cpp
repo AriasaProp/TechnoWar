@@ -289,7 +289,7 @@ bool qoi_write (const char *filename, const unsigned char *data, const qoi_desc 
 unsigned char *qoi_from_asset (const char *filename, qoi_desc *desc, int channels) {
   unsigned int l;
   void *user = engine::assets::asset_buffer (filename, &l);
-  unsigned char *result = qoi_decode ((const unsigned char*)user, l, desc, channels);
+  unsigned char *result = qoi_decode ((const unsigned char *)user, l, desc, channels);
   free (user);
   return result;
 }
