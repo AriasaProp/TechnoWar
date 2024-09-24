@@ -18,9 +18,9 @@
 #define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
 namespace uiskin {
-static engine::texture_core *tex;
-static std::unordered_map<std::string, uistage::texture_region> regions;
-} // namespace uiskin
+	static engine::texture_core *tex;
+	static std::unordered_map<std::string, uistage::texture_region> regions;
+}
 engine::flat_vertex temp_vert[MAX_UI_DRAW * 4]; //= 20 KB, approximate 1024 actors can be drawn at once
 char temp_char_buffer[1024];                    // for 1 kB => 4 kbit
 
@@ -62,37 +62,37 @@ void uistage::loadBMFont (const char *fontFile) {
   font->fontSizeUsed = 40.f;
 }
 void uistage::loadUISkin (const char *uiSkin) {
-  {
-    std::string atlasFile = uiSkin;
-    atlasFile += ".txt";
-    unsigned int asl;
-    const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
-    std::stringstream buffer_stream (std::string (as, asl)), line_stream;
-    free (as);
-
-    unsigned int sparator;
-
-    while (!buffer_stream.eof ()) {
-      std::string line_str;
-      std::getline (buffer_stream, line_str);
-      sparator = line_str.find (':');
-      line_stream << line_str.substr (sparator + 1);
-      uistage::texture_region region;
-      line_stream >> region.pos[0];
-      line_stream >> region.pos[1];
-      line_stream >> region.size[0];
-      line_stream >> region.size[1];
-      uiskin::regions.insert ({line_str.substr (0, sparator), region});
-    }
-  }
-  {
-    std::string atlasFile = uiSkin;
-    atlasFile += ".qoi";
-    qoi_desc desc;
-    unsigned char *tex_px = qoi_from_asset (atlasFile.c_str (), &desc, 4);
-    tex = engine::graphics::gen_texture (d.widhth, d.height, tex_px);
-    delete[] tex_px;
-  }
+	{
+		std::string atlasFile = uiSkin;
+		atlasFile += ".txt";
+		unsigned int asl;
+	  const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
+	  std::stringstream buffer_stream(std::string (as, asl)), line_stream;
+	  free(as);
+	  
+	  unsigned int sparator;
+	  
+	  while (!buffer_stream.eof ()) {
+	  	std::string line_str;
+	  	std::getline(buffer_stream, line_str);
+	  	sparator = line_str.find (':');
+	  	line_stream << line_str.substr(sparator+1);
+	  	uistage::texture_region region;
+	  	line_stream >> region.pos[0];
+	  	line_stream >> region.pos[1];
+	  	line_stream >> region.size[0];
+	  	line_stream >> region.size[1];
+	  	uiskin::regions.insert({line_str.substr(0, sparator), region});
+	  }
+	}
+	{
+		std::string atlasFile = uiSkin;
+		atlasFile += ".qoi";
+		qoi_desc desc;
+		unsigned char *tex_px = qoi_from_asset(atlasFile.c_str(), &desc, 4);
+		tex = engine::graphics::gen_texture (d.widhth, d.height, tex_px);
+		delete[] tex_px;
+	}
 }
 
 void uistage::draw (float delta) {
@@ -343,9 +343,9 @@ bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
   // parse fnt
   {
     unsigned int asl;
-    const char *as = (const char *)engine::assets::asset_buffer (fontfile, &asl);
+    void *as = engine::assets::asset_buffer (fontfile, &asl);
     std::string buffer (as, asl);
-    free (as);
+    free(as);
     std::stringstream buffer_stream (buffer);
     std::string Line, Read, Key, Value;
     unsigned int i;
