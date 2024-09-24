@@ -89,8 +89,8 @@ void uistage::loadUISkin (const char *uiSkin) {
   {
     std::string atlasFile = uiSkin;
     atlasFile += ".qoi";
-    qoi_desc desc;
-    unsigned char *tex_px = qoi_from_asset (atlasFile.c_str (), &desc, 4);
+    qoi_desc d;
+    unsigned char *tex_px = qoi_from_asset (atlasFile.c_str (), &d, 4);
     uiskin::tex = engine::graphics::gen_texture (d.widhth, d.height, tex_px);
     delete[] tex_px;
   }
