@@ -10,11 +10,14 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
 #include <set>
 #include <string>
 #include <unistd.h>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 void uiskin_packer (fs::path assets, fs::path converted) {
   fs::path uiskin_path = assets / "uiskin";
