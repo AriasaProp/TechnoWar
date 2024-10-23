@@ -95,7 +95,7 @@ void uistage::loadUISkin (const char *uiSkin) {
   }
 }
 void uistage::draw (float delta) {
-	static uint32_t clr;
+  static uint32_t clr;
   // draw
   for (actor *act : actors) {
     act->draw (delta);
