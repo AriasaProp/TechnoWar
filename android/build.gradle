@@ -20,9 +20,10 @@ android {
         versionName "0"
         signingConfig signingConfigs.mainSign
         multiDexEnabled true
-        minifyEnabled true
-        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
     }
+    minifyEnabled true
+    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    
     externalNativeBuild {
         cmake.path "CMakeLists.txt"
     }
