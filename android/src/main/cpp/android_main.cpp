@@ -43,12 +43,7 @@ enum APP_CMD : unsigned char {
   APP_CMD_STOP,
   APP_CMD_DESTROY,
 };
-/*
-static JavaVMAttachArgs attachArgs{
-    .version = JNI_VERSION_1_6,
-    .name = "TechnoWar",
-    .group = NULL};
-*/
+
 struct android_app {
   bool destroyed,
       wait_request = false;

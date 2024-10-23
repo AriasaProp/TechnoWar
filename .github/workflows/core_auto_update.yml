@@ -64,6 +64,8 @@ jobs:
  
       - uses: gradle/actions/setup-gradle@v3
 
+      - run: gradle wrapper --gradle-version 8.10.2
+
       - run: gradle :core:test
         if: steps.changes.outputs.core == 'true'
 
