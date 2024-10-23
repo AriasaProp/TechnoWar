@@ -14,12 +14,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -DANDROID_STL=c++_static \
     -D_IDENTITY_=${BUILD_ID} \
     -fexceptions -frtti")
-set(CORE_SRC "../../../../core/main")
+set(CORE_SRC "../core/main")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
-file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true ".")
-file(GLOB_RECURSE Src_Files "*.cpp")
+file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true "src/main/cpp/")
+file(GLOB_RECURSE Src_Files "src/main/cpp/*.cpp")
 add_subdirectory(${CORE_SRC} bin/core)
 
 include_directories(${Include_Dir})

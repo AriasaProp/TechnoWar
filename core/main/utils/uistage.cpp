@@ -53,7 +53,6 @@ struct tooltip {
   float lifetime, width;
   std::string message;
 } tooltips[7];
-static engine::texture_core *binded = nullptr;
 static std::unordered_set<uistage::actor *> actors;
 
 static float yList[2], vList[2], xList[2], uList[2];
@@ -95,8 +94,8 @@ void uistage::loadUISkin (const char *uiSkin) {
     delete[] tex_px;
   }
 }
-
 void uistage::draw (float delta) {
+	static uint32_t clr;
   // draw
   for (actor *act : actors) {
     act->draw (delta);
@@ -111,7 +110,7 @@ void uistage::draw (float delta) {
     *(verts++) = {805.5f, engine::graphics::getHeight () - 155.0f, 0xff999999, 1, 1};
     *(verts++) = {805.5f, engine::graphics::getHeight () - 095.0f, 0xff999999, 1, 0};
     // ptr 1
-    uint32_t clr = engine::input::isTouched (0) ? 0xff00ff00 : 0xff0000ff;
+    clr = engine::input::isTouched (0) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {440.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {440.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {490.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};

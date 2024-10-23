@@ -39,8 +39,7 @@ int main (int argc, char *argv[]) {
       throw thr_er.c_str ();
     }
   } catch (const char *err) {
-    std::cout << " Error!\n"
-              << err << std::endl;
+    std::cout << " Error:" << err << std::endl;
     return EXIT_FAILURE;
   }
   std::cout << " Done!" << std::endl;
