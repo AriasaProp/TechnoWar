@@ -26,8 +26,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
 
   // create converted directory for uiskin result
   fs::path uiskin_result_path = converted / "uiskin";
+  if (fs::exists (uiskin_result_path) || !fs::create_directory (uiskin_result_path))
+  	throw "error make converted dir";
   /*
-  fs::create_directory (uiskin_result_path);
     // find all subfolder inside uiskin
     for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
       // skip non directory

@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.0.2'
+    implementation project(':core')
 }
 
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.2)
 
 project(ext LANGUAGES CXX)
 
-find_package(Vulkan REQUIRED)
+# find_package(Vulkan REQUIRED)
 
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
