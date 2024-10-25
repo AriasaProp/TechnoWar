@@ -98,13 +98,13 @@ jobs:
           cache: 'gradle'
  
       - uses: gradle/actions/setup-gradle@v3
-      - run: gradle :android:build
+      - run: gradle :android:build -Prelease
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v4.3.3
         with:
           name: APK
-          path: ${{ github.workspace }}/android/build/outputs/apk/android-release.apk 
+          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
 
   desktop:
     runs-on: ubuntu-latest

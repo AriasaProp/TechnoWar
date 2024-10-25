@@ -26,6 +26,9 @@ android {
 				release {
 						minifyEnabled true
 				}
+				debug {
+						minifyEnabled false
+				}
 		}
     externalNativeBuild {
         cmake.path "CMakeLists.txt"
