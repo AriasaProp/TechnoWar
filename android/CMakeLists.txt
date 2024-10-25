@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
     -DANDROID_STL=c++_static \
     -D_IDENTITY_=${BUILD_ID} \
     -fexceptions -frtti")
-set(CORE_SRC "../core/main")
+set(CORE_SRC "../core")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 
 file(GLOB_RECURSE Include_subDir LIST_DIRECTORIES true ${CORE_SRC})
