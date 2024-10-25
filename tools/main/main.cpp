@@ -30,7 +30,7 @@ int main (int argc, char *argv[]) {
     if (!fs::exists (assets) || !fs::is_directory (assets)) throw "assets folder didn't exist!";
 
     assets_for_android (rootDir / "android/src/main/assets", assets);
-    assets_for_desktop (rootDir / "desktop/assets", assets);
+    //assets_for_desktop (rootDir / "desktop/assets", assets);
 
   } catch (const fs::filesystem_error &e) {
     std::cout << "Error(Filesystem): " << e.what () << std::endl;

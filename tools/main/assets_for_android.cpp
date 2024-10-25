@@ -9,26 +9,15 @@ static std::stringstream serr;
 extern void uiskin_packer (fs::path, fs::path);
 
 void assets_for_android (fs::path des_path, fs::path res_path) {
-  try {
-    try {
-      if (fs::exists (des_path)) fs::remove_all (des_path);
-      if (!fs::create_directory (des_path)) {
-        serr.str ("");
-        serr << "failed create assets folder in android";
-        throw serr.str ();
-      }
-
-      fs::copy (res_path / "fonts", des_path / "fonts", fs::copy_options::recursive);
-      fs::copy (res_path / "images", des_path / "images", fs::copy_options::recursive);
-      uiskin_packer (res_path, des_path);
-    } catch (const fs::filesystem_error &e) {
-      serr.str ("");
-      serr << "(Filesystem) " << e.what ();
-      throw serr.str ();
-    }
-  } catch (const std::string err) {
+  if (fs::exists (des_path)) fs::remove_all (des_path);
+  if (!fs::create_directory (des_path)) [[unlikely]] {
     serr.str ("");
-    serr << "Android Assets Generator " << err;
+    serr << "failed create assets folder in android";
     throw serr.str ();
   }
+
+  fs::copy (res_path / "fonts", des_path / "fonts", fs::copy_options::recursive);
+  fs::copy (res_path / "images", des_path / "images", fs::copy_options::recursive);
+  
+  uiskin_packer (res_path, des_path);
 }
