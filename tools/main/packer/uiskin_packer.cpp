@@ -27,7 +27,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
   // create converted directory for uiskin result
   fs::path uiskin_result_path = converted / "uiskin";
   fs::create_directory (uiskin_result_path);
-
+/*
   // find all subfolder inside uiskin
   for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
     // skip non directory
@@ -100,4 +100,5 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     }
     atlas_out.close ();
   }
+*/
 }
