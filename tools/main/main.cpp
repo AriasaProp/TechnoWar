@@ -7,6 +7,7 @@ namespace fs = std::filesystem;
 // test group
 extern void stbi_rectpack_test ();
 
+
 // converting group
 extern void assets_for_android (fs::path, fs::path);
 extern void assets_for_desktop (fs::path, fs::path);
