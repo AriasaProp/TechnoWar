@@ -15,11 +15,9 @@ jobs:
       android: ${{ steps.changes.outputs.android }}
       desktop: ${{ steps.changes.outputs.desktop }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.1.1
 
-      - name: Check for changes
-        id: changes
+      - id: changes
         uses: dorny/paths-filter@v3.0.1
         with:
           list-files: shell
@@ -44,20 +42,15 @@ jobs:
             java-src:
               - 'android/src/main/java/**/*.java'
 
-      - uses: axel-op/googlejavaformat-action@v3.6.0
-        if: steps.changes.outputs.java-src == 'true'
-        continue-on-error: true
-        with:
-          files: "android/src/**/*.java"
-          args: "-r -a"
-          skipCommit: false
+      - if: steps.changes.outputs.java-src == 'true' || steps.changes.outputs.cpp-src == 'true'
+        run: sudo apt-get install -y clang-format
 
-      - name: Format Code C++
-        if: steps.changes.outputs.cpp-src == 'true'
-        run: |
-          sudo apt-get install -y clang-format
-          echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
- 
+      - if: steps.changes.outputs.cpp-src == 'true'
+        run: echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -style=cpp-format -i
+
+      - if: steps.changes.outputs.java-src == 'true'
+        run: echo ${{ steps.changes.outputs.java-src_files }} | xargs -n 1 clang-format -style=java-format -i
+
       - uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
@@ -65,6 +58,7 @@ jobs:
           cache: 'gradle'
  
       - uses: gradle/actions/setup-gradle@v3
+        if: steps.changes.outputs.core == 'true' || steps.changes.outputs.tools == 'true'
  
       - run: gradle :core:test
         if: steps.changes.outputs.core == 'true'
@@ -87,21 +81,19 @@ jobs:
     needs: format-core
     #if: needs.format-core.outputs.android == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.1.1
 
-      - name: Setup JDK 21
-        uses: actions/setup-java@v4.2.1
+      - uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
- 
+
       - uses: gradle/actions/setup-gradle@v3
+
       - run: gradle :android:build -Prelease
 
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4.3.3
+      - uses: actions/upload-artifact@v4.3.3
         with:
           name: APK
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
@@ -111,21 +103,19 @@ jobs:
     needs: format-core
     if: needs.format-core.outputs.desktop == 'true'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4.1.1
+      - uses: actions/checkout@v4.1.1
 
-      - name: Setup JDK 21
-        uses: actions/setup-java@v4.2.1
+      - uses: actions/setup-java@v4.2.1
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
 
       - uses: gradle/actions/setup-gradle@v3
+
       - run: gradle :desktop:build
 
-      - name: Upload Desktop EXE
-        uses: actions/upload-artifact@v4.3.3
+      - uses: actions/upload-artifact@v4.3.3
         with:
           name: EXE
           path: ${{ github.workspace }}/desktop/build 

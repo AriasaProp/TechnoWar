@@ -70,21 +70,18 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       }
       stbi::load::image_free (image_buffer);
 
-      std::string name = r.id;
       {
-        size_t lastSlashPos = name.find_last_of ("/\\");
+        size_t lastSlashPos = r.id.find_last_of ("/\\");
         lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
 
-        size_t lastDotPos = name.find_last_of ('.');
+        size_t lastDotPos = r.id.find_last_of ('.');
         if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
-          lastDotPos = name.length ();
+          lastDotPos = r.id.length ();
         }
 
-        name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
+        atlas_out << r.id.substr (lastSlashPos, lastDotPos - lastSlashPos);
       }
-      atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
-      /*
-       */
+      atlas_out << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
     }
     atlas_out.close ();
     fs::path outfile_qoi = outfile;
