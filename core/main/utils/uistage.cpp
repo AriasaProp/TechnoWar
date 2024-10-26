@@ -1,8 +1,8 @@
 #include "uistage.hpp"
+#include "value.hpp"
 #include "../engine.hpp"
 #include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
-#include "value.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -64,7 +64,7 @@ void uistage::loadBMFont (const char *fontFile) {
 }
 void uistage::loadUISkin (const char *uiSkin) {
   {
-    sprintf (temp_char_buffer, "%s.txt", uiSkin);
+    sprintf(temp_char_buffer, "%s.txt", uiSkin);
     unsigned int asl;
     void *as = engine::assets::asset_buffer (temp_char_buffer, &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
@@ -73,10 +73,10 @@ void uistage::loadUISkin (const char *uiSkin) {
     std::string line_str, name;
 
     while (!buffer_stream.eof ()) {
-      line_stream.clear ();
+    	line_stream.clear();
       std::getline (buffer_stream, line_str);
       line_stream << line_str;
-      std::getline (line_stream, name, ':');
+      std::getline(line_stream, name, ':');
       uistage::texture_region region;
       line_stream >> region.pos[0];
       line_stream >> region.pos[1];
@@ -86,12 +86,12 @@ void uistage::loadUISkin (const char *uiSkin) {
     }
   }
   {
-    sprintf (temp_char_buffer, "%s.qoi", uiSkin);
+    sprintf(temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
     unsigned int l;
-    void *user = engine::assets::asset_buffer (temp_char_buffer, &l);
-    unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
-    free (user);
+	  void *user = engine::assets::asset_buffer (temp_char_buffer, &l);
+	  unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
+	  free (user);
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
@@ -168,7 +168,7 @@ void uistage::draw (float delta) {
       yList[1] = y + 5.0f;                                               // maxy
       color32_t bc{.color = 0x88000000};
       if (tlp.lifetime < 1.65f) {
-        bc.rgba.a *= uint8_t (tlp.lifetime / 1.65f);
+        bc.rgba.a *= uint8_t(tlp.lifetime / 1.65f);
       }
       *(verts++) = {xList[0], yList[0], bc, 0, 0};
       *(verts++) = {xList[0], yList[1], bc, 0, 0};
@@ -259,8 +259,8 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
   return ua;
 }
 void uistage::temporaryTooltip () {
-  std::unordered_map<std::string, uistage::texture_region>::iterator it = uiskin::regions.begin ();
-  temporaryTooltip ("%s", it->first);
+	std::unordered_map<std::string, uistage::texture_region>::iterator it = uiskin::regions.begin();
+	temporaryTooltip (it->first.c_str());
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
