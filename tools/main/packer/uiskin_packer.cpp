@@ -61,31 +61,31 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     outfile_txt += ".txt";
     std::ofstream atlas_out (outfile_txt.c_str (), std::ios::out | std::ios::trunc);
     if (!atlas_out.is_open ()) throw "fail stream atlas text";
-          uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {};
-          for (const stbi::rectpack::rect &r : image_rects) {
-            unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
-            if (!image_buffer)
-              throw stbi::load::failure_reason ();
+    uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {};
+    for (const stbi::rectpack::rect &r : image_rects) {
+      unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+      if (!image_buffer)
+        throw stbi::load::failure_reason ();
 
-            for (size_t y = 0; y < r.h; y++) {
-              memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
-            }
-            stbi::load::image_free (image_buffer);
-            std::string name = r.id;
-            {
-              size_t lastSlashPos = name.find_last_of ("/\\");
-              lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
+      for (size_t y = 0; y < r.h; y++) {
+        memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
+      }
+      stbi::load::image_free (image_buffer);
+      std::string name = r.id;
+      {
+        size_t lastSlashPos = name.find_last_of ("/\\");
+        lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
 
-              size_t lastDotPos = name.find_last_of ('.');
-              if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
-                lastDotPos = name.length ();
-              }
+        size_t lastDotPos = name.find_last_of ('.');
+        if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
+          lastDotPos = name.length ();
+        }
 
-              name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
-            }
-            atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
-          }
-          atlas_out.close ();
+        name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
+      }
+      atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
+    }
+    atlas_out.close ();
     /*
           fs::path outfile_qoi = outfile;
           outfile_qoi += ".qoi";
