@@ -107,10 +107,11 @@ void uistage::draw (float delta) {
   // touch pointer care
   {
     // background
-    *(verts++) = {435.5f, engine::graphics::getHeight () - 155.0f, 0xff999999, 0, 1};
-    *(verts++) = {435.5f, engine::graphics::getHeight () - 095.0f, 0xff999999, 0, 0};
-    *(verts++) = {805.5f, engine::graphics::getHeight () - 155.0f, 0xff999999, 1, 1};
-    *(verts++) = {805.5f, engine::graphics::getHeight () - 095.0f, 0xff999999, 1, 0};
+    clr.color = 0xff999999;
+    *(verts++) = {435.5f, engine::graphics::getHeight () - 155.0f, clr, 0, 1};
+    *(verts++) = {435.5f, engine::graphics::getHeight () - 095.0f, clr, 0, 0};
+    *(verts++) = {805.5f, engine::graphics::getHeight () - 155.0f, clr, 1, 1};
+    *(verts++) = {805.5f, engine::graphics::getHeight () - 095.0f, clr, 1, 0};
     // ptr 1
     clr.color = engine::input::isTouched (0) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {440.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
@@ -165,7 +166,7 @@ void uistage::draw (float delta) {
       xList[1] = x + tlp.width + 5.0f;                                   // maxx
       yList[0] = y - (static_cast<float> (font->LineHeight) * F) - 5.0f; // miny
       yList[1] = y + 5.0f;                                               // maxy
-      color32_t bc = 0x88000000;
+      color32_t bc{0x88000000};
       if (tlp.lifetime < 1.65f) {
         bc.rgba.a *= uint8_t (tlp.lifetime / 1.65f);
       }
