@@ -7,6 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "utils/value.hpp"
 
 namespace engine {
 // texture core
@@ -18,7 +19,7 @@ struct texture_core {
 // ui_core
 struct flat_vertex {
   float x, y;
-  uint32_t color;
+  color32_t color;
   float u, v;
 };
 // mesh core
@@ -28,7 +29,7 @@ struct mesh_core {
   unsigned int vertex_len, index_len;
   struct data {
     float pos[3];
-    uint32_t color;
+    color32_t color;
   } * vertex;
   unsigned short *index;
   float trans[16]{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};

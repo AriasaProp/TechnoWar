@@ -1,4 +1,5 @@
 #include "uistage.hpp"
+#include "value.hpp"
 #include "../engine.hpp"
 #include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
@@ -38,7 +39,7 @@ struct bmfont {
   short Height;
   short Base;
   short Outline;
-  uint32_t fcolor;
+  color32_t fcolor;
   float fontSizeBase;
   float fontSizeUsed;
   std::unordered_map<int, CharDescriptor> Chars;
@@ -63,18 +64,19 @@ void uistage::loadBMFont (const char *fontFile) {
 }
 void uistage::loadUISkin (const char *uiSkin) {
   {
-    std::string atlasFile = uiSkin;
-    atlasFile += ".txt";
+    sprintf(temp_char_buffer, "%s.txt", uiSkin);
     unsigned int asl;
-    void *as = engine::assets::asset_buffer (atlasFile.c_str (), &asl);
+    void *as = engine::assets::asset_buffer (temp_char_buffer, &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
     free (as);
 
-    unsigned int sparator;
+    size_t sparator;
+    std::string line_str, name;
 
     while (!buffer_stream.eof ()) {
-      std::string line_str;
       std::getline (buffer_stream, line_str);
+      
+      std::getline(line_str, name, ':')
       sparator = line_str.find (':');
       line_stream << line_str.substr (sparator + 1);
       uistage::texture_region region;
@@ -86,10 +88,12 @@ void uistage::loadUISkin (const char *uiSkin) {
     }
   }
   {
-    std::string atlasFile = uiSkin;
-    atlasFile += ".qoi";
+    sprintf(temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
-    unsigned char *tex_px = qoi_from_asset (atlasFile.c_str (), &d, 4);
+    unsigned int l;
+	  void *user = engine::assets::asset_buffer (filename, &l);
+	  unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
+	  free (user);
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
@@ -184,10 +188,9 @@ void uistage::draw (float delta) {
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime < 0.0f) break;
-      uint32_t hc = font->fcolor;
+      color32_t hc = font->fcolor;
       if (tlp.lifetime < 1.65f) {
-        float transitionAlpha = tlp.lifetime / 1.65f;
-        ((uint8_t *)&hc)[3] = static_cast<uint8_t> (static_cast<float> (((uint8_t *)&hc)[3]) * transitionAlpha);
+        hc.rgba.a *= tlp.lifetime / 1.65f;
       }
       float x = (engine::graphics::getWidth () - tlp.width) * .5f;
       float y = engine::graphics::getHeight () * 0.75f + ((static_cast<float> (font->LineHeight) * font->fscale ()) + 10.5f) * i + 10.5f;
@@ -256,6 +259,10 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
   uistage::text_actor *ua = new text_actor (pos, a, k.c_str ());
   actors.insert (ua);
   return ua;
+}
+void uistage::temporaryTooltip () {
+	auto it = uiskin::regions.begin();
+	temporaryTooltip ("%s, %s, %s", it->first, (it+1)->first, (it+2)->first);
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
@@ -339,8 +346,9 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 
-bmfont::bmfont (const char *fontfile) : fcolor (0xffffffff), ftexid (nullptr) {
+bmfont::bmfont (const char *fontfile) {
   // parse fnt
+  fcolor.color = 0xffffffff;
   {
     unsigned int asl;
     void *as = engine::assets::asset_buffer (fontfile, &asl);

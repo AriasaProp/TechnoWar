@@ -1,12 +1,9 @@
 #include "qoi.hpp"
 #include "../engine.hpp"
+#include "../utils/value.hpp"
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-
-#ifndef QOI_MALLOC
-#define QOI_FREE(p) delete[] p;
-#endif
 
 #define QOI_OP_INDEX 0x00 /* 00xxxxxx */
 #define QOI_OP_DIFF 0x40  /* 01xxxxxx */
@@ -29,13 +26,6 @@ pixel, rounded down to a nice clean value. 400 million pixels ought to be
 enough for anybody. */
 #define QOI_PIXELS_MAX ((uint32_t)400000000)
 
-union qoi_rgba_t {
-  struct {
-    unsigned char r, g, b, a;
-  } rgba;
-  uint32_t v;
-};
-
 static const unsigned char qoi_padding[8] = {0, 0, 0, 0, 0, 0, 0, 1};
 
 static void qoi_write_32 (unsigned char *bytes, int *p, uint32_t v) {
@@ -56,8 +46,8 @@ static uint32_t qoi_read_32 (const unsigned char *bytes, int *p) {
 unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, int *out_len) {
   int i, max_size, p, run;
   int px_len, px_end, px_pos, channels;
-  qoi_rgba_t index[64];
-  qoi_rgba_t px, px_prev;
+  color32_t index[64];
+  color32_t px, px_prev;
 
   if (
       pixels == NULL || out_len == NULL || desc == NULL ||
@@ -72,9 +62,6 @@ unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, in
 
   p = 0;
   unsigned char *bytes = new unsigned char[max_size];
-  if (!bytes) {
-    return NULL;
-  }
 
   qoi_write_32 (bytes, &p, QOI_MAGIC);
   qoi_write_32 (bytes, &p, desc->width);
@@ -104,7 +91,7 @@ unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, in
       px.rgba.a = pixels[px_pos + 3];
     }
 
-    if (px.v == px_prev.v) {
+    if (px.color == px_prev.color) {
       run++;
       if (run == 62 || px_pos == px_end) {
         bytes[p++] = QOI_OP_RUN | (run - 1);
@@ -120,7 +107,7 @@ unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, in
 
       index_pos = QOI_COLOR_HASH (px) % 64;
 
-      if (index[index_pos].v == px.v) {
+      if (index[index_pos].color == px.color) {
         bytes[p++] = QOI_OP_INDEX | index_pos;
       } else {
         index[index_pos] = px;
@@ -172,8 +159,8 @@ unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, in
 
 unsigned char *qoi_decode (const unsigned char *bytes, int size, qoi_desc *desc, int channels) {
   uint32_t header_magic;
-  qoi_rgba_t index[64];
-  qoi_rgba_t px;
+  color32_t index[64];
+  color32_t px;
   int px_len, chunks_len, px_pos;
   int p = 0, run = 0;
 
@@ -204,9 +191,6 @@ unsigned char *qoi_decode (const unsigned char *bytes, int size, qoi_desc *desc,
 
   px_len = desc->width * desc->height * channels;
   unsigned char *pixels = new unsigned char[px_len];
-  if (!pixels) {
-    return NULL;
-  }
 
   memset (index, 0, sizeof (index));
   px.rgba.r = 0;
@@ -282,17 +266,10 @@ bool qoi_write (const char *filename, const unsigned char *data, const qoi_desc 
   err = ferror (f);
   fclose (f);
 
-  QOI_FREE (encoded);
+  delete[] encoded;
   return err == 0;
 }
 
-unsigned char *qoi_from_asset (const char *filename, qoi_desc *desc, int channels) {
-  unsigned int l;
-  void *user = engine::assets::asset_buffer (filename, &l);
-  unsigned char *result = qoi_decode ((const unsigned char *)user, l, desc, channels);
-  free (user);
-  return result;
-}
 unsigned char *qoi_read (const char *filename, qoi_desc *desc, int channels) {
   FILE *f = fopen (filename, "rb");
   int size, bytes_read;
@@ -309,14 +286,10 @@ unsigned char *qoi_read (const char *filename, qoi_desc *desc, int channels) {
   }
 
   unsigned char *data = new unsigned char[size];
-  if (!data) {
-    fclose (f);
-    return NULL;
-  }
 
   bytes_read = fread (data, 1, size, f);
   fclose (f);
   unsigned char *pixels = (bytes_read != size) ? NULL : qoi_decode (data, bytes_read, desc, channels);
-  QOI_FREE (data);
+  delete[] data;
   return pixels;
 }
