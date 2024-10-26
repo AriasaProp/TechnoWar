@@ -66,25 +66,25 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
       if (!image_buffer) throw stbi::load::failure_reason ();
       stbi::load::image_free (image_buffer);
-    /*
+      /*
 
-      for (size_t y = 0; y < r.h; y++) {
-        memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
-      }
-      std::string name = r.id;
-      {
-        size_t lastSlashPos = name.find_last_of ("/\\");
-        lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
-
-        size_t lastDotPos = name.find_last_of ('.');
-        if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
-          lastDotPos = name.length ();
+        for (size_t y = 0; y < r.h; y++) {
+          memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
         }
+        std::string name = r.id;
+        {
+          size_t lastSlashPos = name.find_last_of ("/\\");
+          lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
 
-        name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
-      }
-      atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
-    */
+          size_t lastDotPos = name.find_last_of ('.');
+          if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
+            lastDotPos = name.length ();
+          }
+
+          name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
+        }
+        atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
+      */
     }
     atlas_out.close ();
     fs::path outfile_qoi = outfile;
