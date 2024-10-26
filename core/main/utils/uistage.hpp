@@ -70,6 +70,7 @@ void clear ();
 image_actor *makeImage (std::string, Rect);
 button_actor *makeButton (std::initializer_list<std::string>, Rect, void (*) ());
 text_actor *makeText (Vector2, const Align &, std::string);
+void temporaryTooltip ();
 void temporaryTooltip (const char *, ...);
 
 void touchDown (float, float, int, int);
