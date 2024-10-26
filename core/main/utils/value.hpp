@@ -3,14 +3,12 @@
 
 #include <cstdint>
 
-//common value type
+// common value type
 union color32_t {
-	struct {
+  struct {
     uint8_t r, g, b, a;
   } rgba;
   uint32_t color;
 };
 
-
-
-#endif //VALUE_
+#endif // VALUE_

@@ -5,9 +5,9 @@
 // maximum output log message in char
 #define MAX_GL_MSG 1024
 
+#include "utils/value.hpp"
 #include <cstddef>
 #include <cstdint>
-#include "utils/value.hpp"
 
 namespace engine {
 // texture core

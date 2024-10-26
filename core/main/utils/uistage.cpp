@@ -1,8 +1,8 @@
 #include "uistage.hpp"
-#include "value.hpp"
 #include "../engine.hpp"
 #include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
+#include "value.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -64,7 +64,7 @@ void uistage::loadBMFont (const char *fontFile) {
 }
 void uistage::loadUISkin (const char *uiSkin) {
   {
-    sprintf(temp_char_buffer, "%s.txt", uiSkin);
+    sprintf (temp_char_buffer, "%s.txt", uiSkin);
     unsigned int asl;
     void *as = engine::assets::asset_buffer (temp_char_buffer, &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
@@ -75,9 +75,9 @@ void uistage::loadUISkin (const char *uiSkin) {
 
     while (!buffer_stream.eof ()) {
       std::getline (buffer_stream, line_str);
-      
-      std::getline(line_str, name, ':')
-      sparator = line_str.find (':');
+
+      std::getline (line_str, name, ':')
+          sparator = line_str.find (':');
       line_stream << line_str.substr (sparator + 1);
       uistage::texture_region region;
       line_stream >> region.pos[0];
@@ -88,12 +88,12 @@ void uistage::loadUISkin (const char *uiSkin) {
     }
   }
   {
-    sprintf(temp_char_buffer, "%s.qoi", uiSkin);
+    sprintf (temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
     unsigned int l;
-	  void *user = engine::assets::asset_buffer (filename, &l);
-	  unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
-	  free (user);
+    void *user = engine::assets::asset_buffer (filename, &l);
+    unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
+    free (user);
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
@@ -261,8 +261,8 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
   return ua;
 }
 void uistage::temporaryTooltip () {
-	auto it = uiskin::regions.begin();
-	temporaryTooltip ("%s, %s, %s", it->first, (it+1)->first, (it+2)->first);
+  auto it = uiskin::regions.begin ();
+  temporaryTooltip ("%s, %s, %s", it->first, (it + 1)->first, (it + 2)->first);
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
