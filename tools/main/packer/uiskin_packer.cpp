@@ -28,9 +28,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
   fs::path uiskin_result_path = converted / "uiskin";
   if (fs::exists (uiskin_result_path) || !fs::create_directory (uiskin_result_path))
     throw "error make converted dir";
-  /*
     // find all subfolder inside uiskin
     for (const fs::directory_entry &skin : fs::directory_iterator (uiskin_path)) {
+  /*
       // skip non directory
       if (!fs::is_directory (skin.status ())) continue;
       // make part skin
@@ -100,6 +100,6 @@ void uiskin_packer (fs::path assets, fs::path converted) {
         delete[] encoded;
       }
       atlas_out.close ();
-    }
   */
+    }
 }
