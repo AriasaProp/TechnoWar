@@ -643,8 +643,7 @@ uistage::text_actor::text_actor (Vector2 _pos, const Align &a, std::string ti) :
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
 void uistage::text_actor::draw (float delta) {
-  engine::graphics::
-      uistage::actor::draw (delta);
+  uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
   engine::flat_vertex *verts = temp_vert;
