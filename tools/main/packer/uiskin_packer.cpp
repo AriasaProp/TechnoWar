@@ -51,7 +51,6 @@ void uiskin_packer (fs::path assets, fs::path converted) {
         throw stbi::load::failure_reason ();
       image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
     }
-    /*
 
         // packing
         if (!stbi::rectpack::pack_rects (PACK_SIZE, PACK_SIZE, image_rects.data (), image_rects.size ()))
@@ -100,6 +99,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
           delete[] encoded;
         }
         atlas_out.close ();
-    */
+  /*
+  */
   }
 }
