@@ -69,7 +69,6 @@ void uiskin_packer (fs::path assets, fs::path converted) {
         memcpy ((void *)(outBuffer + ((r.y + y) * PACK_SIZE) + r.x), (void *)(image_buffer + (y * r.w * 4)), r.w * 4);
       }
       stbi::load::image_free (image_buffer);
-      /*
 
         std::string name = r.id;
         {
@@ -83,6 +82,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
 
           name = name.substr (lastSlashPos, lastDotPos - lastSlashPos);
         }
+      /*
         atlas_out << name << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
       */
     }
