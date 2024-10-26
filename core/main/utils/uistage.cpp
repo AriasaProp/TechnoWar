@@ -488,7 +488,7 @@ bmfont::~bmfont () {
   Kearn.clear ();
   engine::graphics::delete_texture (ftexid);
 }
-//{ redefine actor
+// redefine actor
 void uistage::actor::draw (float delta) {
   if (getKey ().empty ()) return;
   (void)delta;
@@ -716,5 +716,3 @@ void uistage::button_actor::draw (float delta) {
   uistage::actor::draw (delta);
 }
 uistage::button_actor::~button_actor () { delete[] keys; }
-
-//}
