@@ -59,9 +59,9 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     fs::path outfile = uiskin_part_path / skin.path ().filename ();
     fs::path outfile_txt = outfile;
     outfile_txt += ".txt";
+    std::ofstream atlas_out (outfile_txt.c_str (), std::ios::out | std::ios::trunc);
+    if (!atlas_out.is_open ()) throw "fail stream atlas text";
     /*
-          std::ofstream atlas_out (outfile_txt.c_str (), std::ios::out | std::ios::trunc);
-          if (!atlas_out.is_open ()) throw "fail stream atlas text";
           uint32_t outBuffer[PACK_SIZE * PACK_SIZE] = {};
           for (const stbi::rectpack::rect &r : image_rects) {
             unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
@@ -99,7 +99,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
             atlas_out.write ((const char *)encoded, size);
             delete[] encoded;
           }
-          atlas_out.close ();
     */
+    atlas_out.close ();
   }
 }
