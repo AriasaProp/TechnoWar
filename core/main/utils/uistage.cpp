@@ -19,7 +19,7 @@
 #define TEMP_SIZE 65535 // 65536 - 1 = 0xffff
 
 namespace uiskin {
-engine::texture_core *tex;
+engine::texture_core *tex = nullptr;
 std::unordered_map<std::string, uistage::texture_region> regions;
 } // namespace uiskin
 engine::flat_vertex temp_vert[MAX_UI_DRAW * 4]; //= 20 KB, approximate 1024 actors can be drawn at once
@@ -643,6 +643,7 @@ uistage::text_actor::text_actor (Vector2 _pos, const Align &a, std::string ti) :
 Rect &uistage::text_actor::getRect () { return rectangle; }
 std::string uistage::text_actor::getKey () { return ""; }
 void uistage::text_actor::draw (float delta) {
+	engine::graphics::
   uistage::actor::draw (delta);
   float F = font->fscale ();
   auto &Chars = font->Chars;
