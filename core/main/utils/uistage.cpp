@@ -1,8 +1,8 @@
 #include "uistage.hpp"
+#include "value.hpp"
 #include "../engine.hpp"
 #include "../qoi/qoi.hpp"
 #include "../stbi/stbi_load.hpp"
-#include "value.hpp"
 
 #include <cstdarg>
 #include <cstdio>
@@ -64,42 +64,40 @@ void uistage::loadBMFont (const char *fontFile) {
 }
 void uistage::loadUISkin (const char *uiSkin) {
   {
-    sprintf (temp_char_buffer, "%s.txt", uiSkin);
+    sprintf(temp_char_buffer, "%s.txt", uiSkin);
     unsigned int asl;
     void *as = engine::assets::asset_buffer (temp_char_buffer, &asl);
     std::stringstream buffer_stream (std::string ((const char *)as, asl)), line_stream;
     free (as);
 
-    size_t sparator;
     std::string line_str, name;
 
     while (!buffer_stream.eof ()) {
+    	line_stream.clear();
       std::getline (buffer_stream, line_str);
-
-      std::getline (line_str, name, ':')
-          sparator = line_str.find (':');
-      line_stream << line_str.substr (sparator + 1);
+      line_stream << line_str;
+      std::getline(line_stream, name, ':');
       uistage::texture_region region;
       line_stream >> region.pos[0];
       line_stream >> region.pos[1];
       line_stream >> region.size[0];
       line_stream >> region.size[1];
-      uiskin::regions.insert ({line_str.substr (0, sparator), region});
+      uiskin::regions.insert ({name, region});
     }
   }
   {
-    sprintf (temp_char_buffer, "%s.qoi", uiSkin);
+    sprintf(temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
     unsigned int l;
-    void *user = engine::assets::asset_buffer (filename, &l);
-    unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
-    free (user);
+	  void *user = engine::assets::asset_buffer (filename, &l);
+	  unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
+	  free (user);
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
 }
 void uistage::draw (float delta) {
-  static uint32_t clr;
+  static color32_t clr;
   // draw
   for (actor *act : actors) {
     act->draw (delta);
@@ -114,37 +112,37 @@ void uistage::draw (float delta) {
     *(verts++) = {805.5f, engine::graphics::getHeight () - 155.0f, 0xff999999, 1, 1};
     *(verts++) = {805.5f, engine::graphics::getHeight () - 095.0f, 0xff999999, 1, 0};
     // ptr 1
-    clr = engine::input::isTouched (0) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (0) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {440.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {440.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {490.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
     *(verts++) = {490.0f, engine::graphics::getHeight () - 100.0f, clr, 1, 0};
     // ptr 2
-    clr = engine::input::isTouched (1) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (1) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {500.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {500.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {550.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
     *(verts++) = {550.0f, engine::graphics::getHeight () - 100.0f, clr, 1, 0};
     // ptr 3
-    clr = engine::input::isTouched (2) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (2) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {560.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {560.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {610.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
     *(verts++) = {610.0f, engine::graphics::getHeight () - 100.0f, clr, 1, 0};
     // ptr 4
-    clr = engine::input::isTouched (3) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (3) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {620.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {620.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {670.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
     *(verts++) = {670.0f, engine::graphics::getHeight () - 100.0f, clr, 1, 0};
     // ptr 5
-    clr = engine::input::isTouched (4) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (4) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {680.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {680.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {730.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
     *(verts++) = {730.0f, engine::graphics::getHeight () - 100.0f, clr, 1, 0};
     // ptr 6
-    clr = engine::input::isTouched (5) ? 0xff00ff00 : 0xff0000ff;
+    clr.color = engine::input::isTouched (5) ? 0xff00ff00 : 0xff0000ff;
     *(verts++) = {740.0f, engine::graphics::getHeight () - 150.0f, clr, 0, 1};
     *(verts++) = {740.0f, engine::graphics::getHeight () - 100.0f, clr, 0, 0};
     *(verts++) = {790.0f, engine::graphics::getHeight () - 150.0f, clr, 1, 1};
@@ -167,10 +165,9 @@ void uistage::draw (float delta) {
       xList[1] = x + tlp.width + 5.0f;                                   // maxx
       yList[0] = y - (static_cast<float> (font->LineHeight) * F) - 5.0f; // miny
       yList[1] = y + 5.0f;                                               // maxy
-      uint32_t bc = 0x88000000;
+      color32_t bc = 0x88000000;
       if (tlp.lifetime < 1.65f) {
-        float transitionAlpha = tlp.lifetime / 1.65f;
-        ((uint8_t *)&bc)[3] = static_cast<uint8_t> (static_cast<float> (((uint8_t *)&bc)[3]) * transitionAlpha);
+        bc.rgba.a *= uint8_t(tlp.lifetime / 1.65f);
       }
       *(verts++) = {xList[0], yList[0], bc, 0, 0};
       *(verts++) = {xList[0], yList[1], bc, 0, 0};
@@ -261,8 +258,8 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
   return ua;
 }
 void uistage::temporaryTooltip () {
-  auto it = uiskin::regions.begin ();
-  temporaryTooltip ("%s, %s, %s", it->first, (it + 1)->first, (it + 2)->first);
+	auto it = uiskin::regions.begin();
+	temporaryTooltip ("%s, %s, %s", it->first, (it+1)->first, (it+2)->first);
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
