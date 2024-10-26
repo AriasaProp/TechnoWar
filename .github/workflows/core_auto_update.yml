@@ -45,11 +45,13 @@ jobs:
       - if: steps.changes.outputs.java-src == 'true' || steps.changes.outputs.cpp-src == 'true'
         run: sudo apt-get install -y clang-format
 
-      - if: steps.changes.outputs.cpp-src == 'true'
-        run: echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -style=cpp-format -i
+      - name: Cpp Format
+        if: steps.changes.outputs.cpp-src == 'true'
+        run: echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -style='cpp-format' -i
 
-      - if: steps.changes.outputs.java-src == 'true'
-        run: echo ${{ steps.changes.outputs.java-src_files }} | xargs -n 1 clang-format -style=java-format -i
+      - name: Java Format
+        if: steps.changes.outputs.java-src == 'true'
+        run: echo ${{ steps.changes.outputs.java-src_files }} | xargs -n 1 clang-format -style='java-format' -i
 
       - uses: actions/setup-java@v4.2.1
         with:
