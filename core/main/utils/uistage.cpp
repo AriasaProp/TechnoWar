@@ -4,8 +4,8 @@
 #include "../stbi/stbi_load.hpp"
 #include "value.hpp"
 
-#include <cstdarg>
 #include <cmath>
+#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
