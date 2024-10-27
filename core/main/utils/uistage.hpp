@@ -60,6 +60,7 @@ public:
 struct texture_region {
   unsigned int pos[2], size[2];
   unsigned int patch[4];
+  color32_t rc;
 };
 void loadBMFont (const char *);
 void loadUISkin (const char *);

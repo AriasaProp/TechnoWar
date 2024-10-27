@@ -1,9 +1,20 @@
 cmake_minimum_required(VERSION 3.10.2)
 
 project(core LANGUAGES CXX)
+
+##############
+# Standard c++ 20
+# at least support filesystem
+##############
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSION OFF)
+
+
+##############
+# Macro to define date at log
+##############
 
 MACRO (TODAY BUILD_DATE)
     IF (WIN32)
@@ -21,6 +32,10 @@ ENDMACRO (TODAY)
 TODAY(BUILD_DATE)
 add_definitions(-DBUILD_DATE=${BUILD_DATE})
 
+##############
+# Put name of branch in log
+##############
+
 execute_process(
     COMMAND git rev-parse --abbrev-ref HEAD
     OUTPUT_VARIABLE BUILD_BRANCH
@@ -28,12 +43,21 @@ execute_process(
 )
 add_definitions(-DBUILD_BRANCH=${BUILD_BRANCH})
 
+##############
+# include headers
+# recursively get all src files
+##############
+
 file(GLOB_RECURSE Include_Dir LIST_DIRECTORIES true "main")
 include_directories(${Include_Dir})
 file(GLOB_RECURSE Src_Files "main/*.cpp")
 
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+##############
+# unused
+##############
 
 #target_compile_options(${PROJECT_NAME} PRIVATE -DBuild_Date=${Build_Date})
 #target_compile_definitions(${PROJECT_NAME} PRIVATE Build_Date=${Build_Date})
