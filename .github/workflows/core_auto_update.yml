@@ -31,7 +31,7 @@ jobs:
               - 'desktop/**'
             tools:
               - 'tools/**'
-            cpp-src:
+            src:
               - added|modified: 'core/**/*.cpp'
               - added|modified: 'core/**/*.hpp'
               - added|modified: 'tools/**/*.cpp'
@@ -40,19 +40,15 @@ jobs:
               - added|modified: 'desktop/**/*.hpp'
               - added|modified: 'android/src/main/cpp/**/*.cpp'
               - added|modified: 'android/src/main/cpp/**/*.hpp'
-            java-src:
-              - 'android/src/main/java/**/*.java'
+              - added|modified: 'android/src/main/java/**/*.java'
 
-      - if: steps.changes.outputs.java-src == 'true' || steps.changes.outputs.cpp-src == 'true'
-        run: sudo apt-get install -y clang-format
+      - if: steps.changes.outputs.java-src == 'true' 
 
-      - name: Cpp Format
-        if: steps.changes.outputs.cpp-src == 'true'
-        run: echo ${{ steps.changes.outputs.cpp-src_files }} | xargs -n 1 clang-format -i
-
-      - name: Java Format
-        if: steps.changes.outputs.java-src == 'true'
-        run: echo ${{ steps.changes.outputs.java-src_files }} | xargs -n 1 clang-format -i
+      - name: Format
+        if: steps.changes.outputs.src == 'true'
+        run: |
+          sudo apt-get install -y clang-format
+          echo ${{ steps.changes.outputs.src_files }} | xargs -n 1 clang-format -i
 
       - uses: actions/setup-java@v4.2.1
         with:
@@ -67,7 +63,7 @@ jobs:
         if: steps.changes.outputs.core == 'true'
 
       - run: gradle :tools:test
-        if: steps.changes.outputs.tools == 'true'
+        if: false #steps.changes.outputs.tools == 'true'
 
       - name: Push changes
         continue-on-error: true

@@ -3,6 +3,7 @@
 #include "stbi/stbi_rectpack.hpp"
 #include "stbi/stbi_write.hpp"
 #include "utils/uistage.hpp"
+#include "utils/value.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -15,7 +16,7 @@
 #include <unistd.h>
 #include <vector>
 
-#define PACK_SIZE 2048
+
 
 namespace fs = std::filesystem;
 

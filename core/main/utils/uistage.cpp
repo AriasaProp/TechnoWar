@@ -4,8 +4,8 @@
 #include "../stbi/stbi_load.hpp"
 #include "value.hpp"
 
-#include <cmath>
 #include <cstdarg>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -167,11 +167,11 @@ void uistage::draw (float delta) {
       xList[0] = x - 5.0f;                                               // minx
       xList[1] = x + tlp.width + 5.0f;                                   // maxx
       yList[0] = y - (static_cast<float> (font->LineHeight) * F) - 5.0f; // miny
-      yList[1] = y + 5.0f;                                               // maxy
+      yList[1] = y + 5.0f;                                              // maxy
       if (tlp.lifetime < 1.65f)
-        clr.rgba.a = (uint8_t)round (136.0f * tlp.lifetime / 1.65f);
+        clr.rgba.a = (uint8_t) round(136.0f * tlp.lifetime / 1.65f);
       else
-        clr.rgba.a = 0x88;
+      	clr.rgba.a = 0x88;
       *(verts++) = {xList[0], yList[0], clr, 0, 0};
       *(verts++) = {xList[0], yList[1], clr, 0, 0};
       *(verts++) = {xList[1], yList[0], clr, 0, 0};
@@ -188,9 +188,9 @@ void uistage::draw (float delta) {
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) break;
-      clr = font->fcolor;
+    	clr = font->fcolor;
       if (tlp.lifetime < 1.65f)
-        clr.rgba.a = (uint8_t)round (255.0f * tlp.lifetime / 1.65f);
+        clr.rgba.a = (uint8_t)round(255.0f * tlp.lifetime / 1.65f);
       float x = (engine::graphics::getWidth () - tlp.width) * .5f;
       float y = engine::graphics::getHeight () * 0.75f + ((static_cast<float> (font->LineHeight) * font->fscale ()) + 10.5f) * i + 10.5f;
 
@@ -345,7 +345,7 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 
-bmfont::bmfont (const char *fontfile) : fcolor ({.color = 0xffffffff}) {
+bmfont::bmfont (const char *fontfile) : fcolor({.color = 0xffffffff}) {
   // parse fnt
   {
     unsigned int asl;
@@ -509,13 +509,13 @@ void uistage::actor::draw (float delta) {
   if (split[3]) { // horizontally
     yList[0] = rectangle[1];
     yList[1] = rectangle[1] + split[3];
-    vList[0] = float (ta.pos[1] + ta.size[1]) / float (uiskin::tex->height ());
-    vList[1] = float (ta.pos[1] + ta.size[1] - split[3]) / float (uiskin::tex->height ());
+    vList[0] = float (ta.pos[1] + ta.size[1]) / float (PACK_SIZE);
+    vList[1] = float (ta.pos[1] + ta.size[1] - split[3]) / float (PACK_SIZE);
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -525,8 +525,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -536,8 +536,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -549,13 +549,13 @@ void uistage::actor::draw (float delta) {
   yList[0] = rectangle[1] + split[3];
   yList[1] = rectangle[3] - split[1];
   if (yList[1] > yList[0]) { // horizontally
-    vList[0] = float (ta.pos[1] + ta.size[1] - split[3]) / float (uiskin::tex->height ());
-    vList[1] = float (ta.pos[1] + split[1]) / float (uiskin::tex->height ());
+    vList[0] = float (ta.pos[1] + ta.size[1] - split[3]) / float (PACK_SIZE);
+    vList[1] = float (ta.pos[1] + split[1]) / float (PACK_SIZE);
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -565,8 +565,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -576,8 +576,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -589,13 +589,13 @@ void uistage::actor::draw (float delta) {
   if (split[1]) { // horizontally
     yList[0] = rectangle[3] - split[1];
     yList[1] = rectangle[3];
-    vList[0] = float (ta.pos[1] + split[1]) / float (uiskin::tex->height ());
-    vList[1] = float (ta.pos[1]) / float (uiskin::tex->height ());
+    vList[0] = float (ta.pos[1] + split[1]) / float (PACK_SIZE);
+    vList[1] = float (ta.pos[1]) / float (PACK_SIZE);
     if (split[0]) {
       xList[0] = rectangle[0];
       xList[1] = rectangle[0] + split[0];
-      uList[0] = float (ta.pos[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -605,8 +605,8 @@ void uistage::actor::draw (float delta) {
     xList[0] = rectangle[0] + split[0];
     xList[1] = rectangle[2] - split[2];
     if (xList[1] > xList[0]) {
-      uList[0] = float (ta.pos[0] + split[0]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
@@ -616,8 +616,8 @@ void uistage::actor::draw (float delta) {
     if (split[2]) {
       xList[0] = rectangle[2] - split[2];
       xList[1] = rectangle[2];
-      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (uiskin::tex->width ());
-      uList[1] = float (ta.pos[0] + ta.size[0]) / float (uiskin::tex->width ());
+      uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
+      uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
       *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
       *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
       *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};

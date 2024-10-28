@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#define PACK_SIZE 2048
+
 // common value type
 union color32_t {
   struct {
