@@ -42,8 +42,6 @@ jobs:
               - added|modified: 'android/src/main/cpp/**/*.hpp'
               - added|modified: 'android/src/main/java/**/*.java'
 
-      - if: steps.changes.outputs.java-src == 'true' 
-
       - name: Format
         if: steps.changes.outputs.src == 'true'
         run: |
