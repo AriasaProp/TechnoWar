@@ -78,16 +78,18 @@ void uistage::loadUISkin (const char *uiSkin) {
       std::getline (buffer_stream, line_str);
       line_stream << line_str;
       std::getline (line_stream, name, ':');
-      uistage::texture_region region;
+      uistage::texture_region region {.pos = {0,0}, .size = {PACK_SIZE,PACK_SIZE}};
       region.rc.color = 0xffffffff;
+      /*
       line_stream >> region.pos[0];
       line_stream >> region.pos[1];
       line_stream >> region.size[0];
       line_stream >> region.size[1];
+      */
       uiskin::regions.insert ({name, region});
     }
   }
-  /*
+  
   {
     sprintf (temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
@@ -98,7 +100,6 @@ void uistage::loadUISkin (const char *uiSkin) {
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
-  */
 }
 void uistage::draw (float delta) {
   static color32_t clr;
