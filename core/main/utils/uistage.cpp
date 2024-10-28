@@ -4,8 +4,8 @@
 #include "../stbi/stbi_load.hpp"
 #include "value.hpp"
 
-#include <cmath>
 #include <cstdarg>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -87,6 +87,7 @@ void uistage::loadUISkin (const char *uiSkin) {
       uiskin::regions.insert ({name, region});
     }
   }
+  /*
   {
     sprintf (temp_char_buffer, "%s.qoi", uiSkin);
     qoi_desc d;
@@ -97,6 +98,7 @@ void uistage::loadUISkin (const char *uiSkin) {
     uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
     delete[] tex_px;
   }
+  */
 }
 void uistage::draw (float delta) {
   static color32_t clr;
@@ -165,11 +167,11 @@ void uistage::draw (float delta) {
       xList[0] = x - 5.0f;                                               // minx
       xList[1] = x + tlp.width + 5.0f;                                   // maxx
       yList[0] = y - (static_cast<float> (font->LineHeight) * F) - 5.0f; // miny
-      yList[1] = y + 5.0f;                                               // maxy
+      yList[1] = y + 5.0f;                                              // maxy
       if (tlp.lifetime < 1.65f)
-        clr.rgba.a = (uint8_t)round (136.0f * tlp.lifetime / 1.65f);
+        clr.rgba.a = (uint8_t) round(136.0f * tlp.lifetime / 1.65f);
       else
-        clr.rgba.a = 0x88;
+      	clr.rgba.a = 0x88;
       *(verts++) = {xList[0], yList[0], clr, 0, 0};
       *(verts++) = {xList[0], yList[1], clr, 0, 0};
       *(verts++) = {xList[1], yList[0], clr, 0, 0};
@@ -186,9 +188,9 @@ void uistage::draw (float delta) {
     for (size_t i = 0; i < 7; ++i) {
       tooltip &tlp = tooltips[i];
       if (tlp.lifetime <= 0.0f) break;
-      clr = font->fcolor;
+    	clr = font->fcolor;
       if (tlp.lifetime < 1.65f)
-        clr.rgba.a = (uint8_t)round (255.0f * tlp.lifetime / 1.65f);
+        clr.rgba.a = (uint8_t)round(255.0f * tlp.lifetime / 1.65f);
       float x = (engine::graphics::getWidth () - tlp.width) * .5f;
       float y = engine::graphics::getHeight () * 0.75f + ((static_cast<float> (font->LineHeight) * font->fscale ()) + 10.5f) * i + 10.5f;
 
@@ -343,9 +345,8 @@ void uistage::touchCanceled (float x, float y, int pointer, int button) {
 
 float bmfont::fscale () { return fontSizeUsed / fontSizeBase; }
 
-bmfont::bmfont (const char *fontfile) {
+bmfont::bmfont (const char *fontfile) : fcolor({.color = 0xffffffff}) {
   // parse fnt
-  fcolor.color = 0xffffffff;
   {
     unsigned int asl;
     void *as = engine::assets::asset_buffer (fontfile, &asl);
