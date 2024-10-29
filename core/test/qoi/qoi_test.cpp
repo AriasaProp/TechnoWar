@@ -18,7 +18,7 @@ bool qoi_test () {
     qoi_desc d{QOI_TEST_WIDTH, QOI_TEST_HEIGHT, 4, 0};
     size_t ch;
     void *en = qoi_encode (data, &d, &ch);
-    void *dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
+    void *dec = qoi_decode (en, ch, &d, 4);
 
     if (!memcmp (data, dec, QOI_TEST_BYTE_SIZE)) {
       free (en);
@@ -30,7 +30,7 @@ bool qoi_test () {
 
     memset (data, 0xff, QOI_TEST_BYTE_SIZE);
     en = qoi_encode (data, &d, &ch);
-    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
+    dec = qoi_decode (en, ch, &d, 4);
 
     if (!memcmp (data, dec, QOI_TEST_BYTE_SIZE)) {
       free (en);
@@ -45,7 +45,7 @@ bool qoi_test () {
     memset (((unsigned char *)data) + 2 * QOI_TEST_SIZE, 0x44, QOI_TEST_SIZE);
     memset (((unsigned char *)data) + 3 * QOI_TEST_SIZE, 0x88, QOI_TEST_SIZE);
     en = qoi_encode (data, &d, &ch);
-    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
+    dec = qoi_decode (en, ch, &d, 4);
 
     if (!memcmp (data, dec, QOI_TEST_BYTE_SIZE)) {
       free (en);
