@@ -32,11 +32,10 @@ void image_rewrite (fs::path assets, fs::path converted) {
     if (!fs::is_regular_file (image.status ())) continue;
     std::string image_path = image.path ().string ();
     if (!(
-    	image_path.ends_with (".9.png") || 
-    	image_path.ends_with (".jpeg") || 
-    	image_path.ends_with (".jpg") || 
-    	image_path.ends_with (".png")
-    	)) continue;
+            image_path.ends_with (".9.png") ||
+            image_path.ends_with (".jpeg") ||
+            image_path.ends_with (".jpg") ||
+            image_path.ends_with (".png"))) continue;
     img_src = stbi::load::load_from_filename (image_path.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
     if (!img_src) throw stbi::load::failure_reason ();
     {
@@ -49,7 +48,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
       image_path = image_path.substr (lastSlashPos, lastDotPos - lastSlashPos);
       fs::path res = image_result_path / image_path;
       res += ".png";
-    	stbi::write::png (res.c_str (), dih, dih + 1, 4, img_src, 4);
+      stbi::write::png (res.c_str (), dih, dih + 1, 4, img_src, 4);
     }
     stbi::load::image_free (img_src);
   }

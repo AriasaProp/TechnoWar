@@ -9,7 +9,6 @@ static std::stringstream serr;
 extern void uiskin_packer (fs::path, fs::path);
 extern void image_rewrite (fs::path, fs::path);
 
-
 void assets_for_android (fs::path des_path, fs::path res_path) {
   if (fs::exists (des_path)) fs::remove_all (des_path);
   if (!fs::create_directory (des_path)) [[unlikely]] {

@@ -18,7 +18,7 @@ struct opengles_texture : public engine::texture_core {
   unsigned int w, h;
   unsigned int size;
   void *d;
-  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), size(_w * _h * 4) {
+  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), size (_w * _h * 4) {
     d = malloc (size);
     memcpy (d, dt, size);
   }
