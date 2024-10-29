@@ -146,7 +146,7 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, size_t *out_len) {
   for (i = 0; i < sizeof (qoi_padding); i++) {
     *(bytes++) = qoi_padding[i];
   }
-  *out_len = bytes - (unsigned char*)result;
+  *out_len = bytes - (unsigned char *)result;
   return realloc (result, *out_len);
 }
 
