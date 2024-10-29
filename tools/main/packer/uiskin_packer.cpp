@@ -84,18 +84,8 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     }
     atlas_out.close ();
     fs::path outfile_qoi = outfile;
-    outfile_qoi += ".qoi";
-    atlas_out.open (outfile_qoi.c_str (), std::ios::out | std::ios::trunc | std::ios::binary);
-    if (!atlas_out.is_open ()) throw "fail stream atlas binary";
-    // create output directory skin name
-    {
-      qoi_desc desc{PACK_SIZE, PACK_SIZE, 4, 1};
-      int size;
-      void *encoded = qoi_encode (outBuffer, &desc, &size);
-      atlas_out.write (encoded, size);
-      free (encoded);
-    }
-    atlas_out.close ();
+    outfile_qoi += ".png";
+    stbi::write::png (outfile_qoi.c_str (), PACK_SIZE, PACK_SIZE, 4, outBuffer, 4);
     delete[] outBuffer;
   }
 }

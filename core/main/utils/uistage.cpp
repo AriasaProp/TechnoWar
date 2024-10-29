@@ -91,14 +91,11 @@ void uistage::loadUISkin (const char *uiSkin) {
   }
 
   {
-    sprintf (temp_char_buffer, "%s.qoi", uiSkin);
-    qoi_desc d;
-    unsigned int l;
-    void *user = engine::assets::asset_buffer (temp_char_buffer, &l);
-    unsigned char *tex_px = qoi_decode ((const unsigned char *)user, l, &d, 4);
-    free (user);
-    uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
-    delete[] tex_px;
+    sprintf (temp_char_buffer, "%s.png", uiSkin);
+    int x,y, z;
+    unsigned char *tex_px = stbi::load::load_from_assets (temp_char_buffer, &x,&y,&z,4):
+    uiskin::tex = engine::graphics::gen_texture (x, y, tex_px);
+    free (tex_px);
   }
 }
 void uistage::draw (float delta) {
