@@ -14,7 +14,7 @@ struct qoi_desc {
   unsigned char colorspace;
 };
 
-void *qoi_encode (const void *, const qoi_desc *, int *);
+void *qoi_encode (const void *, const qoi_desc *, size_t*);
 void *qoi_decode (const void *, size_t, qoi_desc *, int);
 
 #endif // QOI_H

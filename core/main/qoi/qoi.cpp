@@ -42,8 +42,8 @@ static uint32_t qoi_read_32 (const unsigned char **bytes) {
   return a << 24 | b << 16 | c << 8 | d;
 }
 
-void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
-  if (!p_ || !out_len || !desc || !desc->width || !desc->height ||
+void *qoi_encode (const void *p_, const qoi_desc *desc, size_t *out_len) {
+  if (!p_ || !desc || !desc->width || !desc->height ||
       desc->channels < 3 || desc->channels > 4 || desc->colorspace > 1 ||
       desc->height >= QOI_PIXELS_MAX / desc->width) {
     return NULL;
@@ -146,8 +146,7 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
   for (i = 0; i < sizeof (qoi_padding); i++) {
     *(bytes++) = qoi_padding[i];
   }
-
-  *out_len = (bytes - result);
+  *out_len = (const void*)bytes - result;
   return realloc (result, *out_len);
 }
 
