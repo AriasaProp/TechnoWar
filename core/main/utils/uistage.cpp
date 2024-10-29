@@ -95,9 +95,9 @@ void uistage::loadUISkin (const char *uiSkin) {
     qoi_desc d;
     unsigned int l;
     void *user = engine::assets::asset_buffer (temp_char_buffer, &l);
-    unsigned char *tex_px = qoi_decode (user, l, &d, 4);
+    void *tex_px = qoi_decode (user, l, &d, 4);
     free (user);
-    uiskin::tex = engine::graphics::gen_texture (d.width, d.height, tex_px);
+    uiskin::tex = engine::graphics::gen_texture (d.width, d.height, (unsigned char *)tex_px);
     free (tex_px);
   }
 }

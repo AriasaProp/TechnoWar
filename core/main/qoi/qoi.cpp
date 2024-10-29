@@ -1,7 +1,6 @@
 #include "qoi.hpp"
 #include "../engine.hpp"
 #include "../utils/value.hpp"
-#include <cstdlib>
 #include <cstring>
 
 #define QOI_OP_INDEX 0x00 /* 00xxxxxx */
@@ -44,7 +43,7 @@ static uint32_t qoi_read_32 (const unsigned char **bytes) {
 }
 
 void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
-  if (!p_ || !out_le || !desc || !desc->width || !desc->height ||
+  if (!p_ || !out_len || !desc || !desc->width || !desc->height ||
       desc->channels < 3 || desc->channels > 4 || desc->colorspace > 1 ||
       desc->height >= QOI_PIXELS_MAX / desc->width) {
     return NULL;

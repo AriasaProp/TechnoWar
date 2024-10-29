@@ -2,6 +2,7 @@
 #define QOI_H
 
 #include <cstdint>
+#include <cstdlib>
 
 #define QOI_SRGB 0
 #define QOI_LINEAR 1
