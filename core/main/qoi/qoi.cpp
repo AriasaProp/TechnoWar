@@ -34,7 +34,6 @@ static void qoi_write_32 (unsigned char **bytes, uint32_t v) {
 }
 
 static uint32_t qoi_read_32 (const unsigned char **bytes) {
-
   uint32_t a = *((*bytes)++);
   uint32_t b = *((*bytes)++);
   uint32_t c = *((*bytes)++);
@@ -50,6 +49,9 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, size_t *out_len) {
   }
 
   const unsigned char *pixels = (const unsigned char *)p_;
+  void *result = malloc (max_size);
+  
+  /*
   size_t i, max_size, run;
   size_t px_len, px_end, px_pos, channels;
   color32_t index[64];
@@ -57,7 +59,6 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, size_t *out_len) {
 
   max_size = desc->width * desc->height * (desc->channels + 1) + QOI_HEADER_SIZE + sizeof (qoi_padding);
 
-  void *result = malloc (max_size);
   unsigned char *bytes = (unsigned char *)result;
 
   qoi_write_32 (&bytes, QOI_MAGIC);
@@ -147,7 +148,9 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, size_t *out_len) {
     *(bytes++) = qoi_padding[i];
   }
   *out_len = bytes - (unsigned char *)result;
-  return realloc (result, *out_len);
+  result = realloc (result, *out_len);
+  */
+  return result;
 }
 
 void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
@@ -158,7 +161,7 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
   }
   const unsigned char *bytes = (const unsigned char *)b_;
   const unsigned char *bytes_end = bytes + size;
-
+  
   color32_t index[64];
   color32_t px;
   int px_len, px_pos;
@@ -180,6 +183,7 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
 
   px_len = desc->width * desc->height * channels;
   unsigned char *pixels = (unsigned char *)malloc (px_len);
+  /*
 
   memset (index, 0, sizeof (index));
   px.rgba = {0, 0, 0, 255};
@@ -217,7 +221,6 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
 
       index[QOI_COLOR_HASH (px) % 64] = px;
     }
-
     pixels[px_pos + 0] = px.rgba.r;
     pixels[px_pos + 1] = px.rgba.g;
     pixels[px_pos + 2] = px.rgba.b;
@@ -226,6 +229,6 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
       pixels[px_pos + 3] = px.rgba.a;
     }
   }
-
+  */
   return pixels;
 }
