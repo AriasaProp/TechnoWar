@@ -167,9 +167,9 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
   int run = 0;
 
   if (
-  	  qoi_read_32 (&bytes) != QOI_MAGIC ||
-    	!(desc->width = qoi_read_32 (&bytes)) ||
-    	!(desc->height = qoi_read_32 (&bytes)) ||
+      qoi_read_32 (&bytes) != QOI_MAGIC ||
+      !(desc->width = qoi_read_32 (&bytes)) ||
+      !(desc->height = qoi_read_32 (&bytes)) ||
       (desc->channels = *(bytes++)) ||
       (desc->channels < 3) ||
       (desc->channels > 4) ||
@@ -181,10 +181,10 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
   if (!channels) channels = desc->channels;
 
   px_len = desc->width * desc->height * channels;
-  unsigned char *pixels = (unsigned char *)malloc(px_len);
+  unsigned char *pixels = (unsigned char *)malloc (px_len);
 
   memset (index, 0, sizeof (index));
-  px.rgba = {0,0,0,255};
+  px.rgba = {0, 0, 0, 255};
 
   for (px_pos = 0; px_pos < px_len; px_pos += channels) {
     if (run > 0) {
