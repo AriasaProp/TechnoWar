@@ -14,7 +14,7 @@ bool qoi_test () {
   std::cerr << "Test QOI Codec ";
   void *data = malloc (QOI_TEST_BYTE_SIZE);
   try {
-  	/*
+    /*
     memset (data, 0x00, QOI_TEST_BYTE_SIZE);
     qoi_desc d{QOI_TEST_WIDTH, QOI_TEST_HEIGHT, 4, 0};
     size_t ch;
