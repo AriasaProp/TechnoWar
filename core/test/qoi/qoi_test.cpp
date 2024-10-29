@@ -1,4 +1,4 @@
-#include "qoi.hpp"
+#include "qoi/qoi.hpp"
 
 #include <cstdint>
 #include <cstdlib>
