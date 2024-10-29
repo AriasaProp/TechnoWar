@@ -1,6 +1,8 @@
 #ifndef QOI_H
 #define QOI_H
 
+#include <cstdint>
+
 #define QOI_SRGB 0
 #define QOI_LINEAR 1
 
@@ -11,11 +13,9 @@ struct qoi_desc {
   unsigned char colorspace;
 };
 
-bool qoi_write (const char *filename, const unsigned char *data, const qoi_desc *desc);
-
-unsigned char *qoi_read (const char *filename, qoi_desc *desc, int channels);
-
-unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, int *out_len);
-unsigned char *qoi_decode (const unsigned char *byte, int size, qoi_desc *desc, int channels);
+bool qoi_write (const char *, const unsigned char *, const qoi_desc *);
+voida *qoi_read (const char *, qoi_desc *, int);
+void *qoi_encode (const void *, const qoi_desc *, int *);
+void *qoi_decode (const void *, size_t, qoi_desc *, int);
 
 #endif // QOI_H
