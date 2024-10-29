@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #define QOI_TEST_WIDTH 600
@@ -15,7 +16,7 @@ bool qoi_test () {
   try {
     memset (data, 0x00, QOI_TEST_BYTE_SIZE);
     qoi_desc d{QOI_TEST_WIDTH, QOI_TEST_HEIGHT, 4, 0};
-    int ch;
+    size_t ch;
     void *en = qoi_encode (data, &d, &ch);
     void *dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
 
@@ -29,7 +30,7 @@ bool qoi_test () {
 
     memset (data, 0xff, QOI_TEST_BYTE_SIZE);
     en = qoi_encode (data, &d, &ch);
-    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, &ch, 4);
+    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
 
     if (!memcmp (data, dec, QOI_TEST_BYTE_SIZE)) {
       free (en);
@@ -40,11 +41,11 @@ bool qoi_test () {
     free (dec);
 
     memset (data, 0xaa, QOI_TEST_SIZE);
-    memset (data + QOI_TEST_SIZE, 0xbb, QOI_TEST_SIZE);
-    memset (data + 2 * QOI_TEST_SIZE, 0x44, QOI_TEST_SIZE);
-    memset (data + 3 * QOI_TEST_SIZE, 0x88, QOI_TEST_SIZE);
+    memset (((unsigned char *)data) + QOI_TEST_SIZE, 0xbb, QOI_TEST_SIZE);
+    memset (((unsigned char *)data) + 2 * QOI_TEST_SIZE, 0x44, QOI_TEST_SIZE);
+    memset (((unsigned char *)data) + 3 * QOI_TEST_SIZE, 0x88, QOI_TEST_SIZE);
     en = qoi_encode (data, &d, &ch);
-    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, &ch, 4);
+    dec = qoi_decode (en, ch, QOI_TEST_BYTE_SIZE, 4);
 
     if (!memcmp (data, dec, QOI_TEST_BYTE_SIZE)) {
       free (en);
