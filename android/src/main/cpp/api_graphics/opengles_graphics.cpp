@@ -6,6 +6,7 @@
 
 #include "../android_engine.hpp"
 #include "../engine.hpp"
+#include "../utils/value.hpp"
 #define TERM_EGL_SURFACE 1
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
@@ -15,10 +16,11 @@ namespace opengles_graphics {
 struct opengles_texture : public engine::texture_core {
   GLuint id;
   unsigned int w, h;
-  unsigned char *d;
-  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h) {
-    d = new unsigned char[w * h * sizeof (unsigned char)];
-    memcpy (d, dt, w * h * sizeof (unsigned char));
+  unsigned int size;
+  void *d;
+  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), size(_w * _h * 4) {
+    d = malloc (size);
+    memcpy (d, dt, size);
   }
   unsigned int width () override {
     return w;
@@ -27,7 +29,7 @@ struct opengles_texture : public engine::texture_core {
     return h;
   }
   ~opengles_texture () {
-    delete[] d;
+    free (d);
   }
 };
 

@@ -7,6 +7,8 @@ namespace fs = std::filesystem;
 static std::stringstream serr;
 
 extern void uiskin_packer (fs::path, fs::path);
+extern void image_rewrite (fs::path, fs::path);
+
 
 void assets_for_android (fs::path des_path, fs::path res_path) {
   if (fs::exists (des_path)) fs::remove_all (des_path);
@@ -17,7 +19,7 @@ void assets_for_android (fs::path des_path, fs::path res_path) {
   }
 
   uiskin_packer (res_path, des_path);
+  image_rewrite (res_path, des_path);
 
   fs::copy (res_path / "fonts", des_path / "fonts", fs::copy_options::recursive);
-  fs::copy (res_path / "images", des_path / "images", fs::copy_options::recursive);
 }
