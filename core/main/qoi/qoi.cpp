@@ -35,7 +35,7 @@ static void qoi_write_32 (unsigned char **bytes, uint32_t v) {
 }
 
 static uint32_t qoi_read_32 (const unsigned char **bytes) {
-	
+
   uint32_t a = *((*bytes)++);
   uint32_t b = *((*bytes)++);
   uint32_t c = *((*bytes)++);
@@ -49,8 +49,8 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
       desc->height >= QOI_PIXELS_MAX / desc->width) {
     return NULL;
   }
-  
-	const unsigned char *pixels = (const unsigned char *)p_;
+
+  const unsigned char *pixels = (const unsigned char *)p_;
   size_t i, max_size, run;
   size_t px_len, px_end, px_pos, channels;
   color32_t index[64];
@@ -58,7 +58,7 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
 
   max_size = desc->width * desc->height * (desc->channels + 1) + QOI_HEADER_SIZE + sizeof (qoi_padding);
 
-  void *result = malloc(max_size);
+  void *result = malloc (max_size);
   unsigned char *bytes = (unsigned char *)result;
 
   qoi_write_32 (&bytes, QOI_MAGIC);
@@ -70,7 +70,7 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
   memset (index, 0, sizeof (index));
 
   run = 0;
-  px_prev.rgba = {0,0,0,255};
+  px_prev.rgba = {0, 0, 0, 255};
   px = px_prev;
 
   px_len = desc->width * desc->height * desc->channels;
@@ -149,7 +149,7 @@ void *qoi_encode (const void *p_, const qoi_desc *desc, int *out_len) {
   }
 
   *out_len = (bytes - result);
-  realloc(result, *out_len);
+  realloc (result, *out_len);
   return result;
 }
 
@@ -161,7 +161,7 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
   }
   const unsigned char *bytes = (const unsigned char *)b_;
   const unsigned char *bytes_end = bytes + size;
-  
+
   color32_t index[64];
   color32_t px;
   int px_len, px_pos;

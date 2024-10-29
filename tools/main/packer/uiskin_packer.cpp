@@ -16,8 +16,6 @@
 #include <unistd.h>
 #include <vector>
 
-
-
 namespace fs = std::filesystem;
 
 void uiskin_packer (fs::path assets, fs::path converted) {
