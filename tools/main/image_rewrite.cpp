@@ -26,6 +26,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
   if (fs::exists (image_result_path) || !fs::create_directory (image_result_path))
     throw "error make converted dir";
   // find all subfolder inside image
+  /*
   unsigned char *img_src;
   int dih[3];
   for (const fs::directory_entry &image : fs::directory_iterator (image_path)) {
@@ -52,4 +53,5 @@ void image_rewrite (fs::path assets, fs::path converted) {
     }
     stbi::load::image_free (img_src);
   }
+  */
 }
