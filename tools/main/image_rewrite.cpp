@@ -48,7 +48,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
       image_path = image_path.substr (lastSlashPos, lastDotPos - lastSlashPos);
       fs::path res = image_result_path / image_path;
       res += ".png";
-      stbi::write::png (res.c_str (), dih, dih + 1, 4, img_src, 4);
+      stbi::write::png (res.c_str (), dih[0], dih[1], 4, img_src, 4);
     }
     stbi::load::image_free (img_src);
   }
