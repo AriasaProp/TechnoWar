@@ -21,12 +21,3 @@ round:1378 320 12 20
 check_on:1106 320 38 36
 button_glassy_up:1316 320 21 21
 darken:2043 180 3 3
-sans-serif_30px:511 301 256 220
-touchpad_knob:1023 320 45 45
-immortal_60px:1535 0 512 180
-jump_down:1835 288 106 106
-button_metalic_up:1390 320 5 30
-config_icon:767 301 64 64
-touchpad_background:1535 180 300 300
-tree:1206 320 30 30
-label_grand:1264 320 25 25
