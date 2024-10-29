@@ -170,7 +170,7 @@ void *qoi_decode (const void *b_, size_t size, qoi_desc *desc, int channels) {
   	  qoi_read_32 (&bytes) != QOI_MAGIC ||
     	!(desc->width = qoi_read_32 (&bytes)) ||
     	!(desc->height = qoi_read_32 (&bytes)) ||
-      (desc->channels = *(bytes++) ||
+      (desc->channels = *(bytes++)) ||
       (desc->channels < 3) ||
       (desc->channels > 4) ||
       (desc->colorspace = *(bytes++)) > 1 ||
