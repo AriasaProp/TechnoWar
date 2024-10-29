@@ -13,8 +13,6 @@ struct qoi_desc {
   unsigned char colorspace;
 };
 
-bool qoi_write (const char *, const unsigned char *, const qoi_desc *);
-voida *qoi_read (const char *, qoi_desc *, int);
 void *qoi_encode (const void *, const qoi_desc *, int *);
 void *qoi_decode (const void *, size_t, qoi_desc *, int);
 
