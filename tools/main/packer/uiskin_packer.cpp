@@ -1,4 +1,4 @@
-#include "qoi/qoi.hpp"
+//#include "qoi/qoi.hpp"
 #include "stbi/stbi_load.hpp"
 #include "stbi/stbi_rectpack.hpp"
 #include "stbi/stbi_write.hpp"
