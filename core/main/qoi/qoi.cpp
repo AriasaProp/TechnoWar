@@ -1,8 +1,6 @@
 #include "qoi.hpp"
 #include "../engine.hpp"
 #include "../utils/value.hpp"
-#include <cstdint>
-#include <cstdlib>
 #include <cstring>
 
 #define QOI_OP_INDEX 0x00 /* 00xxxxxx */
@@ -43,7 +41,7 @@ static uint32_t qoi_read_32 (const unsigned char *bytes, int *p) {
   return a << 24 | b << 16 | c << 8 | d;
 }
 
-unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, int *out_len) {
+unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, size_t *out_len) {
   int i, max_size, p, run;
   int px_len, px_end, px_pos, channels;
   color32_t index[64];
@@ -157,7 +155,7 @@ unsigned char *qoi_encode (const unsigned char *pixels, const qoi_desc *desc, in
   return bytes;
 }
 
-unsigned char *qoi_decode (const unsigned char *bytes, int size, qoi_desc *desc, int channels) {
+unsigned char *qoi_decode (const unsigned char *bytes, size_t size, qoi_desc *desc, int channels) {
   uint32_t header_magic;
   color32_t index[64];
   color32_t px;
