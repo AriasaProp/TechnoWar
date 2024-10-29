@@ -12,7 +12,7 @@ const size_t QOI_TEST_BYTE_SIZE = QOI_TEST_SIZE * 4;
 
 bool qoi_test () {
   std::cerr << "Test QOI Codec ";
-  unsigned char *data = new unsigned char [QOI_TEST_BYTE_SIZE];
+  unsigned char *data = new unsigned char[QOI_TEST_BYTE_SIZE];
   try {
     memset (data, 0x00, QOI_TEST_BYTE_SIZE);
     qoi_desc d{QOI_TEST_WIDTH, QOI_TEST_HEIGHT, 4, 0};
