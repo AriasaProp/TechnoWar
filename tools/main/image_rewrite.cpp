@@ -28,11 +28,11 @@ void image_rewrite (fs::path assets, fs::path converted) {
   // find all subfolder inside image
   for (const fs::directory_entry &image : fs::directory_iterator (image_path)) {
     if (!fs::is_regular_file (image.status ())) continue;
-    fs::path image_extension = image.path ().extension();
-    if (image_extension.compare(".9.png") ||
-        image_extension.compare(".jpeg") ||
-        image_extension.compare(".jpg") ||
-        image_extension.compare(".png")) continue;
+    fs::path image_extension = image.path ().extension ();
+    if (image_extension.compare (".9.png") ||
+        image_extension.compare (".jpeg") ||
+        image_extension.compare (".jpg") ||
+        image_extension.compare (".png")) continue;
     /*
     std::string image_filename = image.path ().filename().string ();
     std::string image_path = image.path ().string ();
