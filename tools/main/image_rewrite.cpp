@@ -29,12 +29,12 @@ void image_rewrite (fs::path assets, fs::path converted) {
   for (const fs::directory_entry &image : fs::directory_iterator (image_path)) {
     if (!fs::is_regular_file (image.status ())) continue;
     std::string image_path = image.path ().string ();
+    /*
     if (!(
             image_path.ends_with (".9.png") ||
             image_path.ends_with (".jpeg") ||
             image_path.ends_with (".jpg") ||
             image_path.ends_with (".png"))) continue;
-    /*
     int dih[3];
     unsigned char *img_src;
       img_src = stbi::load::load_from_filename (image_path.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
