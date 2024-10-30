@@ -51,7 +51,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
         res += ".png";
         stbi::write::png (res.c_str (), dih[0], dih[1], 4, img_src, 4);
       }
-    */
     stbi::load::image_free (img_src);
+    */
   }
 }
