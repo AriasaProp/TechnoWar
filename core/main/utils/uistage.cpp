@@ -229,7 +229,7 @@ void uistage::draw (float delta) {
 }
 void uistage::clear () {
   memset (tooltips, 0, sizeof tooltips);
-  if (uiskin::tex) engine::graphics::delete_texture (uiskin::tex);
+  engine::graphics::delete_texture (uiskin::tex);
   uiskin::regions.clear ();
   for (uistage::actor *a : actors)
     delete a;
@@ -512,10 +512,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -523,10 +523,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     if (split[2]) {
@@ -534,10 +534,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
   }
@@ -552,10 +552,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -563,10 +563,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     if (split[2]) {
@@ -574,10 +574,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
   }
@@ -592,10 +592,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[0] + split[0];
       uList[0] = float (ta.pos[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     xList[0] = rectangle[0] + split[0];
@@ -603,10 +603,10 @@ void uistage::actor::draw (float delta) {
     if (xList[1] > xList[0]) {
       uList[0] = float (ta.pos[0] + split[0]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
     if (split[2]) {
@@ -614,10 +614,10 @@ void uistage::actor::draw (float delta) {
       xList[1] = rectangle[2];
       uList[0] = float (ta.pos[0] + ta.size[0] - split[2]) / float (PACK_SIZE);
       uList[1] = float (ta.pos[0] + ta.size[0]) / float (PACK_SIZE);
-      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[0]};
-      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[1]};
-      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[0]};
-      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[0], yList[0], ta.rc, uList[0], vList[1]};
+      *(verts++) = {xList[0], yList[1], ta.rc, uList[0], vList[0]};
+      *(verts++) = {xList[1], yList[0], ta.rc, uList[1], vList[1]};
+      *(verts++) = {xList[1], yList[1], ta.rc, uList[1], vList[0]};
       quadCount++;
     }
   }
