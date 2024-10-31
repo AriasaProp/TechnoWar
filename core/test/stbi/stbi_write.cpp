@@ -560,7 +560,7 @@ static void stbiw__write_hdr_scanline (stbi__write_context *s, int width, int nc
 }
 
 static int stbi_write_hdr_core (stbi__write_context *s, int x, int y, int comp, float *data) {
-  if (y <= 0 || x <= 0 || data == NULL)
+  if (y <= 0 || x <= 0 || !data)
     return 0;
   else {
     // Each component is stored separately. Allocate scratch space for full output scanline.
@@ -700,8 +700,7 @@ unsigned char *stbi_zlib_compress (unsigned char *data, int data_len, int *out_l
   int i, j, bitcount = 0;
   unsigned char *out = NULL;
   unsigned char ***hash_table = (unsigned char ***)malloc (stbiw__ZHASH * sizeof (unsigned char **));
-  if (hash_table == NULL)
-    return NULL;
+  if (!hash_table) return NULL;
   if (quality < 5) quality = 5;
 
   stbiw__sbpush (out, 0x78); // DEFLATE 32K window
@@ -1011,7 +1010,7 @@ static unsigned char *stbi__write_png_to_mem (const unsigned char *pixels, int s
 int stbi::write::png (char const *filename, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
-  if (png == NULL) return 0;
+  if (!png) return 0;
 
   FILE *f = stbiw__fopen (filename, "wb");
   if (!f) {
@@ -1028,7 +1027,7 @@ int stbi::write::png (char const *filename, int x, int y, int comp, const void *
 int stbi::write::png_to_func (stbi::write::write_func func, void *context, int x, int y, int comp, const void *data, int stride_bytes) {
   int len;
   unsigned char *png = stbi__write_png_to_mem ((const unsigned char *)data, stride_bytes, x, y, comp, &len);
-  if (png == NULL) return 0;
+  if (!png) return 0;
   func (context, png, len);
   free (png);
   return 1;
