@@ -324,14 +324,14 @@ static
 #ifdef STBI_THREAD_LOCAL
     STBI_THREAD_LOCAL
 #endif
-    const char *stbi__g_failure_reason;
+    char stbi__g_failure_reason[2048];
 
 const char *stbi::load::failure_reason (void) {
   return stbi__g_failure_reason;
 }
 
 static int stbi__err (const char *str) {
-  stbi__g_failure_reason = str;
+  strcpy(stbi__g_failure_reason, str);
   return 0;
 }
 
