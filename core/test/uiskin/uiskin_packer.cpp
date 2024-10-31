@@ -85,7 +85,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     atlas_out.close ();
     fs::path outfile_png = outfile;
     outfile_png += ".png";
-    stbi::write::png (outfile_png.c_str (), PACK_SIZE, PACK_SIZE, 4, outBuffer, 4);
+    stbi::write::png (outfile_png.c_str (), PACK_SIZE, PACK_SIZE, 4, outBuffer, 0);
     delete[] outBuffer;
   }
 }
