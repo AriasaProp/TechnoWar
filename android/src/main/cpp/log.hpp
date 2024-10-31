@@ -11,4 +11,5 @@
   ((void)__android_log_print (ANDROID_LOG_ERROR, "native-activity", __VA_ARGS__)), \
       assert (false)
 
+
 #endif // Included_LOG
