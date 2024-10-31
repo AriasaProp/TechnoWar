@@ -6023,7 +6023,7 @@ static int stbi__gif_header (stbi__context *s, stbi__gif *g, int *comp, int is_i
   if (version != '7' && version != '9') return stbi__err ("not GIF : Corrupt GIF");
   if (stbi__get8 (s) != 'a') return stbi__err ("not GIF : Corrupt GIF");
 
-  stbi__g_failure_reason = "";
+  memset(stbi__g_failure_reason, 0, 2048);
   g->w = stbi__get16le (s);
   g->h = stbi__get16le (s);
   g->flags = stbi__get8 (s);
