@@ -95,7 +95,6 @@ void uistage::loadUISkin (const char *uiSkin) {
     int x, y, z;
     unsigned char *tex_px = stbi::load::load_from_assets (temp_char_buffer, &x, &y, &z, stbi::load::channel::rgb_alpha);
     uiskin::tex = engine::graphics::gen_texture (x, y, tex_px);
-    free (tex_px);
   }
 }
 void uistage::draw (float delta) {
@@ -484,7 +483,6 @@ bmfont::bmfont (const char *fontfile) : fcolor ({.color = 0xffffffff}) {
   unsigned char *tD = stbi::load::load_from_memory ((unsigned char const *)datR, (int)datRI, &x, &y, nullptr, stbi::load::channel::rgb_alpha);
   free (datR);
   ftexid = engine::graphics::gen_texture (x, y, tD);
-  stbi::load::image_free (tD);
 }
 
 bmfont::~bmfont () {
