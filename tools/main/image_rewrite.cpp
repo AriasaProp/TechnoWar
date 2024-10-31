@@ -37,21 +37,8 @@ void image_rewrite (fs::path assets, fs::path converted) {
         image_extension.compare (".png")) continue;
     img_src = stbi::load::load_from_filename (image.path ().c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
     if (!img_src) throw stbi::load::failure_reason ();
-    /*
-    std::string image_filename = image.path ().filename().string ();
-      {
-        size_t lastSlashPos = image_path.find_last_of ("/\\");
-        lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
-        size_t lastDotPos = image_path.find_last_of ('.');
-        if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
-          lastDotPos = image_path.length ();
-        }
-        image_path = image_path.substr (lastSlashPos, lastDotPos - lastSlashPos);
-        fs::path res = image_result_path / image_path;
-        res += ".png";
-        stbi::write::png (res.c_str (), dih[0], dih[1], 4, img_src, 4);
-      }
-    */
+    fs::path res = image_result_path / image.path ().filename().replace_extension (".png");
+    stbi::write::png (res.c_str (), dih[0], dih[1], 4, img_src, 4);
     stbi::load::image_free (img_src);
   }
 }
