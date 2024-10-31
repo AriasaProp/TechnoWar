@@ -17,7 +17,7 @@ struct opengles_texture : public engine::texture_core {
   GLuint id;
   unsigned int w, h;
   void *d;
-  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), d(dt) { }
+  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), d (dt) {}
   unsigned int width () override {
     return w;
   }
