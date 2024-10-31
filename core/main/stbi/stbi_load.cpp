@@ -331,7 +331,7 @@ const char *stbi::load::failure_reason (void) {
 }
 
 static int stbi__err (const char *str) {
-  strcpy(stbi__g_failure_reason, str);
+  strcpy (stbi__g_failure_reason, str);
   return 0;
 }
 
