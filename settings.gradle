@@ -1,2 +1,2 @@
-include ':core', ':android', ':desktop', ':tools'
+include ':core', ':android', ':desktop'
 rootProject.name = 'Techno War'
