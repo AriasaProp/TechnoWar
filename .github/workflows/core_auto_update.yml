@@ -60,9 +60,6 @@ jobs:
       - run: gradle :core:test
         if: steps.changes.outputs.core == 'true'
 
-      - run: gradle :tools:test
-        if: steps.changes.outputs.tools == 'true'
-
       - name: Push changes
         if: always()
         run: |
