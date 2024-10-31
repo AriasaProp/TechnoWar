@@ -37,7 +37,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
         image_extension.compare (".png")) continue;
     img_src = stbi::load::load_from_filename (image.path ().c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
     if (!img_src) throw stbi::load::failure_reason ();
-    fs::path res = image_result_path / image.path ().filename().replace_extension (".png");
+    fs::path res = image_result_path / image.path ().filename ().replace_extension (".png");
     stbi::write::png (res.c_str (), dih[0], dih[1], 4, img_src, 4);
     stbi::load::image_free (img_src);
   }
