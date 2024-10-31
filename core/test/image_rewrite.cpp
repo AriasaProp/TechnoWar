@@ -34,7 +34,7 @@ void image_rewrite (fs::path assets, fs::path converted) {
     if (image_extension.compare (".9.png") &&
         image_extension.compare (".jpeg") &&
         image_extension.compare (".jpg") &&
-        image_extension.compare (".png"))) continue;
+        image_extension.compare (".png")) continue;
     img_src = stbi::load::load_from_filename (image.path ().c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
     if (!img_src) throw stbi::load::failure_reason ();
     fs::path res = image_result_path / image.path ().filename ().replace_extension (".png");
