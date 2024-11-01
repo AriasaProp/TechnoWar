@@ -91,7 +91,7 @@ void uistage::loadUISkin (const char *uiSkin) {
   }
 
   {
-    sprintf (temp_char_buffer, "%s.png", uiSkin);
+    sprintf (temp_char_buffer, "%s.png", "images/test");
     int x, y, z;
     unsigned char *tex_px = stbi::load::load_from_assets (temp_char_buffer, &x, &y, &z, stbi::load::channel::rgb_alpha);
     uiskin::tex = engine::graphics::gen_texture (x, y, tex_px);
