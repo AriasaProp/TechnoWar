@@ -256,7 +256,7 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
 }
 void uistage::temporaryTooltip () {
   std::unordered_map<std::string, uistage::texture_region>::iterator it = uiskin::regions.begin ();
-  temporaryTooltip ("%s:%d %d %d %d",it->first.c_str (), it->second.pos[0], it->second.pos[1], it->second.size[0], it->second.size[1]);
+  temporaryTooltip ("%s:%d %d %d %d", it->first.c_str (), it->second.pos[0], it->second.pos[1], it->second.size[0], it->second.size[1]);
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
