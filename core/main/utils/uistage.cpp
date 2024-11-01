@@ -82,19 +82,8 @@ void uistage::loadUISkin (const char *uiSkin) {
       std::getline (line_stream, npos2, ' ');
       std::getline (line_stream, nsize1, ' ');
       std::getline (line_stream, nsize2, '\n');
-      
-      uiskin::regions.insert ({name, {
-      	.pos = {
-      		std::stoi(npos1),
-      		std::stoi(npos2)
-      	},
-      	.size = {
-      		std::stoi(nsize1),
-      		std::stoi(nsize2)
-      	},
-      	.patch = {0},
-      	.rc = {.color = 0xffffffff}
-      }});
+
+      uiskin::regions.insert ({name, {.pos = {std::stoi (npos1), std::stoi (npos2)}, .size = {std::stoi (nsize1), std::stoi (nsize2)}, .patch = {0}, .rc = {.color = 0xffffffff}}});
     }
   }
 
@@ -266,7 +255,7 @@ uistage::text_actor *uistage::makeText (Vector2 pos, const Align &a, std::string
 }
 void uistage::temporaryTooltip () {
   std::unordered_map<std::string, uistage::texture_region>::iterator it = uiskin::regions.begin ();
-  temporaryTooltip ("%s:%d %d %d %d",it->first.c_str (), it->second.pos[0], it->second.pos[1], it->second.size[0], it->second.size[1]);
+  temporaryTooltip ("%s:%d %d %d %d", it->first.c_str (), it->second.pos[0], it->second.pos[1], it->second.size[0], it->second.size[1]);
 }
 void uistage::temporaryTooltip (const char *fmt, ...) {
   if (fmt == NULL)
