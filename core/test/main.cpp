@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
     fs::path rootDir = argv[1];
     fs::path projectDir = argv[2];
     fs::path assets = projectDir / "assets";
-    if (!fs::exists (assets) || !fs::is_directory (assets)) throw std::string("assets folder didn't exist!");
+    if (!fs::exists (assets) || !fs::is_directory (assets)) throw std::string ("assets folder didn't exist!");
 
     assets_for_android (rootDir / "android/src/main/assets", assets);
     // assets_for_desktop (rootDir / "desktop/assets", assets);
