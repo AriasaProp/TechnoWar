@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+#include <string>
 
 namespace fs = std::filesystem;
 
@@ -27,7 +28,7 @@ int main (int argc, char *argv[]) {
     fs::path rootDir = argv[1];
     fs::path projectDir = argv[2];
     fs::path assets = projectDir / "assets";
-    if (!fs::exists (assets) || !fs::is_directory (assets)) throw "assets folder didn't exist!";
+    if (!fs::exists (assets) || !fs::is_directory (assets)) throw std::string("assets folder didn't exist!");
 
     assets_for_android (rootDir / "android/src/main/assets", assets);
     // assets_for_desktop (rootDir / "desktop/assets", assets);
@@ -35,7 +36,7 @@ int main (int argc, char *argv[]) {
   } catch (const fs::filesystem_error &e) {
     std::cerr << "Error(Filesystem): " << e.what () << std::endl;
     return EXIT_FAILURE;
-  } catch (const char *err) {
+  } catch (const std::string *err) {
     std::cerr << "Error: " << err << std::endl;
     return EXIT_FAILURE;
   } catch (...) {
