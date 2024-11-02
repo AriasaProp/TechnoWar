@@ -59,12 +59,12 @@ void stbi_rectpack_test () {
           serr << "]";
         }
         serr << "\n";
-        throw serr.str ().c_str ();
+        throw serr.str ();
       }
     }
-  } catch (const char *err) {
+  } catch (const std::string *err) {
     serr.str ({});
     serr << "STBI RectPack Failure: " << err;
-    throw serr.str ().c_str ();
+    throw serr.str ();
   }
 }
