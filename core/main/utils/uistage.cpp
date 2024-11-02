@@ -82,8 +82,18 @@ void uistage::loadUISkin (const char *uiSkin) {
       std::getline (line_stream, npos2, ' ');
       std::getline (line_stream, nsize1, ' ');
       std::getline (line_stream, nsize2, '\n');
-
-      uiskin::regions.insert ({name, {.pos = {std::stoi (npos1), std::stoi (npos2)}, .size = {std::stoi (nsize1), std::stoi (nsize2)}, .patch = {0}, .rc = {.color = 0xffffffff}}});
+      uiskin::regions.insert ({name, {
+      	.pos = {
+      		std::stoul(npos1),
+      		std::stoul(npos2)
+      	},
+      	.size = {
+      		std::stoul(nsize1),
+      		std::stoul(nsize2)
+      	},
+      	.patch = {0},
+      	.rc = {.color = 0xffffffff}
+      }});
     }
   }
 
