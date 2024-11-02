@@ -16,7 +16,7 @@ int main (int argc, char *argv[]) {
   std::cerr << "Test Tools ";
   try {
     stbi_rectpack_test ();
-  } catch (const char *err) {
+  } catch (const std::string &err) {
     std::cerr << "Error!\n " << err << std::endl;
     return EXIT_FAILURE;
   }
