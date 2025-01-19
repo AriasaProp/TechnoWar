@@ -1,0 +1,14 @@
+plugins {
+    id 'cpp-application'
+    id 'cpp-unit-test'
+}
+application {
+    source.from file('main')
+    privateHeaders.from file('main')
+}
+unitTest {
+    source.from file('test')
+    privateHeaders.from file('test')
+}
+
+

@@ -45,10 +45,11 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     for (const fs::directory_entry &image : fs::directory_iterator (skin.path ())) {
       if (!fs::is_regular_file (image.status ())) continue;
       std::string image_path = image.path ().string ();
-      if (!(image_path.ends_with (".9.png") || image_path.ends_with (".png"))) continue;
+      if (!image_path.ends_with (".png")) continue;
+      bool ninepatch = image_path.ends_with (".9.png");
       if (!stbi::load::info (image_path.c_str (), dih, dih + 1, dih + 2))
         throw std::string (stbi::load::failure_reason ());
-      image_rects.push_back ({(unsigned int)dih[0], (unsigned int)dih[1], image_path, 0, 0, 0});
+      image_rects.push_back ({(unsigned int)dih[0] - 2*ninepatch, (unsigned int)dih[1] - 2*ninepatch, image_path, 0, 0, 0});
     }
 
     // packing
@@ -61,26 +62,59 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     std::ofstream atlas_out (outfile_txt.c_str (), std::ios::out | std::ios::trunc);
     if (!atlas_out.is_open ()) throw std::string ("fail stream atlas text");
     uint32_t *outBuffer = new uint32_t[PACK_SIZE * PACK_SIZE];
+    unsigned char *image_buffer;
+    // patch: left, top, right, bottom
+    // padding: left, top, right, bottom
+    unsigned int patch[4], padding[4];
     for (const stbi::rectpack::rect &r : image_rects) {
-      unsigned char *image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
+      image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
       if (!image_buffer) throw std::string (stbi::load::failure_reason ());
-      for (size_t y = 0; y < r.h; y++) {
-        memcpy ((void *)(outBuffer + (r.y + y) * PACK_SIZE + r.x), (void *)(image_buffer + y * r.w * 4), r.w * 4);
-      }
-      stbi::load::image_free (image_buffer);
-
       {
         size_t lastSlashPos = r.id.find_last_of ("/\\");
         lastSlashPos = (lastSlashPos == std::string::npos) ? 0 : lastSlashPos + 1;
-
         size_t lastDotPos = r.id.find_last_of ('.');
         if (lastDotPos == std::string::npos || lastDotPos < lastSlashPos) {
           lastDotPos = r.id.length ();
         }
-
         atlas_out << r.id.substr (lastSlashPos, lastDotPos - lastSlashPos);
       }
-      atlas_out << ":" << r.x << " " << r.y << " " << r.w << " " << r.h << std::endl;
+    	bool ninepatch = r.id.ends_with(".9.png");
+    	//left right patch
+      if (ninepatch) {
+      	//left
+      	for (patch[0] = 0; patch[0] < r.w; ++patch[0])
+      		if (*(((uint32_t*)image_buffer) + patch[0] + 1) == 0xff000000) break;
+      	//right
+      	for (patch[2] = 0; patch[2] < r.w; ++patch[2])
+      		if (*(((uint32_t*)image_buffer) + r.w - patch[2]) == 0xff000000) break;
+      }
+      for (size_t y = 0; y < r.h; y++) {
+      	if (ninepatch) {
+      		// patch top, padding top
+      		if (image_buffer + y)
+      		patch[1] = patch
+      		padding[1]
+      	}
+        memcpy ((void *)(outBuffer + (r.y + y) * PACK_SIZE + r.x), (void *)(image_buffer + (( y + ninepatch) * (r.w + 2 * ninepatch) + 1) * 4), r.w * 4);
+      }
+    	//left right padding
+      if (ninepatch) {
+      	//left
+      	for (padding[0] = 0; padding[0] < r.w; ++padding[0])
+      		if (*(((uint32_t*)image_buffer) + padding[0] + 1) == 0xff000000) break;
+      	//right
+      	for (padding[2] = 0; padding[2] < r.w; ++padding[2])
+      		if (*(((uint32_t*)image_buffer) + r.w - padding[2]) == 0xff000000) break;
+      }
+      stbi::load::image_free (image_buffer);
+      
+      atlas_out << ":" << r.x << " " << r.y << " " << r.w << " " << r.h;
+      if (ninepatch) {
+	      atlas_out << " " << patch[0] << " " << patch[1]  << " " << patch[2]  << " " << patch[3];
+	      atlas_out << " " << padding[0] << " " << padding[1]  << " " << padding[2]  << " " << padding[3];
+      }
+      atlas_out << std::endl;
+
     }
     atlas_out.close ();
     fs::path outfile_png = outfile;

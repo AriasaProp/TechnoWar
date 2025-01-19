@@ -2,23 +2,59 @@
 
 ![Ariasa Project](logo.png)
 
-This is 3D Game Application for cross platform with currently no context. The Launcher is under construction.
+Game Application for cross platform with independent window management and API initialization. Mainly writen as c++.
 
-## Concept
+## Table of Contents
 
-![Concept](Concept.png)
+1. [Core](#core)
+2. [Platforms](#platforms)
+   - [Android](#android)
+   - [IOS](#ios)
+   - [Windows](#windows)
+   - [Unix](#unix)
+3. [Dependencies](#dependencies)
+3. [License](#license)
 
-## Progress
+## Core
 
-| Platform |    Android    | iOS | Windows | Linux | MacOS |
-|----------|---------------|-----|---------|-------|-------|
-| Launcher |       v       |  x  |    x    |   x   |   x   |
-| Core     |       v       |  x  |    x    |   x   |   x   |
-| Graphics | OpenGL ES 3.2 |  x  |    x    |   x   |   x   |
-| Input    | Touchscreen   |  x  |    x    |   x   |   x   |
-| Asset    | AAssetManager |  x  |    x    |   x   |   x   |
-| Net      |       x       |  x  |    x    |   x   |   x   |
-|          |               |     |         |       |       |
+The main logic of game.
+
+## Platforms
+
+### Android
+
+Currently support Android API 34 (min. 24).
+Graphics API usage: OpenGLES 3.2
+Audio usage: not yet.
+Input support: Touchscreen motion.
+Asset reader: Android Asset Manager.
+Internet implementation: not yet.
+
+### IOS
+
+Not yet.
+
+### Windows
+
+Windows support 32 bit.
+
+Graphics API usage: Not yet.
+Audio usage: not yet.
+Input support: Not yet.
+Asset reader: Not yet
+Internet implementation: not yet.
+
+### Unix
+
+Graphics API usage: Not yet.
+Audio usage: not yet.
+Input support: Not yet.
+Asset reader: Not yet
+Internet implementation: not yet.
+
+### MacOS
+
+Not yet.
 
 ## Dependencies
 Thanks for 🙏
@@ -27,4 +63,4 @@ Thanks for 🙏
 
 ## License
 
-This project has maded by myself from Android Native template.
+This project has maded by myself.

@@ -59,7 +59,7 @@ public:
 
 struct texture_region {
   unsigned int pos[2], size[2];
-  unsigned int patch[4];
+  unsigned int patch[4], padding[4];
   color32_t rc;
 };
 void loadBMFont (const char *);
