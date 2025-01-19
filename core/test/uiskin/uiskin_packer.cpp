@@ -92,7 +92,7 @@ void uiskin_packer (fs::path assets, fs::path converted) {
       	if (ninepatch) {
       		// patch top, padding top
       		if (image_buffer + y)
-      		patch[1] = patch
+      		patch[1] = patch;
       		padding[1]
       	}
         memcpy ((void *)(outBuffer + (r.y + y) * PACK_SIZE + r.x), (void *)(image_buffer + (( y + ninepatch) * (r.w + 2 * ninepatch) + 1) * 4), r.w * 4);

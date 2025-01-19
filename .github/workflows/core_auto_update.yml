@@ -8,7 +8,6 @@ on:
       - 'unix/**'
       - 'windows/**'
       - 'macos/**'
-      - 'tools/**'
       - '.github/workflows/core_auto_update.yml'
 
 jobs:
@@ -37,13 +36,9 @@ jobs:
               - 'windows/**'
             macos:
               - 'macos/**'
-            tools:
-              - 'tools/**'
             src:
               - added|modified: 'core/**/*.cpp'
               - added|modified: 'core/**/*.hpp'
-              - added|modified: 'tools/**/*.cpp'
-              - added|modified: 'tools/**/*.hpp'
               - added|modified: 'unix/**/*.cpp'
               - added|modified: 'unix/**/*.hpp'
               - added|modified: 'windows/**/*.cpp'
@@ -66,7 +61,14 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      - uses: gradle/actions/setup-gradle@v3
+        if: steps.changes.outputs.core == 'true' || steps.changes.outputs.tools == 'true'
+ 
+      - run: gradle :core:test
+        if: steps.changes.outputs.core == 'true'
+ 
       - name: Push changes
+        if: always()
         run: |
           git add .
           if (git commit -m "Reformatting Code Sources"); then
@@ -75,12 +77,6 @@ jobs:
           	git push
           fi
  
-      - uses: gradle/actions/setup-gradle@v3
-        if: steps.changes.outputs.core == 'true' || steps.changes.outputs.tools == 'true'
- 
-      - run: gradle :core:test
-        if: steps.changes.outputs.core == 'true'
-
   android:
     runs-on: ubuntu-latest
     needs: format-core
