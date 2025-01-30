@@ -45,7 +45,7 @@ void stbi_rectpack_test () {
           root = 0.5 * (x + n / x);
         } while (std::abs (root - x) > 0.0);
         root = std::ceil (root);
-        area_used = static_cast<unsigned int> (root) + 5;
+        area_used = static_cast<unsigned int> (root) + 10;
       }
       if (!stbi::rectpack::pack_rects (area_used, area_used, rects, RECTS)) {
         serr.str ({});
