@@ -65,7 +65,6 @@ void uiskin_packer (fs::path assets, fs::path converted) {
     unsigned char *image_buffer;
     // patch: left, top, right, bottom
     // padding: left, top, right, bottom
-    unsigned int patch[4], padding[4];
     for (const stbi::rectpack::rect &r : image_rects) {
       image_buffer = stbi::load::load_from_filename (r.id.c_str (), dih, dih + 1, dih + 2, stbi::load::channel::rgb_alpha);
       if (!image_buffer) throw std::string (stbi::load::failure_reason ());
@@ -78,41 +77,13 @@ void uiskin_packer (fs::path assets, fs::path converted) {
         }
         atlas_out << r.id.substr (lastSlashPos, lastDotPos - lastSlashPos);
       }
-    	bool ninepatch = r.id.ends_with(".9.png");
-    	//left right patch
-      if (ninepatch) {
-      	//left
-      	for (patch[0] = 0; patch[0] < r.w; ++patch[0])
-      		if (*(((uint32_t*)image_buffer) + patch[0] + 1) == 0xff000000) break;
-      	//right
-      	for (patch[2] = 0; patch[2] < r.w; ++patch[2])
-      		if (*(((uint32_t*)image_buffer) + r.w - patch[2]) == 0xff000000) break;
-      }
       for (size_t y = 0; y < r.h; y++) {
-      	if (ninepatch) {
-      		// patch top, padding top
-      		if (image_buffer + y)
-      		patch[1] = patch;
-      		padding[1]
-      	}
-        memcpy ((void *)(outBuffer + (r.y + y) * PACK_SIZE + r.x), (void *)(image_buffer + (( y + ninepatch) * (r.w + 2 * ninepatch) + 1) * 4), r.w * 4);
+        memcpy ((void *)(outBuffer + (r.y + y) * PACK_SIZE + r.x), (void *)(image_buffer + (y * r.w + 1) * 4), r.w * 4);
       }
     	//left right padding
-      if (ninepatch) {
-      	//left
-      	for (padding[0] = 0; padding[0] < r.w; ++padding[0])
-      		if (*(((uint32_t*)image_buffer) + padding[0] + 1) == 0xff000000) break;
-      	//right
-      	for (padding[2] = 0; padding[2] < r.w; ++padding[2])
-      		if (*(((uint32_t*)image_buffer) + r.w - padding[2]) == 0xff000000) break;
-      }
       stbi::load::image_free (image_buffer);
       
       atlas_out << ":" << r.x << " " << r.y << " " << r.w << " " << r.h;
-      if (ninepatch) {
-	      atlas_out << " " << patch[0] << " " << patch[1]  << " " << patch[2]  << " " << patch[3];
-	      atlas_out << " " << padding[0] << " " << padding[1]  << " " << padding[2]  << " " << padding[3];
-      }
       atlas_out << std::endl;
 
     }

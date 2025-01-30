@@ -13,12 +13,6 @@
 #define STRINGIZE(x) #x
 #define STRINGIZE_VALUE_OF(x) STRINGIZE(x)
 
-#ifdef BUILD_DATE
-#define DATESTR STRINGIZE_VALUE_OF (BUILD_DATE)
-#else
-#define DATESTR "No Build Date"
-#endif // BUILD_DATE
-
 #ifdef BUILD_BRANCH
 #define NAMED_BUILD STRINGIZE_VALUE_OF (BUILD_BRANCH)
 #else
@@ -68,7 +62,7 @@ void start () {
   unsigned short indices[36] = {0, 1, 3, 1, 2, 3, 4, 5, 7, 5, 6, 7, 8, 9, 11, 9, 10, 11, 12, 13, 15, 13, 14, 15, 16, 17, 19, 17, 18, 19, 20, 21, 23, 21, 22, 23};
   mp = engine::graphics::gen_mesh (vert, 24, indices, 36);
 
-  uistage::makeText (Vector2 (0, 0, ALIGN_TOP), ALIGN_TOP, DATESTR);
+  uistage::makeText (Vector2 (0, 0, ALIGN_TOP), ALIGN_TOP, __DATE__);
   uistage::makeText (Vector2 (10, 0, ALIGN_TOP_RIGHT), ALIGN_TOP_RIGHT, NAMED_BUILD);
 
   t_fps = uistage::makeText (Vector2 (10, 0, ALIGN_TOP_LEFT), ALIGN_TOP_LEFT, "#### FPS");
@@ -127,7 +121,6 @@ void end () {
 } // namespace Main
 // done
 #undef NAMED_BUILD
-#undef DATESTR
 
 #undef STRINGIZE_VALUE_OF
 #undef STRINGIZE
