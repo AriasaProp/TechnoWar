@@ -11,7 +11,7 @@ set(CMAKE_C_EXTENSION OFF)
 set(SRC "${CMAKE_CURRENT_SOURCE_DIR}/main")
 file(GLOB_RECURSE Src_Files "${SRC}/src/*.cpp")
 
-add_library(${PROJECT_NAME} SHARED ${Src_Files})
+add_library(${PROJECT_NAME} STATIC ${Src_Files})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SRC}/include)
 execute_process(
     COMMAND git rev-parse --abbrev-ref HEAD

@@ -1,12 +1,10 @@
 #include <algorithm>
-#include <cassert>
-#include <cerrno>
-#include <climits>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <initializer_list>
-#include <memory>
+#include <assert.h>
+#include <errno.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> 
 #include <poll.h>
 #include <pthread.h>
 #include <sched.h>
@@ -44,20 +42,20 @@ enum APP_CMD : unsigned char {
   APP_CMD_DESTROY,
 };
 
-struct android_app {
-  bool destroyed,
-      wait_request = false;
+typedef struct {
+  int destroyed, wait_request;
   int msgread,
       msgwrite;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-} *app = nullptr;
+} android_app;
+android_app *app = nullptr;
 
-struct msg_pipe {
+typedef struct {
   unsigned char cmd;
   void *data;
-};
+} msg_pipe;
 
 static void *android_app_entry (void *n) {
   if (!app) return NULL;
@@ -66,15 +64,13 @@ static void *android_app_entry (void *n) {
   AConfiguration_fromAssetManager (aconfig, activity->assetManager);
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, nullptr);
-  bool created = false;
-  bool running = false,
-       started = false,
-       resume = false;
+  // 1 = created, 2 = running, 4 = started, 8 = resume
+  int StateFlags = 0;
   init_engine (activity->assetManager, activity->sdkVersion, looper);
   try {
     msg_pipe read_cmd{APP_CMD_CREATE, nullptr};
     for (;;) {
-      switch (ALooper_pollOnce ((started && running) ? 0 : -1, nullptr, nullptr, nullptr)) {
+      switch (ALooper_pollOnce ((StateFlags & 6) == 6 ? 0 : -1, nullptr, nullptr, nullptr)) {
       case ALOOPER_POLL_CALLBACK:
         break;
       case 1:
@@ -82,7 +78,7 @@ static void *android_app_entry (void *n) {
         if (read (app->msgread, &read_cmd, sizeof (msg_pipe)) == sizeof (msg_pipe)) {
 #define END_WAITING                    \
   pthread_mutex_lock (&app->mutex);    \
-  app->wait_request = false;           \
+  app->wait_request = 0;           \
   pthread_cond_broadcast (&app->cond); \
   pthread_mutex_unlock (&app->mutex);
           switch (read_cmd.cmd) {
@@ -105,7 +101,7 @@ static void *android_app_entry (void *n) {
             if (android_graphics::preRender ()) {
               Main::pause ();
               android_graphics::postRender (false);
-              running = false;
+              StateFlags &= ~2;
             }
             END_WAITING
             break;
@@ -115,14 +111,13 @@ static void *android_app_entry (void *n) {
             AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
             break;
           case APP_CMD_STOP:
-            started = false;
+            StateFlags &= ~4;
             break;
           case APP_CMD_START:
-            started = true;
+            StateFlags |= 4;
             break;
           case APP_CMD_RESUME:
-            running = true;
-            resume = true;
+            StateFlags |= 10;
             break;
           case APP_CMD_WINDOW_REDRAW_NEEDED:
             break;
@@ -147,13 +142,13 @@ static void *android_app_entry (void *n) {
         if (android_graphics::preRender ()) {
           engine::input::process_event ();
 
-          if (!created) {
+          if (!(StateFlags & 1)) {
             Main::start ();
-            created = true;
-            resume = false;
-          } else if (resume) {
+            StateFlags |= 1; // created
+            StateFlags &= ~8; // not resume
+          } else if (StateFlags & 8) { // resuming
             Main::resume ();
-            resume = false;
+            StateFlags &= ~8; // not resume
           }
           Main::render ();
           android_graphics::postRender (false);
@@ -166,7 +161,7 @@ static void *android_app_entry (void *n) {
     // when destroy
     if (android_graphics::preRender ())
       Main::end ();
-    created = false;
+    StateFlags = 0; // reset flags
     android_graphics::postRender (true);
   }
   term_engine ();
@@ -174,7 +169,7 @@ static void *android_app_entry (void *n) {
   ALooper_removeFd (looper, app->msgread);
   AConfiguration_delete (aconfig);
   pthread_mutex_lock (&app->mutex);
-  app->destroyed = true;
+  app->destroyed = 1;
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
   return NULL;
@@ -183,7 +178,7 @@ static void *android_app_entry (void *n) {
 static msg_pipe write_cmd;
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   // initialize application
-  app = new android_app;
+  app = (android_app*)calloc(1, sizeof(android_app));
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
   while (pipe (&app->msgread) == -1) {
@@ -199,7 +194,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 #define WRITE_ANDROID_CMD_W(A, B)                \
   pthread_mutex_lock (&app->mutex);              \
-  app->wait_request = true;                      \
+  app->wait_request = 1;                      \
   pthread_mutex_unlock (&app->mutex);            \
   WRITE_ANDROID_CMD (A, B)                       \
   pthread_mutex_lock (&app->mutex);              \
