@@ -1,7 +1,7 @@
 #ifndef Included_UISTAGE_
 #define Included_UISTAGE_
 
-#include "../engine.hpp"
+#include "engine.h"
 #include "math.hpp"
 #include <cstddef>
 #include <cstdint>
