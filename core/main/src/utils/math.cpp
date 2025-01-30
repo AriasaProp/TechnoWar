@@ -1,5 +1,5 @@
-#include "math.hpp"
-#include "../engine.hpp"
+#include "utils/math.hpp"
+#include "engine.hpp"
 // math is not multithread safe.
 #include <chrono>
 #include <cmath>

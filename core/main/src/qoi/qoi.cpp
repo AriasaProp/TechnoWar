@@ -1,6 +1,6 @@
-#include "qoi.hpp"
-#include "../engine.hpp"
-#include "../utils/value.hpp"
+#include "qoi/qoi.hpp"
+#include "engine.hpp"
+#include "utils/value.hpp"
 #include <cstring>
 
 #define QOI_OP_INDEX 0x00 /* 00xxxxxx */
