@@ -9,6 +9,10 @@
 #include <cstddef>
 #include <cstdint>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 namespace engine {
 // texture core
 struct texture_core {
@@ -90,5 +94,9 @@ namespace info {
 } // namespace info
 
 } // namespace engine
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //_Included_Engine

@@ -7,6 +7,10 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // set all engine funct
 extern void init_engine (AAssetManager *, int, ALooper *);
 // unset all engine funct
@@ -27,5 +31,9 @@ extern void (*onWindowResize) ();
 extern bool (*preRender) ();
 extern void (*postRender) (bool);
 } // namespace android_graphics
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // ANDROID_ENGINE_

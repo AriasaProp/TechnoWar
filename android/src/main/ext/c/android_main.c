@@ -17,12 +17,12 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
-#include "engine.hpp"
-#include "log.hpp"
-#include "main_game.hpp"
+#include "engine.h"
+#include "log.h"
+#include "main_game.h"
 #include <jni.h>
 
-#include "android_engine.hpp"
+#include "android_engine.h"
 
 enum APP_CMD : unsigned char {
   APP_CMD_CREATE = 0,

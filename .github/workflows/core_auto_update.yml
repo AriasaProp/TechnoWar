@@ -37,16 +37,20 @@ jobs:
             macos:
               - 'macos/**'
             src:
-              - added|modified: 'core/**/*.cpp'
-              - added|modified: 'core/**/*.hpp'
+              - added|modified: 'core/main/src/*.cpp'
+              - added|modified: 'core/main/src/*.c'
+              - added|modified: 'core/main/include/*.h'
+              - added|modified: 'core/main/include/*.hpp'
               - added|modified: 'unix/**/*.cpp'
               - added|modified: 'unix/**/*.hpp'
               - added|modified: 'windows/**/*.cpp'
               - added|modified: 'windows/**/*.hpp'
               - added|modified: 'macos/**/*.cpp'
               - added|modified: 'macos/**/*.hpp'
-              - added|modified: 'android/src/main/cpp/**/*.cpp'
-              - added|modified: 'android/src/main/cpp/**/*.hpp'
+              - added|modified: 'android/src/main/ext/cpp/*.cpp'
+              - added|modified: 'android/src/main/ext/c/**/*.c'
+              - added|modified: 'android/src/main/ext/include/*.hpp'
+              - added|modified: 'android/src/main/ext/include/*.h'
               - added|modified: 'android/src/main/java/**/*.java'
 
       - name: Format
