@@ -1,5 +1,5 @@
-#include "main_game.hpp"
-#include "engine.hpp"
+#include "main_game.h"
+#include "engine.h"
 
 #include "stbi/stbi_load.hpp"
 #include "utils/math.hpp"

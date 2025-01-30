@@ -1,4 +1,4 @@
-#include "engine.hpp"
+#include "engine.h"
 
 namespace engine {
 // Pointer definitions for graphics namespace

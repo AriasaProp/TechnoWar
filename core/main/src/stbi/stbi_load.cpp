@@ -1,5 +1,5 @@
 #include "stbi/stbi_load.hpp"
-#include "engine.hpp"
+#include "engine.h"
 
 #if defined(STBI_NO_PNG) && !defined(STBI_SUPPORT_ZLIB) && !defined(STBI_NO_ZLIB)
 #define STBI_NO_ZLIB

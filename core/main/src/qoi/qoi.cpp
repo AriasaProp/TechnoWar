@@ -1,5 +1,5 @@
 #include "qoi/qoi.hpp"
-#include "engine.hpp"
+#include "engine.h"
 #include "utils/value.hpp"
 #include <cstring>
 
