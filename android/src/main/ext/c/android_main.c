@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <assert.h>
 #include <errno.h>
 #include <limits.h>
@@ -8,7 +7,6 @@
 #include <poll.h>
 #include <pthread.h>
 #include <sched.h>
-#include <string>
 #include <sys/resource.h>
 #include <unistd.h>
 
@@ -42,15 +40,14 @@ enum APP_CMD : unsigned char {
   APP_CMD_DESTROY,
 };
 
-typedef struct {
+struct {
   int destroyed, wait_request;
   int msgread,
       msgwrite;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-} android_app;
-android_app *app = nullptr;
+} *app = nullptr;
 
 typedef struct {
   unsigned char cmd;
@@ -83,24 +80,24 @@ static void *android_app_entry (void *n) {
   pthread_mutex_unlock (&app->mutex);
           switch (read_cmd.cmd) {
           case APP_CMD_WINDOW_UPDATE:
-            android_graphics::onWindowChange ((ANativeWindow *)read_cmd.data);
+            android_graphics_onWindowChange ((ANativeWindow *)read_cmd.data);
             END_WAITING
             break;
           case APP_CMD_FOCUS_CHANGED:
             if (read_cmd.data)
-              android_input::attach_sensor ();
+              android_input_attach_sensor ();
             else
-              android_input::detach_sensor ();
+              android_input_detach_sensor ();
             END_WAITING
             break;
           case APP_CMD_INPUT_UPDATE:
-            android_input::set_input_queue (looper, (AInputQueue *)read_cmd.data);
+            android_input_set_input_queue (looper, (AInputQueue *)read_cmd.data);
             END_WAITING
             break;
           case APP_CMD_PAUSE:
-            if (android_graphics::preRender ()) {
-              Main::pause ();
-              android_graphics::postRender (false);
+            if (android_graphics_preRender ()) {
+              Main_pause ();
+              android_graphics_postRender (false);
               StateFlags &= ~2;
             }
             END_WAITING
@@ -122,10 +119,10 @@ static void *android_app_entry (void *n) {
           case APP_CMD_WINDOW_REDRAW_NEEDED:
             break;
           case APP_CMD_CONTENT_RECT_CHANGED:
-            android_graphics::onWindowResize ();
+            android_graphics_onWindowResize ();
             break;
           case APP_CMD_WINDOW_RESIZED:
-            android_graphics::onWindowResizeDisplay ();
+            android_graphics_onWindowResizeDisplay ();
             break;
           case APP_CMD_LOW_MEMORY:
             break;
@@ -139,19 +136,19 @@ static void *android_app_entry (void *n) {
         break;
       default:
         // base render
-        if (android_graphics::preRender ()) {
-          engine::input::process_event ();
+        if (android_graphics_preRender ()) {
+          engine_input_process_event ();
 
           if (!(StateFlags & 1)) {
-            Main::start ();
+            Main_start ();
             StateFlags |= 1; // created
             StateFlags &= ~8; // not resume
           } else if (StateFlags & 8) { // resuming
-            Main::resume ();
+            Main_resume ();
             StateFlags &= ~8; // not resume
           }
-          Main::render ();
-          android_graphics::postRender (false);
+          Main_render ();
+          android_graphics_postRender (false);
         }
         break;
       }
@@ -159,10 +156,10 @@ static void *android_app_entry (void *n) {
 
   } catch (...) {
     // when destroy
-    if (android_graphics::preRender ())
-      Main::end ();
+    if (android_graphics_preRender ())
+      Main_end ();
     StateFlags = 0; // reset flags
-    android_graphics::postRender (true);
+    android_graphics_postRender (true);
   }
   term_engine ();
   // loop ends
@@ -276,10 +273,10 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 // native MainActivity.java
 
 extern "C" JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
-  android_graphics::cur_safe_insets[0] = left;
-  android_graphics::cur_safe_insets[1] = top;
-  android_graphics::cur_safe_insets[2] = right;
-  android_graphics::cur_safe_insets[3] = bottom;
-  if (android_graphics::onWindowResize)
-    android_graphics::onWindowResize ();
+  android_graphics_cur_safe_insets[0] = left;
+  android_graphics_cur_safe_insets[1] = top;
+  android_graphics_cur_safe_insets[2] = right;
+  android_graphics_cur_safe_insets[3] = bottom;
+  if (android_graphics_onWindowResize)
+    android_graphics_onWindowResize ();
 }

@@ -7,6 +7,7 @@
 #include "android_engine.hpp"
 #include "engine.hpp"
 #include "utils/value.hpp"
+#include "utils/math.hpp"
 #define TERM_EGL_SURFACE 1
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
@@ -381,7 +382,7 @@ static void postRender (bool isDestroy) {
 // core
 static float getWidth () { return mgl_data->game_width; }
 static float getHeight () { return mgl_data->game_height; }
-static void clear (const unsigned int &m) {
+static void clear (const int &m) {
   GLuint c = 0;
   if (m & 1)
     c |= GL_COLOR_BUFFER_BIT;
@@ -441,7 +442,8 @@ static void flat_render (engine::texture_core *tex, engine::flat_vertex *v, cons
   glUseProgram (0);
 }
 static engine::mesh_core *gen_mesh (engine::mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
-  engine::mesh_core *r = new engine::mesh_core;
+  engine::mesh_core *r = (engine_mesh_core*)malloc(sizeof(engine_mesh_core));
+  matrix4::idt(r->trans);
   r->vertex_len = v_len;
   r->vertex = new engine::mesh_core::data[v_len];
   memcpy (r->vertex, v, v_len * sizeof (engine::mesh_core::data));
@@ -507,19 +509,19 @@ static void to_flat_coordinate (float &x, float &y) {
 void init () {
   mgl_data = new gl_data{};
 
-  engine::graphics::getWidth = getWidth;
-  engine::graphics::getHeight = getHeight;
-  engine::graphics::clear = clear;
-  engine::graphics::clearcolor = clearcolor;
-  engine::graphics::gen_texture = gen_texture;
-  engine::graphics::bind_texture = bind_texture;
-  engine::graphics::set_texture_param = set_texture_param;
-  engine::graphics::delete_texture = delete_texture;
-  engine::graphics::flat_render = flat_render;
-  engine::graphics::gen_mesh = gen_mesh;
-  engine::graphics::mesh_render = mesh_render;
-  engine::graphics::delete_mesh = delete_mesh;
-  engine::graphics::to_flat_coordinate = to_flat_coordinate;
+  engine_graphics_getWidth = getWidth;
+  engine_graphics_getHeight = getHeight;
+  engine_graphics_clear = clear;
+  engine_graphics_clearcolor = clearcolor;
+  engine_graphics_gen_texture = gen_texture;
+  engine_graphics_bind_texture = bind_texture;
+  engine_graphics_set_texture_param = set_texture_param;
+  engine_graphics_delete_texture = delete_texture;
+  engine_graphics_flat_render = flat_render;
+  engine_graphics_gen_mesh = gen_mesh;
+  engine_graphics_mesh_render = mesh_render;
+  engine_graphics_delete_mesh = delete_mesh;
+  engine_graphics_to_flat_coordinate = to_flat_coordinate;
 
   android_graphics::onWindowChange = onWindowChange;
   android_graphics::onWindowResizeDisplay = onWindowResizeDisplay;
@@ -541,19 +543,19 @@ void term () {
   mgl_data = nullptr;
 
   // Set the function pointers to nullptr
-  engine::graphics::getWidth = nullptr;
-  engine::graphics::getHeight = nullptr;
-  engine::graphics::clear = nullptr;
-  engine::graphics::clearcolor = nullptr;
-  engine::graphics::gen_texture = nullptr;
-  engine::graphics::bind_texture = nullptr;
-  engine::graphics::set_texture_param = nullptr;
-  engine::graphics::delete_texture = nullptr;
-  engine::graphics::flat_render = nullptr;
-  engine::graphics::gen_mesh = nullptr;
-  engine::graphics::mesh_render = nullptr;
-  engine::graphics::delete_mesh = nullptr;
-  engine::graphics::to_flat_coordinate = nullptr;
+  engine_graphics_getWidth = nullptr;
+  engine_graphics_getHeight = nullptr;
+  engine_graphics_clear = nullptr;
+  engine_graphics_clearcolor = nullptr;
+  engine_graphics_gen_texture = nullptr;
+  engine_graphics_bind_texture = nullptr;
+  engine_graphics_set_texture_param = nullptr;
+  engine_graphics_delete_texture = nullptr;
+  engine_graphics_flat_render = nullptr;
+  engine_graphics_gen_mesh = nullptr;
+  engine_graphics_mesh_render = nullptr;
+  engine_graphics_delete_mesh = nullptr;
+  engine_graphics_to_flat_coordinate = nullptr;
 
   android_graphics::onWindowChange = nullptr;
   android_graphics::onWindowResizeDisplay = nullptr;

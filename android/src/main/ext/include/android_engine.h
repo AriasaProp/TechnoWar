@@ -7,33 +7,21 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // set all engine funct
 extern void init_engine (AAssetManager *, int, ALooper *);
 // unset all engine funct
 extern void term_engine ();
 
-namespace android_input {
-extern void set_input_queue (ALooper *, AInputQueue *);
-extern void attach_sensor ();
-extern void detach_sensor ();
-} // namespace android_input
+extern void android_input_set_input_queue (ALooper *, AInputQueue *);
+extern void android_input_attach_sensor ();
+extern void android_input_detach_sensor ();
 
-namespace android_graphics {
-extern float cur_safe_insets[4];
-// android
-extern void (*onWindowChange) (ANativeWindow *);
-extern void (*onWindowResizeDisplay) ();
-extern void (*onWindowResize) ();
-extern bool (*preRender) ();
-extern void (*postRender) (bool);
-} // namespace android_graphics
+extern float android_graphics_cur_safe_insets[4];
+extern void (*android_graphics_onWindowChange) (ANativeWindow *);
+extern void (*android_graphics_onWindowResizeDisplay) ();
+extern void (*android_graphics_onWindowResize) ();
+extern int  (*android_graphics_preRender) ();
+extern void (*android_graphics_postRender) (int);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif // ANDROID_ENGINE_

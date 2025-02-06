@@ -1,0 +1,92 @@
+[
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -Dext_EXPORTS -I/storage/emulated/0/prj/TechnoWar/android/src/main/ext/include -I/storage/emulated/0/prj/TechnoWar/android/../core/main/include -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -fPIC -std=gnu11 -o CMakeFiles/ext.dir/src/main/ext/c/android_engine.c.o -c /storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/android_engine.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/android_engine.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -Dext_EXPORTS -I/storage/emulated/0/prj/TechnoWar/android/src/main/ext/include -I/storage/emulated/0/prj/TechnoWar/android/../core/main/include -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -fPIC -std=gnu11 -o CMakeFiles/ext.dir/src/main/ext/c/android_main.c.o -c /storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/android_main.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/android_main.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -Dext_EXPORTS -I/storage/emulated/0/prj/TechnoWar/android/src/main/ext/include -I/storage/emulated/0/prj/TechnoWar/android/../core/main/include -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -fPIC -std=gnu11 -o CMakeFiles/ext.dir/src/main/ext/c/api_graphics/opengles_graphics.c.o -c /storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/api_graphics/opengles_graphics.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/android/src/main/ext/c/api_graphics/opengles_graphics.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/engine.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/engine.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/engine.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/main_game.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/main_game.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/main_game.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/qoi/qoi.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/qoi/qoi.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/qoi/qoi.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/stbi/stbi_load.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/stbi/stbi_load.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/stbi/stbi_load.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/utils/math.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/utils/math.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/utils/math.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DBUILD_BRANCH=\"\" -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c99 -fallow-void-main -O3 -DNDEBUG -std=gnu11 -o CMakeFiles/core.dir/main/src/utils/uistage.c.o -c /storage/emulated/0/prj/TechnoWar/core/main/src/utils/uistage.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/main/src/utils/uistage.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/assets_for_android.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/assets_for_android.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/assets_for_android.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/assets_for_desktop.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/assets_for_desktop.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/assets_for_desktop.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/image_rewrite.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/image_rewrite.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/image_rewrite.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/main.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/main.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/main.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/qoi/qoi_test.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/qoi/qoi_test.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/qoi/qoi_test.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/stbi/stbi_rectpack.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_rectpack.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_rectpack.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/stbi/stbi_rectpack_test.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_rectpack_test.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_rectpack_test.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/stbi/stbi_write.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_write.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/stbi/stbi_write.cpp"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/android/bin/core",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang++  -I/storage/emulated/0/prj/TechnoWar/core/main/include -Wall -std=c++17 -fallow-void-main     -O3 -Wall -Wextra -Werror     -DANDROID_STL=c++_static     -D_IDENTITY_=     -fexceptions -frtti -O3 -DNDEBUG -std=gnu++2a -o CMakeFiles/core_test.dir/test/uiskin/uiskin_packer.cpp.o -c /storage/emulated/0/prj/TechnoWar/core/test/uiskin/uiskin_packer.cpp",
+  "file": "/storage/emulated/0/prj/TechnoWar/core/test/uiskin/uiskin_packer.cpp"
+}
+]
