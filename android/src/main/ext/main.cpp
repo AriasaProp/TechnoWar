@@ -446,16 +446,8 @@ static int engine_init_display(Engine* engine) {
   engine->height = h;
   engine->state.angle = 0;
 
-  // Check openGL on the system
-  auto opengl_info = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
-  for (auto name : opengl_info) {
-    auto info = glGetString(name);
-    LOGI("OpenGL Info: %s", info);
-  }
   // Initialize GL state.
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   glEnable(GL_CULL_FACE);
-  glShadeModel(GL_SMOOTH);
   glDisable(GL_DEPTH_TEST);
 
   return 0;
