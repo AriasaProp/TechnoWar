@@ -848,7 +848,7 @@ static void android_app_set_input(struct android_app* android_app, AInputQueue* 
     pthread_mutex_unlock(&android_app->mutex);
 }
 
-static void android_app_set_window(struct android_app* android_app, ANativeWindow*) {
+static void android_app_set_window(struct android_app* android_app, ANativeWindow* window) {
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->pendingWindow != NULL) {
         android_app_write_cmd(android_app, APP_CMD_TERM_WINDOW);
@@ -961,6 +961,7 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow*windo
 
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
     LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
+    ((void)window)
     android_app_set_window((struct android_app*)activity->instance, NULL);
 }
 
@@ -971,6 +972,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
     LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
+    ((void)queue)
     android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 
