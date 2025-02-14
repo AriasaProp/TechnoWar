@@ -12,26 +12,21 @@
 #define TERM_EGL_CONTEXT 2
 #define TERM_EGL_DISPLAY 4
 
-namespace opengles_graphics {
+#define MAX_MANAGED_SOURCE 512
 
-struct opengles_texture : public engine::texture_core {
+#define PROJ_UI 1
+#define PROJ_WORLD 2
+#define RESIZE_DISPLAY 4
+#define RESIZE_ONLY 8
+
+
+struct opengles_texture{
   GLuint id;
-  unsigned int w, h;
-  void *d;
-  opengles_texture (GLint i, unsigned int _w, unsigned int _h, void *dt) : id (i), w (_w), h (_h), d (dt) {}
-  unsigned int width () override {
-    return w;
-  }
-  unsigned int height () override {
-    return h;
-  }
-  ~opengles_texture () {
-    free (d);
-  }
+  void *data;
 };
 
 struct gl_data {
-  bool ui_proj_update, world_proj_update, resize_display, resize;
+	int flags;
   GLint ui_shader;
   GLint u_uiProj;
   GLint u_uiTex;
@@ -49,8 +44,8 @@ struct gl_data {
   //
   float uiProj[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
   float worldProj[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.00001f, 0, 0, 0, 0, 1};
-  std::unordered_set<opengles_texture *> managedTexture;
-  std::unordered_set<engine::mesh_core *> managedMesh;
+  engine_texture_core managedTexture[MAX_MANAGED_SOURCE];
+  engine_mesh_core managedMesh[MAX_MANAGED_SOURCE];
 } *mgl_data = nullptr;
 
 static ANativeWindow *window = nullptr;
@@ -73,7 +68,7 @@ static inline void killEGL (const unsigned int EGLTermReq) {
     glDeleteVertexArrays (1, &mgl_data->ui_vao);
     glDeleteBuffers (2, &mgl_data->ui_vbo);
     // mesh
-    for (engine::mesh_core *i : mgl_data->managedMesh) {
+    for (engine_mesh_core *i : mgl_data->managedMesh) {
       glDeleteVertexArrays (1, &i->vao);
       glDeleteBuffers (2, &i->vbo);
     }
@@ -100,14 +95,14 @@ static void onWindowChange (ANativeWindow *w) {
   window = w;
 }
 static void onWindowResizeDisplay () {
-  mgl_data->resize_display = true;
+  mgl_data->flags |= RESIZE_DISPLAY;
 }
 static void onWindowResize () {
-  mgl_data->resize = true;
+  mgl_data->flags |= RESIZE_ONLY;
 }
 
-static bool preRender () {
-  if (!window) return false;
+static void preRender () {
+  if (!window) return;
   if (!mgl_data->display || !mgl_data->context || !mgl_data->surface) {
     while (!mgl_data->display) {
       // proof
@@ -243,10 +238,10 @@ static bool preRender () {
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, mgl_data->ui_ibo);
         glBufferData (GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof (unsigned short), (void *)indexs, GL_STATIC_DRAW);
         glBindBuffer (GL_ARRAY_BUFFER, mgl_data->ui_vbo);
-        glBufferData (GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof (engine::flat_vertex), NULL, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer (0, 2, GL_FLOAT, false, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, x));
-        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, color));
-        glVertexAttribPointer (2, 2, GL_FLOAT, false, sizeof (engine::flat_vertex), (void *)offsetof (engine::flat_vertex, u));
+        glBufferData (GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof (engine_flat_vertex), NULL, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer (0, 2, GL_FLOAT, false, sizeof (engine_flat_vertex), (void *)offsetof (engine_flat_vertex, x));
+        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine_flat_vertex), (void *)offsetof (engine_flat_vertex, color));
+        glVertexAttribPointer (2, 2, GL_FLOAT, false, sizeof (engine_flat_vertex), (void *)offsetof (engine_flat_vertex, u));
         glEnableVertexAttribArray (0);
         glEnableVertexAttribArray (1);
         glEnableVertexAttribArray (2);
@@ -300,16 +295,16 @@ static bool preRender () {
         mgl_data->u_worldTransProj = glGetUniformLocation (mgl_data->world_shader, "trans_proj");
       }
       // mesh
-      for (engine::mesh_core *i : mgl_data->managedMesh) {
+      for (engine_mesh_core *i : mgl_data->managedMesh) {
         glGenVertexArrays (1, &i->vao);
         glGenBuffers (2, &i->vbo);
         glBindVertexArray (i->vao);
         glBindBuffer (GL_ARRAY_BUFFER, i->vbo);
-        glBufferData (GL_ARRAY_BUFFER, i->vertex_len * sizeof (engine::mesh_core::data), (void *)i->vertex, GL_STATIC_DRAW);
+        glBufferData (GL_ARRAY_BUFFER, i->vertex_len * sizeof (engine_mesh_core_data), (void *)i->vertex, GL_STATIC_DRAW);
         glEnableVertexAttribArray (0);
-        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, pos));
+        glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine_mesh_core_data), (void *)offsetof (engine_mesh_core_data, pos));
         glEnableVertexAttribArray (1);
-        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, color));
+        glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine_mesh_core_data), (void *)offsetof (engine_mesh_core_data, color));
         glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, i->ibo);
         glBufferData (GL_ELEMENT_ARRAY_BUFFER, i->index_len * sizeof (unsigned short), (void *)i->index, GL_STATIC_DRAW);
       }
@@ -328,33 +323,31 @@ static bool preRender () {
       glBindTexture (GL_TEXTURE_2D, 0);
     }
     glViewport (0, 0, mgl_data->wWidth, mgl_data->wHeight);
-    mgl_data->resize = true;
-    mgl_data->resize_display = false;
-  } else if (mgl_data->resize_display) {
+    mgl_data->flags |= RESIZE_ONLY;
+    mgl_data->flags &= ~RESIZE_DISPLAY;
+  } else if (mgl_data->flags & RESIZE_DISPLAY) {
     eglMakeCurrent (mgl_data->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglMakeCurrent (mgl_data->display, mgl_data->surface, mgl_data->surface, mgl_data->context);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_WIDTH, &mgl_data->wWidth);
     eglQuerySurface (mgl_data->display, mgl_data->surface, EGL_HEIGHT, &mgl_data->wHeight);
-    mgl_data->resize = true;
-    mgl_data->resize_display = false;
+    mgl_data->flags |= RESIZE_ONLY;
+    mgl_data->flags &= ~RESIZE_DISPLAY;
   }
-  if (mgl_data->resize) {
+  if (mgl_data->flags & RESIZE_ONLY) {
     const float fixedWidth = mgl_data->wWidth;
     const float fixedHeight = mgl_data->wHeight;
 
     mgl_data->uiProj[0] = mgl_data->worldProj[0] = 2.f / fixedWidth;
     mgl_data->uiProj[5] = mgl_data->worldProj[5] = 2.f / fixedHeight;
     // ui safe insets update
-    mgl_data->uiProj[12] = (2.0f * android_graphics::cur_safe_insets[0] / fixedWidth) - 1.0f;
-    mgl_data->uiProj[13] = (2.0f * android_graphics::cur_safe_insets[3] / fixedHeight) - 1.0f;
-    mgl_data->game_width = fixedWidth - android_graphics::cur_safe_insets[0] - android_graphics::cur_safe_insets[2];
-    mgl_data->game_height = fixedHeight - android_graphics::cur_safe_insets[1] - android_graphics::cur_safe_insets[3];
+    mgl_data->uiProj[12] = (2.0f * android_graphics_cur_safe_insets[0] / fixedWidth) - 1.0f;
+    mgl_data->uiProj[13] = (2.0f * android_graphics_cur_safe_insets[3] / fixedHeight) - 1.0f;
+    mgl_data->game_width = fixedWidth - android_graphics_cur_safe_insets[0] - android_graphics_cur_safe_insets[2];
+    mgl_data->game_height = fixedHeight - android_graphics_cur_safe_insets[1] - android_graphics_cur_safe_insets[3];
 
-    mgl_data->ui_proj_update = true;
-    mgl_data->world_proj_update = true;
-    mgl_data->resize = false;
+    mgl_data->flags |= PROJ_UI | PROJ_WORLD;
+    mgl_data->flags &= ~RESIZE_ONLY;
   }
-  return true;
 }
 static void postRender (bool isDestroy) {
   unsigned int EGLTermReq = (isDestroy) ? TERM_EGL_DISPLAY : 0;
@@ -395,8 +388,12 @@ static void clear (const int &m) {
 static void clearcolor (const float &r, const float &g, const float &b, const float &a) {
   glClearColor (r, g, b, a);
 }
-static engine::texture_core *gen_texture (const int &tw, const int &th, unsigned char *data) {
-  opengles_texture *t = new opengles_texture (0, tw, th, data);
+static engine_texture_core *gen_texture (const int &tw, const int &th, unsigned char *data) {
+  opengles_texture *t = (opengles_texture *)allocate_memory(sizeof(opengles_texture));
+  engine_texture_core *r= (engine_texture_core *)allocate_memory(sizeof(engine_texture_core));
+  r->width = tw;
+  r->height = th;
+  t->data = (void*)data;
   glGenTextures (1, &t->id);
   glBindTexture (GL_TEXTURE_2D, t->id);
   glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
@@ -407,46 +404,47 @@ static engine::texture_core *gen_texture (const int &tw, const int &th, unsigned
   glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glBindTexture (GL_TEXTURE_2D, 0);
   mgl_data->managedTexture.insert (t);
-  return t;
+  r->id = t;
+  return r;
 }
-static void bind_texture (engine::texture_core *t) {
-  glBindTexture (GL_TEXTURE_2D, t ? static_cast<opengles_texture *> (t)->id : 0);
+static void bind_texture (engine_texture_core *t) {
+  glBindTexture (GL_TEXTURE_2D, (t != NULL) * ((opengles_texture *)t->id)->id);
 }
 static void set_texture_param (const int &param, const int &val) {
   glTexParameteri (GL_TEXTURE_2D, param, val);
 }
-static void delete_texture (engine::texture_core *t) {
-  opengles_texture *i = static_cast<opengles_texture *> (t);
+static void delete_texture (engine_texture_core *t) {
+  opengles_texture *i = (opengles_texture *)t->id;
   auto it = mgl_data->managedTexture.find (i);
   if (it == mgl_data->managedTexture.end ()) return;
   mgl_data->managedTexture.erase (it);
   glDeleteTextures (1, &i->id);
   delete i;
 }
-static void flat_render (engine::texture_core *tex, engine::flat_vertex *v, const unsigned int len) {
+static void flat_render (engine_texture_core *tex, engine_flat_vertex *v, const unsigned int len) {
   glDisable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->ui_shader);
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, tex ? ((opengles_texture *)tex)->id : mgl_data->nullTextureId);
   glUniform1i (mgl_data->u_uiTex, 0);
-  if (mgl_data->ui_proj_update) {
+  if (mgl_data->flags & PROJ_UI) {
     glUniformMatrix4fv (mgl_data->u_uiProj, 1, false, mgl_data->uiProj);
-    mgl_data->ui_proj_update = false;
+    mgl_data->flags &= ~PROJ_UI;
   }
   glBindVertexArray (mgl_data->ui_vao);
   glBindBuffer (GL_ARRAY_BUFFER, mgl_data->ui_vbo);
-  glBufferSubData (GL_ARRAY_BUFFER, 0, 4 * len * sizeof (engine::flat_vertex), (void *)v);
+  glBufferSubData (GL_ARRAY_BUFFER, 0, 4 * len * sizeof (engine_flat_vertex), (void *)v);
   glDrawElements (GL_TRIANGLES, 6 * len, GL_UNSIGNED_SHORT, NULL);
   glBindVertexArray (0);
   glBindTexture (GL_TEXTURE_2D, 0);
   glUseProgram (0);
 }
-static engine::mesh_core *gen_mesh (engine::mesh_core::data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
-  engine::mesh_core *r = (engine_mesh_core*)malloc(sizeof(engine_mesh_core));
-  matrix4::idt(r->trans);
+static engine_mesh_core *gen_mesh (engine_mesh_core_data *v, unsigned int v_len, unsigned short *i, unsigned int i_len) {
+  engine_mesh_core *r = (engine_mesh_core*)allocate_memory(sizeof(engine_mesh_core));
+  matrix4_idt(r->trans);
   r->vertex_len = v_len;
-  r->vertex = new engine::mesh_core::data[v_len];
-  memcpy (r->vertex, v, v_len * sizeof (engine::mesh_core::data));
+  r->vertex = new engine_mesh_core_data[v_len];
+  memcpy (r->vertex, v, v_len * sizeof (engine_mesh_core_data));
   r->index_len = i_len;
   r->index = new unsigned short[i_len];
   memcpy (r->index, i, i_len * sizeof (unsigned short));
@@ -454,31 +452,31 @@ static engine::mesh_core *gen_mesh (engine::mesh_core::data *v, unsigned int v_l
   glGenBuffers (2, &r->vbo);
   glBindVertexArray (r->vao);
   glBindBuffer (GL_ARRAY_BUFFER, r->vbo);
-  glBufferData (GL_ARRAY_BUFFER, r->vertex_len * sizeof (engine::mesh_core::data), (void *)r->vertex, GL_STATIC_DRAW);
+  glBufferData (GL_ARRAY_BUFFER, r->vertex_len * sizeof (engine_mesh_core_data), (void *)r->vertex, GL_STATIC_DRAW);
   glEnableVertexAttribArray (0);
-  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, pos));
+  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (engine_mesh_core_data), (void *)offsetof (engine_mesh_core_data, pos));
   glEnableVertexAttribArray (1);
-  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine::mesh_core::data), (void *)offsetof (engine::mesh_core::data, color));
+  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (engine_mesh_core_data), (void *)offsetof (engine_mesh_core_data, color));
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, r->ibo);
   glBufferData (GL_ELEMENT_ARRAY_BUFFER, r->index_len * sizeof (unsigned short), (void *)r->index, GL_STATIC_DRAW);
   glBindVertexArray (0);
   mgl_data->managedMesh.insert (r);
   return r;
 }
-static void mesh_render (engine::mesh_core **meshes, const unsigned int &count) {
+static void mesh_render (engine_mesh_core **meshes, const unsigned int &count) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (mgl_data->world_shader);
-  if (mgl_data->world_proj_update) {
+  if (mgl_data->flags & PROJ_WORLD) {
     glUniformMatrix4fv (mgl_data->u_worldProj, 1, false, mgl_data->worldProj);
-    mgl_data->world_proj_update = false;
+    mgl_data->flags &= ~PROJ_WORLD;
   }
   for (size_t i = 0; i < count; i++) {
-    engine::mesh_core *m = *(meshes + i);
+    engine_mesh_core *m = *(meshes + i);
     glUniformMatrix4fv (mgl_data->u_worldTransProj, 1, false, m->trans);
     glBindVertexArray (m->vao);
     if (m->dirty_vertex) {
       glBindBuffer (GL_ARRAY_BUFFER, m->vbo);
-      glBufferSubData (GL_ARRAY_BUFFER, 0, m->vertex_len * sizeof (engine::mesh_core::data), (void *)m->vertex);
+      glBufferSubData (GL_ARRAY_BUFFER, 0, m->vertex_len * sizeof (engine_mesh_core_data), (void *)m->vertex);
       m->dirty_vertex = false;
     }
     if (m->dirty_index) {
@@ -491,7 +489,7 @@ static void mesh_render (engine::mesh_core **meshes, const unsigned int &count) 
   glBindVertexArray (0);
   glUseProgram (0);
 }
-static void delete_mesh (engine::mesh_core *m) {
+static void delete_mesh (engine_mesh_core *m) {
   auto it = mgl_data->managedMesh.find (m);
   if (it == mgl_data->managedMesh.end ()) return;
   mgl_data->managedMesh.erase (it);
@@ -502,8 +500,8 @@ static void delete_mesh (engine::mesh_core *m) {
   delete m;
 }
 static void to_flat_coordinate (float &x, float &y) {
-  x -= android_graphics::cur_safe_insets[0];
-  y = mgl_data->wHeight - y - android_graphics::cur_safe_insets[3];
+  x -= android_graphics_cur_safe_insets[0];
+  y = mgl_data->wHeight - y - android_graphics_cur_safe_insets[3];
 }
 
 void init () {
@@ -523,11 +521,11 @@ void init () {
   engine_graphics_delete_mesh = delete_mesh;
   engine_graphics_to_flat_coordinate = to_flat_coordinate;
 
-  android_graphics::onWindowChange = onWindowChange;
-  android_graphics::onWindowResizeDisplay = onWindowResizeDisplay;
-  android_graphics::onWindowResize = onWindowResize;
-  android_graphics::preRender = preRender;
-  android_graphics::postRender = postRender;
+  android_graphics_onWindowChange = onWindowChange;
+  android_graphics_onWindowResizeDisplay = onWindowResizeDisplay;
+  android_graphics_onWindowResize = onWindowResize;
+  android_graphics_preRender = preRender;
+  android_graphics_postRender = postRender;
 }
 
 void term () {
@@ -535,11 +533,11 @@ void term () {
     delete i;
   }
   mgl_data->managedTexture.clear ();
-  for (engine::mesh_core *i : mgl_data->managedMesh) {
+  for (engine_mesh_core *i : mgl_data->managedMesh) {
     delete i;
   }
-  mgl_data->managedMesh.clear ();
-  delete mgl_data;
+  mgl_data->managedMesh = 0:
+  free_memory(mgl_data);
   mgl_data = nullptr;
 
   // Set the function pointers to nullptr
@@ -557,10 +555,9 @@ void term () {
   engine_graphics_delete_mesh = nullptr;
   engine_graphics_to_flat_coordinate = nullptr;
 
-  android_graphics::onWindowChange = nullptr;
-  android_graphics::onWindowResizeDisplay = nullptr;
-  android_graphics::onWindowResize = nullptr;
-  android_graphics::preRender = nullptr;
-  android_graphics::postRender = nullptr;
+  android_graphics_onWindowChange = nullptr;
+  android_graphics_onWindowResizeDisplay = nullptr;
+  android_graphics_onWindowResize = nullptr;
+  android_graphics_preRender = nullptr;
+  android_graphics_postRender = nullptr;
 }
-} // namespace opengles_graphics

@@ -1,7 +1,0 @@
-/storage/emulated/0/prj/TechnoWar/android/CMakeFiles/rebuild_cache.dir
-/storage/emulated/0/prj/TechnoWar/android/CMakeFiles/edit_cache.dir
-/storage/emulated/0/prj/TechnoWar/android/CMakeFiles/ext.dir
-/storage/emulated/0/prj/TechnoWar/android/bin/core/CMakeFiles/rebuild_cache.dir
-/storage/emulated/0/prj/TechnoWar/android/bin/core/CMakeFiles/edit_cache.dir
-/storage/emulated/0/prj/TechnoWar/android/bin/core/CMakeFiles/core_test.dir
-/storage/emulated/0/prj/TechnoWar/android/bin/core/CMakeFiles/core.dir

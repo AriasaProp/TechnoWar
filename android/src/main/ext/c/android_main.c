@@ -18,6 +18,7 @@
 #include "engine.h"
 #include "log.h"
 #include "main_game.h"
+#include "util.h"
 #include <jni.h>
 
 #include "android_engine.h"
@@ -40,7 +41,7 @@ enum APP_CMD : unsigned char {
   APP_CMD_DESTROY,
 };
 
-struct {
+struct android_app{
   int destroyed, wait_request;
   int msgread,
       msgwrite;
@@ -175,7 +176,7 @@ static void *android_app_entry (void *n) {
 static msg_pipe write_cmd;
 void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
   // initialize application
-  app = (android_app*)calloc(1, sizeof(android_app));
+  app = (struct android_app*)allocate_imemory(sizeof(struct android_app));
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
   while (pipe (&app->msgread) == -1) {
@@ -257,7 +258,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
     close (app->msgwrite);
     pthread_cond_destroy (&app->cond);
     pthread_mutex_destroy (&app->mutex);
-    delete app;
+    free_memory(app);
   };
 #undef WRITE_ANDROID_CMD_W
 #undef WRITE_ANDROID_CMD
@@ -272,7 +273,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *, size_t) {
 
 // native MainActivity.java
 
-extern "C" JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint left, jint top, jint right, jint bottom) {
   android_graphics_cur_safe_insets[0] = left;
   android_graphics_cur_safe_insets[1] = top;
   android_graphics_cur_safe_insets[2] = right;

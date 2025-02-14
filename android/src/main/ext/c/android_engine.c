@@ -78,14 +78,12 @@ static void android_assets_close_asset (const int a) {
   AAsset_close (AAssetBuffer[a]);
   AAssetBuffer[a] = nullptr;
 }
-static void *android_assets_asset_buffer (const char *filename, size_t *o) {
+static void *android_assets_asset_buffer (const char *filename, int *o) {
   AAsset *asset = AAssetManager_open (assetmanager, filename, AASSET_MODE_BUFFER);
-  size_t *outLen = (o ? o : malloc(sizeof(size_t)));
-  *outLen = AAsset_getLength (asset);
-  void *result = malloc (*outLen);
-  memcpy (result, AAsset_getBuffer (asset), *outLen);
+  *o = AAsset_getLength (asset);
+  void *result = malloc (*o);
+  memcpy (result, AAsset_getBuffer (asset), *o);
   AAsset_close (asset);
-  if (!o) free (outLen);
   return result;
 }
 
@@ -94,12 +92,6 @@ static const char *android_info_get_platform_info () {
   static std_string tmp;
   tmp = "Android SDK " + std_to_string (sdk_version);
   return tmp.c_str ();
-}
-static long android_info_memory () {
-  static struct rusage usage;
-  if (getrusage (RUSAGE_SELF, &(usage)) < 0)
-    return -1;
-  return usage.ru_maxrss;
 }
 
 // input
@@ -336,7 +328,7 @@ void android_input_detach_sensor () {
 void (*android_graphics_onWindowChange) (ANativeWindow *);
 void (*android_graphics_onWindowResizeDisplay) ();
 void (*android_graphics_onWindowResize) ();
-int (*android_graphics_preRender) ();
+void (*android_graphics_preRender) ();
 void (*android_graphics_postRender) (int);
 
 // set engine
@@ -355,7 +347,6 @@ void init_engine (AAssetManager *mngr, int sdk, ALooper *looper) {
   
   // set engine_info
   engine_info_get_platform_info = android_info_get_platform_info;
-  engine_info_memory = android_info_memory;
   sdk_version = sdk;
 
   // set engine_input
@@ -391,7 +382,6 @@ void term_engine () {
   
   // unset engine_info
   engine_info_get_platform_info = nullptr;
-  engine_info_memory = nullptr;
   
   // unset engine_input
   engine_input_getSensorValue = nullptr;
