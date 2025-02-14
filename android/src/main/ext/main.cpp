@@ -15,7 +15,6 @@
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
-#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -281,8 +280,6 @@ struct Engine {
   SavedState state;
 
   void CreateSensorListener(ALooper_callbackFunc callback) {
-    assert(app != nullptr);
-
     sensorManager = ASensorManager_getInstance();
     if (sensorManager == nullptr) {
       return;
@@ -328,7 +325,6 @@ struct Engine {
   ///
   /// \param data The Engine being ticked.
   static void Tick(long, void* data) {
-    assert(data != nullptr);
     auto engine = reinterpret_cast<Engine*>(data);
     engine->DoTick();
   }
@@ -398,10 +394,8 @@ static int engine_init_display(Engine* engine) {
    */
   eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
   std::unique_ptr<EGLConfig[]> supportedConfigs(new EGLConfig[numConfigs]);
-  assert(supportedConfigs);
   eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs,
                   &numConfigs);
-  assert(numConfigs);
   auto i = 0;
   for (; i < numConfigs; i++) {
     auto& cfg = supportedConfigs[i];
@@ -541,10 +535,8 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
 }
 
 int OnSensorEvent(int /* fd */, int /* events */, void* data) {
-  assert(data != nullptr);
   Engine* engine = reinterpret_cast<Engine*>(data);
 
-  assert(engine->accelerometerSensor != nullptr);
   ASensorEvent event;
   while (ASensorEventQueue_getEvents(engine->sensorEventQueue, &event, 1) > 0) {
     LOGI("accelerometer: x=%f y=%f z=%f", event.acceleration.x,
@@ -580,7 +572,6 @@ void android_main(android_app* state) {
     // we don't need to use the non-blocking poll.
     android_poll_source* source = nullptr;
     auto result = ALooper_pollOnce(-1, nullptr, nullptr, &source);
-    assert ((result != ALOOPER_POLL_ERROR), "looper poll once send error");
 
     if (source != nullptr) {
       source->process(state, source);
@@ -961,7 +952,7 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow*windo
 
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
     LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
-    ((void)window)
+    ((void)window);
     android_app_set_window((struct android_app*)activity->instance, NULL);
 }
 
@@ -972,7 +963,7 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
     LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
-    ((void)queue)
+    ((void)queue);
     android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 
