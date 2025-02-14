@@ -46,7 +46,7 @@ struct android_poll_source {
 
     // Function to call to perform the standard processing of data from
     // this source.
-    void (*process)(struct android_app* app, struct android_poll_source* source);
+    void (*process)(struct android_app*, struct android_poll_source*);
 };
 
 /**
@@ -260,18 +260,12 @@ enum {
     APP_CMD_DESTROY,
 };
 
-/**
- * Our saved state data.
- */
 struct SavedState {
   float angle;
   int32_t x;
   int32_t y;
 };
 
-/**
- * Shared state for our app.
- */
 struct Engine {
   android_app* app;
 
@@ -376,9 +370,6 @@ struct Engine {
   }
 };
 
-/**
- * Initialize an EGL context for the current display.
- */
 static int engine_init_display(Engine* engine) {
   // initialize OpenGL ES and EGL
 
@@ -476,9 +467,6 @@ static int engine_init_display(Engine* engine) {
   return 0;
 }
 
-/**
- * Tear down the EGL context currently associated with the display.
- */
 static void engine_term_display(Engine* engine) {
   if (engine->display != EGL_NO_DISPLAY) {
     eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
@@ -497,11 +485,7 @@ static void engine_term_display(Engine* engine) {
   engine->surface = EGL_NO_SURFACE;
 }
 
-/**
- * Process the next input event.
- */
-static int32_t engine_handle_input(android_app* app,
-                                   AInputEvent* event) {
+static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
   auto* engine = (Engine*)app->userData;
   if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
     engine->state.x = AMotionEvent_getX(event, 0);
@@ -511,9 +495,6 @@ static int32_t engine_handle_input(android_app* app,
   return 0;
 }
 
-/**
- * Process the next main command.
- */
 static void engine_handle_cmd(android_app* app, int32_t cmd) {
   auto* engine = (Engine*)app->userData;
   switch (cmd) {
@@ -577,11 +558,6 @@ int OnSensorEvent(int /* fd */, int /* events */, void* data) {
   return 1;
 }
 
-/**
- * This is the main entry point of a native application that is using
- * android_native_app_glue.  It runs in its own thread, with its own
- * event loop for receiving input events and doing other things.
- */
 void android_main(android_app* state) {
   Engine engine {};
 
@@ -603,11 +579,8 @@ void android_main(android_app* state) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
     android_poll_source* source = nullptr;
-    auto result = ALooper_pollOnce(-1, nullptr, nullptr,
-                                   reinterpret_cast<void**>(&source));
-    if (result == ALOOPER_POLL_ERROR) {
-      fatal("ALooper_pollOnce returned an error");
-    }
+    auto result = ALooper_pollOnce(-1, nullptr, nullptr, &source);
+    assert ((result != ALOOPER_POLL_ERROR), "looper poll once send error");
 
     if (source != nullptr) {
       source->process(state, source);
@@ -617,8 +590,7 @@ void android_main(android_app* state) {
   engine_term_display(&engine);
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative
-  (JNIEnv *, jobject, jint, jint, jint, jint) {}
+extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint, jint, jint, jint) {}
 
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
@@ -765,7 +737,7 @@ static void android_app_destroy(struct android_app* android_app) {
     // Can't touch android_app object after this.
 }
 
-static void process_input(struct android_app* app, struct android_poll_source* source) {
+static void process_input(struct android_app* app, struct android_poll_source*) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         LOGV("New input event: type=%d\n", AInputEvent_getType(event));
@@ -780,7 +752,7 @@ static void process_input(struct android_app* app, struct android_poll_source* s
     }
 }
 
-static void process_cmd(struct android_app* app, struct android_poll_source* source) {
+static void process_cmd(struct android_app* app, struct android_poll_source*) {
     int8_t cmd = android_app_read_cmd(app);
     android_app_pre_exec_cmd(app, cmd);
     if (app->onAppCmd != NULL) app->onAppCmd(app, cmd);
@@ -876,7 +848,7 @@ static void android_app_set_input(struct android_app* android_app, AInputQueue* 
     pthread_mutex_unlock(&android_app->mutex);
 }
 
-static void android_app_set_window(struct android_app* android_app, ANativeWindow* window) {
+static void android_app_set_window(struct android_app* android_app, ANativeWindow*) {
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->pendingWindow != NULL) {
         android_app_write_cmd(android_app, APP_CMD_TERM_WINDOW);
@@ -982,7 +954,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
             focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
 
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
+static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow*window) {
     LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
     android_app_set_window((struct android_app*)activity->instance, window);
 }
