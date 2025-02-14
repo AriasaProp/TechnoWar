@@ -31,7 +31,8 @@ jobs:
               - added|modified: 'core/main/src/*.cpp'
               - added|modified: 'core/main/include/*.h'
               - added|modified: 'core/main/include/*.hpp'
-              - added|modified: 'android/src/main/ext/c/**/*.c'
+              - added|modified: 'android/src/main/ext/src/**/*.c'
+              - added|modified: 'android/src/main/ext/src/**/*.cpp'
               - added|modified: 'android/src/main/ext/include/*.h'
               - added|modified: 'android/src/main/java/**/*.java'
 
