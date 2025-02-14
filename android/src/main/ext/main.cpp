@@ -571,7 +571,7 @@ void android_main(android_app* state) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
     android_poll_source* source = nullptr;
-    int result = ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
+    ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
 
     if (source != nullptr) {
       source->process(state, source);
