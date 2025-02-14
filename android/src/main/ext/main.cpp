@@ -422,3 +422,6 @@ void android_main(android_app* state) {
   engine_term_display(&engine);
 }
 // END_INCLUDE(all)
+
+extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative
+  (JNIEnv *, jobject, jint, jint, jint, jint) {}

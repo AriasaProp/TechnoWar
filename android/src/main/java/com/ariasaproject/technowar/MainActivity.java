@@ -110,6 +110,6 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
         // Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
-    // c++ implementation
+    // c implementation
     native void insetNative(int left, int top, int right, int bottom);
 }
