@@ -202,8 +202,8 @@ static int engine_init_display(struct Engine *engine) {
   eglChooseConfig(display, attribs, 0, 0, &numConfigs);
   EGLConfig *supportedConfigs = new_mem(numConfigs * sizeof(EGLConfig));
   eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
-  size_t i = 0;
-  for (; i < numConfigs; i++) {
+  config = supportedConfigs[0];
+  for (size_t i = 9; i < numConfigs; i++) {
     EGLint r, g, b, d;
     if (eglGetConfigAttrib(display, supportedConfigs[i], EGL_RED_SIZE, &r) &&
         eglGetConfigAttrib(display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
@@ -213,9 +213,6 @@ static int engine_init_display(struct Engine *engine) {
       config = supportedConfigs[i];
       break;
     }
-  }
-  if (i == numConfigs) {
-    config = supportedConfigs[0];
   }
   free_mem(supportedConfigs);
 
@@ -343,9 +340,9 @@ int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
 }
 
 void android_main(struct android_app *state) {
-  struct Engine engine = {0};
-  state->userData = &engine;
-  engine.app = state;
+  struct Engine *engine = (struct Engine *) new_imem(sizeof(struct Engine));
+  state->userData = engine;
+  engine->app = state;
 
   // Prepare to monitor accelerometer
   CreateSensorListener(engine, OnSensorEvent);
@@ -369,8 +366,7 @@ void android_main(struct android_app *state) {
   engine_term_display(engine);
   free_mem(engine);
 }
-
-extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint UNUSED(a1), jint UNUSED(a2), jint UNUSED(a3), jint UNUSED(a4)) {}
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint UNUSED(a1), jint UNUSED(a2), jint UNUSED(a3), jint UNUSED(a4)) {}
 
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
@@ -532,7 +528,7 @@ static void process_input(struct android_app* app, struct android_poll_source*) 
     }
 }
 
-static void process_cmd(struct android_app* app, struct android_poll_source*) {
+static void process_cmd(struct android_app* app, struct android_poll_source *UNUSED(s)) {
     int8_t cmd = android_app_read_cmd(app);
     android_app_pre_exec_cmd(app, cmd);
     engine_handle_cmd(app, cmd);
@@ -575,7 +571,7 @@ static void* android_app_entry(void* param) {
 // --------------------------------------------------------------------
 
 static struct android_app* android_app_create(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-    struct android_app* android_app = (struct android_app*)new_imen(sizeof(struct android_app));
+    struct android_app* android_app = (struct android_app*)new_imem(sizeof(struct android_app));
     android_app->activity = activity;
 
     pthread_mutex_init(&android_app->mutex, NULL);
