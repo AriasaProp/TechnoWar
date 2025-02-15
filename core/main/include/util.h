@@ -3,9 +3,9 @@
 
 
 #ifdef __GNUC__
-#define UNUSED(x)       x##_UNUSED __attribute__((unused))
+#define UNUSED(x)       x __attribute__((unused))
 #else
-#define UNUSED(x)       x##_UNUSED
+#define UNUSED(x)       /* x */
 #endif
 
 #include <stdint.h>
