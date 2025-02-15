@@ -117,7 +117,8 @@ struct Engine {
   int32_t height;
   struct SavedState state;
   int running_;
-}
+};
+
 static void Tick(long, void*);
 static void CreateSensorListener(struct Engine *e, ALooper_callbackFunc callback) {
   e->sensorManager = ASensorManager_getInstance();
@@ -189,7 +190,7 @@ static int engine_init_display(struct Engine *engine) {
 
   eglChooseConfig(display, attribs, 0, 0, &numConfigs);
   EGLConfig *supportedConfigs = new_mem(numConfigs * sizeof(EGLConfig));
-  eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
+  eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
   config = supportedConfigs[0];
   for (EGLint i = 0; i < numConfigs; i++) {
     EGLint r, g, b, d;
@@ -501,7 +502,7 @@ static void android_app_destroy(struct android_app* android_app) {
     // Can't touch android_app object after this.
 }
 
-static void process_input(struct android_app* app, struct android_poll_source*) {
+static void process_input(struct android_app* app, struct android_poll_source *UNUSED(src)) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         LOGV("New input event: type=%d\n", AInputEvent_getType(event));
