@@ -32,6 +32,12 @@
 #define LOGW(fmt, ...) _LOG(ANDROID_LOG_WARN, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 #define LOGI(fmt, ...) _LOG(ANDROID_LOG_INFO, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 
+#if defined(__GNUC__)
+#define UNUSED(x)       x##_UNUSED __attribute__((unused))
+#else
+#define UNUSED(x)       x##_UNUSED
+#endif
+
 struct android_app;
 
 struct android_poll_source {
@@ -96,9 +102,7 @@ struct android_app {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     
-    struct {
-    	int read, write;
-    } msg_pipe;
+    int msg_pipe[2];
 
     pthread_t thread;
 
@@ -162,11 +166,11 @@ struct Engine {
   int running_;
 };
 
-static void Tick (long, void *);
+static void Tick (long UNUSED(a), void *UNUSED(b));
 
 
 
-static void Tick(long, void* data) {
+static void Tick(long UNUSED(a), void* data) {
   struct Engine *e = (struct Engine*)data;
   if (!e->running_)
     return;
@@ -217,7 +221,6 @@ static int engine_init_display(struct Engine* engine) {
   EGLConfig *supportedConfigs = (EGLConfig *) new_mem(sizeof(EGLConfig)*numConfigs);
   eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
   
-  const EGLint attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE};
   for (size_t i = 0, j = 0, k, l; i < numConfigs; i++) {
     EGLint a;
     k = 1;
@@ -289,7 +292,7 @@ static void engine_term_display(struct Engine* engine) {
   engine->surface = EGL_NO_SURFACE;
 }
 
-int OnSensorEvent(int /* fd */, int /* events */, void* data) {
+int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
   struct Engine* engine = (struct Engine*)data;
 
   ASensorEvent event;
@@ -305,7 +308,7 @@ int OnSensorEvent(int /* fd */, int /* events */, void* data) {
   return 1;
 }
 
-extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint, jint, jint, jint) {}
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(a), jobject UNUSED(b), jint UNUSED(c), jint UNUSED(d), jint UNUSED(e), jint UNUSED(f)) {}
 
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
@@ -319,7 +322,7 @@ static void free_saved_state(struct android_app* android_app) {
 
 int8_t android_app_read_cmd(struct android_app* android_app) {
   int8_t cmd;
-  if (read(android_app->msg_pipe.read, &cmd, sizeof(cmd)) == sizeof(cmd)) {
+  if (read(android_app->msg_pipe[0], &cmd, sizeof(cmd)) == sizeof(cmd)) {
     switch (cmd) {
     case APP_CMD_SAVE_STATE:
       free_saved_state(android_app);
@@ -501,7 +504,7 @@ static void* android_app_entry(void* param) {
     app->inputPollSource.process = process_input;
 
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, app->msg_pipe.read, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
+    ALooper_addFd(looper, app->msg_pipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
             &app->cmdPollSource);
     app->looper = looper;
 
@@ -566,7 +569,7 @@ static void* android_app_entry(void* param) {
 // --------------------------------------------------------------------
 
 static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
-    if (write(android_app->msg_pipe.write, &cmd, sizeof(cmd)) != sizeof(cmd)) {
+    if (write(android_app->msg_pipe[1], &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
@@ -613,8 +616,8 @@ static void android_app_free(struct android_app* android_app) {
     }
     pthread_mutex_unlock(&android_app->mutex);
 
-    close(android_app->msg_pipe.read);
-    close(android_app->msg_pipe.write);
+    close(android_app->msg_pipe[0]);
+    close(android_app->msg_pipe[1]);
     pthread_cond_destroy(&android_app->cond);
     pthread_mutex_destroy(&android_app->mutex);
     free_mem(android_app);
@@ -687,12 +690,12 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
             focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
 
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow*window) {
+static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow *window) {
     LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
     android_app_set_window((struct android_app*)activity->instance, window);
 }
 
-static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
+static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow *window) {
     LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
     ((void)window);
     android_app_set_window((struct android_app*)activity->instance, NULL);
@@ -725,7 +728,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
       memcpy(app->savedState, savedState, savedStateSize);
 	  }
 	
-	  if (pipe(&app->msg_pipe)) {
+	  if (pipe(app->msg_pipe)) {
       LOGE("could not create pipe: %s", strerror(errno));
       return;
 	  }
