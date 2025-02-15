@@ -32,7 +32,7 @@
 #define LOGW(fmt, ...) _LOG(ANDROID_LOG_WARN, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 #define LOGI(fmt, ...) _LOG(ANDROID_LOG_INFO, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 
-#elif defined(__GNUC__)
+#ifdef __GNUC__
 #define UNUSED(x)       x##_UNUSED __attribute__((unused))
 #else
 #define UNUSED(x)       x##_UNUSED
@@ -150,7 +150,7 @@ static void Update(struct Engine *e) {
     e->state.angle = 0;
   }
 }
-static void DrawFrame() {
+static void DrawFrame(struct Engine *e) {
   if (!e->display) {
     // No display.
     return;
