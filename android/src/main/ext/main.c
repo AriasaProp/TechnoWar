@@ -49,14 +49,6 @@ struct android_poll_source {
     void (*process)(struct android_app*, struct android_poll_source*);
 };
 
-/**
- * This is the interface for the standard glue code of a threaded
- * application.  In this model, the application's code is running
- * in its own thread separate from the main thread of the process.
- * It is not required that this thread be associated with the Java
- * VM, although it will need to be in order to make JNI calls any
- * Java objects.
- */
 struct android_app {
     // The application can place a pointer to its own state object
     // here if it likes.
@@ -125,129 +117,27 @@ struct android_app {
 };
 
 enum {
-    /**
-     * Looper data ID of commands coming from the app's main thread, which
-     * is returned as an identifier from ALooper_pollOnce().  The data for this
-     * identifier is a pointer to an android_poll_source structure.
-     * These can be retrieved and processed with android_app_read_cmd()
-     * and android_app_exec_cmd().
-     */
     LOOPER_ID_MAIN = 1,
-
-    /**
-     * Looper data ID of events coming from the AInputQueue of the
-     * application's window, which is returned as an identifier from
-     * ALooper_pollOnce().  The data for this identifier is a pointer to an
-     * android_poll_source structure.  These can be read via the inputQueue
-     * object of android_app.
-     */
     LOOPER_ID_INPUT = 2,
-
-    /**
-     * Start of user-defined ALooper identifiers.
-     */
     LOOPER_ID_USER = 3,
 };
 
 enum {
-    /**
-     * Command from main thread: the AInputQueue has changed.  Upon processing
-     * this command, android_app->inputQueue will be updated to the new queue
-     * (or NULL).
-     */
     APP_CMD_INPUT_CHANGED,
-
-    /**
-     * Command from main thread: a new ANativeWindow is ready for use.  Upon
-     * receiving this command, android_app->window will contain the new window
-     * surface.
-     */
     APP_CMD_INIT_WINDOW,
-
-    /**
-     * Command from main thread: the existing ANativeWindow needs to be
-     * terminated.  Upon receiving this command, android_app->window still
-     * contains the existing window; after calling android_app_exec_cmd
-     * it will be set to NULL.
-     */
     APP_CMD_TERM_WINDOW,
-
-    /**
-     * Command from main thread: the current ANativeWindow has been resized.
-     * Please redraw with its new size.
-     */
     APP_CMD_WINDOW_RESIZED,
-
-    /**
-     * Command from main thread: the system needs that the current ANativeWindow
-     * be redrawn.  You should redraw the window before handing this to
-     * android_app_exec_cmd() in order to avoid transient drawing glitches.
-     */
     APP_CMD_WINDOW_REDRAW_NEEDED,
-
-    /**
-     * Command from main thread: the content area of the window has changed,
-     * such as from the soft input window being shown or hidden.  You can
-     * find the new content rect in android_app::contentRect.
-     */
     APP_CMD_CONTENT_RECT_CHANGED,
-
-    /**
-     * Command from main thread: the app's activity window has gained
-     * input focus.
-     */
     APP_CMD_GAINED_FOCUS,
-
-    /**
-     * Command from main thread: the app's activity window has lost
-     * input focus.
-     */
     APP_CMD_LOST_FOCUS,
-
-    /**
-     * Command from main thread: the current device configuration has changed.
-     */
     APP_CMD_CONFIG_CHANGED,
-
-    /**
-     * Command from main thread: the system is running low on memory.
-     * Try to reduce your memory use.
-     */
     APP_CMD_LOW_MEMORY,
-
-    /**
-     * Command from main thread: the app's activity has been started.
-     */
     APP_CMD_START,
-
-    /**
-     * Command from main thread: the app's activity has been resumed.
-     */
     APP_CMD_RESUME,
-
-    /**
-     * Command from main thread: the app should generate a new saved state
-     * for itself, to restore from later if needed.  If you have saved state,
-     * allocate it with malloc and place it in android_app.savedState with
-     * the size in android_app.savedStateSize.  The will be freed for you
-     * later.
-     */
     APP_CMD_SAVE_STATE,
-
-    /**
-     * Command from main thread: the app's activity has been paused.
-     */
     APP_CMD_PAUSE,
-
-    /**
-     * Command from main thread: the app's activity has been stopped.
-     */
     APP_CMD_STOP,
-
-    /**
-     * Command from main thread: the app's activity is being destroyed,
-     * and waiting for the app thread to clean up and exit before proceeding.
-     */
     APP_CMD_DESTROY,
 };
 
@@ -275,6 +165,8 @@ struct Engine {
 };
 
 static void Tick (long, void *);
+
+
 
 static void Tick(long, void* data) {
   struct Engine *e = (struct Engine*)data;
@@ -495,76 +387,62 @@ static void process_input(struct android_app* app, struct android_poll_source*) 
 
 static void process_cmd(struct android_app* app, struct android_poll_source*) {
     int8_t cmd = android_app_read_cmd(app);
-    // pre command
-    switch (cmd) {
-        case APP_CMD_INPUT_CHANGED:
-            LOGV("APP_CMD_INPUT_CHANGED\n");
-            pthread_mutex_lock(&app->mutex);
-            if (app->inputQueue != NULL) {
-                AInputQueue_detachLooper(app->inputQueue);
-            }
-            app->inputQueue = app->pendingInputQueue;
-            if (app->inputQueue != NULL) {
-                LOGV("Attaching input queue to looper");
-                AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
-            }
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-
-        case APP_CMD_INIT_WINDOW:
-            LOGV("APP_CMD_INIT_WINDOW\n");
-            pthread_mutex_lock(&app->mutex);
-            app->window = app->pendingWindow;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-
-        case APP_CMD_TERM_WINDOW:
-            LOGV("APP_CMD_TERM_WINDOW\n");
-            pthread_cond_broadcast(&app->cond);
-            break;
-
-        case APP_CMD_RESUME:
-        case APP_CMD_START:
-        case APP_CMD_PAUSE:
-        case APP_CMD_STOP:
-            LOGV("activityState=%d\n", cmd);
-            pthread_mutex_lock(&app->mutex);
-            app->activityState = cmd;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-
-        case APP_CMD_CONFIG_CHANGED:
-            LOGV("APP_CMD_CONFIG_CHANGED\n");
-            AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-            print_cur_config(app);
-            break;
-
-        case APP_CMD_DESTROY:
-            LOGV("APP_CMD_DESTROY\n");
-            app->destroyRequested = 1;
-            break;
-    }
     // main command
     struct Engine* engine = (struct Engine*)app->userData;
 	  switch (cmd) {
+      case APP_CMD_INPUT_CHANGED:
+        LOGV("APP_CMD_INPUT_CHANGED\n");
+        pthread_mutex_lock(&app->mutex);
+        if (app->inputQueue != NULL) {
+            AInputQueue_detachLooper(app->inputQueue);
+        }
+        app->inputQueue = app->pendingInputQueue;
+        if (app->inputQueue != NULL) {
+            LOGV("Attaching input queue to looper");
+            AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
+        }
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock(&app->mutex);
+        break;
+      case APP_CMD_CONFIG_CHANGED:
+        LOGV("APP_CMD_CONFIG_CHANGED\n");
+        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+        print_cur_config(app);
+        break;
 	    case APP_CMD_SAVE_STATE:
 	      // The system has asked us to save our current state.  Do so.
 	      engine->app->savedState = new_mem(sizeof(struct SavedState));
 	      *((struct SavedState*)engine->app->savedState) = engine->state;
 	      engine->app->savedStateSize = sizeof(struct SavedState);
+	      // tell is done
+        LOGV("APP_CMD_SAVE_STATE\n");
+        pthread_mutex_lock(&app->mutex);
+        app->stateSaved = 1;
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock(&app->mutex);
 	      break;
 	    case APP_CMD_INIT_WINDOW:
+        LOGV("APP_CMD_INIT_WINDOW\n");
+        pthread_mutex_lock(&app->mutex);
+        app->window = app->pendingWindow;
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock(&app->mutex);
 	      // The window is being shown, get it ready.
 	      if (engine->app->window != nullptr) {
 	        engine_init_display(engine);
 	      }
 	      break;
-	    case APP_CMD_TERM_WINDOW:
+
+      case APP_CMD_TERM_WINDOW:
+        LOGV("APP_CMD_TERM_WINDOW\n");
 	      // The window is being hidden or closed, clean it up.
 	      engine_term_display(engine);
+	      // set window to null
+        LOGV("APP_CMD_TERM_WINDOW\n");
+        pthread_mutex_lock(&app->mutex);
+        app->window = NULL;
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock(&app->mutex);
 	      break;
 	    case APP_CMD_GAINED_FOCUS:
 	      // When our app gains focus, we start monitoring the accelerometer.
@@ -585,36 +463,28 @@ static void process_cmd(struct android_app* app, struct android_poll_source*) {
 	      // When our app loses focus, we stop monitoring the accelerometer.
 	      // This is to avoid consuming battery while not being used.
 	      if (engine->accelerometerSensor != nullptr) {
-	        ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-	                                        engine->accelerometerSensor);
+	        ASensorEventQueue_disableSensor(engine->sensorEventQueue,engine->accelerometerSensor);
 	      }
 	      engine->running_ = 0; 
 	      break;
+      case APP_CMD_RESUME:
+        free_saved_state(app);
+      case APP_CMD_START:
+      case APP_CMD_PAUSE:
+      case APP_CMD_STOP:
+        LOGV("activityState=%d\n", cmd);
+        pthread_mutex_lock(&app->mutex);
+        app->activityState = cmd;
+        pthread_cond_broadcast(&app->cond);
+        pthread_mutex_unlock(&app->mutex);
+        break;
+      case APP_CMD_DESTROY:
+        LOGV("APP_CMD_DESTROY\n");
+        app->destroyRequested = 1;
+        break;
 	    default:
 	      break;
 	  }
-    // post command
-    switch (cmd) {
-        case APP_CMD_TERM_WINDOW:
-            LOGV("APP_CMD_TERM_WINDOW\n");
-            pthread_mutex_lock(&app->mutex);
-            app->window = NULL;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-
-        case APP_CMD_SAVE_STATE:
-            LOGV("APP_CMD_SAVE_STATE\n");
-            pthread_mutex_lock(&app->mutex);
-            app->stateSaved = 1;
-            pthread_cond_broadcast(&app->cond);
-            pthread_mutex_unlock(&app->mutex);
-            break;
-
-        case APP_CMD_RESUME:
-            free_saved_state(app);
-            break;
-    }
 }
 
 static void* android_app_entry(void* param) {
