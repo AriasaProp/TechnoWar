@@ -30,7 +30,6 @@ jobs:
               - added|modified: 'core/main/src/*.c'
               - added|modified: 'core/main/include/*.h'
               - added|modified: 'android/src/main/ext/**/*.c'
-              - added|modified: 'android/src/main/ext/include/*.h'
               - added|modified: 'android/src/main/java/**/*.java'
 
       - name: Format
