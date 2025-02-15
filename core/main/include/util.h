@@ -2,6 +2,7 @@
 #define UTIL_INCLUDED_
 
 #include <stdint.h>
+#include <stddef.h>
 #define MAX_TEMPORARY_BYTE 2048
 
 union temp {
