@@ -160,12 +160,6 @@ static void DoTick(struct Engine *e) {
   if (!e->running_) {
     return;
   }
-
-  // Input and sensor feedback is handled via their own callbacks.
-  // Choreographer ensures that those callbacks run before this callback does.
-
-  // Choreographer does not continuously schedule the callback. We have to re-
-  // register the callback each time we're ticked.
   ScheduleNextTick(e);
   Update(e);
   DrawFrame(e);
