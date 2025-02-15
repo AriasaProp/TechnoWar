@@ -201,15 +201,15 @@ static int engine_init_display(struct Engine* engine) {
                             EGL_NONE};
   EGLint w, h, format;
   EGLint numConfigs;
-  EGLConfig config = nullptr;
+  EGLConfig config = {0};
   EGLSurface surface;
   EGLContext context;
 
   EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-  eglInitialize(display, nullptr, nullptr);
+  eglInitialize(display, 0, 0);
 
-  eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
+  eglChooseConfig(display, attribs, 0, 0, &numConfigs);
   if (!numConfigs) {
     LOGW("Unable to initialize EGLConfig");
     return -1;
@@ -243,12 +243,12 @@ static int engine_init_display(struct Engine* engine) {
    * As soon as we picked a EGLConfig, we can safely reconfigure the
    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
   eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-  surface = eglCreateWindowSurface(display, config, engine->app->window, nullptr);
+  surface = eglCreateWindowSurface(display, config, engine->app->window, 0);
 
   /* A version of OpenGL has not been specified here.  This will default to
    * OpenGL 1.0.  You will need to change this if you want to use the newer
    * features of OpenGL like shaders. */
-  context = eglCreateContext(display, config, nullptr, nullptr);
+  context = eglCreateContext(display, config, 0, 0);
 
   if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
     LOGW("Unable to eglMakeCurrent");
@@ -426,7 +426,7 @@ static void process_cmd(struct android_app* app, struct android_poll_source*) {
         pthread_cond_broadcast(&app->cond);
         pthread_mutex_unlock(&app->mutex);
 	      // The window is being shown, get it ready.
-	      if (engine->app->window != nullptr) {
+	      if (engine->app->window) {
 	        engine_init_display(engine);
 	      }
 	      break;
@@ -444,7 +444,7 @@ static void process_cmd(struct android_app* app, struct android_poll_source*) {
 	      break;
 	    case APP_CMD_GAINED_FOCUS:
 	      // When our app gains focus, we start monitoring the accelerometer.
-	      if (engine->accelerometerSensor != nullptr) {
+	      if (engine->accelerometerSensor) {
 	        ASensorEventQueue_enableSensor(engine->sensorEventQueue,
 	                                       engine->accelerometerSensor);
 	        // We'd like to get 60 events per second (in us).
@@ -460,7 +460,7 @@ static void process_cmd(struct android_app* app, struct android_poll_source*) {
 	    case APP_CMD_LOST_FOCUS:
 	      // When our app loses focus, we stop monitoring the accelerometer.
 	      // This is to avoid consuming battery while not being used.
-	      if (engine->accelerometerSensor != nullptr) {
+	      if (engine->accelerometerSensor) {
 	        ASensorEventQueue_disableSensor(engine->sensorEventQueue,engine->accelerometerSensor);
 	      }
 	      engine->running_ = 0; 
@@ -525,7 +525,7 @@ static void* android_app_entry(void* param) {
 				  }
 		  }
 		
-		  if (app->savedState != nullptr) {
+		  if (app->savedState) {
 		    // We are starting with a previous saved state; restore from it.
 		    engine->state = *(struct SavedState*)app->savedState;
 		  }
@@ -533,10 +533,10 @@ static void* android_app_entry(void* param) {
 		  while (!app->destroyRequested) {
 		    // Our input, sensor, and update/render logic is all driven by callbacks, so
 		    // we don't need to use the non-blocking poll.
-		    android_poll_source* source = nullptr;
-		    ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
+		    android_poll_source* source = 0;
+		    ALooper_pollOnce(-1, 0, 0, (void**)&source);
 		
-		    if (source != nullptr) {
+		    if (source) {
 		      source->process(state, source);
 		    }
 		  }
