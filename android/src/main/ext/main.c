@@ -17,7 +17,6 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <initializer_list>
 #include <memory>
 
 #include "util.h"
