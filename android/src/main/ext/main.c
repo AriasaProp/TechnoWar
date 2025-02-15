@@ -1,4 +1,3 @@
-
 #include <EGL/egl.h>
 #include <GLES/gl.h>
 #include <android/choreographer.h>
@@ -20,6 +19,8 @@
 #include <string.h>
 #include <initializer_list>
 #include <memory>
+
+#include "util.h"
 
 #define LOG_TAG "TechnoWar Activity"
 #define _LOG(priority, fmt, ...) ((void)__android_log_print((priority), (LOG_TAG), (fmt)__VA_OPT__(, ) __VA_ARGS__))
@@ -114,9 +115,10 @@ struct android_app {
 
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-
-    int msgread;
-    int msgwrite;
+    
+    struct {
+    	int read, write;
+    } msg_pipe;
 
     pthread_t thread;
 
@@ -277,103 +279,56 @@ struct Engine {
   EGLContext context;
   int32_t width;
   int32_t height;
-  SavedState state;
+  struct SavedState state;
 
-  void CreateSensorListener(ALooper_callbackFunc callback) {
-    sensorManager = ASensorManager_getInstance();
-    if (sensorManager == nullptr) {
+  int running_;
+};
+static void CreateSensorListener(struct Engine *e, ALooper_callbackFunc callback) {
+  e->sensorManager = ASensorManager_getInstance();
+  if (!e->sensorManager)
+    return;
+
+  e->accelerometerSensor = ASensorManager_getDefaultSensor(e->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+  e->sensorEventQueue = ASensorManager_createEventQueue(e->sensorManager, e->app->looper, ALOOPER_POLL_CALLBACK, callback, e);
+}
+
+static void Tick (long, void *);
+
+static void Resume(struct Engine *e) {
+	if (e->running_) return;
+  e->running_ = 1;
+  AChoreographer_postFrameCallback(AChoreographer_getInstance(), Tick, e);
+}
+static void Pause(struct Engine *e) { e->running_ = 0; }
+
+static void Tick(long, void* data) {
+  struct Engine *e = (struct Engine*)data;
+  if (!e->running_)
+    return;
+  AChoreographer_postFrameCallback(AChoreographer_getInstance(), Tick, e);
+  // update
+  {
+  	e->state.angle += .01f;
+    if (e->state.angle > 1) {
+      e->state.angle = 0;
+    }
+  }
+  // draw
+  {
+    if (!e->display)
       return;
-    }
-
-    accelerometerSensor = ASensorManager_getDefaultSensor(
-        sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    sensorEventQueue = ASensorManager_createEventQueue(
-        sensorManager, app->looper, ALOOPER_POLL_CALLBACK, callback, this);
-  }
-
-  /// Resumes ticking the application.
-  void Resume() {
-    // Checked to make sure we don't double schedule Choreographer.
-    if (!running_) {
-      running_ = true;
-      ScheduleNextTick();
-    }
-  }
-
-  /// Pauses ticking the application.
-  ///
-  /// When paused, sensor and input events will still be processed, but the
-  /// update and render parts of the loop will not run.
-  void Pause() { running_ = false; }
-
- private:
-  bool running_;
-
-  void ScheduleNextTick() {
-    AChoreographer_postFrameCallback(AChoreographer_getInstance(), Tick, this);
-  }
-
-  /// Entry point for Choreographer.
-  ///
-  /// The first argument (the frame time) is not used as it is not needed for
-  /// this sample. If you copy from this sample and make use of that argument,
-  /// note that there's an API bug: that time is a signed 32-bit nanosecond
-  /// counter on 32-bit systems, so it will roll over every ~2 seconds. If your
-  /// minSdkVersion is 29 or higher, use AChoreographer_postFrameCallback64
-  /// instead, which is 64-bits for all architectures. Otherwise, bitwise-and
-  /// the value with the upper bits from CLOCK_MONOTONIC.
-  ///
-  /// \param data The Engine being ticked.
-  static void Tick(long, void* data) {
-    auto engine = reinterpret_cast<Engine*>(data);
-    engine->DoTick();
-  }
-
-  void DoTick() {
-    if (!running_) {
-      return;
-    }
-
-    // Input and sensor feedback is handled via their own callbacks.
-    // Choreographer ensures that those callbacks run before this callback does.
-
-    // Choreographer does not continuously schedule the callback. We have to re-
-    // register the callback each time we're ticked.
-    ScheduleNextTick();
-    Update();
-    DrawFrame();
-  }
-
-  void Update() {
-    state.angle += .01f;
-    if (state.angle > 1) {
-      state.angle = 0;
-    }
-  }
-
-  void DrawFrame() {
-    if (display == nullptr) {
-      // No display.
-      return;
-    }
 
     // Just fill the screen with a color.
-    glClearColor(((float)state.x) / width, state.angle,
-                 ((float)state.y) / height, 1);
+    glClearColor(((float)e->state.x) / e->width, e->state.angle, ((float)e->state.y) / e->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    eglSwapBuffers(display, surface);
+    eglSwapBuffers(e->display, e->surface);
   }
-};
+}
 
-static int engine_init_display(Engine* engine) {
-  // initialize OpenGL ES and EGL
 
-  /*
-   * Here specify the attributes of the desired configuration.
-   * Below, we select an EGLConfig with at least 8 bits per color
-   * component compatible with on-screen windows
-   */
+
+static int engine_init_display(struct Engine* engine) {
   const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
                             EGL_BLUE_SIZE,    8,
                             EGL_GREEN_SIZE,   8,
@@ -389,42 +344,41 @@ static int engine_init_display(Engine* engine) {
 
   eglInitialize(display, nullptr, nullptr);
 
-  /* Here, the application chooses the configuration it desires.
-   * find the best match if possible, otherwise use the very first one
-   */
   eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
-  std::unique_ptr<EGLConfig[]> supportedConfigs(new EGLConfig[numConfigs]);
-  eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs,
-                  &numConfigs);
-  auto i = 0;
-  for (; i < numConfigs; i++) {
-    auto& cfg = supportedConfigs[i];
-    EGLint r, g, b, d;
-    if (eglGetConfigAttrib(display, cfg, EGL_RED_SIZE, &r) &&
-        eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) &&
-        eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE, &b) &&
-        eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &d) && r == 8 &&
-        g == 8 && b == 8 && d == 0) {
-      config = supportedConfigs[i];
-      break;
-    }
-  }
-  if (i == numConfigs) {
-    config = supportedConfigs[0];
-  }
-
-  if (config == nullptr) {
+  if (!numConfigs) {
     LOGW("Unable to initialize EGLConfig");
     return -1;
   }
+  EGLConfig *supportedConfigs = (EGLConfig *) new_mem(sizeof(EGLConfig)*numConfigs);
+  eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
+  
+  const EGLint attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE};
+  for (size_t i = 0, j = 0, k, l; i < numConfigs; i++) {
+    EGLint a;
+    k = 1;
+    if (!eglGetConfigAttrib(display, supportedConfigs[i], EGL_RED_SIZE, &a))
+    	continue;
+    k += a;
+    if (!eglGetConfigAttrib(display, supportedConfigs[i], EGL_BLUE_SIZE, &a))
+    	continue;
+    k += a;
+    if (!eglGetConfigAttrib(display, supportedConfigs[i], EGL_GREEN_SIZE, &a))
+    	continue;
+    k += a;
+    if (j < k) {
+    	j = k;
+    	config = supportedConfigs[i];
+    }
+  }
+  free_mem(supportedConfigs);
+
 
   /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
    * As soon as we picked a EGLConfig, we can safely reconfigure the
    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
   eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-  surface =
-      eglCreateWindowSurface(display, config, engine->app->window, nullptr);
+  surface = eglCreateWindowSurface(display, config, engine->app->window, nullptr);
 
   /* A version of OpenGL has not been specified here.  This will default to
    * OpenGL 1.0.  You will need to change this if you want to use the newer
@@ -453,7 +407,7 @@ static int engine_init_display(Engine* engine) {
   return 0;
 }
 
-static void engine_term_display(Engine* engine) {
+static void engine_term_display(struct Engine* engine) {
   if (engine->display != EGL_NO_DISPLAY) {
     eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE,
                    EGL_NO_CONTEXT);
@@ -472,7 +426,7 @@ static void engine_term_display(Engine* engine) {
 }
 
 static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
-  auto* engine = (Engine*)app->userData;
+  auto* engine = (struct Engine*)app->userData;
   if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
     engine->state.x = AMotionEvent_getX(event, 0);
     engine->state.y = AMotionEvent_getY(event, 0);
@@ -482,13 +436,13 @@ static int32_t engine_handle_input(android_app* app, AInputEvent* event) {
 }
 
 static void engine_handle_cmd(android_app* app, int32_t cmd) {
-  auto* engine = (Engine*)app->userData;
+  auto* engine = (struct Engine*)app->userData;
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
       // The system has asked us to save our current state.  Do so.
-      engine->app->savedState = malloc(sizeof(SavedState));
-      *((SavedState*)engine->app->savedState) = engine->state;
-      engine->app->savedStateSize = sizeof(SavedState);
+      engine->app->savedState = new_mem(sizeof(struct SavedState));
+      *((struct SavedState*)engine->app->savedState) = engine->state;
+      engine->app->savedStateSize = sizeof(struct SavedState);
       break;
     case APP_CMD_INIT_WINDOW:
       // The window is being shown, get it ready.
@@ -527,7 +481,7 @@ static void engine_handle_cmd(android_app* app, int32_t cmd) {
 }
 
 int OnSensorEvent(int /* fd */, int /* events */, void* data) {
-  Engine* engine = reinterpret_cast<Engine*>(data);
+  struct Engine* engine = (struct Engine*)data;
 
   ASensorEvent event;
   while (ASensorEventQueue_getEvents(engine->sensorEventQueue, &event, 1) > 0) {
@@ -543,20 +497,18 @@ int OnSensorEvent(int /* fd */, int /* events */, void* data) {
 }
 
 void android_main(android_app* state) {
-  Engine engine {};
-
-  memset(&engine, 0, sizeof(engine));
-  state->userData = &engine;
+  struct Engine *engine = (struct Engine*)new_imem(sizeof(struct Engine));
+  state->userData = engine;
   state->onAppCmd = engine_handle_cmd;
   state->onInputEvent = engine_handle_input;
-  engine.app = state;
+  engine->app = state;
 
   // Prepare to monitor accelerometer
-  engine.CreateSensorListener(OnSensorEvent);
+  engine->CreateSensorListener(OnSensorEvent);
 
   if (state->savedState != nullptr) {
     // We are starting with a previous saved state; restore from it.
-    engine.state = *(SavedState*)state->savedState;
+    engine->state = *(struct SavedState*)state->savedState;
   }
 
   while (!state->destroyRequested) {
@@ -570,7 +522,8 @@ void android_main(android_app* state) {
     }
   }
 
-  engine_term_display(&engine);
+  engine_term_display(engine);
+  free_mem(engine);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint, jint, jint, jint) {}
@@ -578,7 +531,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->savedState != NULL) {
-        free(android_app->savedState);
+        free_mem(android_app->savedState);
         android_app->savedState = NULL;
         android_app->savedStateSize = 0;
     }
@@ -587,7 +540,7 @@ static void free_saved_state(struct android_app* android_app) {
 
 int8_t android_app_read_cmd(struct android_app* android_app) {
     int8_t cmd;
-    if (read(android_app->msgread, &cmd, sizeof(cmd)) == sizeof(cmd)) {
+    if (read(android_app->msg_pipe.read, &cmd, sizeof(cmd)) == sizeof(cmd)) {
         switch (cmd) {
             case APP_CMD_SAVE_STATE:
                 free_saved_state(android_app);
@@ -758,7 +711,7 @@ static void* android_app_entry(void* param) {
     android_app->inputPollSource.process = process_input;
 
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, android_app->msgread, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
+    ALooper_addFd(looper, android_app->msg_pipe.read, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
             &android_app->cmdPollSource);
     android_app->looper = looper;
 
@@ -779,26 +732,22 @@ static void* android_app_entry(void* param) {
 
 static struct android_app* android_app_create(ANativeActivity* activity,
         void* savedState, size_t savedStateSize) {
-    struct android_app* android_app = (struct android_app*)malloc(sizeof(struct android_app));
-    memset(android_app, 0, sizeof(struct android_app));
+    struct android_app* android_app = (struct android_app*)new_imem(sizeof(struct android_app));
     android_app->activity = activity;
 
     pthread_mutex_init(&android_app->mutex, NULL);
     pthread_cond_init(&android_app->cond, NULL);
 
     if (savedState != NULL) {
-        android_app->savedState = malloc(savedStateSize);
+        android_app->savedState = new_mem(savedStateSize);
         android_app->savedStateSize = savedStateSize;
         memcpy(android_app->savedState, savedState, savedStateSize);
     }
 
-    int msgpipe[2];
-    if (pipe(msgpipe)) {
+    if (pipe(&android_app->msg_pipe)) {
         LOGE("could not create pipe: %s", strerror(errno));
         return NULL;
     }
-    android_app->msgread = msgpipe[0];
-    android_app->msgwrite = msgpipe[1];
 
     pthread_attr_t attr; 
     pthread_attr_init(&attr);
@@ -816,7 +765,7 @@ static struct android_app* android_app_create(ANativeActivity* activity,
 }
 
 static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
-    if (write(android_app->msgwrite, &cmd, sizeof(cmd)) != sizeof(cmd)) {
+    if (write(android_app->msg_pipe.write, &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
@@ -863,11 +812,11 @@ static void android_app_free(struct android_app* android_app) {
     }
     pthread_mutex_unlock(&android_app->mutex);
 
-    close(android_app->msgread);
-    close(android_app->msgwrite);
+    close(android_app->msg_pipe.read);
+    close(android_app->msg_pipe.write);
     pthread_cond_destroy(&android_app->cond);
     pthread_mutex_destroy(&android_app->mutex);
-    free(android_app);
+    free_mem(android_app);
 }
 
 static void onDestroy(ANativeActivity* activity) {

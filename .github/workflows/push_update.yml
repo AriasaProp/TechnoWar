@@ -80,11 +80,11 @@ jobs:
       - name: build Android
         run: |
           cd android
-          gradle :build -Prelease
+          gradle :build
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: Android
-          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
+          path: ${{ github.workspace }}/android/build/outputs/apk/debug/android-debug.apk 
 
