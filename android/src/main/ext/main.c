@@ -146,7 +146,7 @@ struct SavedState {
 };
 
 struct Engine {
-  android_app* app;
+  struct android_app* app;
 
   ASensorManager* sensorManager;
   const ASensor* accelerometerSensor;
@@ -533,11 +533,11 @@ static void* android_app_entry(void* param) {
 		  while (!app->destroyRequested) {
 		    // Our input, sensor, and update/render logic is all driven by callbacks, so
 		    // we don't need to use the non-blocking poll.
-		    android_poll_source* source = 0;
+		    struct android_poll_source* source = 0;
 		    ALooper_pollOnce(-1, 0, 0, (void**)&source);
 		
 		    if (source) {
-		      source->process(state, source);
+		      source->process(engine->state, source);
 		    }
 		  }
 		
