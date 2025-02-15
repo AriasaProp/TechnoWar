@@ -436,10 +436,10 @@ static void process_cmd(struct android_app* app, struct android_poll_source *UNU
 
       case APP_CMD_TERM_WINDOW:
         LOGV("APP_CMD_TERM_WINDOW\n");
+        pthread_cond_broadcast(&app->cond);
 	      // The window is being hidden or closed, clean it up.
 	      engine_term_display(engine);
 	      // set window to null
-        LOGV("APP_CMD_TERM_WINDOW\n");
         pthread_mutex_lock(&app->mutex);
         app->window = NULL;
         pthread_cond_broadcast(&app->cond);
