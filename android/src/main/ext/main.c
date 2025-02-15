@@ -17,6 +17,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <initializer_list>
+#include <memory>
 
 #include "util.h"
 
@@ -31,12 +33,6 @@
 #define LOGE(fmt, ...) _LOG(ANDROID_LOG_ERROR, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 #define LOGW(fmt, ...) _LOG(ANDROID_LOG_WARN, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 #define LOGI(fmt, ...) _LOG(ANDROID_LOG_INFO, (fmt)__VA_OPT__(, ) __VA_ARGS__)
-
-#if defined(__GNUC__)
-#define UNUSED(x)       x##_UNUSED __attribute__((unused))
-#else
-#define UNUSED(x)       x##_UNUSED
-#endif
 
 struct android_app;
 
@@ -53,6 +49,14 @@ struct android_poll_source {
     void (*process)(struct android_app*, struct android_poll_source*);
 };
 
+/**
+ * This is the interface for the standard glue code of a threaded
+ * application.  In this model, the application's code is running
+ * in its own thread separate from the main thread of the process.
+ * It is not required that this thread be associated with the Java
+ * VM, although it will need to be in order to make JNI calls any
+ * Java objects.
+ */
 struct android_app {
     // The application can place a pointer to its own state object
     // here if it likes.
@@ -102,7 +106,9 @@ struct android_app {
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     
-    int msg_pipe[2];
+    struct {
+    	int read, write;
+    } msg_pipe;
 
     pthread_t thread;
 
@@ -119,27 +125,129 @@ struct android_app {
 };
 
 enum {
+    /**
+     * Looper data ID of commands coming from the app's main thread, which
+     * is returned as an identifier from ALooper_pollOnce().  The data for this
+     * identifier is a pointer to an android_poll_source structure.
+     * These can be retrieved and processed with android_app_read_cmd()
+     * and android_app_exec_cmd().
+     */
     LOOPER_ID_MAIN = 1,
+
+    /**
+     * Looper data ID of events coming from the AInputQueue of the
+     * application's window, which is returned as an identifier from
+     * ALooper_pollOnce().  The data for this identifier is a pointer to an
+     * android_poll_source structure.  These can be read via the inputQueue
+     * object of android_app.
+     */
     LOOPER_ID_INPUT = 2,
+
+    /**
+     * Start of user-defined ALooper identifiers.
+     */
     LOOPER_ID_USER = 3,
 };
 
 enum {
+    /**
+     * Command from main thread: the AInputQueue has changed.  Upon processing
+     * this command, android_app->inputQueue will be updated to the new queue
+     * (or NULL).
+     */
     APP_CMD_INPUT_CHANGED,
+
+    /**
+     * Command from main thread: a new ANativeWindow is ready for use.  Upon
+     * receiving this command, android_app->window will contain the new window
+     * surface.
+     */
     APP_CMD_INIT_WINDOW,
+
+    /**
+     * Command from main thread: the existing ANativeWindow needs to be
+     * terminated.  Upon receiving this command, android_app->window still
+     * contains the existing window; after calling android_app_exec_cmd
+     * it will be set to NULL.
+     */
     APP_CMD_TERM_WINDOW,
+
+    /**
+     * Command from main thread: the current ANativeWindow has been resized.
+     * Please redraw with its new size.
+     */
     APP_CMD_WINDOW_RESIZED,
+
+    /**
+     * Command from main thread: the system needs that the current ANativeWindow
+     * be redrawn.  You should redraw the window before handing this to
+     * android_app_exec_cmd() in order to avoid transient drawing glitches.
+     */
     APP_CMD_WINDOW_REDRAW_NEEDED,
+
+    /**
+     * Command from main thread: the content area of the window has changed,
+     * such as from the soft input window being shown or hidden.  You can
+     * find the new content rect in android_app::contentRect.
+     */
     APP_CMD_CONTENT_RECT_CHANGED,
+
+    /**
+     * Command from main thread: the app's activity window has gained
+     * input focus.
+     */
     APP_CMD_GAINED_FOCUS,
+
+    /**
+     * Command from main thread: the app's activity window has lost
+     * input focus.
+     */
     APP_CMD_LOST_FOCUS,
+
+    /**
+     * Command from main thread: the current device configuration has changed.
+     */
     APP_CMD_CONFIG_CHANGED,
+
+    /**
+     * Command from main thread: the system is running low on memory.
+     * Try to reduce your memory use.
+     */
     APP_CMD_LOW_MEMORY,
+
+    /**
+     * Command from main thread: the app's activity has been started.
+     */
     APP_CMD_START,
+
+    /**
+     * Command from main thread: the app's activity has been resumed.
+     */
     APP_CMD_RESUME,
+
+    /**
+     * Command from main thread: the app should generate a new saved state
+     * for itself, to restore from later if needed.  If you have saved state,
+     * allocate it with malloc and place it in android_app.savedState with
+     * the size in android_app.savedStateSize.  The will be freed for you
+     * later.
+     */
     APP_CMD_SAVE_STATE,
+
+    /**
+     * Command from main thread: the app's activity has been paused.
+     */
     APP_CMD_PAUSE,
+
+    /**
+     * Command from main thread: the app's activity has been stopped.
+     */
     APP_CMD_STOP,
+
+    /**
+     * Command from main thread: the app's activity is being destroyed,
+     * and waiting for the app thread to clean up and exit before proceeding.
+     */
     APP_CMD_DESTROY,
 };
 
@@ -150,7 +258,7 @@ struct SavedState {
 };
 
 struct Engine {
-  struct android_app* app;
+  android_app* app;
 
   ASensorManager* sensorManager;
   const ASensor* accelerometerSensor;
@@ -166,11 +274,9 @@ struct Engine {
   int running_;
 };
 
-static void Tick (long UNUSED(a), void *UNUSED(b));
+static void Tick (long, void *);
 
-
-
-static void Tick(long UNUSED(a), void* data) {
+static void Tick(long, void* data) {
   struct Engine *e = (struct Engine*)data;
   if (!e->running_)
     return;
@@ -205,15 +311,15 @@ static int engine_init_display(struct Engine* engine) {
                             EGL_NONE};
   EGLint w, h, format;
   EGLint numConfigs;
-  EGLConfig config = {0};
+  EGLConfig config = nullptr;
   EGLSurface surface;
   EGLContext context;
 
   EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
-  eglInitialize(display, 0, 0);
+  eglInitialize(display, nullptr, nullptr);
 
-  eglChooseConfig(display, attribs, 0, 0, &numConfigs);
+  eglChooseConfig(display, attribs, nullptr, 0, &numConfigs);
   if (!numConfigs) {
     LOGW("Unable to initialize EGLConfig");
     return -1;
@@ -221,6 +327,7 @@ static int engine_init_display(struct Engine* engine) {
   EGLConfig *supportedConfigs = (EGLConfig *) new_mem(sizeof(EGLConfig)*numConfigs);
   eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
   
+  const EGLint attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE};
   for (size_t i = 0, j = 0, k, l; i < numConfigs; i++) {
     EGLint a;
     k = 1;
@@ -246,12 +353,12 @@ static int engine_init_display(struct Engine* engine) {
    * As soon as we picked a EGLConfig, we can safely reconfigure the
    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
   eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
-  surface = eglCreateWindowSurface(display, config, engine->app->window, 0);
+  surface = eglCreateWindowSurface(display, config, engine->app->window, nullptr);
 
   /* A version of OpenGL has not been specified here.  This will default to
    * OpenGL 1.0.  You will need to change this if you want to use the newer
    * features of OpenGL like shaders. */
-  context = eglCreateContext(display, config, 0, 0);
+  context = eglCreateContext(display, config, nullptr, nullptr);
 
   if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
     LOGW("Unable to eglMakeCurrent");
@@ -292,7 +399,7 @@ static void engine_term_display(struct Engine* engine) {
   engine->surface = EGL_NO_SURFACE;
 }
 
-int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
+int OnSensorEvent(int /* fd */, int /* events */, void* data) {
   struct Engine* engine = (struct Engine*)data;
 
   ASensorEvent event;
@@ -308,7 +415,7 @@ int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
   return 1;
 }
 
-JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(a), jobject UNUSED(b), jint UNUSED(c), jint UNUSED(d), jint UNUSED(e), jint UNUSED(f)) {}
+extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *, jobject, jint, jint, jint, jint) {}
 
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
@@ -322,7 +429,7 @@ static void free_saved_state(struct android_app* android_app) {
 
 int8_t android_app_read_cmd(struct android_app* android_app) {
   int8_t cmd;
-  if (read(android_app->msg_pipe[0], &cmd, sizeof(cmd)) == sizeof(cmd)) {
+  if (read(android_app->msg_pipe.read, &cmd, sizeof(cmd)) == sizeof(cmd)) {
     switch (cmd) {
     case APP_CMD_SAVE_STATE:
       free_saved_state(android_app);
@@ -363,7 +470,7 @@ static void print_cur_config(struct android_app* app) {
 #endif
 }
 
-static void process_input(struct android_app* app, struct android_poll_source *UNUSED(a)) {
+static void process_input(struct android_app* app, struct android_poll_source*) {
   AInputEvent* event = NULL;
   if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
     LOGV("New input event: type=%d\n", AInputEvent_getType(event));
@@ -386,68 +493,82 @@ static void process_input(struct android_app* app, struct android_poll_source *U
   }
 }
 
-static void process_cmd(struct android_app* app, struct android_poll_source *UNUSED(a)) {
+static void process_cmd(struct android_app* app, struct android_poll_source*) {
     int8_t cmd = android_app_read_cmd(app);
+    // pre command
+    switch (cmd) {
+        case APP_CMD_INPUT_CHANGED:
+            LOGV("APP_CMD_INPUT_CHANGED\n");
+            pthread_mutex_lock(&app->mutex);
+            if (app->inputQueue != NULL) {
+                AInputQueue_detachLooper(app->inputQueue);
+            }
+            app->inputQueue = app->pendingInputQueue;
+            if (app->inputQueue != NULL) {
+                LOGV("Attaching input queue to looper");
+                AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
+            }
+            pthread_cond_broadcast(&app->cond);
+            pthread_mutex_unlock(&app->mutex);
+            break;
+
+        case APP_CMD_INIT_WINDOW:
+            LOGV("APP_CMD_INIT_WINDOW\n");
+            pthread_mutex_lock(&app->mutex);
+            app->window = app->pendingWindow;
+            pthread_cond_broadcast(&app->cond);
+            pthread_mutex_unlock(&app->mutex);
+            break;
+
+        case APP_CMD_TERM_WINDOW:
+            LOGV("APP_CMD_TERM_WINDOW\n");
+            pthread_cond_broadcast(&app->cond);
+            break;
+
+        case APP_CMD_RESUME:
+        case APP_CMD_START:
+        case APP_CMD_PAUSE:
+        case APP_CMD_STOP:
+            LOGV("activityState=%d\n", cmd);
+            pthread_mutex_lock(&app->mutex);
+            app->activityState = cmd;
+            pthread_cond_broadcast(&app->cond);
+            pthread_mutex_unlock(&app->mutex);
+            break;
+
+        case APP_CMD_CONFIG_CHANGED:
+            LOGV("APP_CMD_CONFIG_CHANGED\n");
+            AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
+            print_cur_config(app);
+            break;
+
+        case APP_CMD_DESTROY:
+            LOGV("APP_CMD_DESTROY\n");
+            app->destroyRequested = 1;
+            break;
+    }
     // main command
     struct Engine* engine = (struct Engine*)app->userData;
 	  switch (cmd) {
-      case APP_CMD_INPUT_CHANGED:
-        LOGV("APP_CMD_INPUT_CHANGED\n");
-        pthread_mutex_lock(&app->mutex);
-        if (app->inputQueue != NULL) {
-            AInputQueue_detachLooper(app->inputQueue);
-        }
-        app->inputQueue = app->pendingInputQueue;
-        if (app->inputQueue != NULL) {
-            LOGV("Attaching input queue to looper");
-            AInputQueue_attachLooper(app->inputQueue, app->looper, LOOPER_ID_INPUT, NULL, &app->inputPollSource);
-        }
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock(&app->mutex);
-        break;
-      case APP_CMD_CONFIG_CHANGED:
-        LOGV("APP_CMD_CONFIG_CHANGED\n");
-        AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
-        print_cur_config(app);
-        break;
 	    case APP_CMD_SAVE_STATE:
 	      // The system has asked us to save our current state.  Do so.
 	      engine->app->savedState = new_mem(sizeof(struct SavedState));
 	      *((struct SavedState*)engine->app->savedState) = engine->state;
 	      engine->app->savedStateSize = sizeof(struct SavedState);
-	      // tell is done
-        LOGV("APP_CMD_SAVE_STATE\n");
-        pthread_mutex_lock(&app->mutex);
-        app->stateSaved = 1;
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock(&app->mutex);
 	      break;
 	    case APP_CMD_INIT_WINDOW:
-        LOGV("APP_CMD_INIT_WINDOW\n");
-        pthread_mutex_lock(&app->mutex);
-        app->window = app->pendingWindow;
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock(&app->mutex);
 	      // The window is being shown, get it ready.
-	      if (engine->app->window) {
+	      if (engine->app->window != nullptr) {
 	        engine_init_display(engine);
 	      }
 	      break;
-
-      case APP_CMD_TERM_WINDOW:
-        LOGV("APP_CMD_TERM_WINDOW\n");
-        pthread_cond_broadcast(&app->cond);
+	    case APP_CMD_TERM_WINDOW:
 	      // The window is being hidden or closed, clean it up.
 	      engine_term_display(engine);
-	      // set window to null
-        pthread_mutex_lock(&app->mutex);
-        app->window = NULL;
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock(&app->mutex);
 	      break;
 	    case APP_CMD_GAINED_FOCUS:
 	      // When our app gains focus, we start monitoring the accelerometer.
-	      if (engine->accelerometerSensor) {
+	      if (engine->accelerometerSensor != nullptr) {
 	        ASensorEventQueue_enableSensor(engine->sensorEventQueue,
 	                                       engine->accelerometerSensor);
 	        // We'd like to get 60 events per second (in us).
@@ -463,31 +584,37 @@ static void process_cmd(struct android_app* app, struct android_poll_source *UNU
 	    case APP_CMD_LOST_FOCUS:
 	      // When our app loses focus, we stop monitoring the accelerometer.
 	      // This is to avoid consuming battery while not being used.
-	      if (engine->accelerometerSensor) {
-	        ASensorEventQueue_disableSensor(engine->sensorEventQueue,engine->accelerometerSensor);
+	      if (engine->accelerometerSensor != nullptr) {
+	        ASensorEventQueue_disableSensor(engine->sensorEventQueue,
+	                                        engine->accelerometerSensor);
 	      }
 	      engine->running_ = 0; 
 	      break;
-      case APP_CMD_RESUME:
-        free_saved_state(app);
-      	break;
-      case APP_CMD_START:
-      case APP_CMD_PAUSE:
-      case APP_CMD_STOP:
-      	break;
-      case APP_CMD_DESTROY:
-        LOGV("APP_CMD_DESTROY\n");
-        app->destroyRequested = 1;
-        break;
 	    default:
 	      break;
 	  }
-	  
-    LOGV("activityState=%d\n", cmd);
-    pthread_mutex_lock(&app->mutex);
-    app->activityState = cmd;
-    pthread_cond_broadcast(&app->cond);
-    pthread_mutex_unlock(&app->mutex);
+    // post command
+    switch (cmd) {
+        case APP_CMD_TERM_WINDOW:
+            LOGV("APP_CMD_TERM_WINDOW\n");
+            pthread_mutex_lock(&app->mutex);
+            app->window = NULL;
+            pthread_cond_broadcast(&app->cond);
+            pthread_mutex_unlock(&app->mutex);
+            break;
+
+        case APP_CMD_SAVE_STATE:
+            LOGV("APP_CMD_SAVE_STATE\n");
+            pthread_mutex_lock(&app->mutex);
+            app->stateSaved = 1;
+            pthread_cond_broadcast(&app->cond);
+            pthread_mutex_unlock(&app->mutex);
+            break;
+
+        case APP_CMD_RESUME:
+            free_saved_state(app);
+            break;
+    }
 }
 
 static void* android_app_entry(void* param) {
@@ -506,7 +633,8 @@ static void* android_app_entry(void* param) {
     app->inputPollSource.process = process_input;
 
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, app->msg_pipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
+    ALooper_addFd(looper, app->msg_pipe.read, LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
+            &app->cmdPollSource);
     app->looper = looper;
 
     pthread_mutex_lock(&app->mutex);
@@ -521,13 +649,15 @@ static void* android_app_entry(void* param) {
 		  engine->app = app;
 		
 		  // Prepare to monitor accelerometer
-  	  engine->sensorManager = ASensorManager_getInstance();
-		  if (engine->sensorManager) {
-			  engine->accelerometerSensor = ASensorManager_getDefaultSensor(engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-			  engine->sensorEventQueue = ASensorManager_createEventQueue(engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, engine);
+		  {
+		  	  engine->sensorManager = ASensorManager_getInstance();
+				  if (engine->sensorManager) {
+					  engine->accelerometerSensor = ASensorManager_getDefaultSensor(engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+					  engine->sensorEventQueue = ASensorManager_createEventQueue(engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, engine);
+				  }
 		  }
 		
-		  if (app->savedState) {
+		  if (app->savedState != nullptr) {
 		    // We are starting with a previous saved state; restore from it.
 		    engine->state = *(struct SavedState*)app->savedState;
 		  }
@@ -535,11 +665,11 @@ static void* android_app_entry(void* param) {
 		  while (!app->destroyRequested) {
 		    // Our input, sensor, and update/render logic is all driven by callbacks, so
 		    // we don't need to use the non-blocking poll.
-		    struct android_poll_source* source = 0;
-		    ALooper_pollOnce(-1, 0, 0, (void**)&source);
+		    android_poll_source* source = nullptr;
+		    ALooper_pollOnce(-1, nullptr, nullptr, (void**)&source);
 		
-		    if (source) {
-		      source->process(engine->app, source);
+		    if (source != nullptr) {
+		      source->process(state, source);
 		    }
 		  }
 		
@@ -568,7 +698,7 @@ static void* android_app_entry(void* param) {
 // --------------------------------------------------------------------
 
 static void android_app_write_cmd(struct android_app* android_app, int8_t cmd) {
-    if (write(android_app->msg_pipe[1], &cmd, sizeof(cmd)) != sizeof(cmd)) {
+    if (write(android_app->msg_pipe.write, &cmd, sizeof(cmd)) != sizeof(cmd)) {
         LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
     }
 }
@@ -599,12 +729,12 @@ static void android_app_set_window(struct android_app* android_app, ANativeWindo
 }
 
 static void android_app_set_activity_state(struct android_app* android_app, int8_t cmd) {
-  pthread_mutex_lock(&android_app->mutex);
-  android_app_write_cmd(android_app, cmd);
-  while (android_app->activityState != cmd) {
-    pthread_cond_wait(&android_app->cond, &android_app->mutex);
-  }
-  pthread_mutex_unlock(&android_app->mutex);
+    pthread_mutex_lock(&android_app->mutex);
+    android_app_write_cmd(android_app, cmd);
+    while (android_app->activityState != cmd) {
+        pthread_cond_wait(&android_app->cond, &android_app->mutex);
+    }
+    pthread_mutex_unlock(&android_app->mutex);
 }
 
 static void android_app_free(struct android_app* android_app) {
@@ -615,8 +745,8 @@ static void android_app_free(struct android_app* android_app) {
     }
     pthread_mutex_unlock(&android_app->mutex);
 
-    close(android_app->msg_pipe[0]);
-    close(android_app->msg_pipe[1]);
+    close(android_app->msg_pipe.read);
+    close(android_app->msg_pipe.write);
     pthread_cond_destroy(&android_app->cond);
     pthread_mutex_destroy(&android_app->mutex);
     free_mem(android_app);
@@ -689,12 +819,12 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
             focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
 
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow *window) {
+static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow*window) {
     LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
     android_app_set_window((struct android_app*)activity->instance, window);
 }
 
-static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow *window) {
+static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
     LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
     ((void)window);
     android_app_set_window((struct android_app*)activity->instance, NULL);
@@ -727,7 +857,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
       memcpy(app->savedState, savedState, savedStateSize);
 	  }
 	
-	  if (pipe(app->msg_pipe)) {
+	  if (pipe(&app->msg_pipe)) {
       LOGE("could not create pipe: %s", strerror(errno));
       return;
 	  }
