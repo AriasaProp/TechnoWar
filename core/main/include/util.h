@@ -1,6 +1,13 @@
 #ifndef UTIL_INCLUDED_
 #define UTIL_INCLUDED_
 
+
+#ifdef __GNUC__
+#define UNUSED(x)       x##_UNUSED __attribute__((unused))
+#else
+#define UNUSED(x)       x##_UNUSED
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #define MAX_TEMPORARY_BYTE 2048

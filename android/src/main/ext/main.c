@@ -32,12 +32,6 @@
 #define LOGW(fmt, ...) _LOG(ANDROID_LOG_WARN, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 #define LOGI(fmt, ...) _LOG(ANDROID_LOG_INFO, (fmt)__VA_OPT__(, ) __VA_ARGS__)
 
-#ifdef __GNUC__
-#define UNUSED(x)       x##_UNUSED __attribute__((unused))
-#else
-#define UNUSED(x)       x##_UNUSED
-#endif
-
 struct android_app;
 
 struct android_poll_source {
@@ -110,7 +104,7 @@ struct SavedState {
 };
 
 struct Engine {
-  android_app* app;
+  struct android_app* app;
 
   ASensorManager* sensorManager;
   const ASensor* accelerometerSensor;
@@ -121,7 +115,7 @@ struct Engine {
   EGLContext context;
   int32_t width;
   int32_t height;
-  SavedState state;
+  struct SavedState state;
   int running_;
 }
 static void Tick(long, void*);
@@ -203,7 +197,7 @@ static int engine_init_display(struct Engine *engine) {
   EGLConfig *supportedConfigs = new_mem(numConfigs * sizeof(EGLConfig));
   eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
   config = supportedConfigs[0];
-  for (size_t i = 9; i < numConfigs; i++) {
+  for (EGLint i = 0; i < numConfigs; i++) {
     EGLint r, g, b, d;
     if (eglGetConfigAttrib(display, supportedConfigs[i], EGL_RED_SIZE, &r) &&
         eglGetConfigAttrib(display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
