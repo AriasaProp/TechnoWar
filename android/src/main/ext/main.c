@@ -470,15 +470,11 @@ static void process_cmd(struct android_app* app, struct android_poll_source *UNU
 	      break;
       case APP_CMD_RESUME:
         free_saved_state(app);
+      	break;
       case APP_CMD_START:
       case APP_CMD_PAUSE:
       case APP_CMD_STOP:
-        LOGV("activityState=%d\n", cmd);
-        pthread_mutex_lock(&app->mutex);
-        app->activityState = cmd;
-        pthread_cond_broadcast(&app->cond);
-        pthread_mutex_unlock(&app->mutex);
-        break;
+      	break;
       case APP_CMD_DESTROY:
         LOGV("APP_CMD_DESTROY\n");
         app->destroyRequested = 1;
@@ -486,6 +482,12 @@ static void process_cmd(struct android_app* app, struct android_poll_source *UNU
 	    default:
 	      break;
 	  }
+	  
+    LOGV("activityState=%d\n", cmd);
+    pthread_mutex_lock(&app->mutex);
+    app->activityState = cmd;
+    pthread_cond_broadcast(&app->cond);
+    pthread_mutex_unlock(&app->mutex);
 }
 
 static void* android_app_entry(void* param) {
@@ -504,8 +506,7 @@ static void* android_app_entry(void* param) {
     app->inputPollSource.process = process_input;
 
     ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-    ALooper_addFd(looper, app->msg_pipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL,
-            &app->cmdPollSource);
+    ALooper_addFd(looper, app->msg_pipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &app->cmdPollSource);
     app->looper = looper;
 
     pthread_mutex_lock(&app->mutex);
@@ -520,12 +521,10 @@ static void* android_app_entry(void* param) {
 		  engine->app = app;
 		
 		  // Prepare to monitor accelerometer
-		  {
-		  	  engine->sensorManager = ASensorManager_getInstance();
-				  if (engine->sensorManager) {
-					  engine->accelerometerSensor = ASensorManager_getDefaultSensor(engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-					  engine->sensorEventQueue = ASensorManager_createEventQueue(engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, engine);
-				  }
+  	  engine->sensorManager = ASensorManager_getInstance();
+		  if (engine->sensorManager) {
+			  engine->accelerometerSensor = ASensorManager_getDefaultSensor(engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+			  engine->sensorEventQueue = ASensorManager_createEventQueue(engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, engine);
 		  }
 		
 		  if (app->savedState) {
@@ -600,12 +599,12 @@ static void android_app_set_window(struct android_app* android_app, ANativeWindo
 }
 
 static void android_app_set_activity_state(struct android_app* android_app, int8_t cmd) {
-    pthread_mutex_lock(&android_app->mutex);
-    android_app_write_cmd(android_app, cmd);
-    while (android_app->activityState != cmd) {
-        pthread_cond_wait(&android_app->cond, &android_app->mutex);
-    }
-    pthread_mutex_unlock(&android_app->mutex);
+  pthread_mutex_lock(&android_app->mutex);
+  android_app_write_cmd(android_app, cmd);
+  while (android_app->activityState != cmd) {
+    pthread_cond_wait(&android_app->cond, &android_app->mutex);
+  }
+  pthread_mutex_unlock(&android_app->mutex);
 }
 
 static void android_app_free(struct android_app* android_app) {
