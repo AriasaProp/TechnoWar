@@ -270,7 +270,7 @@ static void engine_term_display(struct Engine *engine) {
     }
     eglTerminate(engine->display);
   }
-  engine->Pause();
+  Pause(engine);
   engine->display = EGL_NO_DISPLAY;
   engine->context = EGL_NO_CONTEXT;
   engine->surface = EGL_NO_SURFACE;
@@ -315,7 +315,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
                                        engine->accelerometerSensor,
                                        (1000L / 60) * 1000);
       }
-      engine->Resume();
+      Resume(engine);
       break;
     case APP_CMD_LOST_FOCUS:
       // When our app loses focus, we stop monitoring the accelerometer.
@@ -324,7 +324,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
         ASensorEventQueue_disableSensor(engine->sensorEventQueue,
                                         engine->accelerometerSensor);
       }
-      engine->Pause();
+      Pause(engine);
       break;
     default:
       break;
@@ -345,22 +345,20 @@ int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
 void android_main(struct android_app *state) {
   struct Engine engine = {0};
   state->userData = &engine;
-  state->onAppCmd = engine_handle_cmd;
-  state->onInputEvent = engine_handle_input;
   engine.app = state;
 
   // Prepare to monitor accelerometer
-  engine.CreateSensorListener(OnSensorEvent);
+  CreateSensorListener(engine, OnSensorEvent);
 
   if (!state->savedState) {
     // We are starting with a previous saved state; restore from it.
-    engine.state = *(struct SavedState*)state->savedState;
+    engine->state = *(struct SavedState*)state->savedState;
   }
 
   while (!state->destroyRequested) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
-    android_poll_source* source = 0;
+    struct android_poll_source* source = 0;
     ALooper_pollOnce(-1, 0, 0, (void**)&source);
 
     if (!source) {
@@ -368,7 +366,8 @@ void android_main(struct android_app *state) {
     }
   }
 
-  engine_term_display(&engine);
+  engine_term_display(engine);
+  free_mem(engine);
 }
 
 extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint UNUSED(a1), jint UNUSED(a2), jint UNUSED(a3), jint UNUSED(a4)) {}
@@ -526,7 +525,7 @@ static void process_input(struct android_app* app, struct android_poll_source*) 
             return;
         }
         int32_t handled = 0;
-        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
+        handled = engine_handle_input(app, event);
         AInputQueue_finishEvent(app->inputQueue, event, handled);
     } else {
         LOGE("Failure reading next input event: %s\n", strerror(errno));
@@ -536,7 +535,7 @@ static void process_input(struct android_app* app, struct android_poll_source*) 
 static void process_cmd(struct android_app* app, struct android_poll_source*) {
     int8_t cmd = android_app_read_cmd(app);
     android_app_pre_exec_cmd(app, cmd);
-    if (app->onAppCmd != NULL) app->onAppCmd(app, cmd);
+    engine_handle_cmd(app, cmd);
     android_app_post_exec_cmd(app, cmd);
 }
 
