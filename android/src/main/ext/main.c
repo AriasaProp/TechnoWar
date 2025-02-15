@@ -291,9 +291,9 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
   switch (cmd) {
     case APP_CMD_SAVE_STATE:
       // The system has asked us to save our current state.  Do so.
-      engine->app->savedState = malloc(sizeof(SavedState));
-      *((SavedState*)engine->app->savedState) = engine->state;
-      engine->app->savedStateSize = sizeof(SavedState);
+      engine->app->savedState = new_mem(sizeof(struct SavedState));
+      *((struct SavedState*)engine->app->savedState) = engine->state;
+      engine->app->savedStateSize = sizeof(struct SavedState);
       break;
     case APP_CMD_INIT_WINDOW:
       // The window is being shown, get it ready.
@@ -343,9 +343,7 @@ int OnSensorEvent(int UNUSED(fd), int UNUSED(events), void* data) {
 }
 
 void android_main(struct android_app *state) {
-  Engine engine {};
-
-  memset(&engine, 0, sizeof(engine));
+  struct Engine engine = {0};
   state->userData = &engine;
   state->onAppCmd = engine_handle_cmd;
   state->onInputEvent = engine_handle_input;
@@ -356,7 +354,7 @@ void android_main(struct android_app *state) {
 
   if (!state->savedState) {
     // We are starting with a previous saved state; restore from it.
-    engine.state = *(SavedState*)state->savedState;
+    engine.state = *(struct SavedState*)state->savedState;
   }
 
   while (!state->destroyRequested) {
@@ -378,7 +376,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->savedState != NULL) {
-        free(android_app->savedState);
+        free_mem(android_app->savedState);
         android_app->savedState = NULL;
         android_app->savedStateSize = 0;
     }
@@ -578,15 +576,14 @@ static void* android_app_entry(void* param) {
 // --------------------------------------------------------------------
 
 static struct android_app* android_app_create(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-    struct android_app* android_app = (struct android_app*)malloc(sizeof(struct android_app));
-    memset(android_app, 0, sizeof(struct android_app));
+    struct android_app* android_app = (struct android_app*)new_imen(sizeof(struct android_app));
     android_app->activity = activity;
 
     pthread_mutex_init(&android_app->mutex, NULL);
     pthread_cond_init(&android_app->cond, NULL);
 
     if (savedState != NULL) {
-        android_app->savedState = malloc(savedStateSize);
+        android_app->savedState = new_mem(savedStateSize);
         android_app->savedStateSize = savedStateSize;
         memcpy(android_app->savedState, savedState, savedStateSize);
     }
@@ -662,7 +659,7 @@ static void android_app_free(struct android_app* android_app) {
     close(android_app->msgpipe[1]);
     pthread_cond_destroy(&android_app->cond);
     pthread_mutex_destroy(&android_app->mutex);
-    free(android_app);
+    free_mem(android_app);
 }
 
 static void onDestroy(ANativeActivity* activity) {
