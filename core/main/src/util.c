@@ -1,5 +1,6 @@
 #include "util.h"
 #include <string.h>
+#include <stdlib.h>
 
 union temp stemp;
 
@@ -12,7 +13,7 @@ static struct watched_memory {void*p; size_t l;} watched_memory_list[MAX_WATCHED
 void *new_mem(size_t l) {
 #ifndef NDEBUG
 	for (size_t i = 0; i < MAX_WATCHED_MEMORY; ++i) {
-		if (!watched_memory_list[i]) {
+		if (watched_memory_list[i] == NULL) {
 			watched_memory_list[i].p = malloc(l);
 			watched_memory_list[i].l = l;
 			total_mem += l;
@@ -25,7 +26,7 @@ void *new_mem(size_t l) {
 void *new_imem(size_t) {
 #ifndef NDEBUG
 	for (size_t i = 0; i < MAX_WATCHED_MEMORY; ++i) {
-		if (!watched_memory_list[i]) {
+		if (watched_memory_list[i] == NULL) {
 			watched_memory_list[i].p = calloc(1, l);
 			watched_memory_list[i].l = l;
 			total_mem += l;
@@ -38,7 +39,7 @@ void *new_imem(size_t) {
 void free_mem(void *a) {
 #ifndef NDEBUG
 	for (size_t i = 0, j; i < MAX_WATCHED_MEMORY; ++i) {
-		if (!watched_memory_list[i]) break;
+		if (watched_memory_list[i] == NULL) break;
 		else if (watched_memory_list[i].p == a) {
 			total_mem -= watched_memory_list[i].l;
 			free(watched_memory_list[i].p);
@@ -46,7 +47,7 @@ void free_mem(void *a) {
 			if (j < MAX_WATCHED_MEMORY)
 				memmove(watched_memory_list + i, watched_memory_list + j, MAX_WATCHED_MEMORY - j);
 			else
-				watched_memory_list[i] = 0;
+				watched_memory_list[i] = { 0 };
 		}
 	}
 #endif

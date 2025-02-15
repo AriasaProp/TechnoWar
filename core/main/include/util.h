@@ -13,9 +13,9 @@ union temp {
 
 extern union temp stemp;
 
-extern void *new_mem(size_t);
-extern void *new_imem(size_t);
-extern void free_mem(void *);
-extern size_t get_mem_usage();
+void *new_mem(size_t);
+void *new_imem(size_t);
+void free_mem(void *);
+size_t get_mem_usage();
 
 #endif // UTIL_INCLUDED_
