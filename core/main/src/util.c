@@ -1,5 +1,7 @@
-#include <stdint.h>
+#include "util.h"
+#include <string.h>
 
+union temp stemp;
 
 #ifndef NDEBUG
 #define MAX_WATCHED_MEMORY 2048
