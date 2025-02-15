@@ -47,7 +47,8 @@ void free_mem(void *a) {
 			if (j < MAX_WATCHED_MEMORY) {
 				memmove(watched_memory_list + i, watched_memory_list + j, sizeof(struct watched_memory) * (MAX_WATCHED_MEMORY - j));
 			}
-			watched_memory_list[MAX_WATCHED_MEMORY - 1] = { 0, 0 };
+			watched_memory_list[MAX_WATCHED_MEMORY - 1].p = 0;
+			watched_memory_list[MAX_WATCHED_MEMORY - 1].l = 0;
 		}
 	}
 #endif
