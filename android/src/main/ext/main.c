@@ -363,7 +363,7 @@ static void print_cur_config(struct android_app* app) {
 #endif
 }
 
-static void process_input(struct android_app* app, struct android_poll_source*) {
+static void process_input(struct android_app* app, struct android_poll_source *UNUSED(a)) {
   AInputEvent* event = NULL;
   if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
     LOGV("New input event: type=%d\n", AInputEvent_getType(event));
@@ -386,7 +386,7 @@ static void process_input(struct android_app* app, struct android_poll_source*) 
   }
 }
 
-static void process_cmd(struct android_app* app, struct android_poll_source*) {
+static void process_cmd(struct android_app* app, struct android_poll_source *UNUSED(a)) {
     int8_t cmd = android_app_read_cmd(app);
     // main command
     struct Engine* engine = (struct Engine*)app->userData;
@@ -540,7 +540,7 @@ static void* android_app_entry(void* param) {
 		    ALooper_pollOnce(-1, 0, 0, (void**)&source);
 		
 		    if (source) {
-		      source->process(engine->state, source);
+		      source->process(engine->app, source);
 		    }
 		  }
 		
