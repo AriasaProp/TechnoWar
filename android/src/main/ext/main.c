@@ -94,8 +94,7 @@ enum {
   APP_CMD_WINDOW_RESIZED,
   APP_CMD_WINDOW_REDRAW_NEEDED,
   APP_CMD_CONTENT_RECT_CHANGED,
-  APP_CMD_GAINED_FOCUS,
-  APP_CMD_LOST_FOCUS,
+  APP_CMD_FOCUS_CHANGED,
   APP_CMD_CONFIG_CHANGED,
   APP_CMD_LOW_MEMORY,
   APP_CMD_START,
@@ -385,21 +384,22 @@ static void* android_app_entry(void* param) {
 					  print_cur_config(android_app);
 					  break;
 
-					case APP_CMD_GAINED_FOCUS:
-					  // When our app gains focus, we start monitoring the accelerometer.
-					  if (engine.accelerometerSensor != NULL) {
-					    ASensorEventQueue_enableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
-					    // We'd like to get 60 events per second (in us).
-					    ASensorEventQueue_setEventRate(engine.sensorEventQueue, engine.accelerometerSensor, (1000L/60)*1000);
-					  }
+					case APP_CMD_FOCUS_CHANGED:
+						if (cmd.m != NULL) {
+						  if (engine.accelerometerSensor != NULL) {
+						    ASensorEventQueue_enableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
+						    ASensorEventQueue_setEventRate(engine.sensorEventQueue, engine.accelerometerSensor, (1000L/60)*1000);
+						  }
+						} else {
+						  if (engine.accelerometerSensor != NULL) {
+						    ASensorEventQueue_disableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
+						  }
+						}
 					  break;
 
 					case APP_CMD_LOST_FOCUS:
 					  // When our app loses focus, we stop monitoring the accelerometer.
 					  // This is to avoid consuming battery while not being used.
-					  if (engine.accelerometerSensor != NULL) {
-					    ASensorEventQueue_disableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
-					  }
 					  break;
 
 					case APP_CMD_DESTROY:
@@ -482,11 +482,11 @@ static void onDestroy(ANativeActivity* activity) {
 }
 static void onStart(ANativeActivity* activity) {
   LOGV("Start: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_START, NULL});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_START, NULL});
 }
 static void onResume(ANativeActivity* activity) {
   LOGV("Resume: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_RESUME, NULL});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_RESUME, NULL});
 }
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   LOGV("SaveInstanceState: %p\n", activity);
@@ -507,16 +507,15 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
 }
 static void onPause(ANativeActivity* activity) {
   LOGV("Pause: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_PAUSE, NULL});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_PAUSE, NULL});
 }
 static void onStop(ANativeActivity* activity) {
   LOGV("Stop: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_STOP, NULL});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_STOP, NULL});
 }
 static void onConfigurationChanged(ANativeActivity* activity) {
-  struct android_app* android_app = (struct android_app*)activity->instance;
   LOGV("ConfigurationChanged: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_CONFIG_CHANGED, NULL});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_CONFIG_CHANGED, NULL});
 }
 static void onLowMemory(ANativeActivity* activity) {
   struct android_app* android_app = (struct android_app*)activity->instance;
@@ -575,7 +574,7 @@ void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_
   }
   if (pipe(android_app->msgpipe)) {
     LOGE("could not create pipe: %s", strerror(errno));
-    return NULL;
+    return;
   }
   
   // start thread
