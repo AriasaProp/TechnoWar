@@ -439,7 +439,7 @@ static void* android_app_entry(void* param) {
     pthread_cond_broadcast(&android_app->cond);
     pthread_mutex_unlock(&android_app->mutex);
 
-    android_main()
+    android_main(android_app);
 
     android_app_destroy(android_app);
     return NULL;
@@ -703,32 +703,20 @@ static int engine_init_display(struct engine* engine) {
      * find the best match if possible, otherwise use the very first one
      */
     eglChooseConfig(display, attribs, nullptr,0, &numConfigs);
-    std::unique_ptr<EGLConfig[]> supportedConfigs(new EGLConfig[numConfigs]);
-    assert(supportedConfigs);
-    eglChooseConfig(display, attribs, supportedConfigs.get(), numConfigs, &numConfigs);
-    assert(numConfigs);
-    auto i = 0;
-    for (; i < numConfigs; i++) {
-        auto& cfg = supportedConfigs[i];
+    EGLConfig *supportedConfigs = (EGLConfig*)malloc(sizeof(EGLConfig) * numConfigs);
+    eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
+    config = supportedConfigs[0];
+    for (size_t i = 0; i < numConfigs; i++) {
         EGLint r, g, b, d;
-        if (eglGetConfigAttrib(display, cfg, EGL_RED_SIZE, &r)   &&
-            eglGetConfigAttrib(display, cfg, EGL_GREEN_SIZE, &g) &&
-            eglGetConfigAttrib(display, cfg, EGL_BLUE_SIZE, &b)  &&
-            eglGetConfigAttrib(display, cfg, EGL_DEPTH_SIZE, &d) &&
+        if (eglGetConfigAttrib(display, supportedConfigs[i], EGL_RED_SIZE, &r)   &&
+            eglGetConfigAttrib(display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
+            eglGetConfigAttrib(display, supportedConfigs[i], EGL_BLUE_SIZE, &b)  &&
+            eglGetConfigAttrib(display, supportedConfigs[i], EGL_DEPTH_SIZE, &d) &&
             r == 8 && g == 8 && b == 8 && d == 0 ) {
-
             config = supportedConfigs[i];
             break;
         }
     }
-    if (i == numConfigs) {
-        config = supportedConfigs[0];
-    }
-
-    /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-     * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-     * As soon as we picked a EGLConfig, we can safely reconfigure the
-     * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
     surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
     context = eglCreateContext(display, config, NULL, NULL);
@@ -749,10 +737,9 @@ static int engine_init_display(struct engine* engine) {
     engine->state.angle = 0;
 
     // Check openGL on the system
-    auto opengl_info = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
-    for (auto name : opengl_info) {
-        auto info = glGetString(name);
-        LOGI("OpenGL Info: %s", info);
+    EGLInt opengl_info[] = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
+    for (EGLInt name : opengl_info) {
+        LOGI("OpenGL Info: %s", glGetString(name));
     }
     // Initialize GL state.
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -880,7 +867,6 @@ ASensorManager* AcquireASensorManagerInstance(android_app* app) {
   PF_GETINSTANCE getInstanceFunc = (PF_GETINSTANCE)
       dlsym(androidHandle, "ASensorManager_getInstance");
   // by all means at this point, ASensorManager_getInstance should be available
-  assert(getInstanceFunc);
   dlclose(androidHandle);
 
   return getInstanceFunc();
