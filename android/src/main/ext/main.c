@@ -385,7 +385,7 @@ static void* android_app_entry(void* param) {
 					  break;
 
 					case APP_CMD_FOCUS_CHANGED:
-						if (cmd.m != NULL) {
+						if ((int)cmd.m != NULL) {
 						  if (engine.accelerometerSensor != NULL) {
 						    ASensorEventQueue_enableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
 						    ASensorEventQueue_setEventRate(engine.sensorEventQueue, engine.accelerometerSensor, (1000L/60)*1000);
@@ -397,11 +397,6 @@ static void* android_app_entry(void* param) {
 						}
 					  break;
 
-					case APP_CMD_LOST_FOCUS:
-					  // When our app loses focus, we stop monitoring the accelerometer.
-					  // This is to avoid consuming battery while not being used.
-					  break;
-
 					case APP_CMD_DESTROY:
 					  LOGV("APP_CMD_DESTROY\n");
 					  android_app->destroyRequested = 1;
@@ -409,7 +404,7 @@ static void* android_app_entry(void* param) {
 				}
 				LOGV("activity state=%d\n", cmd);
 			  pthread_mutex_lock(&android_app->mutex);
-			  android_app->activityState = cmd;
+			  android_app->activityState = cmd.c;
 			  pthread_cond_broadcast(&android_app->cond);
 			  pthread_mutex_unlock(&android_app->mutex);
     		break;
@@ -452,13 +447,13 @@ static void* android_app_entry(void* param) {
   return NULL;
 }
 
-static void android_app_write_cmd(struct android_app* android_app, struct cmd_msg cmd) {
+static inline void android_app_write_cmd(struct android_app* android_app, struct cmd_msg cmd) {
   android_app->activityState = APP_CMD_NONE;
   if (write(android_app->msgpipe[1], &cmd, sizeof(cmd)) != sizeof(cmd)) {
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   }
   pthread_mutex_lock(&android_app->mutex);
-  while (android_app->activityState != cmd) {
+  while (android_app->activityState != cmd.c) {
     pthread_cond_wait(&android_app->cond, &android_app->mutex);
   }
   pthread_mutex_unlock(&android_app->mutex);
@@ -524,7 +519,7 @@ static void onLowMemory(ANativeActivity* activity) {
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
   LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)uintptr_t(focused)});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)focused});
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
