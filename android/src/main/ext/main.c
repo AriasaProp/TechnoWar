@@ -441,7 +441,7 @@ static void process_cmd(struct android_app* app, struct android_poll_source* UNU
 static void* android_app_entry(void* param) {
 	struct android_app* android_app = (struct android_app*) param;
 	android_app->config = AConfiguration_new();
-  AConfiguration_fromAssetManager(android_app->config, activity->assetManager);
+  AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
   print_cur_config(android_app);
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &android_app->cmdPollSource);
