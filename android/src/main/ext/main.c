@@ -316,14 +316,12 @@ void android_app_pre_exec_cmd(struct android_app* android_app, int8_t cmd) {
     LOGV("APP_CMD_INPUT_CHANGED\n");
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->inputQueue != NULL) {
-        AInputQueue_detachLooper(android_app->inputQueue);
+      AInputQueue_detachLooper(android_app->inputQueue);
     }
     android_app->inputQueue = android_app->pendingInputQueue;
     if (android_app->inputQueue != NULL) {
-        LOGV("Attaching input queue to looper");
-        AInputQueue_attachLooper(android_app->inputQueue,
-                android_app->looper, LOOPER_ID_INPUT, NULL,
-                &android_app->inputPollSource);
+      LOGV("Attaching input queue to looper");
+      AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, NULL, NULL);
     }
     pthread_cond_broadcast(&android_app->cond);
     pthread_mutex_unlock(&android_app->mutex);
@@ -400,7 +398,7 @@ static void* android_app_entry(void* param) {
   AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
   print_cur_config(android_app);
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &android_app->cmdPollSource);
+  ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, NULL);
   android_app->looper = looper;
   
   struct engine engine;
