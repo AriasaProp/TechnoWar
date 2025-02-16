@@ -103,7 +103,7 @@ static inline int egl_invalid (struct android_app *android_app) {
 		(android_app->context == EGL_NO_CONTEXT);
 }
 static int engine_init_egl(struct android_app *android_app) {
-	if (android_app->app->window == NULL) return -1;
+	if (android_app->window == NULL) return -1;
 	if (android_app->display == EGL_NO_DISPLAY) {
 	  // initialize EGL display
 		EGLint temp[2];
@@ -155,7 +155,7 @@ static int engine_init_egl(struct android_app *android_app) {
 	}
   // create surface
   if (android_app->surface == EGL_NO_SURFACE)
-  	android_app->surface = eglCreateWindowSurface(android_app->display, android_app->config, android_app->app->window, NULL);
+  	android_app->surface = eglCreateWindowSurface(android_app->display, android_app->config, android_app->window, NULL);
 
   // create context
   if (android_app->context == EGL_NO_CONTEXT)
@@ -440,12 +440,12 @@ static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
   LOGV("SaveInstanceState: %p\n", activity);
   struct android_app* android_app = (struct android_app*)activity->instance;
   void* savedState = NULL;
-  *outLen = sizeof(saved_state);
+  *outLen = sizeof(struct saved_state);
 
   android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_SAVE_STATE, NULL});
   pthread_mutex_lock(&android_app->mutex);
-  savedState = new_mem(sizeof(saved_state));
-  memcpy(savedState, android_app->state, sizeof(saved_state));
+  savedState = new_mem(sizeof(struct saved_state));
+  memcpy(savedState, &android_app->state, sizeof(struct saved_state));
   pthread_mutex_unlock(&android_app->mutex);
 
   return savedState;
