@@ -565,16 +565,16 @@ static void engine_draw_frame(struct engine* engine) {
 
     eglSwapBuffers(engine->display, engine->surface);
 }
-static void engine_term_egl(struct engine* engine) {
+static inline void engine_term_egl(struct engine* engine) {
     eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (engine->context != EGL_NO_CONTEXT) {
-        eglDestroyContext(engine->display, engine->context);
+      eglDestroyContext(engine->display, engine->context);
+    	engine->context = EGL_NO_CONTEXT;
     }
     if (engine->surface != EGL_NO_SURFACE) {
-        eglDestroySurface(engine->display, engine->surface);
+      eglDestroySurface(engine->display, engine->surface);
+    	engine->surface = EGL_NO_SURFACE;
     }
-    engine->context = EGL_NO_CONTEXT;
-    engine->surface = EGL_NO_SURFACE;
 }
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
     struct engine* engine = (struct engine*)app->userData;
@@ -596,10 +596,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             break;
         case APP_CMD_INIT_WINDOW:
             // The window is being shown, get it ready.
-            if (engine->app->window != NULL) {
-                engine_init_egl(engine);
-                engine_draw_frame(engine);
-            }
+            engine_init_egl(engine);
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
@@ -726,7 +723,7 @@ void android_main(struct android_app* state) {
   struct android_poll_source* source;
   // game loop while checking if game requested to exit
   while (!state->destroyRequested) {
-    switch (ALooper_pollAll(engine_is_ready(&engine) ? 0 : -1, NULL, &events, (void**)&source)) {
+    switch (ALooper_pollOnce(engine_is_ready(&engine) ? 0 : -1, NULL, &events, (void**)&source)) {
     	case LOOPER_ID_USER:
     	case LOOPER_ID_MAIN:
     	case LOOPER_ID_INPUT:
