@@ -17,6 +17,8 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
+#include "util.h"
+
 #define LOG_TAG "TechnoWar Activity"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
@@ -702,7 +704,7 @@ static int engine_init_display(struct engine* engine) {
     /* Here, the application chooses the configuration it desires.
      * find the best match if possible, otherwise use the very first one
      */
-    eglChooseConfig(display, attribs, nullptr,0, &numConfigs);
+    eglChooseConfig(display, attribs, 0,0, &numConfigs);
     EGLConfig *supportedConfigs = (EGLConfig*)malloc(sizeof(EGLConfig) * numConfigs);
     eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
     config = supportedConfigs[0];
@@ -737,14 +739,13 @@ static int engine_init_display(struct engine* engine) {
     engine->state.angle = 0;
 
     // Check openGL on the system
-    EGLInt opengl_info[] = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
-    for (EGLInt name : opengl_info) {
+    EGLint opengl_info[] = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
+    for (EGLint name : opengl_info) {
         LOGI("OpenGL Info: %s", glGetString(name));
     }
     // Initialize GL state.
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
     glDisable(GL_DEPTH_TEST);
 
     return 0;
@@ -833,17 +834,17 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
     }
 }
 #include <dlfcn.h>
-ASensorManager* AcquireASensorManagerInstance(android_app* app) {
+ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
 
   if(!app)
-    return nullptr;
+    return 0;
 
   typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
   void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
   PF_GETINSTANCEFORPACKAGE getInstanceForPackageFunc = (PF_GETINSTANCEFORPACKAGE)
       dlsym(androidHandle, "ASensorManager_getInstanceForPackage");
   if (getInstanceForPackageFunc) {
-    JNIEnv* env = nullptr;
+    JNIEnv* env = 0;
     app->activity->vm->AttachCurrentThread(&env, NULL);
 
     jclass android_content_Context = env->GetObjectClass(app->activity->clazz);
