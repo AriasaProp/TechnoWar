@@ -32,14 +32,11 @@ jobs:
               - added|modified: 'android/src/main/ext/**/*.c'
               - added|modified: 'android/src/main/java/**/*.java'
 
-      - name: Format
+      - name: Do Changes when needed
         if: steps.changes.outputs.src == 'true'
         run: |
           sudo apt-get install -y clang-format
           echo ${{ steps.changes.outputs.src_files }} | xargs -n 1 clang-format -i
- 
-      - name: Push changes
-        run: |
           git add .
           if (git commit -m "Reformatting Code Sources"); then
             git config --global user.email "ikomangwidiadaariasa12@gmail.com"
