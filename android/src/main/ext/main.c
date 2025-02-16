@@ -69,7 +69,7 @@ struct android_app {
     // memory will remain around until you call android_app_exec_cmd() for
     // APP_CMD_RESUME, at which point it will be freed and savedState set to NULL.
     // These variables should only be changed when processing a APP_CMD_SAVE_STATE,
-    // at which point they will be initialized to NULL and you can malloc your
+    // at which point they will be initialized to NULL and you can new_mem your
     // state and place the information here.  In that case the memory will be
     // freed for you later.
     void* savedState;
@@ -224,7 +224,7 @@ enum {
     /**
      * Command from main thread: the app should generate a new saved state
      * for itself, to restore from later if needed.  If you have saved state,
-     * allocate it with malloc and place it in android_app.savedState with
+     * allocate it with new_mem and place it in android_app.savedState with
      * the size in android_app.savedStateSize.  The will be freed for you
      * later.
      */
@@ -254,7 +254,7 @@ void android_app_post_exec_cmd(struct android_app* android_app, int8_t cmd);
 static void free_saved_state(struct android_app* android_app) {
     pthread_mutex_lock(&android_app->mutex);
     if (android_app->savedState != NULL) {
-        free(android_app->savedState);
+        free_mem(android_app->savedState);
         android_app->savedState = NULL;
         android_app->savedStateSize = 0;
     }
@@ -451,15 +451,14 @@ static void* android_app_entry(void* param) {
 
 
 static struct android_app* android_app_create(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-    struct android_app* android_app = (struct android_app*)malloc(sizeof(struct android_app));
-    memset(android_app, 0, sizeof(struct android_app));
+    struct android_app* android_app = (struct android_app*)new_imem(sizeof(struct android_app));
     android_app->activity = activity;
 
     pthread_mutex_init(&android_app->mutex, NULL);
     pthread_cond_init(&android_app->cond, NULL);
 
     if (savedState != NULL) {
-        android_app->savedState = malloc(savedStateSize);
+        android_app->savedState = new_mem(savedStateSize);
         android_app->savedStateSize = savedStateSize;
         memcpy(android_app->savedState, savedState, savedStateSize);
     }
@@ -539,7 +538,7 @@ static void android_app_free(struct android_app* android_app) {
     close(android_app->msgwrite);
     pthread_cond_destroy(&android_app->cond);
     pthread_mutex_destroy(&android_app->mutex);
-    free(android_app);
+    free_mem(android_app);
 }
 
 static void onDestroy(ANativeActivity* activity) {
@@ -709,7 +708,7 @@ static int engine_init_display(struct engine* engine) {
      * find the best match if possible, otherwise use the very first one
      */
     eglChooseConfig(display, attribs, 0,0, &numConfigs);
-    EGLConfig *supportedConfigs = (EGLConfig*)malloc(sizeof(EGLConfig) * numConfigs);
+    EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * numConfigs);
     eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
     config = supportedConfigs[0];
     for (EGLint i = 0; i < numConfigs; i++) {
@@ -800,7 +799,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
     switch (cmd) {
         case APP_CMD_SAVE_STATE:
             // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = malloc(sizeof(struct saved_state));
+            engine->app->savedState = new_mem(sizeof(struct saved_state));
             *((struct saved_state*)engine->app->savedState) = engine->state;
             engine->app->savedStateSize = sizeof(struct saved_state);
             break;
