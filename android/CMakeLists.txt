@@ -18,8 +18,6 @@ set(SRC "${CMAKE_CURRENT_SOURCE_DIR}/src/main/ext/")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
 file(GLOB_RECURSE Src_Files "${SRC}/*.c")
 
-message(STATUS ${Src_Files})
-
 add_subdirectory(${CORE_SRC} "${CMAKE_CURRENT_SOURCE_DIR}/bin/core")
 
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
