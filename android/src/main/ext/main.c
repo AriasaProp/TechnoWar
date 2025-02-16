@@ -461,7 +461,7 @@ static void* android_app_entry(void* param) {
 
   if (android_app->savedState != NULL) {
     // We are starting with a previous saved state; restore from it.
-    engine.android_app = *(struct saved_state*)android_app->savedState;
+    engine.app = *(struct saved_state*)android_app->savedState;
   }
   
   // loop waiting for stuff to do.
