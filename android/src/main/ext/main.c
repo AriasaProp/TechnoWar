@@ -105,11 +105,9 @@ struct SavedState {
 
 struct Engine {
   struct android_app* app;
-
   ASensorManager* sensorManager;
   const ASensor* accelerometerSensor;
   ASensorEventQueue* sensorEventQueue;
-
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
@@ -146,7 +144,7 @@ static void Update(struct Engine *e) {
   }
 }
 static void DrawFrame(struct Engine *e) {
-  if (!e->display) {
+  if (e->display == EGL_NO_DISPLAY) {
     // No display.
     return;
   }
@@ -205,7 +203,7 @@ static int engine_init_display(struct Engine *engine) {
   }
   free_mem(supportedConfigs);
 
-  if (config == 0) {
+  if (config == NULL) {
     LOGW("Unable to initialize EGLConfig");
     return -1;
   }
@@ -283,7 +281,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
       break;
     case APP_CMD_INIT_WINDOW:
       // The window is being shown, get it ready.
-      if (!engine->app->window) {
+      if (engine->app->window == NULL) {
         engine_init_display(engine);
       }
       break;
@@ -293,7 +291,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
       break;
     case APP_CMD_GAINED_FOCUS:
       // When our app gains focus, we start monitoring the accelerometer.
-      if (!engine->accelerometerSensor) {
+      if (engine->accelerometerSensor == NULL) {
         ASensorEventQueue_enableSensor(engine->sensorEventQueue,
                                        engine->accelerometerSensor);
         // We'd like to get 60 events per second (in us).
@@ -306,7 +304,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
     case APP_CMD_LOST_FOCUS:
       // When our app loses focus, we stop monitoring the accelerometer.
       // This is to avoid consuming battery while not being used.
-      if (!engine->accelerometerSensor) {
+      if (engine->accelerometerSensor == NULL) {
         ASensorEventQueue_disableSensor(engine->sensorEventQueue,
                                         engine->accelerometerSensor);
       }
@@ -336,7 +334,7 @@ void android_main(struct android_app *state) {
   // Prepare to monitor accelerometer
   CreateSensorListener(engine, OnSensorEvent);
 
-  if (!state->savedState) {
+  if (state->savedState == NULL) {
     // We are starting with a previous saved state; restore from it.
     engine->state = *(struct SavedState*)state->savedState;
   }
@@ -344,10 +342,10 @@ void android_main(struct android_app *state) {
   while (!state->destroyRequested) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
-    struct android_poll_source* source = 0;
+    struct android_poll_source* source = NULL;
     ALooper_pollOnce(-1, 0, 0, (void**)&source);
 
-    if (!source) {
+    if (source != NULL) {
       source->process(state, source);
     }
   }
@@ -572,7 +570,7 @@ static struct android_app* android_app_create(ANativeActivity* activity, void* s
         memcpy(android_app->savedState, savedState, savedStateSize);
     }
 
-    if (pipe(android_app->msgpipe)) {
+    if (pipe(android_app->msgpipe) < 0) {
         LOGE("could not create pipe: %s", strerror(errno));
         return NULL;
     }
@@ -583,9 +581,8 @@ static struct android_app* android_app_create(ANativeActivity* activity, void* s
 
     // Wait for thread to start.
     pthread_mutex_lock(&android_app->mutex);
-    while (!android_app->running) {
-        pthread_cond_wait(&android_app->cond, &android_app->mutex);
-    }
+    while (!android_app->running)
+      pthread_cond_wait(&android_app->cond, &android_app->mutex);
     pthread_mutex_unlock(&android_app->mutex);
 
     return android_app;
@@ -735,7 +732,7 @@ static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue)
     android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 
-extern void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
+void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
     LOGV("Creating: %p\n", activity);
     activity->callbacks->onDestroy = onDestroy;
     activity->callbacks->onStart = onStart;
