@@ -520,7 +520,8 @@ static void onLowMemory(ANativeActivity* activity) {
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
   LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)intptr_t(focused)});
+  intptr_t f = focused;
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)f});
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
