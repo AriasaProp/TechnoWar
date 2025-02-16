@@ -31,16 +31,8 @@
 #  define LOGV(...)  ((void)0)
 #endif
 
-struct android_app;
-struct android_poll_source {
-    int32_t id;
-    struct android_app* app;
-    void (*process)(struct android_app* app, struct android_poll_source* source);
-};
 struct android_app {
     void* userData;
-    void (*onAppCmd)(struct android_app* app, int32_t cmd);
-    int32_t (*onInputEvent)(struct android_app* app, AInputEvent* event);
     ANativeActivity* activity;
     AConfiguration* config;
     void* savedState;
@@ -59,9 +51,6 @@ struct android_app {
 
     pthread_t thread;
 
-    struct android_poll_source cmdPollSource;
-    struct android_poll_source inputPollSource;
-
     int stateSaved;
     int destroyed;
     int redrawNeeded;
@@ -69,7 +58,6 @@ struct android_app {
     ANativeWindow* pendingWindow;
     ARect pendingContentRect;
 };
-
 struct saved_state {
     float angle;
     int32_t x;
@@ -92,36 +80,36 @@ struct engine {
 };
 
 enum {
-    LOOPER_ID_MAIN = 1,
-    LOOPER_ID_INPUT = 2,
-    LOOPER_ID_USER = 3,
+  LOOPER_ID_MAIN = 1,
+  LOOPER_ID_INPUT = 2,
+  LOOPER_ID_USER = 3,
 };
 enum {
-    APP_CMD_INPUT_CHANGED,
-    APP_CMD_INIT_WINDOW,
-    APP_CMD_TERM_WINDOW,
-    APP_CMD_WINDOW_RESIZED,
-    APP_CMD_WINDOW_REDRAW_NEEDED,
-    APP_CMD_CONTENT_RECT_CHANGED,
-    APP_CMD_GAINED_FOCUS,
-    APP_CMD_LOST_FOCUS,
-    APP_CMD_CONFIG_CHANGED,
-    APP_CMD_LOW_MEMORY,
-    APP_CMD_START,
-    APP_CMD_RESUME,
-    APP_CMD_SAVE_STATE,
-    APP_CMD_PAUSE,
-    APP_CMD_STOP,
-    APP_CMD_DESTROY,
+  APP_CMD_INPUT_CHANGED,
+  APP_CMD_INIT_WINDOW,
+  APP_CMD_TERM_WINDOW,
+  APP_CMD_WINDOW_RESIZED,
+  APP_CMD_WINDOW_REDRAW_NEEDED,
+  APP_CMD_CONTENT_RECT_CHANGED,
+  APP_CMD_GAINED_FOCUS,
+  APP_CMD_LOST_FOCUS,
+  APP_CMD_CONFIG_CHANGED,
+  APP_CMD_LOW_MEMORY,
+  APP_CMD_START,
+  APP_CMD_RESUME,
+  APP_CMD_SAVE_STATE,
+  APP_CMD_PAUSE,
+  APP_CMD_STOP,
+  APP_CMD_DESTROY,
 };
 
 
 // engine gate
-static inline int engine_is_ready (struct engine *engine) {
+static inline int egl_invalid (struct engine *engine) {
 	return
-		(engine->display != EGL_NO_DISPLAY) && 
-		(engine->surface != EGL_NO_SURFACE) && 
-		(engine->context != EGL_NO_CONTEXT);
+		(engine->display == EGL_NO_DISPLAY) && 
+		(engine->surface == EGL_NO_SURFACE) && 
+		(engine->context == EGL_NO_CONTEXT);
 }
 static int engine_init_egl(struct engine* engine) {
 	if (engine->app->window == NULL) return -1;
@@ -215,48 +203,39 @@ static inline void engine_term_egl(struct engine* engine, int all) {
   	engine->display = EGL_NO_DISPLAY;
   }
 }
-static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
-    struct engine* engine = (struct engine*)app->userData;
-    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        engine->state.x = AMotionEvent_getX(event, 0);
-        engine->state.y = AMotionEvent_getY(event, 0);
-        return 1;
-    }
-    return 0;
-}
-static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
-    struct engine* engine = (struct engine*)app->userData;
-    switch (cmd) {
-        case APP_CMD_SAVE_STATE:
-            // The system has asked us to save our current state.  Do so.
-            engine->app->savedState = new_mem(sizeof(struct saved_state));
-            *((struct saved_state*)engine->app->savedState) = engine->state;
-            engine->app->savedStateSize = sizeof(struct saved_state);
-            break;
-        case APP_CMD_INIT_WINDOW:
-            // The window is being shown, get it ready.
-            engine_init_egl(engine);
-            break;
-        case APP_CMD_TERM_WINDOW:
-            // The window is being hidden or closed, clean it up.
-            engine_term_egl(engine, 0);
-            break;
-        case APP_CMD_GAINED_FOCUS:
-            // When our app gains focus, we start monitoring the accelerometer.
-            if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
-                // We'd like to get 60 events per second (in us).
-                ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/60)*1000);
-            }
-            break;
-        case APP_CMD_LOST_FOCUS:
-            // When our app loses focus, we stop monitoring the accelerometer.
-            // This is to avoid consuming battery while not being used.
-            if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
-            }
-            break;
-    }
+static void engine_handle_cmd(struct android_app* app, int8_t cmd) {
+	struct engine* engine = (struct engine*)app->userData;
+	switch (cmd) {
+	case APP_CMD_SAVE_STATE:
+	  // The system has asked us to save our current state.  Do so.
+	  engine->app->savedState = new_mem(sizeof(struct saved_state));
+	  *((struct saved_state*)engine->app->savedState) = engine->state;
+	  engine->app->savedStateSize = sizeof(struct saved_state);
+	  break;
+	case APP_CMD_INIT_WINDOW:
+	  // The window is being shown, get it ready.
+	  engine_init_egl(engine);
+	  break;
+	case APP_CMD_TERM_WINDOW:
+	  // The window is being hidden or closed, clean it up.
+	  engine_term_egl(engine, 0);
+	  break;
+	case APP_CMD_GAINED_FOCUS:
+	  // When our app gains focus, we start monitoring the accelerometer.
+	  if (engine->accelerometerSensor != NULL) {
+	      ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
+	      // We'd like to get 60 events per second (in us).
+	      ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/60)*1000);
+	  }
+	  break;
+	case APP_CMD_LOST_FOCUS:
+	  // When our app loses focus, we stop monitoring the accelerometer.
+	  // This is to avoid consuming battery while not being used.
+	  if (engine->accelerometerSensor != NULL) {
+	      ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
+	  }
+	  break;
+	}
 }
 #include <dlfcn.h>
 ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
@@ -413,30 +392,7 @@ void android_app_post_exec_cmd(struct android_app* android_app, int8_t cmd) {
             break;
     }
 }
-static void process_input(struct android_app* app, struct android_poll_source* UNUSED(source)) {
-    AInputEvent* event = NULL;
-    if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
-        LOGV("New input event: type=%d\n", AInputEvent_getType(event));
-        if (AInputQueue_preDispatchEvent(app->inputQueue, event)) {
-            return;
-        }
-        int32_t handled = 0;
-        if (app->onInputEvent != NULL) handled = app->onInputEvent(app, event);
-        AInputQueue_finishEvent(app->inputQueue, event, handled);
-    } else {
-        LOGE("Failure reading next input event: %s\n", strerror(errno));
-    }
-}
-static void process_cmd(struct android_app* app, struct android_poll_source* UNUSED(source)) {
-  int8_t cmd;
-  if (read(app->msgpipe[0], &cmd, sizeof(cmd)) != sizeof(cmd)) {
-    LOGE("No data on command pipe!");
-    return;
-  }
-  android_app_pre_exec_cmd(app, cmd);
-  if (app->onAppCmd != NULL) app->onAppCmd(app, cmd);
-  android_app_post_exec_cmd(app, cmd);
-}
+
 // running on other thread
 static void* android_app_entry(void* param) {
 	struct android_app* android_app = (struct android_app*) param;
@@ -450,8 +406,6 @@ static void* android_app_entry(void* param) {
   struct engine engine;
   memset(&engine, 0, sizeof(engine));
   android_app->userData = &engine;
-  android_app->onAppCmd = engine_handle_cmd;
-  android_app->onInputEvent = engine_handle_input;
   engine.app = android_app;
 
   // Prepare to monitor accelerometer
@@ -464,23 +418,49 @@ static void* android_app_entry(void* param) {
     engine.state = *(struct saved_state*)android_app->savedState;
   }
   
-  // loop waiting for stuff to do.
-  struct android_poll_source* source;
+	int8_t cmd;
+	AInputEvent* event = NULL;
   // game loop while checking if game requested to exit
   while (!android_app->destroyRequested) {
-    int ident = ALooper_pollOnce(engine_is_ready(&engine) ? 0 : -1, NULL, NULL, (void**)&source);
-    if (ident >= 0 && source != NULL)
-      source->process(android_app, source);
-    if (engine_is_ready(&engine)) {
-        // Done with events; draw next animation frame.
-        engine.state.angle += .01f;
-        if (engine.state.angle > 1) {
-            engine.state.angle = 0;
-        }
+    switch (ALooper_pollOnce(egl_invalid(&engine) * -1, NULL, NULL, NULL)) {
+    	case LOOPER_ID_MAIN:
+			  if (read(android_app->msgpipe[0], &cmd, sizeof(cmd)) != sizeof(cmd)) {
+			    LOGE("No data on command pipe!");
+    			break;
+			  }
+			  android_app_pre_exec_cmd(android_app, cmd);
+			  engine_handle_cmd(android_app, cmd);
+			  android_app_post_exec_cmd(android_app, cmd);
+    		break;
+    	case LOOPER_ID_INPUT:
+			  if (AInputQueue_getEvent(android_app->inputQueue, &event) >= 0) {
+			    LOGV("New input event: type=%d\n", AInputEvent_getType(event));
+			    if (!AInputQueue_preDispatchEvent(android_app->inputQueue, event)) {
+				    int32_t handled = 0;
+				    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
+				      engine.state.x = AMotionEvent_getX(event, 0);
+				      engine.state.y = AMotionEvent_getY(event, 0);
+				      handled = 1;
+				    }
+				    AInputQueue_finishEvent(android_app->inputQueue, event, handled);
+			    }
+			  } else {
+			    LOGE("Failure reading next input event: %s\n", strerror(errno));
+			  }
+    		break;
+    	case LOOPER_ID_USER:
+    		break;
+    }
+    if (!egl_invalid(&engine)) {
+      // Done with events; draw next animation frame.
+      engine.state.angle += .01f;
+      if (engine.state.angle > 1) {
+          engine.state.angle = 0;
+      }
 
-        // Drawing is throttled to the screen update rate, so there
-        // is no need to do timing here.
-        engine_draw_frame(&engine);
+      // Drawing is throttled to the screen update rate, so there
+      // is no need to do timing here.
+      engine_draw_frame(&engine);
     }
   }
   engine_term_egl(&engine, 1);
@@ -514,14 +494,6 @@ static struct android_app* android_app_create(ANativeActivity* activity, void* s
     LOGE("could not create pipe: %s", strerror(errno));
     return NULL;
   }
-  
-  // prepare android_app property
-  android_app->cmdPollSource.id = LOOPER_ID_MAIN;
-  android_app->cmdPollSource.app = android_app;
-  android_app->cmdPollSource.process = process_cmd;
-  android_app->inputPollSource.id = LOOPER_ID_INPUT;
-  android_app->inputPollSource.app = android_app;
-  android_app->inputPollSource.process = process_input;
   
   // start thread
   pthread_attr_t attr; 
