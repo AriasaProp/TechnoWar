@@ -528,8 +528,8 @@ static int engine_init_display(struct engine* engine) {
   if (engine->display == EGL_NO_DISPLAY) {
 	  engine->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 	  eglInitialize(engine->display, temp, temp+1);
-	  if (temp[0] < 1 || temp[1] < 3) {
-	  	LOGE("EGL version is %d.%d lower than 1.3", temp[0], temp[1]);
+	  if (temp[0] < 1) {
+	  	LOGE("EGL version is %d.%d, that lower than 1.0", temp[0], temp[1]);
 	  	return -1;
 	  }
 	  // get config for new display
@@ -555,6 +555,7 @@ static int engine_init_display(struct engine* engine) {
       	engine->config = supportedConfigs[i];
       }
 	  }
+	  free_mem(supportedConfigs);
 	  // eglGetConfigAttrib(engine->display, config, EGL_NATIVE_VISUAL_ID, temp);
   }
   // create surface
