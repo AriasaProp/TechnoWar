@@ -396,7 +396,7 @@ static void android_app_destroy(struct android_app* android_app) {
     // Can't touch android_app object after this.
 }
 
-static void process_input(struct android_app* app, struct android_poll_source* source) {
+static void process_input(struct android_app* app, struct android_poll_source* UNUSED(source)) {
     AInputEvent* event = NULL;
     if (AInputQueue_getEvent(app->inputQueue, &event) >= 0) {
         LOGV("New input event: type=%d\n", AInputEvent_getType(event));
@@ -411,7 +411,7 @@ static void process_input(struct android_app* app, struct android_poll_source* s
     }
 }
 
-static void process_cmd(struct android_app* app, struct android_poll_source* source) {
+static void process_cmd(struct android_app* app, struct android_poll_source* UNUSED(source)) {
     int8_t cmd = android_app_read_cmd(app);
     android_app_pre_exec_cmd(app, cmd);
     if (app->onAppCmd != NULL) app->onAppCmd(app, cmd);
