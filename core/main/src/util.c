@@ -4,6 +4,8 @@
 
 union temp stemp;
 
+#define NDEBUG
+
 #ifndef NDEBUG
 #define MAX_WATCHED_MEMORY 2048
 static size_t total_mem = 0;
