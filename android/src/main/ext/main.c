@@ -521,7 +521,6 @@ struct engine {
     EGLint width, height;
     struct saved_state state;
 };
-static 
 static int engine_init_egl(struct engine* engine) {
 	if (engine->app->window == NULL) return -1;
   // create surface
