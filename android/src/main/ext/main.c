@@ -295,6 +295,7 @@ int input_exec(int UNUSED(fd), int UNUSED(e), void *data) {
 }
 // cmd looper execute to read input from fd
 int cmd_exec(int fd, int UNUSED(e), void *data) {
+	struct android_app* android_app = (struct android_app*) data;
 	struct cmd_msg cmd;
 	int ret = 1; // allow to update frame
   if (read(fd, &cmd, sizeof(struct cmd_msg)) == sizeof(struct cmd_msg)) {
