@@ -180,9 +180,9 @@ static int engine_init_egl(struct engine* engine) {
 }
 static void engine_update_frame(struct engine* engine) {
 
-  engine.state.angle += .01f;
-  if (engine.state.angle > 1) {
-      engine.state.angle = 0;
+  engine->state.angle += .01f;
+  if (engine->state.angle > 1) {
+      engine->state.angle = 0;
   }
 
   glClearColor(((float)engine->state.x)/engine->width, engine->state.angle,
@@ -409,7 +409,7 @@ static void* android_app_entry(void* param) {
 					  // When our app loses focus, we stop monitoring the accelerometer.
 					  // This is to avoid consuming battery while not being used.
 					  if (engine.accelerometerSensor != NULL) {
-					    ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
+					    ASensorEventQueue_disableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
 					  }
 					  break;
 				}
