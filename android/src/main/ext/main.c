@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <poll.h>
 #include <pthread.h>
 #include <sched.h>
@@ -22,7 +23,7 @@
 #define LOG_TAG "TechnoWar Activity"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARNING, LOG_TAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 #ifndef NDEBUG
 #  define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
@@ -614,8 +615,9 @@ static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* wind
 }
 
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-    LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
-    android_app_set_window((struct android_app*)activity->instance, NULL);
+  LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
+  ((void)window);
+  android_app_set_window((struct android_app*)activity->instance, NULL);
 }
 
 static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
@@ -624,8 +626,9 @@ static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
 }
 
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-    LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
-    android_app_set_input((struct android_app*)activity->instance, NULL);
+  LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
+  ((void)queue);
+  android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
