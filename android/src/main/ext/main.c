@@ -521,43 +521,9 @@ struct engine {
     EGLint width, height;
     struct saved_state state;
 };
-static int engine_init_display(struct engine* engine) {
+static 
+static int engine_init_egl(struct engine* engine) {
 	if (engine->app->window == NULL) return -1;
-  EGLint temp[2];
-  // initialize display
-  if (engine->display == EGL_NO_DISPLAY) {
-	  engine->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	  eglInitialize(engine->display, temp, temp+1);
-	  if (temp[0] < 1 || temp[1] < 2) {
-	  	LOGE("EGL version is %d.%d, that lower than 1.2", temp[0], temp[1]);
-	  	return -1;
-	  }
-	  // get config for new display
-	  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
-	  eglChooseConfig(engine->display, attribs, 0,0, temp);
-	  if (!temp[0]) {
-	  	LOGE("No supported EGLConfig for current display");
-	  	return -1;
-	  }
-	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
-	  eglChooseConfig(engine->display, attribs, supportedConfigs, temp[0], temp);
-	  engine->config = supportedConfigs[0];
-	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
-	  EGLint best_value = -1, current_value, observe;
-	  for (EGLint i = 0; i < temp[0]; ++i) {
-    	current_value = 0;
-    	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
-	      if (eglGetConfigAttrib(engine->display, supportedConfigs[i], observe_attribs[j], &observe))
-	      	current_value += observe;
-      }
-      if (best_value < current_value) {
-      	best_value = current_value;
-      	engine->config = supportedConfigs[i];
-      }
-	  }
-	  free_mem(supportedConfigs);
-	  // eglGetConfigAttrib(engine->display, config, EGL_NATIVE_VISUAL_ID, temp);
-  }
   // create surface
   if (engine->surface == EGL_NO_SURFACE)
   	engine->surface = eglCreateWindowSurface(engine->display, engine->config, engine->app->window, NULL);
@@ -597,19 +563,15 @@ static void engine_draw_frame(struct engine* engine) {
 
     eglSwapBuffers(engine->display, engine->surface);
 }
-static void engine_term_display(struct engine* engine) {
-    if (engine->display != EGL_NO_DISPLAY) {
-        eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        if (engine->context != EGL_NO_CONTEXT) {
-            eglDestroyContext(engine->display, engine->context);
-        }
-        if (engine->surface != EGL_NO_SURFACE) {
-            eglDestroySurface(engine->display, engine->surface);
-        }
-        eglTerminate(engine->display);
+static void engine_term_egl(struct engine* engine) {
+    eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (engine->context != EGL_NO_CONTEXT) {
+        eglDestroyContext(engine->display, engine->context);
+    }
+    if (engine->surface != EGL_NO_SURFACE) {
+        eglDestroySurface(engine->display, engine->surface);
     }
     engine->animating = 0;
-    engine->display = EGL_NO_DISPLAY;
     engine->context = EGL_NO_CONTEXT;
     engine->surface = EGL_NO_SURFACE;
 }
@@ -635,13 +597,13 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
         case APP_CMD_INIT_WINDOW:
             // The window is being shown, get it ready.
             if (engine->app->window != NULL) {
-                engine_init_display(engine);
+                engine_init_egl(engine);
                 engine_draw_frame(engine);
             }
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            engine_term_display(engine);
+            engine_term_egl(engine);
             break;
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
@@ -707,71 +669,111 @@ ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
   return getInstanceFunc();
 }
 void android_main(struct android_app* state) {
-    struct engine engine;
+  struct engine engine;
 
-    memset(&engine, 0, sizeof(engine));
-    state->userData = &engine;
-    state->onAppCmd = engine_handle_cmd;
-    state->onInputEvent = engine_handle_input;
-    engine.app = state;
+  memset(&engine, 0, sizeof(engine));
+  state->userData = &engine;
+  state->onAppCmd = engine_handle_cmd;
+  state->onInputEvent = engine_handle_input;
+  engine.app = state;
 
-    // Prepare to monitor accelerometer
-    engine.sensorManager = AcquireASensorManagerInstance(state);
-    engine.accelerometerSensor = ASensorManager_getDefaultSensor( engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-    engine.sensorEventQueue = ASensorManager_createEventQueue( engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
+  // Prepare to monitor accelerometer
+  engine.sensorManager = AcquireASensorManagerInstance(state);
+  engine.accelerometerSensor = ASensorManager_getDefaultSensor( engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+  engine.sensorEventQueue = ASensorManager_createEventQueue( engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
 
-    if (state->savedState != NULL) {
-        // We are starting with a previous saved state; restore from it.
-        engine.state = *(struct saved_state*)state->savedState;
-    }
+  if (state->savedState != NULL) {
+    // We are starting with a previous saved state; restore from it.
+    engine.state = *(struct saved_state*)state->savedState;
+  }
+  
+  // initialize EGL display
+  {
+  	EGLint temp[2];
+	  engine.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	  if (engine.display == EGL_NO_DISPLAY) {
+	  	LOGE("Failed get default egl display");
+	  	return;
+	  }
+	  eglInitialize(engine.display, temp, temp+1);
+	  if (temp[0] < 1 || temp[1] < 2) {
+	  	LOGE("EGL version is %d.%d, that lower than 1.2", temp[0], temp[1]);
+	  	return;
+	  }
+	  // get config for new display
+	  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
+	  eglChooseConfig(engine.display, attribs, 0,0, temp);
+	  if (!temp[0]) {
+	  	LOGE("No supported EGLConfig for current display");
+	  	return;
+	  }
+	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
+	  eglChooseConfig(engine.display, attribs, supportedConfigs, temp[0], temp);
+	  engine.config = supportedConfigs[0];
+	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
+	  EGLint best_value = -1, current_value, observe;
+	  for (EGLint i = 0; i < temp[0]; ++i) {
+    	current_value = 0;
+    	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
+	      if (eglGetConfigAttrib(engine.display, supportedConfigs[i], observe_attribs[j], &observe))
+	      	current_value += observe;
+      }
+      if (best_value < current_value) {
+      	best_value = current_value;
+      	engine.config = supportedConfigs[i];
+      }
+	  }
+	  free_mem(supportedConfigs);
+	  // eglGetConfigAttrib(engine.display, config, EGL_NATIVE_VISUAL_ID, temp);
+  }
 
-    // loop waiting for stuff to do.
+  // loop waiting for stuff to do.
+  while (1) {
+    // Read all pending events.
+    int ident;
+    int events;
+    struct android_poll_source* source;
+    while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) {
 
-    while (1) {
-        // Read all pending events.
-        int ident;
-        int events;
-        struct android_poll_source* source;
+        // Process this event.
+        if (source != NULL) {
+            source->process(state, source);
+        }
 
-        // If not animating, we will block forever waiting for events.
-        // If animating, we loop until all events are read, then continue
-        // to draw the next frame of animation.
-        while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) {
-
-            // Process this event.
-            if (source != NULL) {
-                source->process(state, source);
-            }
-
-            // If a sensor has data, process it now.
-            if (ident == LOOPER_ID_USER) {
-                if (engine.accelerometerSensor != NULL) {
-                    ASensorEvent event;
-                    while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
-                        LOGI("accelerometer: x=%f y=%f z=%f",
-                             event.acceleration.x, event.acceleration.y,
-                             event.acceleration.z);
-                    }
+        // If a sensor has data, process it now.
+        if (ident == LOOPER_ID_USER) {
+            if (engine.accelerometerSensor != NULL) {
+                ASensorEvent event;
+                while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
+                    LOGI("accelerometer: x=%f y=%f z=%f",
+                         event.acceleration.x, event.acceleration.y,
+                         event.acceleration.z);
                 }
             }
-
-            // Check if we are exiting.
-            if (state->destroyRequested != 0) {
-                engine_term_display(&engine);
-                return;
-            }
         }
 
-        if (engine.animating) {
-            // Done with events; draw next animation frame.
-            engine.state.angle += .01f;
-            if (engine.state.angle > 1) {
-                engine.state.angle = 0;
-            }
-
-            // Drawing is throttled to the screen update rate, so there
-            // is no need to do timing here.
-            engine_draw_frame(&engine);
+        // Check if we are exiting.
+        if (state->destroyRequested != 0) {
+            engine_term_egl(&engine);
+            return;
         }
     }
+
+    if (engine.animating) {
+        // Done with events; draw next animation frame.
+        engine.state.angle += .01f;
+        if (engine.state.angle > 1) {
+            engine.state.angle = 0;
+        }
+
+        // Drawing is throttled to the screen update rate, so there
+        // is no need to do timing here.
+        engine_draw_frame(&engine);
+    }
+  }
+  // terminate EGL display
+  if (engine.display != EGL_NO_DISPLAY) {
+      eglTerminate(engine.display);
+  }
+  engine.display = EGL_NO_DISPLAY;
 }
