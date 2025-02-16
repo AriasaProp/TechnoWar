@@ -505,22 +505,25 @@ struct saved_state {
     int32_t y;
 };
 struct engine {
-    struct android_app* app;
+  struct android_app* app;
 
-    ASensorManager* sensorManager;
-    const ASensor* accelerometerSensor;
-    ASensorEventQueue* sensorEventQueue;
+  ASensorManager* sensorManager;
+  const ASensor* accelerometerSensor;
+  ASensorEventQueue* sensorEventQueue;
 
-    int animating;
-    
-    EGLDisplay display;
-    EGLConfig config;
-    EGLSurface surface;
-    EGLContext context;
-    
-    EGLint width, height;
-    struct saved_state state;
+  EGLDisplay display;
+  EGLConfig config;
+  EGLSurface surface;
+  EGLContext context;
+  
+  EGLint width, height;
+  struct saved_state state;
 };
+static inline int engine_is_ready (struct engine *engine) {
+	return
+		(engine->surface != EGL_NO_SURFACE) && 
+		(engine->context != EGL_NO_CONTEXT);
+}
 static int engine_init_egl(struct engine* engine) {
 	if (engine->app->window == NULL) return -1;
   // create surface
@@ -570,14 +573,12 @@ static void engine_term_egl(struct engine* engine) {
     if (engine->surface != EGL_NO_SURFACE) {
         eglDestroySurface(engine->display, engine->surface);
     }
-    engine->animating = 0;
     engine->context = EGL_NO_CONTEXT;
     engine->surface = EGL_NO_SURFACE;
 }
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
     struct engine* engine = (struct engine*)app->userData;
     if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-        engine->animating = 1;
         engine->state.x = AMotionEvent_getX(event, 0);
         engine->state.y = AMotionEvent_getY(event, 0);
         return 1;
@@ -607,24 +608,17 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
             if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_enableSensor(engine->sensorEventQueue,
-                                               engine->accelerometerSensor);
+                ASensorEventQueue_enableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
                 // We'd like to get 60 events per second (in us).
-                ASensorEventQueue_setEventRate(engine->sensorEventQueue,
-                                               engine->accelerometerSensor,
-                                               (1000L/60)*1000);
+                ASensorEventQueue_setEventRate(engine->sensorEventQueue, engine->accelerometerSensor, (1000L/60)*1000);
             }
             break;
         case APP_CMD_LOST_FOCUS:
             // When our app loses focus, we stop monitoring the accelerometer.
             // This is to avoid consuming battery while not being used.
             if (engine->accelerometerSensor != NULL) {
-                ASensorEventQueue_disableSensor(engine->sensorEventQueue,
-                                                engine->accelerometerSensor);
+                ASensorEventQueue_disableSensor(engine->sensorEventQueue, engine->accelerometerSensor);
             }
-            // Also stop animating.
-            engine->animating = 0;
-            engine_draw_frame(engine);
             break;
     }
 }
@@ -727,49 +721,36 @@ void android_main(struct android_app* state) {
   }
 
   // loop waiting for stuff to do.
-  while (1) {
-    // Read all pending events.
-    int ident;
-    int events;
-    struct android_poll_source* source;
-    while ((ident=ALooper_pollAll(engine.animating ? 0 : -1, NULL, &events, (void**)&source)) >= 0) {
-
+  // Read all pending events.
+  int events;
+  struct android_poll_source* source;
+  // game loop while checking if game requested to exit
+  while (!state->destroyRequested) {
+    switch (ALooper_pollAll(engine_is_ready(&engine) ? 0 : -1, NULL, &events, (void**)&source)) {
+    	case LOOPER_ID_USER:
+    	case LOOPER_ID_MAIN:
+    	case LOOPER_ID_INPUT:
         // Process this event.
         if (source != NULL) {
             source->process(state, source);
         }
-
-        // If a sensor has data, process it now.
-        if (ident == LOOPER_ID_USER) {
-            if (engine.accelerometerSensor != NULL) {
-                ASensorEvent event;
-                while (ASensorEventQueue_getEvents(engine.sensorEventQueue, &event, 1) > 0) {
-                    LOGI("accelerometer: x=%f y=%f z=%f",
-                         event.acceleration.x, event.acceleration.y,
-                         event.acceleration.z);
-                }
-            }
-        }
-
-        // Check if we are exiting.
-        if (state->destroyRequested != 0) {
-            engine_term_egl(&engine);
-            return;
-        }
-    }
-
-    if (engine.animating) {
-        // Done with events; draw next animation frame.
-        engine.state.angle += .01f;
-        if (engine.state.angle > 1) {
-            engine.state.angle = 0;
-        }
-
-        // Drawing is throttled to the screen update rate, so there
-        // is no need to do timing here.
-        engine_draw_frame(&engine);
+    		break;
+    	default:
+		    if (engine_is_ready(&engine)) {
+		        // Done with events; draw next animation frame.
+		        engine.state.angle += .01f;
+		        if (engine.state.angle > 1) {
+		            engine.state.angle = 0;
+		        }
+		
+		        // Drawing is throttled to the screen update rate, so there
+		        // is no need to do timing here.
+		        engine_draw_frame(&engine);
+		    }
+    		break;
     }
   }
+  engine_term_egl(&engine);
   // terminate EGL display
   if (engine.display != EGL_NO_DISPLAY) {
       eglTerminate(engine.display);
