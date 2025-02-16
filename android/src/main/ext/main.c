@@ -385,7 +385,7 @@ static void* android_app_entry(void* param) {
 					  break;
 
 					case APP_CMD_FOCUS_CHANGED:
-						if ((int)cmd.m != NULL) {
+						if ((intptr_t)cmd.m != 0) {
 						  if (engine.accelerometerSensor != NULL) {
 						    ASensorEventQueue_enableSensor(engine.sensorEventQueue, engine.accelerometerSensor);
 						    ASensorEventQueue_setEventRate(engine.sensorEventQueue, engine.accelerometerSensor, (1000L/60)*1000);
@@ -519,7 +519,7 @@ static void onLowMemory(ANativeActivity* activity) {
 }
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
   LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)focused});
+  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)intptr_t(focused)});
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
