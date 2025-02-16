@@ -326,7 +326,7 @@ static void* android_app_entry(void* param) {
   while (!android_app->destroyRequested) {
     switch (ALooper_pollOnce(egl_invalid(&engine) * -1, NULL, NULL, NULL)) {
     	case LOOPER_ID_MAIN:
-			  if (read(android_app->msgpipe[0], &cmd, sizeof(cmd)) != sizeof(cmd)) {
+			  if (read(android_app->msgpipe[0], &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
 			    LOGE("No data on command pipe!");
     			break;
 			  }
@@ -345,7 +345,7 @@ static void* android_app_entry(void* param) {
 					
 					case APP_CMD_INIT_WINDOW:
 					  LOGV("APP_CMD_INIT_WINDOW\n");
-					  android_app->window = (ANativeWindow*)cmd.m;;
+					  android_app->window = (ANativeWindow*)cmd.m;
 					  // The window is being shown, get it ready.
 					  engine_init_egl(&engine);
 					  break;
@@ -450,7 +450,7 @@ static void* android_app_entry(void* param) {
 
 static inline void android_app_write_cmd(struct android_app* android_app, struct cmd_msg cmd) {
   android_app->activityState = APP_CMD_NONE;
-  if (write(android_app->msgpipe[1], &cmd, sizeof(cmd)) != sizeof(cmd)) {
+  if (write(android_app->msgpipe[1], &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   }
   pthread_mutex_lock(&android_app->mutex);
@@ -525,7 +525,7 @@ static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
 }
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
   LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_TERM_WINDOW, window});
+	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_INIT_WINDOW, window});
 }
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
 	LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
