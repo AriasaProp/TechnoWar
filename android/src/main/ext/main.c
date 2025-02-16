@@ -439,31 +439,38 @@ static void process_cmd(struct android_app* app, struct android_poll_source* UNU
 }
 // running on other thread
 static void* android_app_entry(void* param) {
-	struct android_app* state = (struct android_app*) param;
+	struct android_app* android_app = (struct android_app*) param;
+	android_app->config = AConfiguration_new();
+  AConfiguration_fromAssetManager(android_app->config, activity->assetManager);
+  print_cur_config(android_app);
+  ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &android_app->cmdPollSource);
+  android_app->looper = looper;
+  
   struct engine engine;
   memset(&engine, 0, sizeof(engine));
-  state->userData = &engine;
-  state->onAppCmd = engine_handle_cmd;
-  state->onInputEvent = engine_handle_input;
-  engine.app = state;
+  android_app->userData = &engine;
+  android_app->onAppCmd = engine_handle_cmd;
+  android_app->onInputEvent = engine_handle_input;
+  engine.app = android_app;
 
   // Prepare to monitor accelerometer
-  engine.sensorManager = AcquireASensorManagerInstance(state);
+  engine.sensorManager = AcquireASensorManagerInstance(android_app);
   engine.accelerometerSensor = ASensorManager_getDefaultSensor( engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  engine.sensorEventQueue = ASensorManager_createEventQueue( engine.sensorManager, state->looper, LOOPER_ID_USER, NULL, NULL);
+  engine.sensorEventQueue = ASensorManager_createEventQueue( engine.sensorManager, android_app->looper, LOOPER_ID_USER, NULL, NULL);
 
-  if (state->savedState != NULL) {
+  if (android_app->savedState != NULL) {
     // We are starting with a previous saved state; restore from it.
-    engine.state = *(struct saved_state*)state->savedState;
+    engine.android_app = *(struct saved_state*)android_app->savedState;
   }
   
   // loop waiting for stuff to do.
   struct android_poll_source* source;
   // game loop while checking if game requested to exit
-  while (!state->destroyRequested) {
+  while (!android_app->destroyRequested) {
     int ident = ALooper_pollOnce(engine_is_ready(&engine) ? 0 : -1, NULL, NULL, (void**)&source);
     if (ident >= 0 && source != NULL)
-      source->process(state, source);
+      source->process(android_app, source);
     if (engine_is_ready(&engine)) {
         // Done with events; draw next animation frame.
         engine.state.angle += .01f;
@@ -479,15 +486,15 @@ static void* android_app_entry(void* param) {
   engine_term_egl(&engine, 1);
 
   LOGV("android_app_destroy!");
-  free_saved_state(state);
-  pthread_mutex_lock(&state->mutex);
-  if (state->inputQueue != NULL) {
-      AInputQueue_detachLooper(state->inputQueue);
+  free_saved_state(android_app);
+  pthread_mutex_lock(&android_app->mutex);
+  if (android_app->inputQueue != NULL) {
+      AInputQueue_detachLooper(android_app->inputQueue);
   }
-  AConfiguration_delete(state->config);
-  state->destroyed = 1;
-  pthread_cond_broadcast(&state->cond);
-  pthread_mutex_unlock(&state->mutex);
+  AConfiguration_delete(android_app->config);
+  android_app->destroyed = 1;
+  pthread_cond_broadcast(&android_app->cond);
+  pthread_mutex_unlock(&android_app->mutex);
   // Can't touch android_app object after this.
   return NULL;
 }
@@ -509,18 +516,12 @@ static struct android_app* android_app_create(ANativeActivity* activity, void* s
   }
   
   // prepare android_app property
-  android_app->config = AConfiguration_new();
-  AConfiguration_fromAssetManager(android_app->config, activity->assetManager);
-  print_cur_config(android_app);
   android_app->cmdPollSource.id = LOOPER_ID_MAIN;
   android_app->cmdPollSource.app = android_app;
   android_app->cmdPollSource.process = process_cmd;
   android_app->inputPollSource.id = LOOPER_ID_INPUT;
   android_app->inputPollSource.app = android_app;
   android_app->inputPollSource.process = process_input;
-  ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, NULL, &android_app->cmdPollSource);
-  android_app->looper = looper;
   
   // start thread
   pthread_attr_t attr; 
