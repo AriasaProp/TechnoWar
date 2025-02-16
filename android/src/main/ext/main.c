@@ -532,9 +532,7 @@ static int engine_init_display(struct engine* engine) {
 	  	LOGE("EGL version is %d.%d lower than 1.3", temp[0], temp[1]);
 	  	return -1;
 	  }
-  }
-  // get config
-  if (engine->config == EGL_NO_CONFIG) {
+	  // get config for new display
 	  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
 	  eglChooseConfig(engine->display, attribs, 0,0, temp);
 	  if (temp[0]) {
@@ -568,7 +566,7 @@ static int engine_init_display(struct engine* engine) {
   	engine->context = eglCreateContext(engine->display, engine->config, NULL, NULL);
 
 
-  if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
+  if (eglMakeCurrent(engine->display, engine->surface, engine->surface, engine->context) == EGL_FALSE) {
     engine->context = EGL_NO_CONTEXT;
     engine->surface = EGL_NO_SURFACE;
     LOGE("Unable to eglMakeCurrent");
