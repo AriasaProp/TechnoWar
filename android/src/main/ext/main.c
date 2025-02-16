@@ -708,7 +708,7 @@ static int engine_init_display(struct engine* engine) {
     EGLConfig *supportedConfigs = (EGLConfig*)malloc(sizeof(EGLConfig) * numConfigs);
     eglChooseConfig(display, attribs, supportedConfigs, numConfigs, &numConfigs);
     config = supportedConfigs[0];
-    for (size_t i = 0; i < numConfigs; i++) {
+    for (EGLint i = 0; i < numConfigs; i++) {
         EGLint r, g, b, d;
         if (eglGetConfigAttrib(display, supportedConfigs[i], EGL_RED_SIZE, &r)   &&
             eglGetConfigAttrib(display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
@@ -739,9 +739,11 @@ static int engine_init_display(struct engine* engine) {
     engine->state.angle = 0;
 
     // Check openGL on the system
-    EGLint opengl_info[] = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
-    for (EGLint name : opengl_info) {
-        LOGI("OpenGL Info: %s", glGetString(name));
+    {
+      LOGI("OpenGL Info: %s", glGetString(GL_VENDOR));
+      LOGI("OpenGL Info: %s", glGetString(GL_RENDERER));
+      LOGI("OpenGL Info: %s", glGetString(GL_VERSION));
+      LOGI("OpenGL Info: %s", glGetString(GL_EXTENSIONS));
     }
     // Initialize GL state.
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
@@ -847,16 +849,16 @@ ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
     JNIEnv* env = 0;
     app->activity->vm->AttachCurrentThread(&env, NULL);
 
-    jclass android_content_Context = env->GetObjectClass(app->activity->clazz);
-    jmethodID midGetPackageName = env->GetMethodID(android_content_Context,
+    jclass android_content_Context = (*env)->GetObjectClass(app->activity->clazz);
+    jmethodID midGetPackageName = (*env)->GetMethodID(android_content_Context,
                                                    "getPackageName",
                                                    "()Ljava/lang/String;");
-    jstring packageName= (jstring)env->CallObjectMethod(app->activity->clazz,
+    jstring packageName= (jstring)(*env)->CallObjectMethod(app->activity->clazz,
                                                         midGetPackageName);
 
-    const char *nativePackageName = env->GetStringUTFChars(packageName, 0);
+    const char *nativePackageName = (*env)->GetStringUTFChars(packageName, 0);
     ASensorManager* mgr = getInstanceForPackageFunc(nativePackageName);
-    env->ReleaseStringUTFChars(packageName, nativePackageName);
+    (*env)->ReleaseStringUTFChars(packageName, nativePackageName);
     app->activity->vm->DetachCurrentThread();
     if (mgr) {
       dlclose(androidHandle);
