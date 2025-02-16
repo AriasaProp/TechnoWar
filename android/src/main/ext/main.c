@@ -22,6 +22,7 @@
 #define LOG_TAG "TechnoWar Activity"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARNING, LOG_TAG, __VA_ARGS__))
 #define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 #ifndef NDEBUG
 #  define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
@@ -847,19 +848,19 @@ ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
       dlsym(androidHandle, "ASensorManager_getInstanceForPackage");
   if (getInstanceForPackageFunc) {
     JNIEnv* env = 0;
-    app->activity->vm->AttachCurrentThread(&env, NULL);
+    (*app->activity->vm)->AttachCurrentThread(app->activity->vm, &env, NULL);
 
-    jclass android_content_Context = (*env)->GetObjectClass(app->activity->clazz);
-    jmethodID midGetPackageName = (*env)->GetMethodID(android_content_Context,
+    jclass android_content_Context = (*env)->GetObjectClass(env, app->activity->clazz);
+    jmethodID midGetPackageName = (*env)->GetMethodID(env, android_content_Context,
                                                    "getPackageName",
                                                    "()Ljava/lang/String;");
-    jstring packageName= (jstring)(*env)->CallObjectMethod(app->activity->clazz,
+    jstring packageName= (jstring)(*env)->CallObjectMethod(env, app->activity->clazz,
                                                         midGetPackageName);
 
-    const char *nativePackageName = (*env)->GetStringUTFChars(packageName, 0);
+    const char *nativePackageName = (*env)->GetStringUTFChars(env, packageName, 0);
     ASensorManager* mgr = getInstanceForPackageFunc(nativePackageName);
-    (*env)->ReleaseStringUTFChars(packageName, nativePackageName);
-    app->activity->vm->DetachCurrentThread();
+    (*env)->ReleaseStringUTFChars(env, packageName, nativePackageName);
+    (*app->activity->vm)->DetachCurrentThread(app->activity->vm);
     if (mgr) {
       dlclose(androidHandle);
       return mgr;
