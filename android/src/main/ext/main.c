@@ -293,7 +293,6 @@ static void* android_app_entry(void* param) {
     return NULL;
 }
 
-
 static struct android_app* android_app_create(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
     struct android_app* android_app = (struct android_app*)new_imem(sizeof(struct android_app));
     android_app->activity = activity;
@@ -382,92 +381,92 @@ static void android_app_free(struct android_app* android_app) {
 }
 
 static void onDestroy(ANativeActivity* activity) {
-    LOGV("Destroy: %p\n", activity);
-    android_app_free((struct android_app*)activity->instance);
+  LOGV("Destroy: %p\n", activity);
+  android_app_free((struct android_app*)activity->instance);
 }
 
 static void onStart(ANativeActivity* activity) {
-    LOGV("Start: %p\n", activity);
-    android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_START);
+  LOGV("Start: %p\n", activity);
+  android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_START);
 }
 
 static void onResume(ANativeActivity* activity) {
-    LOGV("Resume: %p\n", activity);
-    android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_RESUME);
+  LOGV("Resume: %p\n", activity);
+  android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_RESUME);
 }
 
 static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
-    struct android_app* android_app = (struct android_app*)activity->instance;
-    void* savedState = NULL;
+  struct android_app* android_app = (struct android_app*)activity->instance;
+  void* savedState = NULL;
 
-    LOGV("SaveInstanceState: %p\n", activity);
-    pthread_mutex_lock(&android_app->mutex);
-    android_app->stateSaved = 0;
-    android_app_write_cmd(android_app, APP_CMD_SAVE_STATE);
-    while (!android_app->stateSaved) {
-        pthread_cond_wait(&android_app->cond, &android_app->mutex);
-    }
+  LOGV("SaveInstanceState: %p\n", activity);
+  pthread_mutex_lock(&android_app->mutex);
+  android_app->stateSaved = 0;
+  android_app_write_cmd(android_app, APP_CMD_SAVE_STATE);
+  while (!android_app->stateSaved) {
+    pthread_cond_wait(&android_app->cond, &android_app->mutex);
+  }
 
-    if (android_app->savedState != NULL) {
-        savedState = android_app->savedState;
-        *outLen = android_app->savedStateSize;
-        android_app->savedState = NULL;
-        android_app->savedStateSize = 0;
-    }
+  if (android_app->savedState != NULL) {
+    savedState = android_app->savedState;
+    *outLen = android_app->savedStateSize;
+    android_app->savedState = NULL;
+    android_app->savedStateSize = 0;
+  }
 
-    pthread_mutex_unlock(&android_app->mutex);
+  pthread_mutex_unlock(&android_app->mutex);
 
-    return savedState;
+  return savedState;
 }
 
 static void onPause(ANativeActivity* activity) {
-    LOGV("Pause: %p\n", activity);
-    android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_PAUSE);
+  LOGV("Pause: %p\n", activity);
+  android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_PAUSE);
 }
 
 static void onStop(ANativeActivity* activity) {
-    LOGV("Stop: %p\n", activity);
-    android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_STOP);
+  LOGV("Stop: %p\n", activity);
+  android_app_set_activity_state((struct android_app*)activity->instance, APP_CMD_STOP);
 }
 
 static void onConfigurationChanged(ANativeActivity* activity) {
-    struct android_app* android_app = (struct android_app*)activity->instance;
-    LOGV("ConfigurationChanged: %p\n", activity);
-    android_app_write_cmd(android_app, APP_CMD_CONFIG_CHANGED);
+  struct android_app* android_app = (struct android_app*)activity->instance;
+  LOGV("ConfigurationChanged: %p\n", activity);
+  android_app_write_cmd(android_app, APP_CMD_CONFIG_CHANGED);
 }
 
 static void onLowMemory(ANativeActivity* activity) {
-    struct android_app* android_app = (struct android_app*)activity->instance;
-    LOGV("LowMemory: %p\n", activity);
-    android_app_write_cmd(android_app, APP_CMD_LOW_MEMORY);
+  struct android_app* android_app = (struct android_app*)activity->instance;
+  LOGV("LowMemory: %p\n", activity);
+  android_app_write_cmd(android_app, APP_CMD_LOW_MEMORY);
 }
 
 static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
-    LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
-    android_app_write_cmd((struct android_app*)activity->instance,
-            focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
+  LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
+  android_app_write_cmd((struct android_app*)activity->instance,
+          focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
 
 static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-    LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
-    android_app_set_window((struct android_app*)activity->instance, window);
+  LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
+  android_app_set_window((struct android_app*)activity->instance, window);
 }
 
 static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-  LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
-  ((void)window);
-  android_app_set_window((struct android_app*)activity->instance, NULL);
+LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
+((void)window);
+android_app_set_window((struct android_app*)activity->instance, NULL);
 }
 
 static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-    LOGV("InputQueueCreated: %p -- %p\n", activity, queue);
-    android_app_set_input((struct android_app*)activity->instance, queue);
+  LOGV("InputQueueCreated: %p -- %p\n", activity, queue);
+  android_app_set_input((struct android_app*)activity->instance, queue);
 }
 
 static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-  LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
-  ((void)queue);
-  android_app_set_input((struct android_app*)activity->instance, NULL);
+LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
+((void)queue);
+android_app_set_input((struct android_app*)activity->instance, NULL);
 }
 
 void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
@@ -519,13 +518,55 @@ struct engine {
   EGLint width, height;
   struct saved_state state;
 };
+
+
 static inline int engine_is_ready (struct engine *engine) {
 	return
+		(engine->display != EGL_NO_DISPLAY) && 
 		(engine->surface != EGL_NO_SURFACE) && 
 		(engine->context != EGL_NO_CONTEXT);
 }
 static int engine_init_egl(struct engine* engine) {
 	if (engine->app->window == NULL) return -1;
+	if (engine->display == EGL_NO_DISPLAY) {
+	  // initialize EGL display
+		EGLint temp[2];
+	  engine->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	  if (engine->display == EGL_NO_DISPLAY) {
+	  	LOGE("Failed get default egl display");
+	  	return -1;
+	  }
+	  eglInitialize(engine->display, temp, temp+1);
+	  if (temp[0] < 1 || temp[1] < 2) {
+	  	LOGE("EGL version is %d.%d, that lower than 1.2", temp[0], temp[1]);
+	  	return -1;
+	  }
+	  // get config for new display
+	  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
+	  eglChooseConfig(engine->display, attribs, 0,0, temp);
+	  if (!temp[0]) {
+	  	LOGE("No supported EGLConfig for current display");
+	  	return -1;
+	  }
+	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
+	  eglChooseConfig(engine->display, attribs, supportedConfigs, temp[0], temp);
+	  engine->config = supportedConfigs[0];
+	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
+	  EGLint best_value = -1, current_value, observe;
+	  for (EGLint i = 0; i < temp[0]; ++i) {
+	  	current_value = 0;
+	  	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
+	      if (eglGetConfigAttrib(engine->display, supportedConfigs[i], observe_attribs[j], &observe))
+	      	current_value += observe;
+	    }
+	    if (best_value < current_value) {
+	    	best_value = current_value;
+	    	engine->config = supportedConfigs[i];
+	    }
+	  }
+	  free_mem(supportedConfigs);
+	  // eglGetConfigAttrib(engine->display, config, EGL_NATIVE_VISUAL_ID, temp);
+	}
   // create surface
   if (engine->surface == EGL_NO_SURFACE)
   	engine->surface = eglCreateWindowSurface(engine->display, engine->config, engine->app->window, NULL);
@@ -565,16 +606,22 @@ static void engine_draw_frame(struct engine* engine) {
 
     eglSwapBuffers(engine->display, engine->surface);
 }
-static inline void engine_term_egl(struct engine* engine) {
-    eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (engine->context != EGL_NO_CONTEXT) {
-      eglDestroyContext(engine->display, engine->context);
-    	engine->context = EGL_NO_CONTEXT;
-    }
-    if (engine->surface != EGL_NO_SURFACE) {
-      eglDestroySurface(engine->display, engine->surface);
-    	engine->surface = EGL_NO_SURFACE;
-    }
+static inline void engine_term_egl(struct engine* engine, int all) {
+	if (engine->display == EGL_NO_DISPLAY) return;
+  eglMakeCurrent(engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  if (engine->context != EGL_NO_CONTEXT) {
+    eglDestroyContext(engine->display, engine->context);
+  	engine->context = EGL_NO_CONTEXT;
+  }
+  if (engine->surface != EGL_NO_SURFACE) {
+    eglDestroySurface(engine->display, engine->surface);
+  	engine->surface = EGL_NO_SURFACE;
+  }
+    // terminate EGL display
+  if (all) {
+    eglTerminate(engine->display);
+  	engine->display = EGL_NO_DISPLAY;
+  }
 }
 static int32_t engine_handle_input(struct android_app* app, AInputEvent* event) {
     struct engine* engine = (struct engine*)app->userData;
@@ -600,7 +647,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            engine_term_egl(engine);
+            engine_term_egl(engine, 0);
             break;
         case APP_CMD_GAINED_FOCUS:
             // When our app gains focus, we start monitoring the accelerometer.
@@ -677,80 +724,24 @@ void android_main(struct android_app* state) {
     engine.state = *(struct saved_state*)state->savedState;
   }
   
-  // initialize EGL display
-  {
-  	EGLint temp[2];
-	  engine.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	  if (engine.display == EGL_NO_DISPLAY) {
-	  	LOGE("Failed get default egl display");
-	  	return;
-	  }
-	  eglInitialize(engine.display, temp, temp+1);
-	  if (temp[0] < 1 || temp[1] < 2) {
-	  	LOGE("EGL version is %d.%d, that lower than 1.2", temp[0], temp[1]);
-	  	return;
-	  }
-	  // get config for new display
-	  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
-	  eglChooseConfig(engine.display, attribs, 0,0, temp);
-	  if (!temp[0]) {
-	  	LOGE("No supported EGLConfig for current display");
-	  	return;
-	  }
-	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
-	  eglChooseConfig(engine.display, attribs, supportedConfigs, temp[0], temp);
-	  engine.config = supportedConfigs[0];
-	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
-	  EGLint best_value = -1, current_value, observe;
-	  for (EGLint i = 0; i < temp[0]; ++i) {
-    	current_value = 0;
-    	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
-	      if (eglGetConfigAttrib(engine.display, supportedConfigs[i], observe_attribs[j], &observe))
-	      	current_value += observe;
-      }
-      if (best_value < current_value) {
-      	best_value = current_value;
-      	engine.config = supportedConfigs[i];
-      }
-	  }
-	  free_mem(supportedConfigs);
-	  // eglGetConfigAttrib(engine.display, config, EGL_NATIVE_VISUAL_ID, temp);
-  }
-
   // loop waiting for stuff to do.
-  // Read all pending events.
-  int events;
   struct android_poll_source* source;
   // game loop while checking if game requested to exit
   while (!state->destroyRequested) {
-    switch (ALooper_pollOnce(engine_is_ready(&engine) ? 0 : -1, NULL, &events, (void**)&source)) {
-    	case LOOPER_ID_USER:
-    	case LOOPER_ID_MAIN:
-    	case LOOPER_ID_INPUT:
-        // Process this event.
-        if (source != NULL) {
-            source->process(state, source);
+    int ident = ALooper_pollOnce(engine_is_ready(&engine) ? 0 : -1, NULL, NULL, (void**)&source);
+    if (ident >= 0 && source != NULL)
+      source->process(state, source);
+    if (engine_is_ready(&engine)) {
+        // Done with events; draw next animation frame.
+        engine.state.angle += .01f;
+        if (engine.state.angle > 1) {
+            engine.state.angle = 0;
         }
-    		break;
-    	default:
-		    if (engine_is_ready(&engine)) {
-		        // Done with events; draw next animation frame.
-		        engine.state.angle += .01f;
-		        if (engine.state.angle > 1) {
-		            engine.state.angle = 0;
-		        }
-		
-		        // Drawing is throttled to the screen update rate, so there
-		        // is no need to do timing here.
-		        engine_draw_frame(&engine);
-		    }
-    		break;
+
+        // Drawing is throttled to the screen update rate, so there
+        // is no need to do timing here.
+        engine_draw_frame(&engine);
     }
   }
-  engine_term_egl(&engine);
-  // terminate EGL display
-  if (engine.display != EGL_NO_DISPLAY) {
-      eglTerminate(engine.display);
-  }
-  engine.display = EGL_NO_DISPLAY;
+  engine_term_egl(&engine, 1);
 }
