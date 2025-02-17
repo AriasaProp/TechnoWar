@@ -21,24 +21,18 @@
 #include <android/sensor.h>
 
 #include "util.h"
+#include "manager.h"
 #include "log.h"
 
 // exter functions
-// set all engine funct
-extern void init_engine (AAssetManager *, int, ALooper *);
-// unset all engine funct
-extern void term_engine ();
-
-extern void android_input_set_input_queue (ALooper *, AInputQueue *);
-extern void android_input_attach_sensor ();
-extern void android_input_detach_sensor ();
 
 extern float android_graphics_cur_safe_insets[4];
-extern void (*android_graphics_onWindowChange) (ANativeWindow *);
-extern void (*android_graphics_onWindowResizeDisplay) ();
-extern void (*android_graphics_onWindowResize) ();
-extern int  (*android_graphics_preRender) ();
-extern void (*android_graphics_postRender) (int);
+extern void android_graphics_onWindowChange (ANativeWindow *);
+extern void android_graphics_onWindowResizeDisplay ();
+extern void android_graphics_onWindowResize) ();
+extern int  android_graphics_preRender ();
+extern void  android_graphics_render ();
+extern void android_graphics_postRender (int);
 
 enum APP_CMD {
   APP_CMD_CREATE = 0,
@@ -58,14 +52,19 @@ enum APP_CMD {
   APP_CMD_DESTROY,
 };
 
+struct android_inputManager {
+	
+}
+
 struct android_app{
   int destroyed, wait_request;
-  int msgread,
-      msgwrite;
+  int msgread, msgwrite;
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-} *app = NULL;
+  struct android_inputManager *inMngr;
+  struct android_graphicsManager *graphMngr;
+};
 
 struct msg_pipe {
   enum APP_CMD cmd;
@@ -82,7 +81,7 @@ static void *android_app_entry (void *n) {
   // 1 = created, 2 = running, 4 = started, 8 = resume
   int StateFlags = 0;
   int loop = 1;
-  init_engine (act->assetManager, act->sdkVersion, looper);
+  app->inMngr = android_inputManager_init(looper);
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   while (loop) {
     switch (ALooper_pollOnce ((StateFlags & 6) == 6 ? 0 : -1, NULL, NULL, NULL)) {
@@ -102,19 +101,16 @@ pthread_mutex_unlock (&app->mutex);
           END_WAITING
           break;
         case APP_CMD_FOCUS_CHANGED:
-          if (read_cmd.data)
-            android_input_attach_sensor ();
-          else
-            android_input_detach_sensor ();
+          android_inputManager_switchSensor (app->inMngr, read_cmd.data);
           END_WAITING
           break;
         case APP_CMD_INPUT_UPDATE:
-          android_input_set_input_queue (looper, (AInputQueue *)read_cmd.data);
+          android_inputManager_setInputQueue (app->inMngr, looper, (AInputQueue *)read_cmd.data);
           END_WAITING
           break;
         case APP_CMD_PAUSE:
           if (android_graphics_preRender ()) {
-            Main_pause ();
+            // Main_pause ();
             android_graphics_postRender (false);
             StateFlags &= ~2;
           }
@@ -156,28 +152,29 @@ pthread_mutex_unlock (&app->mutex);
     default:
       // base render
       if (android_graphics_preRender ()) {
-        engine_input_process_event ();
+        //engine_input_process_event ();
 
         if (!(StateFlags & 1)) {
-          Main_start ();
+          //Main_start ();
           StateFlags |= 1; // created
           StateFlags &= ~8; // not resume
         } else if (StateFlags & 8) { // resuming
-          Main_resume ();
+          //Main_resume ();
           StateFlags &= ~8; // not resume
         }
-        Main_render ();
+        android_graphics_render ();
         android_graphics_postRender (false);
       }
       break;
     }
   }
   // when destroy
-  if (android_graphics_preRender ())
-    Main_end ();
+  if (android_graphics_preRender ()) {
+    // end
+  }
   StateFlags = 0; // reset flags
   android_graphics_postRender (true);
-  term_engine ();
+  android_inputManager_term(app->inMngr);
   // loop ends
   ALooper_removeFd (looper, app->msgread);
   AConfiguration_delete (aconfig);
