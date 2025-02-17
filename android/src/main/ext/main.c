@@ -93,12 +93,6 @@ enum {
 
 
 // engine gate
-static inline int egl_invalid (struct android_app *android_app) {
-	return
-		(android_app->egl_src.display == EGL_NO_DISPLAY) && 
-		(android_app->egl_src.surface == EGL_NO_SURFACE) && 
-		(android_app->egl_src.context == EGL_NO_CONTEXT);
-}
 static int engine_init_egl(struct android_app *android_app) {
 	if (android_app->window == NULL) return -1;
 	if (android_app->egl_src.display == EGL_NO_DISPLAY) {
@@ -290,82 +284,15 @@ int input_exec(int UNUSED(fd), int UNUSED(e), void *data) {
 	}
 	return 0;
 }
-// command from cmd exec 
+// command binary from cmd exec 4
 enum {
-	SHOULD_STOP = 1,
-	SHOULD_RUN = 2,
+	SHOULD_NONE = 0,
+	SHOULD_EGL_STOP = 5,
+	SHOULD_EGL_RUN = 1,
+	SHOULD_LIFECYCLE_STOP = 7,
+	SHOULD_LIFECYCLE_RUN = 3,
+	SHOULD_DESTROY = 5,
 };
-// cmd looper execute to read input from fd
-int cmd_exec(int fd, int UNUSED(e), void *data) {
-	struct android_app* android_app = (struct android_app*) data;
-	struct cmd_msg cmd;
-	int ret = 0; // allow to update frame
-  if (read(fd, &cmd, sizeof(struct cmd_msg)) == sizeof(struct cmd_msg)) {
-		switch (cmd.c) {
-			case APP_CMD_INPUT_CHANGED:
-			  LOGV("APP_CMD_INPUT_CHANGED\n");
-			  if (android_app->inputQueue != NULL) {
-			    AInputQueue_detachLooper(android_app->inputQueue);
-			  }
-			  android_app->inputQueue = (AInputQueue*)cmd.m;
-			  if (android_app->inputQueue != NULL) {
-			    LOGV("Attaching input queue to looper");
-			    AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, 2, input_exec, android_app);
-			  }
-			  break;
-			
-			case APP_CMD_INIT_WINDOW:
-			  LOGV("APP_CMD_INIT_WINDOW\n");
-			  android_app->window = (ANativeWindow*)cmd.m;
-			  // The window is being shown, get it ready.
-			  engine_init_egl(android_app);
-			  ret = SHOULD_RUN;
-			  break;
-			
-			case APP_CMD_TERM_WINDOW:
-			  LOGV("APP_CMD_TERM_WINDOW\n");
-			  // The window is being hidden or closed, clean it up.
-			  engine_term_egl(android_app, 0);
-			  // window null
-			  LOGV("APP_CMD_TERM_WINDOW\n");
-		    android_app->window = NULL;
-		    ret = SHOULD_STOP;
-		    break;
-			
-			case APP_CMD_CONFIG_CHANGED:
-			  LOGV("APP_CMD_CONFIG_CHANGED\n");
-			  AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
-			  print_cur_config(android_app);
-			  break;
-	
-			case APP_CMD_FOCUS_CHANGED:
-				if ((intptr_t)cmd.m != 0) {
-				  if (android_app->accelerometerSensor != NULL) {
-				    ASensorEventQueue_enableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
-				    ASensorEventQueue_setEventRate(android_app->sensorEventQueue, android_app->accelerometerSensor, (1000L/60)*1000);
-				  }
-				} else {
-				  if (android_app->accelerometerSensor != NULL) {
-				    ASensorEventQueue_disableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
-				  }
-				}
-			  break;
-	
-			case APP_CMD_DESTROY:
-			  LOGV("APP_CMD_DESTROY\n");
-			  android_app->destroyRequested = 1;
-			  ret = SHOULD_STOP;
-			  break;
-		}
-		LOGV("activity state=%d\n", cmd.c);
-	  pthread_mutex_lock(&android_app->mutex);
-	  android_app->activityState = cmd.c;
-	  pthread_cond_broadcast(&android_app->cond);
-	  pthread_mutex_unlock(&android_app->mutex);
-  } else
-    LOGE("No data on command pipe!");
-	return ret;
-}
 // running on other thread
 static void* android_app_entry(void* param) {
 	struct android_app* android_app = (struct android_app*) param;
@@ -373,7 +300,7 @@ static void* android_app_entry(void* param) {
   AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
   print_cur_config(android_app);
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, android_app->msgpipe[0], 1, ALOOPER_EVENT_INPUT, cmd_exec, android_app);
+  ALooper_addFd(looper, android_app->msgpipe[0], 1, ALOOPER_EVENT_INPUT, 0, 0);
   android_app->looper = looper;
 
   // Prepare to monitor accelerometer
@@ -382,16 +309,85 @@ static void* android_app_entry(void* param) {
   android_app->sensorEventQueue = ASensorManager_createEventQueue(android_app->sensorManager, android_app->looper, 3, sensor_exec, android_app);
 
   // adjusted from cmd_exec
-  int update = 0; // 0 = allow render, 1 is not
+  int update = 0; // 1 (update by egl), 2 (update by lifecycle)
+	struct cmd_msg cmd;
   // game loop while checking if game requested to exit
   do {
-    update = ALooper_pollOnce(update * -1, NULL, NULL, NULL);
-    update *= (update >= 0);
-    if (update == SHOULD_STOP)
-    	update = 1;
-    else if (update == SHOULD_RUN)
-    	update = 0;
-    if (!update)
+    if (ALooper_pollOnce((update != 3) * -1, NULL, NULL, NULL) == 1) {
+		  if (read(fd, &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
+		    LOGE("No data on command pipe!");
+		    continue;
+		  }
+			switch (cmd.c) {
+				case APP_CMD_INPUT_CHANGED:
+				  LOGV("APP_CMD_INPUT_CHANGED\n");
+				  if (android_app->inputQueue != NULL) {
+				    AInputQueue_detachLooper(android_app->inputQueue);
+				  }
+				  android_app->inputQueue = (AInputQueue*)cmd.m;
+				  if (android_app->inputQueue != NULL) {
+				    LOGV("Attaching input queue to looper");
+				    AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, 2, input_exec, android_app);
+				  }
+				  break;
+				
+				case APP_CMD_INIT_WINDOW:
+				  LOGV("APP_CMD_INIT_WINDOW\n");
+				  android_app->window = (ANativeWindow*)cmd.m;
+				  // The window is being shown, get it ready.
+				  engine_init_egl(android_app);
+				  update |= 1;
+				  break;
+	
+				case APP_CMD_RESUME:
+				  update |= 2;
+				  break;
+	
+				case APP_CMD_PAUSE:
+				  update &= ~2;
+				  break;
+				
+				case APP_CMD_TERM_WINDOW:
+				  LOGV("APP_CMD_TERM_WINDOW\n");
+				  // The window is being hidden or closed, clean it up.
+				  engine_term_egl(android_app, 0);
+				  // window null
+				  LOGV("APP_CMD_TERM_WINDOW\n");
+			    android_app->window = NULL;
+			    update &= ~1;
+			    break;
+				
+				case APP_CMD_CONFIG_CHANGED:
+				  LOGV("APP_CMD_CONFIG_CHANGED\n");
+				  AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
+				  print_cur_config(android_app);
+				  break;
+		
+				case APP_CMD_FOCUS_CHANGED:
+					if ((intptr_t)cmd.m != 0) {
+					  if (android_app->accelerometerSensor != NULL) {
+					    ASensorEventQueue_enableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
+					    ASensorEventQueue_setEventRate(android_app->sensorEventQueue, android_app->accelerometerSensor, (1000L/60)*1000);
+					  }
+					} else {
+					  if (android_app->accelerometerSensor != NULL) {
+					    ASensorEventQueue_disableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
+					  }
+					}
+				  break;
+		
+				case APP_CMD_DESTROY:
+				  LOGV("APP_CMD_DESTROY\n");
+				  android_app->destroyRequested = 1;
+				  break;
+			}
+			LOGV("activity state=%d\n", cmd.c);
+		  pthread_mutex_lock(&android_app->mutex);
+		  android_app->activityState = cmd.c;
+		  pthread_cond_broadcast(&android_app->cond);
+		  pthread_mutex_unlock(&android_app->mutex);
+    }
+    if (update == 3)
     	engine_update_frame(android_app);
   } while (!android_app->destroyRequested);
   engine_term_egl(android_app, 1);
