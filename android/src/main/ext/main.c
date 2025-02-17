@@ -61,10 +61,12 @@ struct android_app {
   const ASensor* accelerometerSensor;
   ASensorEventQueue* sensorEventQueue;
 
-  EGLDisplay display;
-  EGLConfig config;
-  EGLSurface surface;
-  EGLContext context;
+	struct {
+	  EGLDisplay display;
+	  EGLConfig config;
+	  EGLSurface surface;
+	  EGLContext context;
+	} egl_src;
   
   EGLint width, height;
   struct saved_state state;
@@ -98,28 +100,28 @@ enum {
 // engine gate
 static inline int egl_invalid (struct android_app *android_app) {
 	return
-		(android_app->display == EGL_NO_DISPLAY) && 
-		(android_app->surface == EGL_NO_SURFACE) && 
-		(android_app->context == EGL_NO_CONTEXT);
+		(android_app->egl_src->display == EGL_NO_DISPLAY) && 
+		(android_app->egl_src->surface == EGL_NO_SURFACE) && 
+		(android_app->egl_src->context == EGL_NO_CONTEXT);
 }
 static int engine_init_egl(struct android_app *android_app) {
 	if (android_app->window == NULL) return -1;
-	if (android_app->display == EGL_NO_DISPLAY) {
+	if (android_app->egl_src->display == EGL_NO_DISPLAY) {
 	  // initialize EGL display
 		EGLint temp[2];
-	  android_app->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	  if (android_app->display == EGL_NO_DISPLAY) {
+	  android_app->egl_src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+	  if (android_app->egl_src->display == EGL_NO_DISPLAY) {
 	  	LOGE("Failed get default egl display");
 	  	return -1;
 	  }
-	  if (!eglInitialize(android_app->display, temp, temp+1)) {
+	  if (!eglInitialize(android_app->egl_src->display, temp, temp+1)) {
 	  	switch (eglGetError()) {
 	  		case EGL_NOT_INITIALIZED:
 	  			LOGE("EGL not initialized!");
 	  			return -1;
 	  		case EGL_BAD_DISPLAY:
 	  			LOGE("EGL Display is bad!");
-	  			android_app->display = EGL_NO_DISPLAY;
+	  			android_app->egl_src->display = EGL_NO_DISPLAY;
 	  			return engine_init_egl(android_app);
 	  	}
 	  }
@@ -129,47 +131,47 @@ static int engine_init_egl(struct android_app *android_app) {
 	  }
 	  // get config for new display
 	  const EGLint attribs[] = {EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
-	  eglChooseConfig(android_app->display, attribs, 0,0, temp);
+	  eglChooseConfig(android_app->egl_src->display, attribs, 0,0, temp);
 	  if (!temp[0]) {
 	  	LOGE("No supported EGLConfig for current display");
 	  	return -1;
 	  }
 	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
-	  eglChooseConfig(android_app->display, attribs, supportedConfigs, temp[0], temp);
-	  android_app->config = supportedConfigs[0];
+	  eglChooseConfig(android_app->egl_src->display, attribs, supportedConfigs, temp[0], temp);
+	  android_app->egl_src->config = supportedConfigs[0];
 	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
 	  EGLint best_value = -1, current_value, observe;
 	  for (EGLint i = 0; i < temp[0]; ++i) {
 	  	current_value = 0;
 	  	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
-	      if (eglGetConfigAttrib(android_app->display, supportedConfigs[i], observe_attribs[j], &observe))
+	      if (eglGetConfigAttrib(android_app->egl_src->display, supportedConfigs[i], observe_attribs[j], &observe))
 	      	current_value += observe;
 	    }
 	    if (best_value < current_value) {
 	    	best_value = current_value;
-	    	android_app->config = supportedConfigs[i];
+	    	android_app->egl_src->config = supportedConfigs[i];
 	    }
 	  }
 	  free_mem(supportedConfigs);
-	  // eglGetConfigAttrib(android_app->display, config, EGL_NATIVE_VISUAL_ID, temp);
+	  // eglGetConfigAttrib(android_app->egl_src->display, config, EGL_NATIVE_VISUAL_ID, temp);
 	}
   // create surface
-  if (android_app->surface == EGL_NO_SURFACE)
-  	android_app->surface = eglCreateWindowSurface(android_app->display, android_app->config, android_app->window, NULL);
+  if (android_app->egl_src->surface == EGL_NO_SURFACE)
+  	android_app->egl_src->surface = eglCreateWindowSurface(android_app->egl_src->display, android_app->egl_src->config, android_app->window, NULL);
 
   // create context
-  if (android_app->context == EGL_NO_CONTEXT)
-  	android_app->context = eglCreateContext(android_app->display, android_app->config, NULL, NULL);
+  if (android_app->egl_src->context == EGL_NO_CONTEXT)
+  	android_app->egl_src->context = eglCreateContext(android_app->egl_src->display, android_app->egl_src->config, NULL, NULL);
 
 
-  if (eglMakeCurrent(android_app->display, android_app->surface, android_app->surface, android_app->context) == EGL_FALSE) {
-    android_app->context = EGL_NO_CONTEXT;
-    android_app->surface = EGL_NO_SURFACE;
+  if (eglMakeCurrent(android_app->egl_src->display, android_app->egl_src->surface, android_app->egl_src->surface, android_app->egl_src->context) == EGL_FALSE) {
+    android_app->egl_src->context = EGL_NO_CONTEXT;
+    android_app->egl_src->surface = EGL_NO_SURFACE;
     LOGE("Unable to eglMakeCurrent");
     return -1;
   }
-  eglQuerySurface(android_app->display, android_app->surface, EGL_WIDTH, &android_app->width);
-  eglQuerySurface(android_app->display, android_app->surface, EGL_HEIGHT, &android_app->height);
+  eglQuerySurface(android_app->egl_src->display, android_app->egl_src->surface, EGL_WIDTH, &android_app->width);
+  eglQuerySurface(android_app->egl_src->display, android_app->egl_src->surface, EGL_HEIGHT, &android_app->height);
   android_app->state.angle = 0;
 
   // Initialize GL state.
@@ -190,23 +192,23 @@ static void engine_update_frame(struct android_app *android_app) {
                ((float)android_app->state.y)/android_app->height, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  eglSwapBuffers(android_app->display, android_app->surface);
+  eglSwapBuffers(android_app->egl_src->display, android_app->egl_src->surface);
 }
 static inline void engine_term_egl(struct android_app *android_app, int all) {
-	if (android_app->display == EGL_NO_DISPLAY) return;
-  eglMakeCurrent(android_app->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  if (android_app->context != EGL_NO_CONTEXT) {
-    eglDestroyContext(android_app->display, android_app->context);
-  	android_app->context = EGL_NO_CONTEXT;
+	if (android_app->egl_src->display == EGL_NO_DISPLAY) return;
+  eglMakeCurrent(android_app->egl_src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  if (android_app->egl_src->context != EGL_NO_CONTEXT) {
+    eglDestroyContext(android_app->egl_src->display, android_app->egl_src->context);
+  	android_app->egl_src->context = EGL_NO_CONTEXT;
   }
-  if (android_app->surface != EGL_NO_SURFACE) {
-    eglDestroySurface(android_app->display, android_app->surface);
-  	android_app->surface = EGL_NO_SURFACE;
+  if (android_app->egl_src->surface != EGL_NO_SURFACE) {
+    eglDestroySurface(android_app->egl_src->display, android_app->egl_src->surface);
+  	android_app->egl_src->surface = EGL_NO_SURFACE;
   }
     // terminate EGL display
   if (all) {
-    eglTerminate(android_app->display);
-  	android_app->display = EGL_NO_DISPLAY;
+    eglTerminate(android_app->egl_src->display);
+  	android_app->egl_src->display = EGL_NO_DISPLAY;
   }
 }
 
