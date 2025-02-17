@@ -3,6 +3,7 @@
 #include <android/sensor.h>
 
 #include "manager.h"
+#include "util.h"
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1666.666667
 
@@ -10,18 +11,18 @@
 static int android_inputManager_processInput (int UNUSED(fd), int UNUSED(e), void *data) {
 	struct android_inputManager *m = (struct android_inputManager *)data;
 	AInputEvent *outEvent;
-  if (!m->queue) return 1;
-  if (AInputQueue_getEvent (m->queue, &outEvent) < 0) return 1;
-  if (AInputQueue_preDispatchEvent (m->queue, outEvent)) return 1;
+  if (!m->inputQueue) return 1;
+  if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
+  if (AInputQueue_preDispatchEvent (m->inputQueue, outEvent)) return 1;
   int32_t handled = 0;
-  AInputQueue_finishEvent (m->queue, outEvent, handled);
+  AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
   return 1;
 }
 static int android_inputManager_processSensor(int UNUSED(fd), int UNUSED(e), void* data) {
 	struct android_inputManager *m = (struct android_inputManager *)data;
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
-  while ((j = ASensorEventQueue_getEvents(m->sensorQueue, &event, MAX_SENSOR_COUNT)) > 0) {
+  while ((j = ASensorEventQueue_getEvents(m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
   	for (size_t i = 0; i < j; ++i) {
 	    switch (event[i].type) {
 	      case ASENSOR_TYPE_ACCELEROMETER:
@@ -63,11 +64,11 @@ struct android_inputManager *android_inputManager_init(ALooper *looper) {
 	return m;
 }
 void android_inputManager_setInputQueue (struct android_inputManager *m, ALooper *looper, AInputQueue *queue) {
-	if (m->queue)
-    AInputQueue_detachLooper (m->queue);
-  m->queue = queue;
-  if (m->queue)
-    AInputQueue_attachLooper (m->queue, looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void*)m);
+	if (m->inputQueue)
+    AInputQueue_detachLooper (m->inputQueue);
+  m->inputQueue = queue;
+  if (m->inputQueue)
+    AInputQueue_attachLooper (m->inputQueue, looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void*)m);
 }
 void android_inputManager_switchSensor (struct android_inputManager *m, void *s) {
 	if (!s && (m->flags & INPUT_SENSOR_ENABLED)) {
@@ -90,8 +91,8 @@ void android_inputManager_switchSensor (struct android_inputManager *m, void *s)
 	}
 }
 void android_inputManager_term(struct android_inputManager *m) {
-	if (m->queue)
-    AInputQueue_detachLooper (m->queue);
+	if (m->inputQueue)
+    AInputQueue_detachLooper (m->inputQueue);
 	for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
 	  ASensorEventQueue_disableSensor (m->sensorQueue, m->sensor_data[i].sensor);
 	  m->sensor_data[i].value[0] = 0;
