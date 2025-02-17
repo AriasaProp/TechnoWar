@@ -56,9 +56,9 @@ struct android_inputManager *android_inputManager_init(ALooper *looper) {
     return NULL;
   }
   
-  m->sensor_data[SENSOR_ACCELEROMETER] = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
-  m->sensor_data[SENSOR_GYROSCOPE] = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
-  m->sensor_data[SENSOR_MAGNETIC_FIELD] = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
+  m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
+  m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
+  m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue(m->sensorMngr, looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
 	return m;
 }

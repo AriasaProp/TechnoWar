@@ -21,7 +21,7 @@ struct android_inputManager {
 	ASensorManager *sensorMngr;
 	ASensorEventQueue *sensorQueue;
 	struct {
-		ASensor *sensor;
+		const ASensor *sensor;
 		float value[3];
 	} sensor_data[MAX_SENSOR_COUNT];
 	
