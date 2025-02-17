@@ -1,559 +1,398 @@
-#include <jni.h>
-
-#include <sys/resource.h>
+#include <assert.h>
 #include <errno.h>
-#include <string.h>
-#include <unistd.h>
+#include <limits.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
+#include <inttype.h>
 #include <stdint.h>
+#include <string.h> 
 #include <poll.h>
 #include <pthread.h>
 #include <sched.h>
+#include <sys/resource.h>
+#include <unistd.h>
+#include <jni.h>
 
-#include <EGL/egl.h>
-#include <GLES/gl.h>
-
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
 #include <android/configuration.h>
-#include <android/log.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
 #include "util.h"
+#include "log.h"
 
-#define LOG_TAG "TechnoWar Activity"
+// exter functions
+// set all engine funct
+extern void init_engine (AAssetManager *, int, ALooper *);
+// unset all engine funct
+extern void term_engine ();
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
-#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
-#ifndef NDEBUG
-#  define LOGV(...)  ((void)__android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__))
-#else
-#  define LOGV(...)  ((void)0)
-#endif
-struct cmd_msg {
-	int8_t c;
-	void *m;
-};
-struct saved_state {
-    float angle;
-    int32_t x;
-    int32_t y;
-};
-struct android_app {
-  ANativeActivity* activity;
-  AConfiguration* config;
-  ALooper* looper;
-  AInputQueue* inputQueue;
-  ANativeWindow* window;
+extern void android_input_set_input_queue (ALooper *, AInputQueue *);
+extern void android_input_attach_sensor ();
+extern void android_input_detach_sensor ();
 
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
-  pthread_t thread;
+extern float android_graphics_cur_safe_insets[4];
+extern void (*android_graphics_onWindowChange) (ANativeWindow *);
+extern void (*android_graphics_onWindowResizeDisplay) ();
+extern void (*android_graphics_onWindowResize) ();
+extern int  (*android_graphics_preRender) ();
+extern void (*android_graphics_postRender) (int);
 
-  int activityState;
-  int destroyRequested;
-  int msgpipe[2];
-  int destroyed;
-
-  ASensorManager* sensorManager;
-  const ASensor* accelerometerSensor;
-  ASensorEventQueue* sensorEventQueue;
-
-	struct {
-	  EGLDisplay display;
-	  EGLConfig config;
-	  EGLSurface surface;
-	  EGLContext context;
-	} egl_src;
-  
-  EGLint width, height;
-  struct saved_state state;
-};
-
-enum {
-	APP_CMD_NONE = 0,
-  APP_CMD_INPUT_CHANGED,
-  APP_CMD_INIT_WINDOW,
-  APP_CMD_TERM_WINDOW,
+enum APP_CMD {
+  APP_CMD_CREATE = 0,
+  APP_CMD_START,
+  APP_CMD_RESUME,
+  APP_CMD_INPUT_UPDATE,
+  APP_CMD_WINDOW_UPDATE,
   APP_CMD_WINDOW_RESIZED,
   APP_CMD_WINDOW_REDRAW_NEEDED,
   APP_CMD_CONTENT_RECT_CHANGED,
-  APP_CMD_FOCUS_CHANGED,
   APP_CMD_CONFIG_CHANGED,
+  APP_CMD_FOCUS_CHANGED,
   APP_CMD_LOW_MEMORY,
-  APP_CMD_START,
-  APP_CMD_RESUME,
   APP_CMD_SAVE_STATE,
   APP_CMD_PAUSE,
   APP_CMD_STOP,
   APP_CMD_DESTROY,
 };
 
+struct android_app{
+  int destroyed, wait_request;
+  int msgread,
+      msgwrite;
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+  pthread_t thread;
+} *app = NULL;
 
-// engine gate
-static int engine_init_egl(struct android_app *android_app) {
-	if (android_app->window == NULL) return -1;
-	if (android_app->egl_src.display == EGL_NO_DISPLAY) {
-	  // initialize EGL display
-		EGLint temp[2];
-	  android_app->egl_src.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-	  if (android_app->egl_src.display == EGL_NO_DISPLAY) {
-	  	LOGE("Failed get default egl display");
-	  	return -1;
-	  }
-	  if (!eglInitialize(android_app->egl_src.display, temp, temp+1)) {
-	  	switch (eglGetError()) {
-	  		case EGL_NOT_INITIALIZED:
-	  			LOGE("EGL not initialized!");
-	  			return -1;
-	  		case EGL_BAD_DISPLAY:
-	  			LOGE("EGL Display is bad!");
-	  			android_app->egl_src.display = EGL_NO_DISPLAY;
-	  			return engine_init_egl(android_app);
-	  	}
-	  }
-	  if (temp[0] < 1 || temp[1] < 2) {
-	  	LOGE("EGL version is %d.%d, that lower than 1.2", temp[0], temp[1]);
-	  	return -1;
-	  }
-	  // get config for new display
-	  const EGLint attribs[] = {EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
-	  eglChooseConfig(android_app->egl_src.display, attribs, 0,0, temp);
-	  if (!temp[0]) {
-	  	LOGE("No supported EGLConfig for current display");
-	  	return -1;
-	  }
-	  EGLConfig *supportedConfigs = (EGLConfig*)new_mem(sizeof(EGLConfig) * temp[0]);
-	  eglChooseConfig(android_app->egl_src.display, attribs, supportedConfigs, temp[0], temp);
-	  android_app->egl_src.config = supportedConfigs[0];
-	  const EGLint observe_attribs[] = {EGL_RED_SIZE, EGL_GREEN_SIZE, EGL_BLUE_SIZE, EGL_DEPTH_SIZE };
-	  EGLint best_value = -1, current_value, observe;
-	  for (EGLint i = 0; i < temp[0]; ++i) {
-	  	current_value = 0;
-	  	for (EGLint j = 0, k = sizeof(observe_attribs)/sizeof(EGLint); j < k; ++j) {
-	      if (eglGetConfigAttrib(android_app->egl_src.display, supportedConfigs[i], observe_attribs[j], &observe))
-	      	current_value += observe;
-	    }
-	    if (best_value < current_value) {
-	    	best_value = current_value;
-	    	android_app->egl_src.config = supportedConfigs[i];
-	    }
-	  }
-	  free_mem(supportedConfigs);
-	  // eglGetConfigAttrib(android_app->egl_src.display, config, EGL_NATIVE_VISUAL_ID, temp);
-	}
-  // create surface
-  if (android_app->egl_src.surface == EGL_NO_SURFACE)
-  	android_app->egl_src.surface = eglCreateWindowSurface(android_app->egl_src.display, android_app->egl_src.config, android_app->window, NULL);
-
-  // create context
-  if (android_app->egl_src.context == EGL_NO_CONTEXT)
-  	android_app->egl_src.context = eglCreateContext(android_app->egl_src.display, android_app->egl_src.config, NULL, NULL);
-
-
-  if (eglMakeCurrent(android_app->egl_src.display, android_app->egl_src.surface, android_app->egl_src.surface, android_app->egl_src.context) == EGL_FALSE) {
-    android_app->egl_src.context = EGL_NO_CONTEXT;
-    android_app->egl_src.surface = EGL_NO_SURFACE;
-    LOGE("Unable to eglMakeCurrent");
-    return -1;
-  }
-  eglQuerySurface(android_app->egl_src.display, android_app->egl_src.surface, EGL_WIDTH, &android_app->width);
-  eglQuerySurface(android_app->egl_src.display, android_app->egl_src.surface, EGL_HEIGHT, &android_app->height);
-  android_app->state.angle = 0;
-
-  // Initialize GL state.
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-  glEnable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
-
-  return 0;
-}
-static void engine_update_frame(struct android_app *android_app) {
-
-  android_app->state.angle += .01f;
-  if (android_app->state.angle > 1) {
-      android_app->state.angle = 0;
-  }
-
-  glClearColor(((float)android_app->state.x)/android_app->width, android_app->state.angle,
-               ((float)android_app->state.y)/android_app->height, 1);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  eglSwapBuffers(android_app->egl_src.display, android_app->egl_src.surface);
-}
-static inline void engine_term_egl(struct android_app *android_app, int all) {
-	if (android_app->egl_src.display == EGL_NO_DISPLAY) return;
-  eglMakeCurrent(android_app->egl_src.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  if (android_app->egl_src.context != EGL_NO_CONTEXT) {
-    eglDestroyContext(android_app->egl_src.display, android_app->egl_src.context);
-  	android_app->egl_src.context = EGL_NO_CONTEXT;
-  }
-  if (android_app->egl_src.surface != EGL_NO_SURFACE) {
-    eglDestroySurface(android_app->egl_src.display, android_app->egl_src.surface);
-  	android_app->egl_src.surface = EGL_NO_SURFACE;
-  }
-    // terminate EGL display
-  if (all) {
-    eglTerminate(android_app->egl_src.display);
-  	android_app->egl_src.display = EGL_NO_DISPLAY;
-  }
-}
-
-#include <dlfcn.h>
-ASensorManager* AcquireASensorManagerInstance(struct android_app* app) {
-  if(!app) return 0;
-  typedef ASensorManager *(*PF_GETINSTANCEFORPACKAGE)(const char *name);
-  void* androidHandle = dlopen("libandroid.so", RTLD_NOW);
-  PF_GETINSTANCEFORPACKAGE getInstanceForPackageFunc = (PF_GETINSTANCEFORPACKAGE) dlsym(androidHandle, "ASensorManager_getInstanceForPackage");
-  if (getInstanceForPackageFunc) {
-    JNIEnv* env = 0;
-    (*app->activity->vm)->AttachCurrentThread(app->activity->vm, &env, NULL);
-
-    jclass android_content_Context = (*env)->GetObjectClass(env, app->activity->clazz);
-    jmethodID midGetPackageName = (*env)->GetMethodID(env, android_content_Context,"getPackageName", "()Ljava/lang/String;");
-    jstring packageName= (jstring)(*env)->CallObjectMethod(env, app->activity->clazz, midGetPackageName);
-
-    const char *nativePackageName = (*env)->GetStringUTFChars(env, packageName, 0);
-    ASensorManager* mgr = getInstanceForPackageFunc(nativePackageName);
-    (*env)->ReleaseStringUTFChars(env, packageName, nativePackageName);
-    (*app->activity->vm)->DetachCurrentThread(app->activity->vm);
-    if (mgr) {
-      dlclose(androidHandle);
-      return mgr;
-    }
-  }
-
-  typedef ASensorManager *(*PF_GETINSTANCE)();
-  PF_GETINSTANCE getInstanceFunc = (PF_GETINSTANCE)
-      dlsym(androidHandle, "ASensorManager_getInstance");
-  // by all means at this point, ASensorManager_getInstance should be available
-  dlclose(androidHandle);
-
-  return getInstanceFunc();
-}
-// engine gate end
-
-static inline void print_cur_config(struct android_app* android_app) {
-    AConfiguration_getLanguage(android_app->config, stemp.chars);
-    AConfiguration_getCountry(android_app->config, stemp.chars + 2);
-
-    LOGV("Config: mcc=%d mnc=%d lang=%c%c cnt=%c%c orien=%d touch=%d dens=%d "
-            "keys=%d nav=%d keysHid=%d navHid=%d sdk=%d size=%d long=%d "
-            "modetype=%d modenight=%d",
-            AConfiguration_getMcc(android_app->config),
-            AConfiguration_getMnc(android_app->config),
-            stemp.chars[0], stemp.chars[1], stemp.chars[2], stemp.chars[3],
-            AConfiguration_getOrientation(android_app->config),
-            AConfiguration_getTouchscreen(android_app->config),
-            AConfiguration_getDensity(android_app->config),
-            AConfiguration_getKeyboard(android_app->config),
-            AConfiguration_getNavigation(android_app->config),
-            AConfiguration_getKeysHidden(android_app->config),
-            AConfiguration_getNavHidden(android_app->config),
-            AConfiguration_getSdkVersion(android_app->config),
-            AConfiguration_getScreenSize(android_app->config),
-            AConfiguration_getScreenLong(android_app->config),
-            AConfiguration_getUiModeType(android_app->config),
-            AConfiguration_getUiModeNight(android_app->config));
-}
-// sensor looper execute
-int sensor_exec(int UNUSED(fd), int UNUSED(e), void *data) {
-	struct android_app* android_app = (struct android_app*) data;
-	((void)android_app);
-	return 0;
-}
-// input looper execute
-int input_exec(int UNUSED(fd), int UNUSED(e), void *data) {
-	AInputEvent* event = NULL;
-	struct android_app* android_app = (struct android_app*) data;
-	if (AInputQueue_getEvent(android_app->inputQueue, &event) >= 0) {
-	  LOGV("New input event: type=%d\n", AInputEvent_getType(event));
-	  if (!AInputQueue_preDispatchEvent(android_app->inputQueue, event)) {
-	    int32_t handled = 0;
-	    if (AInputEvent_getType(event) == AINPUT_EVENT_TYPE_MOTION) {
-	      android_app->state.x = AMotionEvent_getX(event, 0);
-	      android_app->state.y = AMotionEvent_getY(event, 0);
-	      handled = 1;
-	    }
-	    AInputQueue_finishEvent(android_app->inputQueue, event, handled);
-	  }
-	} else {
-	  LOGE("Failure reading next input event: %s\n", strerror(errno));
-	}
-	return 0;
-}
-// command binary from cmd exec 4
-enum {
-	SHOULD_NONE = 0,
-	SHOULD_EGL_STOP = 5,
-	SHOULD_EGL_RUN = 1,
-	SHOULD_LIFECYCLE_STOP = 7,
-	SHOULD_LIFECYCLE_RUN = 3,
-	SHOULD_DESTROY = 5,
+struct msg_pipe {
+  enum APP_CMD cmd;
+  void *data;
 };
-// running on other thread
-static void* android_app_entry(void* param) {
-	struct android_app* android_app = (struct android_app*) param;
-	android_app->config = AConfiguration_new();
-  AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
-  print_cur_config(android_app);
-  ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, android_app->msgpipe[0], 1, ALOOPER_EVENT_INPUT, 0, 0);
-  android_app->looper = looper;
 
-  // Prepare to monitor accelerometer
-  android_app->sensorManager = AcquireASensorManagerInstance(android_app);
-  android_app->accelerometerSensor = ASensorManager_getDefaultSensor(android_app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  android_app->sensorEventQueue = ASensorManager_createEventQueue(android_app->sensorManager, android_app->looper, 3, sensor_exec, android_app);
+static void *android_app_entry (void *n) {
+  ANativeActivity *act = (ANativeActivity *)n;
+  struct android_app *app = (struct android_app*)act->instance;
+  AConfiguration *aconfig = AConfiguration_new ();
+  AConfiguration_fromAssetManager (aconfig, act->assetManager);
+  ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
+  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
+  // 1 = created, 2 = running, 4 = started, 8 = resume
+  int StateFlags = 0;
+  int loop = 1;
+  init_engine (act->assetManager, act->sdkVersion, looper);
+  struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
+  while (loop) {
+    switch (ALooper_pollOnce ((StateFlags & 6) == 6 ? 0 : -1, NULL, NULL, NULL)) {
+    case ALOOPER_POLL_CALLBACK:
+      break;
+    case 1:
+      // activity handler
+      if (read (app->msgread, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
+#define END_WAITING                    \
+pthread_mutex_lock (&app->mutex);    \
+app->wait_request = 0;           \
+pthread_cond_broadcast (&app->cond); \
+pthread_mutex_unlock (&app->mutex);
+        switch (read_cmd.cmd) {
+        case APP_CMD_WINDOW_UPDATE:
+          android_graphics_onWindowChange ((ANativeWindow *)read_cmd.data);
+          END_WAITING
+          break;
+        case APP_CMD_FOCUS_CHANGED:
+          if (read_cmd.data)
+            android_input_attach_sensor ();
+          else
+            android_input_detach_sensor ();
+          END_WAITING
+          break;
+        case APP_CMD_INPUT_UPDATE:
+          android_input_set_input_queue (looper, (AInputQueue *)read_cmd.data);
+          END_WAITING
+          break;
+        case APP_CMD_PAUSE:
+          if (android_graphics_preRender ()) {
+            Main_pause ();
+            android_graphics_postRender (false);
+            StateFlags &= ~2;
+          }
+          END_WAITING
+          break;
+        case APP_CMD_SAVE_STATE:
+          break;
+        case APP_CMD_CONFIG_CHANGED:
+          AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
+          break;
+        case APP_CMD_STOP:
+          StateFlags &= ~4;
+          break;
+        case APP_CMD_START:
+          StateFlags |= 4;
+          break;
+        case APP_CMD_RESUME:
+          StateFlags |= 10;
+          break;
+        case APP_CMD_WINDOW_REDRAW_NEEDED:
+          break;
+        case APP_CMD_CONTENT_RECT_CHANGED:
+          android_graphics_onWindowResize ();
+          break;
+        case APP_CMD_WINDOW_RESIZED:
+          android_graphics_onWindowResizeDisplay ();
+          break;
+        case APP_CMD_LOW_MEMORY:
+          break;
+        case APP_CMD_DESTROY:
+          loop = 0;
+          continue;
+        default:
+          break;
+        }
+#undef END_WAITING
+      }
+      break;
+    default:
+      // base render
+      if (android_graphics_preRender ()) {
+        engine_input_process_event ();
 
-  // adjusted from cmd_exec
-  int update = 0; // 1 (update by egl), 2 (update by lifecycle)
-	struct cmd_msg cmd;
-  // game loop while checking if game requested to exit
-  do {
-    if (ALooper_pollOnce((update != 3) * -1, NULL, NULL, NULL) == 1) {
-		  if (read(android_app->msgpipe[0], &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
-		    LOGE("No data on command pipe!");
-		    continue;
-		  }
-			switch (cmd.c) {
-				case APP_CMD_INPUT_CHANGED:
-				  LOGV("APP_CMD_INPUT_CHANGED\n");
-				  if (android_app->inputQueue != NULL) {
-				    AInputQueue_detachLooper(android_app->inputQueue);
-				  }
-				  android_app->inputQueue = (AInputQueue*)cmd.m;
-				  if (android_app->inputQueue != NULL) {
-				    LOGV("Attaching input queue to looper");
-				    AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, 2, input_exec, android_app);
-				  }
-				  break;
-				
-				case APP_CMD_INIT_WINDOW:
-				  LOGV("APP_CMD_INIT_WINDOW\n");
-				  android_app->window = (ANativeWindow*)cmd.m;
-				  // The window is being shown, get it ready.
-				  engine_init_egl(android_app);
-				  update |= 1;
-				  break;
-	
-				case APP_CMD_RESUME:
-				  update |= 2;
-				  break;
-	
-				case APP_CMD_PAUSE:
-				  update &= ~2;
-				  break;
-				
-				case APP_CMD_TERM_WINDOW:
-				  LOGV("APP_CMD_TERM_WINDOW\n");
-				  // The window is being hidden or closed, clean it up.
-				  engine_term_egl(android_app, 0);
-				  // window null
-				  LOGV("APP_CMD_TERM_WINDOW\n");
-			    android_app->window = NULL;
-			    update &= ~1;
-			    break;
-				
-				case APP_CMD_CONFIG_CHANGED:
-				  LOGV("APP_CMD_CONFIG_CHANGED\n");
-				  AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
-				  print_cur_config(android_app);
-				  break;
-		
-				case APP_CMD_FOCUS_CHANGED:
-					if ((intptr_t)cmd.m != 0) {
-					  if (android_app->accelerometerSensor != NULL) {
-					    ASensorEventQueue_enableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
-					    ASensorEventQueue_setEventRate(android_app->sensorEventQueue, android_app->accelerometerSensor, (1000L/60)*1000);
-					  }
-					} else {
-					  if (android_app->accelerometerSensor != NULL) {
-					    ASensorEventQueue_disableSensor(android_app->sensorEventQueue, android_app->accelerometerSensor);
-					  }
-					}
-				  break;
-		
-				case APP_CMD_DESTROY:
-				  LOGV("APP_CMD_DESTROY\n");
-				  android_app->destroyRequested = 1;
-				  break;
-			}
-			LOGV("activity state=%d\n", cmd.c);
-		  pthread_mutex_lock(&android_app->mutex);
-		  android_app->activityState = cmd.c;
-		  pthread_cond_broadcast(&android_app->cond);
-		  pthread_mutex_unlock(&android_app->mutex);
+        if (!(StateFlags & 1)) {
+          Main_start ();
+          StateFlags |= 1; // created
+          StateFlags &= ~8; // not resume
+        } else if (StateFlags & 8) { // resuming
+          Main_resume ();
+          StateFlags &= ~8; // not resume
+        }
+        Main_render ();
+        android_graphics_postRender (false);
+      }
+      break;
     }
-    if (update == 3)
-    	engine_update_frame(android_app);
-  } while (!android_app->destroyRequested);
-  engine_term_egl(android_app, 1);
-  LOGV("android_app_destroy!");
-  if (android_app->inputQueue != NULL) {
-    AInputQueue_detachLooper(android_app->inputQueue);
   }
-  AConfiguration_delete(android_app->config);
-  pthread_mutex_lock(&android_app->mutex);
-  android_app->destroyed = 1;
-  pthread_cond_broadcast(&android_app->cond);
-  pthread_mutex_unlock(&android_app->mutex);
-  // Can't touch android_app object after this.
+  // when destroy
+  if (android_graphics_preRender ())
+    Main_end ();
+  StateFlags = 0; // reset flags
+  android_graphics_postRender (true);
+  term_engine ();
+  // loop ends
+  ALooper_removeFd (looper, app->msgread);
+  AConfiguration_delete (aconfig);
+  pthread_mutex_lock (&app->mutex);
+  app->destroyed = 1;
+  pthread_cond_broadcast (&app->cond);
+  pthread_mutex_unlock (&app->mutex);
   return NULL;
 }
 
-static inline void android_app_write_cmd(struct android_app* android_app, struct cmd_msg cmd) {
-  android_app->activityState = APP_CMD_NONE;
-  if (write(android_app->msgpipe[1], &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
-    LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
-  }
-  pthread_mutex_lock(&android_app->mutex);
-  while (android_app->activityState != cmd.c) {
-    pthread_cond_wait(&android_app->cond, &android_app->mutex);
-  }
-  pthread_mutex_unlock(&android_app->mutex);
+static struct msg_pipe write_cmd;
+static void onStart(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_START;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onResume(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_RESUME;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onNativeWindowCreated(ANativeActivity *act, ANativeWindow *window) {
+	struct android_app *app = (struct android_app *)act->instance;
+	pthread_mutex_lock (&app->mutex);
+  app->wait_request = 1;
+  pthread_mutex_unlock (&app->mutex);
+  write_cmd.cmd = APP_CMD_WINDOW_UPDATE;
+  write_cmd.data = (void*)window;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (app->wait_request)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+}
+static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
+	struct android_app *app = (struct android_app *)act->instance;
+	pthread_mutex_lock (&app->mutex);
+  app->wait_request = 1;
+  pthread_mutex_unlock (&app->mutex);
+  write_cmd.cmd = APP_CMD_INPUT_UPDATE;
+  write_cmd.data = (void*)queue;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (app->wait_request)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+}
+static void onConfigurationChanged(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_CONFIG_CHANGED;
+  write_cmd.data = (void *)act->assetManager;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onLowMemory(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_LOW_MEMORY;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onWindowFocusChanged(ANativeActivity *act, int f) {
+	struct android_app *app = (struct android_app *)act->instance;
+	pthread_mutex_lock (&app->mutex);
+  app->wait_request = 1;
+  pthread_mutex_unlock (&app->mutex);
+  write_cmd.cmd = APP_CMD_FOCUS_CHANGED;
+  intptr_t focus = f;
+  write_cmd.data = (void*)focus;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (app->wait_request)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+}
+static void onNativeWindowResized(ANativeActivity *act, ANativeWindow *UNUSED(window)) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_WINDOW_RESIZED;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onNativeWindowRedrawNeeded(ANativeActivity *act, ANativeWindow *UNUSED(window)) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onContentRectChanged(ANativeActivity *act, const ARect *UNUSED(window)) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void *onSaveInstanceState(ANativeActivity *act, size_t *outLen) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_SAVE_STATE;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  *outLen = 0;
+  return NULL;
+}
+static void onNativeWindowDestroyed(ANativeActivity *act, ANativeWindow *UNUSED(window)) {
+	struct android_app *app = (struct android_app *)act->instance;
+	pthread_mutex_lock (&app->mutex);
+  app->wait_request = 1;
+  pthread_mutex_unlock (&app->mutex);
+  write_cmd.cmd = APP_CMD_WINDOW_UPDATE;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (app->wait_request)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+}
+static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED(queue)) {
+	struct android_app *app = (struct android_app *)act->instance;
+	pthread_mutex_lock (&app->mutex);
+  app->wait_request = 1;
+  pthread_mutex_unlock (&app->mutex);
+  write_cmd.cmd = APP_CMD_INPUT_UPDATE;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (app->wait_request)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+}
+static void onPause(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_PAUSE;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onStop(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_STOP;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+}
+static void onDestroy(ANativeActivity *act) {
+	struct android_app *app = (struct android_app *)act->instance;
+	write_cmd.cmd = APP_CMD_DESTROY;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
+  pthread_mutex_lock (&app->mutex);
+  while (!app->destroyed)
+    pthread_cond_wait (&app->cond, &app->mutex);
+  pthread_mutex_unlock (&app->mutex);
+  close (app->msgread);
+  close (app->msgwrite);
+  pthread_cond_destroy (&app->cond);
+  pthread_mutex_destroy (&app->mutex);
+  free_mem(app);
 }
 
-static void onDestroy(ANativeActivity* activity) {
-  LOGV("Destroy: %p\n", activity);
-  struct android_app* android_app = (struct android_app*)activity->instance;
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_DESTROY, NULL});
-  pthread_mutex_lock(&android_app->mutex);
-  while (!android_app->destroyed) {
-    pthread_cond_wait(&android_app->cond, &android_app->mutex);
-  }
-  pthread_mutex_unlock(&android_app->mutex);
-
-  close(android_app->msgpipe[0]);
-  close(android_app->msgpipe[1]);
-  pthread_cond_destroy(&android_app->cond);
-  pthread_mutex_destroy(&android_app->mutex);
-  free_mem(android_app);
-}
-static void onStart(ANativeActivity* activity) {
-  LOGV("Start: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_START, NULL});
-}
-static void onResume(ANativeActivity* activity) {
-  LOGV("Resume: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_RESUME, NULL});
-}
-static void* onSaveInstanceState(ANativeActivity* activity, size_t* outLen) {
-  LOGV("SaveInstanceState: %p\n", activity);
-  struct android_app* android_app = (struct android_app*)activity->instance;
-  void* savedState = NULL;
-  *outLen = sizeof(struct saved_state);
-
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_SAVE_STATE, NULL});
-  pthread_mutex_lock(&android_app->mutex);
-  savedState = new_mem(sizeof(struct saved_state));
-  memcpy(savedState, &android_app->state, sizeof(struct saved_state));
-  pthread_mutex_unlock(&android_app->mutex);
-
-  return savedState;
-}
-static void onPause(ANativeActivity* activity) {
-  LOGV("Pause: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_PAUSE, NULL});
-}
-static void onStop(ANativeActivity* activity) {
-  LOGV("Stop: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_STOP, NULL});
-}
-static void onConfigurationChanged(ANativeActivity* activity) {
-  LOGV("ConfigurationChanged: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_CONFIG_CHANGED, NULL});
-}
-static void onLowMemory(ANativeActivity* activity) {
-  struct android_app* android_app = (struct android_app*)activity->instance;
-  LOGV("LowMemory: %p\n", activity);
-  android_app_write_cmd(android_app, (struct cmd_msg){APP_CMD_LOW_MEMORY, NULL});
-}
-static void onContentRectChanged(ANativeActivity* activity, const ARect *UNUSED(rect)) {
-  LOGV("LowMemory: %p\n", activity);
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_CONTENT_RECT_CHANGED, NULL});
-}
-static void onWindowFocusChanged(ANativeActivity* activity, int focused) {
-  LOGV("WindowFocusChanged: %p -- %d\n", activity, focused);
-  intptr_t f = focused;
-  android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_FOCUS_CHANGED,(void*)f});
-}
-static void onNativeWindowCreated(ANativeActivity* activity, ANativeWindow* window) {
-  LOGV("NativeWindowCreated: %p -- %p\n", activity, window);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_INIT_WINDOW, window});
-}
-static void onNativeWindowRedrawNeeded(ANativeActivity* activity, ANativeWindow* window) {
-	LOGV("NativeWindowResized: %p -- %p\n", activity, window);
-	((void)window);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_WINDOW_REDRAW_NEEDED, NULL});
-}
-static void onNativeWindowResized(ANativeActivity* activity, ANativeWindow* window) {
-	LOGV("NativeWindowResized: %p -- %p\n", activity, window);
-	((void)window);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_WINDOW_RESIZED, NULL});
-}
-static void onNativeWindowDestroyed(ANativeActivity* activity, ANativeWindow* window) {
-	LOGV("NativeWindowDestroyed: %p -- %p\n", activity, window);
-	((void)window);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_TERM_WINDOW, NULL});
-}
-static void onInputQueueCreated(ANativeActivity* activity, AInputQueue* queue) {
-  LOGV("InputQueueCreated: %p -- %p\n", activity, queue);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_INPUT_CHANGED, queue});
-}
-static void onInputQueueDestroyed(ANativeActivity* activity, AInputQueue* queue) {
-	LOGV("InputQueueDestroyed: %p -- %p\n", activity, queue);
-	((void)queue);
-	android_app_write_cmd((struct android_app*)activity->instance, (struct cmd_msg){APP_CMD_INPUT_CHANGED, NULL});
-}
-void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize) {
-  LOGV("Creating: %p\n", activity);
-  activity->callbacks->onDestroy = onDestroy;
-  activity->callbacks->onStart = onStart;
-  activity->callbacks->onResume = onResume;
-  activity->callbacks->onSaveInstanceState = onSaveInstanceState;
-  activity->callbacks->onPause = onPause;
-  activity->callbacks->onStop = onStop;
-  activity->callbacks->onConfigurationChanged = onConfigurationChanged;
-  activity->callbacks->onLowMemory = onLowMemory;
-  activity->callbacks->onContentRectChanged = onContentRectChanged;
-  activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
-  activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
-  activity->callbacks->onNativeWindowResized = onNativeWindowResized;
-  activity->callbacks->onNativeWindowRedrawNeeded = onNativeWindowRedrawNeeded;
-  activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
-  activity->callbacks->onInputQueueCreated = onInputQueueCreated;
-  activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-
-  struct android_app* android_app = (struct android_app*)new_imem(sizeof(struct android_app));
-  activity->instance = android_app;
-  android_app->activity = activity;
-
-  pthread_mutex_init(&android_app->mutex, NULL);
-  pthread_cond_init(&android_app->cond, NULL);
-
-  if (savedState != NULL) {
-    memcpy(&android_app->state, savedState, savedStateSize);
-  }
-  free_mem(savedState);
-  if (pipe(android_app->msgpipe)) {
-    LOGE("could not create pipe: %s", strerror(errno));
-    return;
+void ANativeActivity_onCreate (ANativeActivity *act, void *, size_t) {
+  // initialize application
+  struct android_app *app = (struct android_app*)new_imem(sizeof(struct android_app));
+  pthread_mutex_init (&app->mutex, NULL);
+  pthread_cond_init (&app->cond, NULL);
+  while (pipe (&app->msgread) == -1) {
+    // force loop foor provide pipe
+    LOGE ("Failed to create pipe, %s", strerror (errno));
   }
   
-  // start thread
-  pthread_attr_t attr; 
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&android_app->thread, &attr, android_app_entry, android_app);
+
+  // initialize lifecycle
+  act->callbacks->onStart = onStart;
+  act->callbacks->onResume = onResume;
+  act->callbacks->onNativeWindowCreated = onNativeWindowCreated;
+  act->callbacks->onInputQueueCreated = onInputQueueCreated;
+  act->callbacks->onConfigurationChanged = onConfigurationChanged;
+  act->callbacks->onLowMemory = onLowMemory;
+  act->callbacks->onWindowFocusChanged = onWindowFocusChanged;
+  act->callbacks->onNativeWindowResized = onNativeWindowResized;
+  act->callbacks->onNativeWindowRedrawNeeded = onNativeWindowRedrawNeeded;
+  act->callbacks->onContentRectChanged = onContentRectChanged;
+  act->callbacks->onSaveInstanceState = onSaveInstanceState;
+  act->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
+  act->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
+  act->callbacks->onPause = onPause;
+  act->callbacks->onStop = onStop;
+  act->callbacks->onDestroy = onDestroy;
+
+  // start thread game
+  pthread_attr_t attr;
+  pthread_attr_init (&attr);
+  pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
+  pthread_create (&app->thread, &attr, android_app_entry, activity);
+  pthread_attr_destroy (&attr);
 }
 
-// JNI
-JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(e), jobject UNUSED(o), jint l, jint t, jint r, jint b) {
-	((void)l);
-	((void)t);
-	((void)r);
-	((void)b);
+// native MainActivity.java
+
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
+  android_graphics_cur_safe_insets[0] = left;
+  android_graphics_cur_safe_insets[1] = top;
+  android_graphics_cur_safe_insets[2] = right;
+  android_graphics_cur_safe_insets[3] = bottom;
+  if (android_graphics_onWindowResize)
+    android_graphics_onWindowResize ();
 }

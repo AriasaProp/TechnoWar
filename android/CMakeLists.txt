@@ -21,5 +21,5 @@ file(GLOB_RECURSE Src_Files "${SRC}/*.c")
 add_subdirectory(${CORE_SRC} "${CMAKE_CURRENT_SOURCE_DIR}/bin/core")
 
 add_library(${PROJECT_NAME} SHARED ${Src_Files})
-target_include_directories(${PROJECT_NAME} PRIVATE "${CORE_SRC}/main/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${SRC}" "${CORE_SRC}/main/include")
 target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log m)
