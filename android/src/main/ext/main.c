@@ -314,7 +314,7 @@ static void* android_app_entry(void* param) {
   // game loop while checking if game requested to exit
   do {
     if (ALooper_pollOnce((update != 3) * -1, NULL, NULL, NULL) == 1) {
-		  if (read(fd, &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
+		  if (read(android_app->msgpipe[0], &cmd, sizeof(struct cmd_msg)) != sizeof(struct cmd_msg)) {
 		    LOGE("No data on command pipe!");
 		    continue;
 		  }
