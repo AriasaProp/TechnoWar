@@ -73,11 +73,6 @@ struct android_app {
 };
 
 enum {
-  LOOPER_ID_MAIN = 1,
-  LOOPER_ID_INPUT = 2,
-  LOOPER_ID_USER = 3,
-};
-enum {
 	APP_CMD_NONE = 0,
   APP_CMD_INPUT_CHANGED,
   APP_CMD_INIT_WINDOW,
@@ -273,7 +268,7 @@ static inline void print_cur_config(struct android_app* android_app) {
 int sensor_exec(int UNUSED(fd), int UNUSED(e), void *data) {
 	struct android_app* android_app = (struct android_app*) data;
 	((void)android_app);
-	return 1;
+	return 0;
 }
 // input looper execute
 int input_exec(int UNUSED(fd), int UNUSED(e), void *data) {
@@ -293,13 +288,18 @@ int input_exec(int UNUSED(fd), int UNUSED(e), void *data) {
 	} else {
 	  LOGE("Failure reading next input event: %s\n", strerror(errno));
 	}
-	return 1;
+	return 0;
 }
+// command from cmd exec 
+enum {
+	SHOULD_STOP = 1,
+	SHOULD_RUN = 2,
+};
 // cmd looper execute to read input from fd
 int cmd_exec(int fd, int UNUSED(e), void *data) {
 	struct android_app* android_app = (struct android_app*) data;
 	struct cmd_msg cmd;
-	int ret = 1; // allow to update frame
+	int ret = 0; // allow to update frame
   if (read(fd, &cmd, sizeof(struct cmd_msg)) == sizeof(struct cmd_msg)) {
 		switch (cmd.c) {
 			case APP_CMD_INPUT_CHANGED:
@@ -310,7 +310,7 @@ int cmd_exec(int fd, int UNUSED(e), void *data) {
 			  android_app->inputQueue = (AInputQueue*)cmd.m;
 			  if (android_app->inputQueue != NULL) {
 			    LOGV("Attaching input queue to looper");
-			    AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, LOOPER_ID_INPUT, input_exec, android_app);
+			    AInputQueue_attachLooper(android_app->inputQueue, android_app->looper, 2, input_exec, android_app);
 			  }
 			  break;
 			
@@ -319,6 +319,7 @@ int cmd_exec(int fd, int UNUSED(e), void *data) {
 			  android_app->window = (ANativeWindow*)cmd.m;
 			  // The window is being shown, get it ready.
 			  engine_init_egl(android_app);
+			  ret = SHOULD_RUN;
 			  break;
 			
 			case APP_CMD_TERM_WINDOW:
@@ -328,7 +329,7 @@ int cmd_exec(int fd, int UNUSED(e), void *data) {
 			  // window null
 			  LOGV("APP_CMD_TERM_WINDOW\n");
 		    android_app->window = NULL;
-		    ret = 0;
+		    ret = SHOULD_STOP;
 		    break;
 			
 			case APP_CMD_CONFIG_CHANGED:
@@ -353,7 +354,7 @@ int cmd_exec(int fd, int UNUSED(e), void *data) {
 			case APP_CMD_DESTROY:
 			  LOGV("APP_CMD_DESTROY\n");
 			  android_app->destroyRequested = 1;
-			  ret = 0;
+			  ret = SHOULD_STOP;
 			  break;
 		}
 		LOGV("activity state=%d\n", cmd.c);
@@ -372,22 +373,27 @@ static void* android_app_entry(void* param) {
   AConfiguration_fromAssetManager(android_app->config, android_app->activity->assetManager);
   print_cur_config(android_app);
   ALooper* looper = ALooper_prepare(ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd(looper, android_app->msgpipe[0], LOOPER_ID_MAIN, ALOOPER_EVENT_INPUT, cmd_exec, android_app);
+  ALooper_addFd(looper, android_app->msgpipe[0], 1, ALOOPER_EVENT_INPUT, cmd_exec, android_app);
   android_app->looper = looper;
 
   // Prepare to monitor accelerometer
   android_app->sensorManager = AcquireASensorManagerInstance(android_app);
   android_app->accelerometerSensor = ASensorManager_getDefaultSensor(android_app->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  android_app->sensorEventQueue = ASensorManager_createEventQueue(android_app->sensorManager, android_app->looper, LOOPER_ID_USER, sensor_exec, android_app);
+  android_app->sensorEventQueue = ASensorManager_createEventQueue(android_app->sensorManager, android_app->looper, 3, sensor_exec, android_app);
 
+  // adjusted from cmd_exec
+  int update = 0; // 0 = allow render, 1 is not
   // game loop while checking if game requested to exit
-  while (!android_app->destroyRequested) {
-    if (ALooper_pollOnce(egl_invalid(android_app) * -1, NULL, NULL, NULL)) {
-	    if (!egl_invalid(android_app)) {
-	      engine_update_frame(android_app);
-	    }
-    }
-  }
+  do {
+    update = ALooper_pollOnce(update * -1, NULL, NULL, NULL);
+    update *= (update >= 0);
+    if (update == SHOULD_STOP)
+    	update = 1;
+    else if (update == SHOULD_RUN)
+    	update = 0;
+    if (!update)
+    	engine_update_frame(android_app);
+  } while (!android_app->destroyRequested);
   engine_term_egl(android_app, 1);
   LOGV("android_app_destroy!");
   if (android_app->inputQueue != NULL) {
