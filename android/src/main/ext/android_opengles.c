@@ -3,6 +3,7 @@
 
 #include "engine.h"
 #include "util.h"
+#include "manager.h"
 #define MAX_RESOURCE 256
 // not yet make default mesh
 static struct opengles_texture {
@@ -118,7 +119,7 @@ static mesh android_opengles_genMesh (mesh_vertex *v, const size_t vl, const mes
   glEnableVertexAttribArray (0);
   glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)((uintptr)0));
   glEnableVertexAttribArray (1);
-  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof (struct vec3)));
+  glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof(struct vec3)));
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo);
   glBufferData (GL_ELEMENT_ARRAY_BUFFER, il * sizeof (mesh_index), (void *)i, GL_STATIC_DRAW);
   glBindVertexArray (0);
@@ -329,7 +330,7 @@ void android_opengles_validateResources () {
     glEnableVertexAttribArray (0);
     glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)((uintptr)0));
     glEnableVertexAttribArray (1);
-    glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof (struct vec3)));
+    glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof(struct vec3)));
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo);
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof (mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW);
   }
