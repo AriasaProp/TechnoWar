@@ -1,23 +1,35 @@
+/*
+ *  Util Header
+ *  
+ *  Provide basic function and constan for all source code
+ *  
+ *  
+ *  
+ */
+
 #ifndef UTIL_INCLUDED_
 #define UTIL_INCLUDED_
 
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+// ================================
+//  Constant dan Variabel
+// ================================
 
 #ifdef __GNUC__
 #define UNUSED(x)       x __attribute__((unused))
 #else
 #define UNUSED(x)       /* x */
 #endif
-
-#include <stdint.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
 #define MAX_TEMPORARY_BYTE 2048
 
 struct fcolor {
 	float r, g, b, a;
 };
-struct color {
+struct icolor {
 	uint8_t r,g,b,a;
 }; // packed color bit
 struct vec2 {
@@ -39,6 +51,12 @@ union temp {
 
 extern union temp stemp;
 
+
+// ===============================
+//  Function
+// ===============================
+
+
 void *new_mem(size_t);
 void *new_imem(size_t);
 void free_mem(void *);
@@ -46,5 +64,8 @@ size_t get_mem_usage();
 
 // math
 void matrix4_idt(float*);
+
+
+
 
 #endif // UTIL_INCLUDED_
