@@ -16,7 +16,7 @@ enum {
 };
 static struct opengles_mesh {
 	GLint vao;
-	GLint vbo, ibo;
+	GLuint vbo, ibo;
 	int flags;
 	size_t vertex_len, index_len;
 	struct mesh_vertex *vertexs;
@@ -84,7 +84,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src->ui.uniform_tex, 0);
   if (((struct android_graphicsManager *)get_engine()->g.data)->flags & PROJ_UI) {
-    glUniformMatrix4fv (src->ui.uniform_proj, 1, false, src->ui.proj);
+    glUniformMatrix4fv (src->ui.uniform_proj, 1, GL_FALSE, src->ui.proj);
     ((struct android_graphicsManager *)get_engine()->g.data)->flags &= ~PROJ_UI;
   }
   glBindVertexArray (src->ui.vao);
@@ -116,7 +116,7 @@ static mesh android_opengles_genMesh (mesh_vertex *v, const size_t vl, const mes
   glBindBuffer (GL_ARRAY_BUFFER, meshes[m].vbo);
   glBufferData (GL_ARRAY_BUFFER, vl * sizeof (struct mesh_vertex), (void*)v, GL_STATIC_DRAW);
   glEnableVertexAttribArray (0);
-  glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (struct mesh_vertex), (void *)((uintptr)0));
+  glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)((uintptr)0));
   glEnableVertexAttribArray (1);
   glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof(struct vec3)));
   glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo);
@@ -129,12 +129,12 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src->world.shader);
   if (((struct android_graphicsManager *)get_engine()->g.data)->flags & PROJ_WORLD) {
-    glUniformMatrix4fv (src->world.uniform_proj, 1, false, src->world.proj);
+    glUniformMatrix4fv (src->world.uniform_proj, 1, GL_FALSE, src->world.proj);
     ((struct android_graphicsManager *)get_engine()->g.data)->flags &= ~PROJ_WORLD;
   }
   for (size_t i = 0; i < l; i++) {
     struct opengles_mesh m = meshes[ms[i]];
-    glUniformMatrix4fv (src->world.uniform_transProj, 1, false, m.trans);
+    glUniformMatrix4fv (src->world.uniform_transProj, 1, GL_FALSE, m.trans);
     glBindVertexArray (m.vao);
     if (m.flags) {
 	    if (m.flags & MESH_VERTEX_DIRTY) {
@@ -240,8 +240,8 @@ void android_opengles_validateResources() {
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof (unsigned short), (void *)indexs, GL_STATIC_DRAW);
     glBindBuffer (GL_ARRAY_BUFFER, src->ui.vbo);
     glBufferData (GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof (struct flat_vertex), NULL, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer (0, 2, GL_FLOAT, false, sizeof (struct flat_vertex), (void *)0);
-    glVertexAttribPointer (1, 2, GL_FLOAT, false, sizeof (struct flat_vertex), (void *)((uintptr)sizeof(struct vec2)));
+    glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)0);
+    glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)((uintptr)sizeof(struct vec2)));
     glEnableVertexAttribArray (0);
     glEnableVertexAttribArray (1);
   }
@@ -327,7 +327,7 @@ void android_opengles_validateResources() {
     glBindBuffer (GL_ARRAY_BUFFER, meshes[m].vbo);
     glBufferData (GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof (struct mesh_vertex), (void *)meshes[m].vertex, GL_STATIC_DRAW);
     glEnableVertexAttribArray (0);
-    glVertexAttribPointer (0, 3, GL_FLOAT, false, sizeof (struct mesh_vertex), (void *)((uintptr)0));
+    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)((uintptr)0));
     glEnableVertexAttribArray (1);
     glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, true, sizeof (struct mesh_vertex), (void *)((uintptr)sizeof(struct vec3)));
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo);
