@@ -31,7 +31,7 @@ static struct opengles_mesh {
   int flags;
   size_t vertex_len, index_len;
   struct mesh_vertex *vertexs;
-  uint16_t *indices;
+  mesh_index *indices;
   float trans[16];
 } *meshes;
 static struct opengles_data {
@@ -96,7 +96,7 @@ static void android_opengles_setTextureParam (const int param, const int val) {
 static void android_opengles_deleteTexture (const texture t) {
   glDeleteTextures (1, &textures[t].id);
   free_mem (textures[t].data);
-  memset (texture + t, 0, sizeof (struct opengles_texture));
+  memset (textures + t, 0, sizeof (struct opengles_texture));
 }
 static void android_opengles_flatRender (const texture t, struct flat_vertex *v, const size_t l) {
   glDisable (GL_DEPTH_TEST);
@@ -106,7 +106,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glUniform1i (src->ui.uniform_tex, 0);
   if (src->flags & UI_UPDATE) {
     float mat[16] = {
-        2.f / src->viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src->viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.00001f, 0.f, (2.0f * src->insets.x / src->viewportSize.x) - 1.0f, (2.0f * stc->insets.w / src->viewportSize.y) - 1.0f, 0.f, 1.f};
+        2.f / src->viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src->viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.00001f, 0.f, (2.0f * src->insets.x / src->viewportSize.x) - 1.0f, (2.0f * src->insets.w / src->viewportSize.y) - 1.0f, 0.f, 1.f};
     glUniformMatrix4fv (src->ui.uniform_proj, 1, GL_FALSE, mat);
     src->flags &= ~UI_UPDATE;
   }
@@ -118,7 +118,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, 0);
   glUseProgram (0);
 }
-static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, const mesh_index *i, const size_t il) {
+static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
   while (m < MAX_RESOURCE) {
     if (meshes[m].vertex_len == 0)
@@ -153,7 +153,7 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glUseProgram (src->world.shader);
   if (src->flags & WORLD_UPDATE) {
     float mat[16] = {
-        2.f / viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+        2.f / src->viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src->viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f};
     glUniformMatrix4fv (src->world.uniform_proj, 1, GL_FALSE, mat);
     src->flags &= ~WORLD_UPDATE;
   }
@@ -344,13 +344,13 @@ void android_opengles_validateResources () {
   }
   glBindTexture (GL_TEXTURE_2D, 0);
   // mesh
-  for (mesh m = 0; m < MAX_RESOURCE) {
+  for (mesh m = 0; m < MAX_RESOURCE; ++m) {
     if (meshes[m].vertex_len == 0) continue;
     glGenVertexArrays (1, &meshes[m].vao);
     glGenBuffers (2, &meshes[m].vbo);
     glBindVertexArray (meshes[m].vao);
     glBindBuffer (GL_ARRAY_BUFFER, meshes[m].vbo);
-    glBufferData (GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof (struct mesh_vertex), (void *)meshes[m].vertex, GL_STATIC_DRAW);
+    glBufferData (GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof (struct mesh_vertex), (void *)meshes[m].vertexs, GL_STATIC_DRAW);
     glEnableVertexAttribArray (0);
     glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)0);
     glEnableVertexAttribArray (1);
@@ -374,8 +374,8 @@ void android_opengles_resizeWindow (float w, float h) {
   src->viewportSize.x = w;
   src->viewportSize.y = h;
   glViewport (0, 0, w, h);
-  src->screenSize.x = w - insets.x - insets.z;
-  src->screenSize.y = h - insets.y - insets.w;
+  src->screenSize.x = w - src->insets.x - src->insets.z;
+  src->screenSize.y = h - src->insets.y - src->insets.w;
   src->flags |= WORLD_UPDATE;
 }
 void android_opengles_invalidateResources () {
@@ -402,19 +402,18 @@ void android_opengles_invalidateResources () {
 }
 
 void android_opengles_init () {
-  struct engine_graphics *g = get_engine ()->g;
-  g->getScreenSize = android_opengles_getScreenSize;
-  g->toScreenCoordinate = android_opengles_toScreenCoordinate;
-  g->clear = android_opengles_clear;
-  g->clearColor = android_opengles_clearColor;
-  g->genTexture = android_opengles_genTexture;
-  g->bindTexture = android_opengles_bindTexture;
-  g->setTextureParam = android_opengles_setTextureParam;
-  g->deleteTexture = android_opengles_deleteTexture;
-  g->flatRender = android_opengles_flatRender;
-  g->genMesh = android_opengles_genMesh;
-  g->meshRender = android_opengles_meshRender;
-  g->deleteMesh = android_opengles_deleteMesh;
+  get_engine ()->g.getScreenSize = android_opengles_getScreenSize;
+  get_engine ()->g.toScreenCoordinate = android_opengles_toScreenCoordinate;
+  get_engine ()->g.clear = android_opengles_clear;
+  get_engine ()->g.clearColor = android_opengles_clearColor;
+  get_engine ()->g.genTexture = android_opengles_genTexture;
+  get_engine ()->g.bindTexture = android_opengles_bindTexture;
+  get_engine ()->g.setTextureParam = android_opengles_setTextureParam;
+  get_engine ()->g.deleteTexture = android_opengles_deleteTexture;
+  get_engine ()->g.flatRender = android_opengles_flatRender;
+  get_engine ()->g.genMesh = android_opengles_genMesh;
+  get_engine ()->g.meshRender = android_opengles_meshRender;
+  get_engine ()->g.deleteMesh = android_opengles_deleteMesh;
 
   textures = (struct opengles_texture *)new_imem (sizeof (struct opengles_texture) * MAX_RESOURCE);
   meshes = (struct opengles_mesh *)new_imem (sizeof (struct opengles_mesh) * MAX_RESOURCE);
