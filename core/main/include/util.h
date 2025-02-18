@@ -23,6 +23,9 @@ struct color {
 struct vec2 {
 	float x, y;
 };
+struct vec3 {
+	float x, y, z;
+};
 struct uivec2 {
 	uint16_t x, y;
 };

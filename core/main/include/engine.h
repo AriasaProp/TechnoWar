@@ -35,9 +35,9 @@ struct engine_graphics {
 	void (*setTextureParam) (const int, const int);
 	void (*deleteTexture) (const texture);
 	void (*flatRender) (const texture, struct flat_vertex *, const size_t);
-	mesh (*genMesh) (mesh_vertex *, const size_t, const mesh_index *, const size_t);
+	mesh (*genMesh) (struct mesh_vertex *, const size_t, const mesh_index *, const size_t);
 	void (*meshRender) (mesh *, const size_t)
-	void (deleteMesh) (const mesh)
+	void (*deleteMesh) (const mesh)
 
 };
 struct engine_asset {
