@@ -43,7 +43,7 @@ struct uivec2 {
   uint16_t x, y;
 };
 struct vec4 {
-	float x, y, z, w;
+  float x, y, z, w;
 };
 
 union temp {
