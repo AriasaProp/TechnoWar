@@ -7,8 +7,8 @@
 // private value
 
 static struct android_graphicsManager {
-	ANativeWindow *window;
-	EGLDisplay display;
+  ANativeWindow *window;
+  EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
   EGLConfig eConfig;

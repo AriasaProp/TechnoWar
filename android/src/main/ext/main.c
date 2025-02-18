@@ -89,7 +89,7 @@ static void *android_app_entry (void *n) {
         switch (read_cmd.cmd) {
         case APP_CMD_WINDOW_UPDATE:
           android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
-        	StateFlags |= (int)read_cmd.data * STATE_WINDOW_EXIST;
+          StateFlags |= (int)read_cmd.data * STATE_WINDOW_EXIST;
           break;
         case APP_CMD_FOCUS_CHANGED:
           android_inputManager_switchSensor (read_cmd.data);
@@ -146,9 +146,9 @@ static void *android_app_entry (void *n) {
     case ALOOPER_POLL_CALLBACK:
       // base render
       if (
-      	(StateFlags & STATE_RUNNING) &&
-      	(StateFlags & STATE_WINDOW_EXIST) &&
-      	android_graphicsManager_preRender ()) {
+          (StateFlags & STATE_RUNNING) &&
+          (StateFlags & STATE_WINDOW_EXIST) &&
+          android_graphicsManager_preRender ()) {
         // engine_input_process_event ();
 
         if (!(StateFlags & STATE_CREATED)) {

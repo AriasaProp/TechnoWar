@@ -7,28 +7,27 @@
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
 
-
 enum inputManagerState {
-	INPUT_SENSOR_ENABLED = 1,
+  INPUT_SENSOR_ENABLED = 1,
 };
 #define MAX_SENSOR_COUNT 3
 enum {
-	SENSOR_ACCELEROMETER = 0,
-	SENSOR_GYROSCOPE = 1,
-	SENSOR_MAGNETIC_FIELD = 2,
+  SENSOR_ACCELEROMETER = 0,
+  SENSOR_GYROSCOPE = 1,
+  SENSOR_MAGNETIC_FIELD = 2,
 };
 
 static struct android_inputManager {
-	AInputQueue *inputQueue;
-	
-	ASensorManager *sensorMngr;
-	ASensorEventQueue *sensorQueue;
-	struct {
-		const ASensor *sensor;
-		float value[3];
-	} sensor_data[MAX_SENSOR_COUNT];
-	
-	int flags;
+  AInputQueue *inputQueue;
+
+  ASensorManager *sensorMngr;
+  ASensorEventQueue *sensorQueue;
+  struct {
+    const ASensor *sensor;
+    float value[3];
+  } sensor_data[MAX_SENSOR_COUNT];
+
+  int flags;
 } *m = NULL;
 
 // processing input
@@ -73,7 +72,7 @@ static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), 
 void android_inputManager_init (ALooper *looper) {
   m = (struct android_inputManager *)new_imem (sizeof (struct android_inputManager));
   while (m->sensorMngr == NULL) {
-  	m->sensorMngr = ASensorManager_getInstance ();
+    m->sensorMngr = ASensorManager_getInstance ();
   }
   m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
