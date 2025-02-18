@@ -37,9 +37,9 @@ extern void android_inputManager_term (struct android_inputManager*);
 
 struct android_graphicsManager {
 	ANativeWindow *window;
-	EGLDisplay display = EGL_NO_DISPLAY;
-  EGLSurface surface = EGL_NO_SURFACE;
-  EGLContext context = EGL_NO_CONTEXT;
+	EGLDisplay display;
+  EGLSurface surface;
+  EGLContext context;
   EGLConfig eConfig;
   EGLint wWidth, wHeight;        // platform full display
   float game_width, game_height; // display after safe insets

@@ -75,10 +75,16 @@ int android_graphicsManager_preRender () {
       g->context = EGL_NO_CONTEXT;
       g->surface = EGL_NO_SURFACE;
       g->display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
-      eglInitialize (g->display, nullptr, nullptr);
-      const EGLint configAttr[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_ALPHA_SIZE, 0, EGL_NONE};
+      eglInitialize (g->display, NULL, NULL);
+      const EGLint configAttr[] = {
+      		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+      		EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+      		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+      		EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+      		EGL_BUFFER_SIZE, 16,
+      		EGL_NONE};
       EGLint temp;
-      eglChooseConfig (g->display, configAttr, nullptr, 0, &temp);
+      eglChooseConfig (g->display, configAttr, NULL, 0, &temp);
       EGLConfig *conf = (EGLConfig *)new_mem (temp * sizeof (EGLConfig));
       EGLCongig *configs = conf;
       EGLConfig *configs_end = configs + temp;
@@ -86,28 +92,27 @@ int android_graphicsManager_preRender () {
       g->eConfig = *configs;
       size_t k = 0, l;
       do {
-        EGLConfig &cfg = *configs;
-        eglGetConfigAttrib (g->display, cfg, EGL_BUFFER_SIZE, &temp);
+        eglGetConfigAttrib (g->display, *configs, EGL_BUFFER_SIZE, &temp);
         l = temp;
-        eglGetConfigAttrib (g->display, cfg, EGL_DEPTH_SIZE, &temp);
+        eglGetConfigAttrib (g->display, *configs, EGL_DEPTH_SIZE, &temp);
         l += temp;
-        eglGetConfigAttrib (g->display, cfg, EGL_STENCIL_SIZE, &temp);
+        eglGetConfigAttrib (g->display, *configs, EGL_STENCIL_SIZE, &temp);
         l += temp;
         if (l > k) {
           k = l;
-          g->eConfig = cfg;
+          g->eConfig = *configs;
         }
       } while (++configs < configs_end);
       free_mem(conf);
     }
     while (!g->context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
-      g->context = eglCreateContext (g->display, g->eConfig, nullptr, ctxAttr);
+      g->context = eglCreateContext (g->display, g->eConfig, NULL, ctxAttr);
       
     	android_opengles_validateResources();
     }
     while (!g->surface)
-      g->surface = eglCreateWindowSurface (g->display, g->eConfig, g->1window, nullptr);
+      g->surface = eglCreateWindowSurface (g->display, g->eConfig, g->1window, NULL);
 
     eglMakeCurrent (g->display, g->surface, g->surface, g->context);
     eglQuerySurface (g->display, g->surface, EGL_WIDTH, &g->wWidth);
