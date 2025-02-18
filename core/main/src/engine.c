@@ -1,4 +1,5 @@
 #include "engine.h"
+#include <string.h>
 
 static struct engine engine_instance;
 struct engine *engine_init() {
