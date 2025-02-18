@@ -13,9 +13,9 @@ static struct android_graphicsManager *g;
 // core implementation
 static float getWidth () { return g->game_width; }
 static float getHeight () { return g->game_height; }
-static void toScreenCoordinate (float *x, float *y) {
-  *x -= android_graphics_cur_safe_insets[0];
-  *y = ((float)g->wHeight) - *y - android_graphics_cur_safe_insets[3];
+static void toScreenCoordinate (struct vec2 *v) {
+  v->x -= android_graphics_cur_safe_insets[0];
+  v->y = ((float)g->wHeight) - v->y - android_graphics_cur_safe_insets[3];
 }
 
 
@@ -54,6 +54,7 @@ struct android_graphicsManager *android_graphicsManager_init() {
 	en->getWidth = getWidth;
 	en->getHeight = getHeight;
 	en->toScreenCoordinate = toScreenCoordinate;
+	android_opengles_init();
 	return g;
 }
 void android_graphicsManager_onWindowChange (ANativeWindow *w) {
@@ -165,7 +166,7 @@ void android_graphicsManager_postRender () {
 }
 void android_graphicsManager_term() {
   eglSwapBuffers (g->display, g->surface);
-  
+  android_opengles_term();
   if (g->display) {
 	  eglMakeCurrent (g->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 	  if (g->surface) {

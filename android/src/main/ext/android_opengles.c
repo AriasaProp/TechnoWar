@@ -41,10 +41,10 @@ static void android_opengles_clear (const int m) {
   	(((m & GRAPHICS_CLEAR_DEPTH) == GRAPHICS_CLEAR_DEPTH) * GL_DEPTH_BUFFER_BIT) |
   	(((m & GRAPHICS_CLEAR_STENCIL) == GRAPHICS_CLEAR_STENCIL) * GL_STENCIL_BUFFER_BIT);
 }
-static void android_opengles_clearColor (const fcolor c) {
+static void android_opengles_clearColor (const struct fcolor c) {
   glClearColor (c.r, c.g, c.b, c.a);
 }
-static texture android_opengles_genTexture (const uivec2 size, void *data) {
+static texture android_opengles_genTexture (const struct uivec2 size, void *data) {
   texture i = 1;
   while (i < MAX_RESOURCE) {
   	if (textures[i].size.x == 0)
@@ -77,7 +77,7 @@ static void android_opengles_deleteTexture (const texture t) {
   free_mem(textures[t].data);
   memset(texture + t, 0, sizeof(struct opengles_texture));
 }
-static void android_opengles_flatRender (const texture t, flat_vertex *v, const size_t l) {
+static void android_opengles_flatRender (const texture t, struct flat_vertex *v, const size_t l) {
   glDisable (GL_DEPTH_TEST);
   glUseProgram (src->ui.shader);
   glActiveTexture (GL_TEXTURE0);
