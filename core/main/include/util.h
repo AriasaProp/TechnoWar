@@ -10,8 +10,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <cstdlib.h>
-#include <cstring.h>
+#include <stdlib.h>
+#include <string.h>
 #define MAX_TEMPORARY_BYTE 2048
 
 struct fcolor {
