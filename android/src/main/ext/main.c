@@ -341,7 +341,7 @@ static void onDestroy (ANativeActivity *act) {
   free_mem (app);
 }
 
-void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED(savedata), size_t UNUSED(save_len)) {
+void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED (savedata), size_t UNUSED (save_len)) {
   // initialize application
   struct android_app *app = (struct android_app *)new_imem (sizeof (struct android_app));
   pthread_mutex_init (&app->mutex, NULL);
