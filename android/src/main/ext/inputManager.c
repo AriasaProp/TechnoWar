@@ -5,7 +5,7 @@
 #include "manager.h"
 #include "util.h"
 // ~60 Hz
-#define SENSOR_EVENT_RATE 1666.666667
+#define SENSOR_EVENT_RATE 1667
 
 // processing input
 static int android_inputManager_processInput (int UNUSED(fd), int UNUSED(e), void *data) {
