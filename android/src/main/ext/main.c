@@ -336,22 +336,22 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
   }
 
   // initialize lifecycle
-  act->callbacks->onStart = onStart;
-  act->callbacks->onResume = onResume;
-  act->callbacks->onNativeWindowCreated = onNativeWindowCreated;
-  act->callbacks->onInputQueueCreated = onInputQueueCreated;
-  act->callbacks->onConfigurationChanged = onConfigurationChanged;
-  act->callbacks->onLowMemory = onLowMemory;
-  act->callbacks->onWindowFocusChanged = onWindowFocusChanged;
-  act->callbacks->onNativeWindowResized = onNativeWindowResized;
-  act->callbacks->onNativeWindowRedrawNeeded = onNativeWindowRedrawNeeded;
-  act->callbacks->onContentRectChanged = onContentRectChanged;
-  act->callbacks->onSaveInstanceState = onSaveInstanceState;
-  act->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
-  act->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-  act->callbacks->onPause = onPause;
-  act->callbacks->onStop = onStop;
-  act->callbacks->onDestroy = onDestroy;
+  activity->callbacks->onStart = onStart;
+  activity->callbacks->onResume = onResume;
+  activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
+  activity->callbacks->onInputQueueCreated = onInputQueueCreated;
+  activity->callbacks->onConfigurationChanged = onConfigurationChanged;
+  activity->callbacks->onLowMemory = onLowMemory;
+  activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
+  activity->callbacks->onNativeWindowResized = onNativeWindowResized;
+  activity->callbacks->onNativeWindowRedrawNeeded = onNativeWindowRedrawNeeded;
+  activity->callbacks->onContentRectChanged = onContentRectChanged;
+  activity->callbacks->onSaveInstanceState = onSaveInstanceState;
+  activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
+  activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
+  activity->callbacks->onPause = onPause;
+  activity->callbacks->onStop = onStop;
+  activity->callbacks->onDestroy = onDestroy;
 
   // start thread game
   pthread_attr_t attr;
