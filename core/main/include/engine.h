@@ -21,11 +21,8 @@ struct mesh_vertex {
 typedef uint16_t mesh_index;
 
 struct engine_graphics {
-  void *data;
-  float (*getWidth) ();
-  float (*getHeight) ();
+  struct vec2 (*getScreenSize) ();
   void (*toScreenCoordinate) (struct vec2 *);
-
   // graphics clear window
   void (*clear) (const int);
   // set graphics clear color window

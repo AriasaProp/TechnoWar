@@ -42,6 +42,9 @@ struct vec3 {
 struct uivec2 {
   uint16_t x, y;
 };
+struct vec4 {
+	float x, y, z, w;
+};
 
 union temp {
   char chars[MAX_TEMPORARY_BYTE];

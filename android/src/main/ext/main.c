@@ -26,9 +26,6 @@
 #include "manager.h"
 #include "util.h"
 
-// extern variable
-extern float android_graphics_cur_safe_insets[4];
-
 enum APP_CMD {
   APP_CMD_CREATE = 0,
   APP_CMD_START,
@@ -367,12 +364,5 @@ void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED (savedata), si
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
   if (app == NULL) return;
-  android_graphics_cur_safe_insets[0] = left;
-  android_graphics_cur_safe_insets[1] = top;
-  android_graphics_cur_safe_insets[2] = right;
-  android_graphics_cur_safe_insets[3] = bottom;
-  write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  android_graphicsManager_resizeInsets(left, top, right, bottom);
 }
