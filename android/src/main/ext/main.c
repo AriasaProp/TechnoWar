@@ -54,8 +54,7 @@ struct android_app {
   pthread_cond_t cond;
   pthread_t thread;
   struct android_inputManager *inMngr;
-  struct android_graphicsManager *graphMngr;
-};
+} *app = NULL;
 
 struct msg_pipe {
   enum APP_CMD cmd;
@@ -73,7 +72,6 @@ enum {
 static void *android_app_entry (void *n) {
   engine_init ();
   ANativeActivity *act = (ANativeActivity *)n;
-  struct android_app *app = (struct android_app *)act->instance;
   AConfiguration *aconfig = AConfiguration_new ();
   AConfiguration_fromAssetManager (aconfig, act->assetManager);
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
@@ -81,7 +79,7 @@ static void *android_app_entry (void *n) {
   int StateFlags = 0;
   int loop = 1;
   app->inMngr = android_inputManager_init (looper);
-  app->graphMngr = android_graphicsManager_init ();
+  android_graphicsManager_init ();
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   while (loop) {
     switch (ALooper_pollOnce ((StateFlags & (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST)) == (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST) ? 0 : -1, NULL, NULL, NULL)) {
@@ -182,21 +180,18 @@ static void *android_app_entry (void *n) {
 
 static struct msg_pipe write_cmd;
 static void onStart (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_START;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onResume (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_RESUME;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) {
-  struct android_app *app = (struct android_app *)act->instance;
   pthread_mutex_lock (&app->mutex);
   app->wait_request = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -210,7 +205,6 @@ static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) 
   pthread_mutex_unlock (&app->mutex);
 }
 static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
-  struct android_app *app = (struct android_app *)act->instance;
   pthread_mutex_lock (&app->mutex);
   app->wait_request = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -224,21 +218,18 @@ static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   pthread_mutex_unlock (&app->mutex);
 }
 static void onConfigurationChanged (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_CONFIG_CHANGED;
   write_cmd.data = (void *)act->assetManager;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onLowMemory (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_LOW_MEMORY;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onWindowFocusChanged (ANativeActivity *act, int f) {
-  struct android_app *app = (struct android_app *)act->instance;
   pthread_mutex_lock (&app->mutex);
   app->wait_request = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -253,28 +244,24 @@ static void onWindowFocusChanged (ANativeActivity *act, int f) {
   pthread_mutex_unlock (&app->mutex);
 }
 static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_WINDOW_RESIZED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onContentRectChanged (ANativeActivity *act, const ARect *UNUSED (window)) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_SAVE_STATE;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
@@ -283,7 +270,6 @@ static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
   return NULL;
 }
 static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
-  struct android_app *app = (struct android_app *)act->instance;
   pthread_mutex_lock (&app->mutex);
   app->wait_request = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -297,7 +283,6 @@ static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED
   pthread_mutex_unlock (&app->mutex);
 }
 static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (queue)) {
-  struct android_app *app = (struct android_app *)act->instance;
   pthread_mutex_lock (&app->mutex);
   app->wait_request = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -311,21 +296,18 @@ static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (qu
   pthread_mutex_unlock (&app->mutex);
 }
 static void onPause (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_PAUSE;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onStop (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_STOP;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
 static void onDestroy (ANativeActivity *act) {
-  struct android_app *app = (struct android_app *)act->instance;
   write_cmd.cmd = APP_CMD_DESTROY;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
@@ -339,15 +321,16 @@ static void onDestroy (ANativeActivity *act) {
   pthread_cond_destroy (&app->cond);
   pthread_mutex_destroy (&app->mutex);
   free_mem (app);
+  app = NULL;
 }
 
 void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED (savedata), size_t UNUSED (save_len)) {
   // initialize application
-  struct android_app *app = (struct android_app *)new_imem (sizeof (struct android_app));
+  app = (struct android_app *)new_imem (sizeof (struct android_app));
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
   while (pipe (&app->msgread) == -1) {
-    // force loop foor provide pipe
+    // force loop to provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
 
@@ -379,12 +362,13 @@ void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED (savedata), si
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
-  ((struct android_graphicsManager *)
-	get_engine()->g.data
+  if (app == NULL) return;
   android_graphics_cur_safe_insets[0] = left;
   android_graphics_cur_safe_insets[1] = top;
   android_graphics_cur_safe_insets[2] = right;
   android_graphics_cur_safe_insets[3] = bottom;
-  if (android_graphics_onWindowResize)
-    android_graphics_onWindowResize ();
+  write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
+  write_cmd.data = NULL;
+  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
+    LOGE ("cannot write on pipe , %s", strerror (errno));
 }

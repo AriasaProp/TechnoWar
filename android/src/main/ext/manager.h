@@ -4,7 +4,8 @@
 #include <android/looper.h>
 #include <android/sensor.h>
 #include <EGL/egl.h>
-
+#include <android/native_window.h>
+#include <android/input.h>
 
 enum inputManagerState {
 	INPUT_SENSOR_ENABLED = 1,
