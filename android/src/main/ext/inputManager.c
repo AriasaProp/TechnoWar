@@ -7,9 +7,32 @@
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
 
+
+enum inputManagerState {
+	INPUT_SENSOR_ENABLED = 1,
+};
+#define MAX_SENSOR_COUNT 3
+enum {
+	SENSOR_ACCELEROMETER = 0,
+	SENSOR_GYROSCOPE = 1,
+	SENSOR_MAGNETIC_FIELD = 2,
+};
+
+static struct android_inputManager {
+	AInputQueue *inputQueue;
+	
+	ASensorManager *sensorMngr;
+	ASensorEventQueue *sensorQueue;
+	struct {
+		const ASensor *sensor;
+		float value[3];
+	} sensor_data[MAX_SENSOR_COUNT];
+	
+	int flags;
+} *m = NULL;
+
 // processing input
 static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), void *data) {
-  struct android_inputManager *m = (struct android_inputManager *)data;
   AInputEvent *outEvent;
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
@@ -19,7 +42,6 @@ static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), v
   return 1;
 }
 static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), void *data) {
-  struct android_inputManager *m = (struct android_inputManager *)data;
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
   while ((j = ASensorEventQueue_getEvents (m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
@@ -48,28 +70,24 @@ static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), 
   return 1;
 }
 
-struct android_inputManager *android_inputManager_init (ALooper *looper) {
-  struct android_inputManager *m = (struct android_inputManager *)new_imem (sizeof (struct android_inputManager));
-  m->sensorMngr = ASensorManager_getInstance ();
-  if (m->sensorMngr == NULL) {
-    free_mem (m);
-    return NULL;
+void android_inputManager_init (ALooper *looper) {
+  m = (struct android_inputManager *)new_imem (sizeof (struct android_inputManager));
+  while (m->sensorMngr == NULL) {
+  	m->sensorMngr = ASensorManager_getInstance ();
   }
-
   m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue (m->sensorMngr, looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
-  return m;
 }
-void android_inputManager_setInputQueue (struct android_inputManager *m, ALooper *looper, AInputQueue *queue) {
+void android_inputManager_setInputQueue (ALooper *looper, AInputQueue *queue) {
   if (m->inputQueue)
     AInputQueue_detachLooper (m->inputQueue);
   m->inputQueue = queue;
   if (m->inputQueue)
     AInputQueue_attachLooper (m->inputQueue, looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
 }
-void android_inputManager_switchSensor (struct android_inputManager *m, void *s) {
+void android_inputManager_switchSensor (void *s) {
   if (!s && (m->flags & INPUT_SENSOR_ENABLED)) {
     // detach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -89,7 +107,7 @@ void android_inputManager_switchSensor (struct android_inputManager *m, void *s)
     android_inputManager_processSensor (0, 0, m);
   }
 }
-void android_inputManager_term (struct android_inputManager *m) {
+void android_inputManager_term () {
   if (m->inputQueue)
     AInputQueue_detachLooper (m->inputQueue);
   for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {

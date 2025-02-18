@@ -54,7 +54,6 @@ struct android_app {
   pthread_mutex_t mutex;
   pthread_cond_t cond;
   pthread_t thread;
-  struct android_inputManager *inMngr;
 } *app = NULL;
 
 struct msg_pipe {
@@ -79,25 +78,24 @@ static void *android_app_entry (void *n) {
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
   int StateFlags = 0;
-  app->inMngr = android_inputManager_init (looper);
+  android_inputManager_init (looper);
   android_graphicsManager_init ();
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   do {
-    switch (ALooper_pollOnce ((StateFlags & (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST)) == (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST) ? 0 : -1, NULL, NULL, NULL)) {
-    case ALOOPER_POLL_CALLBACK:
-      break;
+    switch (ALooper_pollOnce ((!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST)) * -1, NULL, NULL, NULL)) {
     case 1:
       // activity handler
       if (read (app->msgread, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
         switch (read_cmd.cmd) {
         case APP_CMD_WINDOW_UPDATE:
           android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
+        	StateFlags |= (int)read_cmd.data * STATE_WINDOW_EXIST;
           break;
         case APP_CMD_FOCUS_CHANGED:
-          android_inputManager_switchSensor (app->inMngr, read_cmd.data);
+          android_inputManager_switchSensor (read_cmd.data);
           break;
         case APP_CMD_INPUT_UPDATE:
-          android_inputManager_setInputQueue (app->inMngr, looper, (AInputQueue *)read_cmd.data);
+          android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
           break;
         case APP_CMD_PAUSE:
           if (android_graphicsManager_preRender ()) {
@@ -145,8 +143,12 @@ static void *android_app_entry (void *n) {
       }
       break;
     default:
+    case ALOOPER_POLL_CALLBACK:
       // base render
-      if (android_graphicsManager_preRender ()) {
+      if (
+      	(StateFlags & STATE_RUNNING) &&
+      	(StateFlags & STATE_WINDOW_EXIST) &&
+      	android_graphicsManager_preRender ()) {
         // engine_input_process_event ();
 
         if (!(StateFlags & STATE_CREATED)) {
@@ -168,7 +170,7 @@ static void *android_app_entry (void *n) {
   if (android_graphicsManager_preRender ())
     Main_end ();
   android_graphicsManager_term ();
-  android_inputManager_term (app->inMngr);
+  android_inputManager_term ();
   // loop ends
   ALooper_removeFd (looper, app->msgread);
   AConfiguration_delete (aconfig);

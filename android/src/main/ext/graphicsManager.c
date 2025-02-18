@@ -1,12 +1,19 @@
-#include <GLES3/gl32.h> //API 24
+#include <EGL/egl.h>
 
 #include "engine.h"
 #include "manager.h"
 #include "util.h"
 
 // private value
-static struct android_graphicsManager *g;
-static int flags = 0;
+
+static struct android_graphicsManager {
+	ANativeWindow *window;
+	EGLDisplay display;
+  EGLSurface surface;
+  EGLContext context;
+  EGLConfig eConfig;
+  int g->flags = 0;
+} *g = NULL;
 
 // private function
 enum {
@@ -48,7 +55,6 @@ static inline void killEGL (const int EGLTermReq) {
 void android_graphicsManager_init () {
   g = (struct android_graphicsManager *)new_imem (sizeof (struct android_graphicsManager));
   android_opengles_init ();
-  flags = 0;
 }
 void android_graphicsManager_onWindowChange (ANativeWindow *w) {
   if (g->window)
@@ -56,13 +62,13 @@ void android_graphicsManager_onWindowChange (ANativeWindow *w) {
   g->window = w;
 }
 void android_graphicsManager_onWindowResizeDisplay () {
-  flags |= RESIZE_DISPLAY;
+  g->flags |= RESIZE_DISPLAY;
 }
 void android_graphicsManager_resizeInsets (float x, float y, float z, float w) {
   android_opengles_resizeInsets (x, y, z, w);
 }
 void android_graphicsManager_onWindowResize () {
-  flags |= RESIZE_ONLY;
+  g->flags |= RESIZE_ONLY;
 }
 int android_graphicsManager_preRender () {
   if (!g->window) return 0;
@@ -109,20 +115,20 @@ int android_graphicsManager_preRender () {
       g->surface = eglCreateWindowSurface (g->display, g->eConfig, g->window, NULL);
 
     eglMakeCurrent (g->display, g->surface, g->surface, g->context);
-    flags |= RESIZE_ONLY;
-    flags &= ~RESIZE_DISPLAY;
-  } else if (flags & RESIZE_DISPLAY) {
+    g->flags |= RESIZE_ONLY;
+    g->flags &= ~RESIZE_DISPLAY;
+  } else if (g->flags & RESIZE_DISPLAY) {
     eglMakeCurrent (g->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglMakeCurrent (g->display, g->surface, g->surface, g->context);
-    flags |= RESIZE_ONLY;
-    flags &= ~RESIZE_DISPLAY;
+    g->flags |= RESIZE_ONLY;
+    g->flags &= ~RESIZE_DISPLAY;
   }
-  if (flags & RESIZE_ONLY) {
+  if (g->flags & RESIZE_ONLY) {
     EGLint w, h;
     eglQuerySurface (g->display, g->surface, EGL_WIDTH, &w);
     eglQuerySurface (g->display, g->surface, EGL_HEIGHT, &h);
     android_opengles_resizeWindow ((float)w, (float)h);
-    flags &= ~RESIZE_ONLY;
+    g->flags &= ~RESIZE_ONLY;
   }
   return 1;
 }
@@ -167,5 +173,4 @@ void android_graphicsManager_term () {
   }
   memset (&get_engine ()->g, 0, sizeof (struct engine_graphics));
   free_mem (g);
-  flags = 0;
 }
