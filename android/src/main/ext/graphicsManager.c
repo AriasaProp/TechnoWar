@@ -17,11 +17,14 @@ enum {
 enum {
   RESIZE_DISPLAY = 2,
   RESIZE_ONLY = 1,
-} extern void
-android_opengles_validateResources ();
+};
+
+extern void android_opengles_init ();
+extern void android_opengles_validateResources ();
 extern void android_opengles_resizeInsets (float, float, float, float);
 extern void android_opengles_resizeWindow (float, float);
 extern void android_opengles_invalidateResources ();
+extern void android_opengles_term ();
 static inline void killEGL (const int EGLTermReq) {
   if (!EGLTermReq || !g->display) return;
   eglMakeCurrent (g->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -77,7 +80,7 @@ int android_graphicsManager_preRender () {
           EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_BUFFER_SIZE, 16, EGL_NONE};
       eglChooseConfig (g->display, configAttr, NULL, 0, &temp);
       EGLConfig *conf = (EGLConfig *)new_mem (temp * sizeof (EGLConfig));
-      EGLCongig *configs = conf;
+      EGLConfig *configs = conf;
       EGLConfig *configs_end = configs + temp;
       eglChooseConfig (g->display, configAttr, configs, temp, &temp);
       g->eConfig = *configs;
@@ -103,7 +106,7 @@ int android_graphicsManager_preRender () {
       android_opengles_validateResources ();
     }
     while (!g->surface)
-      g->surface = eglCreateWindowSurface (g->display, g->eConfig, g->1window, NULL);
+      g->surface = eglCreateWindowSurface (g->display, g->eConfig, g->window, NULL);
 
     eglMakeCurrent (g->display, g->surface, g->surface, g->context);
     flags |= RESIZE_ONLY;
@@ -144,7 +147,7 @@ void android_graphicsManager_postRender () {
       break;
     }
   }
-  killEGL (g, EGLTermReq);
+  killEGL (EGLTermReq);
 }
 void android_graphicsManager_term () {
   eglSwapBuffers (g->display, g->surface);
@@ -155,7 +158,7 @@ void android_graphicsManager_term () {
       eglDestroySurface (g->display, g->surface);
       g->surface = EGL_NO_SURFACE;
     }
-    if (g->context &&) {
+    if (g->context) {
       eglDestroyContext (g->display, g->context);
       g->context = EGL_NO_CONTEXT;
     }
