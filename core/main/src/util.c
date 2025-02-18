@@ -61,3 +61,9 @@ size_t get_mem_usage() {
 	return 0;
 #endif
 }
+
+// math
+void matrix4_idt(float *m) {
+	memset(m, 0, 16 * sizeof(float));
+	m[0] = m[5] = m[10] = m[15] = 1.0f;
+}

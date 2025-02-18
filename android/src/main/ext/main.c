@@ -22,17 +22,13 @@
 
 #include "util.h"
 #include "manager.h"
+#include "engine.h"
 #include "log.h"
+#include "core.h"
 
 // exter functions
 
 extern float android_graphics_cur_safe_insets[4];
-extern void android_graphics_onWindowChange (ANativeWindow *);
-extern void android_graphics_onWindowResizeDisplay ();
-extern void android_graphics_onWindowResize) ();
-extern int  android_graphics_preRender ();
-extern void  android_graphics_render ();
-extern void android_graphics_postRender (int);
 
 enum APP_CMD {
   APP_CMD_CREATE = 0,
@@ -52,10 +48,6 @@ enum APP_CMD {
   APP_CMD_DESTROY,
 };
 
-struct android_inputManager {
-	
-}
-
 struct android_app{
   int destroyed, wait_request;
   int msgread, msgwrite;
@@ -71,50 +63,50 @@ struct msg_pipe {
   void *data;
 };
 
+enum {
+	STATE_CREATED = 1,
+	STATE_RUNNING = 2,
+	STATE_STARTED = 4,
+	STATE_RESUME = 8,
+	STATE_WINDOW_EXIST = 16,
+}
+
 static void *android_app_entry (void *n) {
+  engine_init();
   ANativeActivity *act = (ANativeActivity *)n;
   struct android_app *app = (struct android_app*)act->instance;
   AConfiguration *aconfig = AConfiguration_new ();
   AConfiguration_fromAssetManager (aconfig, act->assetManager);
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
-  // 1 = created, 2 = running, 4 = started, 8 = resume
   int StateFlags = 0;
   int loop = 1;
   app->inMngr = android_inputManager_init(looper);
+  app->graphMngr = android_graphicsManager_init();
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   while (loop) {
-    switch (ALooper_pollOnce ((StateFlags & 6) == 6 ? 0 : -1, NULL, NULL, NULL)) {
+    switch (ALooper_pollOnce ((StateFlags & (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST)) == (STATE_RUNNING | STATE_STARTED | STATE_WINDOW_EXIST) ? 0 : -1, NULL, NULL, NULL)) {
     case ALOOPER_POLL_CALLBACK:
       break;
     case 1:
       // activity handler
       if (read (app->msgread, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-#define END_WAITING                    \
-pthread_mutex_lock (&app->mutex);    \
-app->wait_request = 0;           \
-pthread_cond_broadcast (&app->cond); \
-pthread_mutex_unlock (&app->mutex);
         switch (read_cmd.cmd) {
         case APP_CMD_WINDOW_UPDATE:
-          android_graphics_onWindowChange ((ANativeWindow *)read_cmd.data);
-          END_WAITING
+          android_inputManager_onWindowChange ((ANativeWindow *)read_cmd.data);
           break;
         case APP_CMD_FOCUS_CHANGED:
           android_inputManager_switchSensor (app->inMngr, read_cmd.data);
-          END_WAITING
           break;
         case APP_CMD_INPUT_UPDATE:
           android_inputManager_setInputQueue (app->inMngr, looper, (AInputQueue *)read_cmd.data);
-          END_WAITING
           break;
         case APP_CMD_PAUSE:
-          if (android_graphics_preRender ()) {
-            // Main_pause ();
-            android_graphics_postRender (false);
-            StateFlags &= ~2;
+          if (android_inputManager_preRender ()) {
+            pause ();
+            android_inputManager_postRender ();
+            StateFlags &= ~STATE_RUNNING;
           }
-          END_WAITING
           break;
         case APP_CMD_SAVE_STATE:
           break;
@@ -122,21 +114,21 @@ pthread_mutex_unlock (&app->mutex);
           AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
           break;
         case APP_CMD_STOP:
-          StateFlags &= ~4;
+          StateFlags &= ~STATE_STARTED;
           break;
         case APP_CMD_START:
-          StateFlags |= 4;
+          StateFlags |= STATE_STARTED;
           break;
         case APP_CMD_RESUME:
-          StateFlags |= 10;
+          StateFlags |= STATE_RUNNING | STATE_RESUME;
           break;
         case APP_CMD_WINDOW_REDRAW_NEEDED:
           break;
         case APP_CMD_CONTENT_RECT_CHANGED:
-          android_graphics_onWindowResize ();
+          android_inputManager_onWindowResize ();
           break;
         case APP_CMD_WINDOW_RESIZED:
-          android_graphics_onWindowResizeDisplay ();
+          android_inputManager_onWindowResizeDisplay ();
           break;
         case APP_CMD_LOW_MEMORY:
           break;
@@ -146,34 +138,39 @@ pthread_mutex_unlock (&app->mutex);
         default:
           break;
         }
-#undef END_WAITING
+        if (app->wait_request == 1) {
+	        pthread_mutex_lock (&app->mutex);
+					app->wait_request = 0;
+					pthread_cond_broadcast (&app->cond);
+					pthread_mutex_unlock (&app->mutex);
+        }
       }
       break;
     default:
       // base render
-      if (android_graphics_preRender ()) {
+      if (android_graphicsManager_preRender ()) {
         //engine_input_process_event ();
 
-        if (!(StateFlags & 1)) {
-          //Main_start ();
-          StateFlags |= 1; // created
-          StateFlags &= ~8; // not resume
-        } else if (StateFlags & 8) { // resuming
-          //Main_resume ();
-          StateFlags &= ~8; // not resume
+        if (!(StateFlags & STATE_CREATED)) {
+          start ();
+          StateFlags |= STATE_CREATED; // created
+          StateFlags &= ~STATE_RESUME; // not resume
+        } else if (StateFlags & STATE_RESUME) { // resuming
+          resume ();
+          StateFlags &= ~STATE_RESUME; // not resume
         }
-        android_graphics_render ();
-        android_graphics_postRender (false);
+        update ();
+        android_graphicsManager_postRender ();
       }
       break;
     }
   }
   // when destroy
-  if (android_graphics_preRender ()) {
-    // end
+  if (android_inputManager_preRender ()) {
+    end();
   }
   StateFlags = 0; // reset flags
-  android_graphics_postRender (true);
+  android_graphicsManager_term ();
   android_inputManager_term(app->inMngr);
   // loop ends
   ALooper_removeFd (looper, app->msgread);
@@ -384,8 +381,9 @@ void ANativeActivity_onCreate (ANativeActivity *act, void *, size_t) {
 }
 
 // native MainActivity.java
-
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
+	((struct android_graphicsManager *)
+	get_engine()->g.data
   android_graphics_cur_safe_insets[0] = left;
   android_graphics_cur_safe_insets[1] = top;
   android_graphics_cur_safe_insets[2] = right;

@@ -3,6 +3,7 @@
 
 #include <android/looper.h>
 #include <android/sensor.h>
+#include <EGL/egl.h>
 
 
 enum inputManagerState {
@@ -34,8 +35,23 @@ extern void android_inputManager_switchSensor (struct android_inputManager*, voi
 extern void android_inputManager_term (struct android_inputManager*);
 
 struct android_graphicsManager {
-	
+	ANativeWindow *window;
+	EGLDisplay display = EGL_NO_DISPLAY;
+  EGLSurface surface = EGL_NO_SURFACE;
+  EGLContext context = EGL_NO_CONTEXT;
+  EGLConfig eConfig;
+  EGLint wWidth, wHeight;        // platform full display
+  float game_width, game_height; // display after safe insets
+	int flags;
 };
+
+extern struct android_graphicsManager *android_graphicsManager_init();
+extern void android_graphicsManager_onWindowChange(ANativeWindow *);
+extern void android_graphicsManager_onWindowResizeDisplay();
+extern void android_graphicsManager_onWindowResize();
+extern int android_graphicsManager_preRender ();
+extern void android_graphicsManager_postRender ();
+extern void android_graphicsManager_term();
 
 
 #endif // MANAGER_

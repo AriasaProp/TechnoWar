@@ -10,7 +10,22 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <cstdlib.h>
+#include <cstring.h>
 #define MAX_TEMPORARY_BYTE 2048
+
+struct fcolor {
+	float r, g, b, a;
+};
+struct color {
+	uint8_t r,g,b,a;
+}; // packed color bit
+struct vec2 {
+	float x, y;
+};
+struct uivec2 {
+	uint16_t x, y;
+};
 
 union temp {
 	char chars[MAX_TEMPORARY_BYTE];
@@ -25,5 +40,8 @@ void *new_mem(size_t);
 void *new_imem(size_t);
 void free_mem(void *);
 size_t get_mem_usage();
+
+// math
+void matrix4_idt(float*);
 
 #endif // UTIL_INCLUDED_
