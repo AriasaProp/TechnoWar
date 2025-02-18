@@ -69,7 +69,7 @@ enum {
 	STATE_STARTED = 4,
 	STATE_RESUME = 8,
 	STATE_WINDOW_EXIST = 16,
-}
+};
 
 static void *android_app_entry (void *n) {
   engine_init();
@@ -165,11 +165,10 @@ static void *android_app_entry (void *n) {
       break;
     }
   }
-  // when destroy
-  if (android_inputManager_preRender ()) {
-    end();
-  }
   StateFlags = 0; // reset flags
+  // when destroy
+  if (android_inputManager_preRender ())
+    end();
   android_graphicsManager_term ();
   android_inputManager_term(app->inMngr);
   // loop ends
