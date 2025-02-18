@@ -1,7 +1,7 @@
 
 
-extern void start();
-extern void resume ();
-extern void update ();
-extern void pause ();
-extern void end ();
+extern void Main_start ();
+extern void Main_resume ();
+extern void Main_update ();
+extern void Main_pause ();
+extern void Main_end ();

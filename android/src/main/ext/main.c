@@ -46,7 +46,7 @@ enum APP_CMD {
 enum {
   APP_FLAG_WAITING = 1,
   APP_FLAG_DESTROYED = 2,
-}
+};
 
 struct android_app {
   int flags;
@@ -101,7 +101,7 @@ static void *android_app_entry (void *n) {
           break;
         case APP_CMD_PAUSE:
           if (android_graphicsManager_preRender ()) {
-            pause ();
+            Main_pause ();
             android_graphicsManager_postRender ();
             StateFlags &= ~STATE_RUNNING;
           }
@@ -150,14 +150,14 @@ static void *android_app_entry (void *n) {
         // engine_input_process_event ();
 
         if (!(StateFlags & STATE_CREATED)) {
-          start ();
+          Main_start ();
           StateFlags |= STATE_CREATED;          // created
           StateFlags &= ~STATE_RESUME;          // not resume
         } else if (StateFlags & STATE_RESUME) { // resuming
-          resume ();
+          Main_resume ();
           StateFlags &= ~STATE_RESUME; // not resume
         }
-        update ();
+        Main_update ();
         android_graphicsManager_postRender ();
       }
       break;
@@ -166,7 +166,7 @@ static void *android_app_entry (void *n) {
   StateFlags = 0; // reset flags
   // when destroy
   if (android_graphicsManager_preRender ())
-    end ();
+    Main_end ();
   android_graphicsManager_term ();
   android_inputManager_term (app->inMngr);
   // loop ends
@@ -218,7 +218,7 @@ static void onInputQueueCreated (ANativeActivity *UNUSED (act), AInputQueue *que
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onConfigurationChanged (ANativeActivity *UNUSED (act)) {
+static void onConfigurationChanged (ANativeActivity *act) {
   write_cmd.cmd = APP_CMD_CONFIG_CHANGED;
   write_cmd.data = (void *)act->assetManager;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
@@ -325,7 +325,7 @@ static void onDestroy (ANativeActivity *UNUSED (act)) {
   app = NULL;
 }
 
-void ANativeActivity_onCreate (ANativeActivity *act, void *UNUSED (savedata), size_t UNUSED (save_len)) {
+void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata), size_t UNUSED (save_len)) {
   // initialize application
   app = (struct android_app *)new_imem (sizeof (struct android_app));
   pthread_mutex_init (&app->mutex, NULL);
