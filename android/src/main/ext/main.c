@@ -47,8 +47,8 @@ enum APP_CMD {
   APP_CMD_DESTROY,
 };
 enum {
-	APP_FLAG_WAITING = 1,
-	APP_FLAG_DESTROYED = 2,
+  APP_FLAG_WAITING = 1,
+  APP_FLAG_DESTROYED = 2,
 }
 
 struct android_app {
@@ -183,19 +183,19 @@ static void *android_app_entry (void *n) {
 }
 
 static struct msg_pipe write_cmd;
-static void onStart (ANativeActivity *UNUSED(act)) {
+static void onStart (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_START;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onResume (ANativeActivity *UNUSED(act)) {
+static void onResume (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_RESUME;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onNativeWindowCreated (ANativeActivity *UNUSED(act),  ANativeWindow *window) {
+static void onNativeWindowCreated (ANativeActivity *UNUSED (act), ANativeWindow *window) {
   pthread_mutex_lock (&app->mutex);
   app->flags |= APP_FLAG_WAITING;
   pthread_mutex_unlock (&app->mutex);
@@ -208,7 +208,7 @@ static void onNativeWindowCreated (ANativeActivity *UNUSED(act),  ANativeWindow 
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueCreated (ANativeActivity *UNUSED(act),  AInputQueue *queue) {
+static void onInputQueueCreated (ANativeActivity *UNUSED (act), AInputQueue *queue) {
   pthread_mutex_lock (&app->mutex);
   app->flags |= APP_FLAG_WAITING;
   pthread_mutex_unlock (&app->mutex);
@@ -221,19 +221,19 @@ static void onInputQueueCreated (ANativeActivity *UNUSED(act),  AInputQueue *que
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onConfigurationChanged (ANativeActivity *UNUSED(act)) {
+static void onConfigurationChanged (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_CONFIG_CHANGED;
   write_cmd.data = (void *)act->assetManager;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onLowMemory (ANativeActivity *UNUSED(act)) {
+static void onLowMemory (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_LOW_MEMORY;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onWindowFocusChanged (ANativeActivity *UNUSED(act), int f) {
+static void onWindowFocusChanged (ANativeActivity *UNUSED (act), int f) {
   pthread_mutex_lock (&app->mutex);
   app->flags |= APP_FLAG_WAITING;
   pthread_mutex_unlock (&app->mutex);
@@ -247,25 +247,25 @@ static void onWindowFocusChanged (ANativeActivity *UNUSED(act), int f) {
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onNativeWindowResized (ANativeActivity *UNUSED(act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowResized (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
   write_cmd.cmd = APP_CMD_WINDOW_RESIZED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED(act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
   write_cmd.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onContentRectChanged (ANativeActivity *UNUSED(act), const ARect *UNUSED (window)) {
+static void onContentRectChanged (ANativeActivity *UNUSED (act), const ARect *UNUSED (window)) {
   write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void *onSaveInstanceState (ANativeActivity *UNUSED(act), size_t *outLen) {
+static void *onSaveInstanceState (ANativeActivity *UNUSED (act), size_t *outLen) {
   write_cmd.cmd = APP_CMD_SAVE_STATE;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
@@ -273,7 +273,7 @@ static void *onSaveInstanceState (ANativeActivity *UNUSED(act), size_t *outLen) 
   *outLen = 0;
   return NULL;
 }
-static void onNativeWindowDestroyed (ANativeActivity *UNUSED(act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowDestroyed (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
   pthread_mutex_lock (&app->mutex);
   app->flags |= APP_FLAG_WAITING;
   pthread_mutex_unlock (&app->mutex);
@@ -286,7 +286,7 @@ static void onNativeWindowDestroyed (ANativeActivity *UNUSED(act), ANativeWindow
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueDestroyed (ANativeActivity *UNUSED(act), AInputQueue *UNUSED (queue)) {
+static void onInputQueueDestroyed (ANativeActivity *UNUSED (act), AInputQueue *UNUSED (queue)) {
   pthread_mutex_lock (&app->mutex);
   app->flags |= APP_FLAG_WAITING;
   pthread_mutex_unlock (&app->mutex);
@@ -299,19 +299,19 @@ static void onInputQueueDestroyed (ANativeActivity *UNUSED(act), AInputQueue *UN
     pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
-static void onPause (ANativeActivity *UNUSED(act)) {
+static void onPause (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_PAUSE;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onStop (ANativeActivity *UNUSED(act)) {
+static void onStop (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_STOP;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("cannot write on pipe , %s", strerror (errno));
 }
-static void onDestroy (ANativeActivity *UNUSED(act)) {
+static void onDestroy (ANativeActivity *UNUSED (act)) {
   write_cmd.cmd = APP_CMD_DESTROY;
   write_cmd.data = NULL;
   while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
