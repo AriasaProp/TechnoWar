@@ -67,68 +67,68 @@ static void *android_app_entry (void *n) {
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
   int animating = 0;
   android_inputManager_init (looper);
-  android_graphicsManager_init ();
+  ////android_graphicsManager_init ();
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   do {
-    if (ALooper_pollOnce ((animating & 1) ? 0 : -1, NULL, NULL, NULL) == 1) {
+    if (ALooper_pollAll ((animating & 1) ? 0 : -1, NULL, NULL, NULL) == 1) {
       // activity handler
       read (app->msgwrite, &read_cmd, sizeof (struct msg_pipe));
       switch (read_cmd.cmd) {
-      case APP_CMD_WINDOW_UPDATE:
-        android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
-        if (read_cmd.data != NULL) {
-          animating |= 1;
-        } else {
-          animating &= ~1;
-        }
-        break;
-      case APP_CMD_FOCUS_CHANGED:
-        android_inputManager_switchSensor (read_cmd.data);
-        break;
-      case APP_CMD_INPUT_UPDATE:
-        android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
-        break;
-      case APP_CMD_CONFIG_CHANGED:
-        AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
-        break;
-      case APP_CMD_CONTENT_RECT_CHANGED:
-        android_graphicsManager_onWindowResize ();
-        break;
-      case APP_CMD_WINDOW_RESIZED:
-        android_graphicsManager_onWindowResizeDisplay ();
-        break;
-      case APP_CMD_DESTROY:
-        android_graphicsManager_term ();
-        android_inputManager_term ();
-        ALooper_removeFd (looper, app->msgread);
-        AConfiguration_delete (aconfig);
-        animating = 2;
-        break;
-      case APP_CMD_PAUSE:
-      case APP_CMD_SAVE_STATE:
-      case APP_CMD_STOP:
-      case APP_CMD_START:
-      case APP_CMD_LOW_MEMORY:
-      case APP_CMD_WINDOW_REDRAW_NEEDED:
-      case APP_CMD_RESUME:
-      default:
-        break;
+	      case APP_CMD_WINDOW_UPDATE:
+	        //android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
+	        if (read_cmd.data) {
+	          animating |= 1;
+	        } else {
+	          animating &= ~1;
+	        }
+	        break;
+	      case APP_CMD_FOCUS_CHANGED:
+	        android_inputManager_switchSensor (read_cmd.data);
+	        break;
+	      case APP_CMD_INPUT_UPDATE:
+	        android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
+	        break;
+	      case APP_CMD_CONFIG_CHANGED:
+	        AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
+	        break;
+	      case APP_CMD_CONTENT_RECT_CHANGED:
+	        //android_graphicsManager_onWindowResize ();
+	        break;
+	      case APP_CMD_WINDOW_RESIZED:
+	        //android_graphicsManager_onWindowResizeDisplay ();
+	        break;
+	      case APP_CMD_DESTROY:
+				  //android_graphicsManager_term ();
+				  android_inputManager_term ();
+				  ALooper_removeFd (looper, app->msgread);
+				  AConfiguration_delete (aconfig);
+	        animating = 2;
+	        break;
+	      case APP_CMD_PAUSE:
+	      case APP_CMD_SAVE_STATE:
+	      case APP_CMD_STOP:
+	      case APP_CMD_START:
+	      case APP_CMD_LOW_MEMORY:
+	      case APP_CMD_WINDOW_REDRAW_NEEDED:
+	      case APP_CMD_RESUME:
+	      default:
+	        break;
       }
       pthread_mutex_lock (&app->mutex);
       app->waiting = 0;
       pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
+    	pthread_mutex_unlock (&app->mutex);
     }
-    if ((animating & 1) && android_graphicsManager_preRender ()) {
+    if ((animating & 1) && //android_graphicsManager_preRender ()) {
       Main_update ();
-      android_graphicsManager_postRender ();
+      //android_graphicsManager_postRender ();
     }
   } while ((animating & 2) != 2);
   return NULL;
 }
 
 static struct msg_pipe write_cmd;
-static void inline app_write_cmd (enum APP_CMD cmd, void *data) {
+static void inline app_write_cmd(enum APP_CMD cmd, void *data) {
   pthread_mutex_lock (&app->mutex);
   app->waiting = 1;
   pthread_mutex_unlock (&app->mutex);
@@ -142,55 +142,55 @@ static void inline app_write_cmd (enum APP_CMD cmd, void *data) {
 }
 
 static void onStart (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_START, NULL);
+	app_write_cmd(APP_CMD_START, NULL);
 }
 static void onResume (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_RESUME, NULL);
+	app_write_cmd(APP_CMD_RESUME, NULL);
 }
 static void onNativeWindowCreated (ANativeActivity *UNUSED (act), ANativeWindow *window) {
-  app_write_cmd (APP_CMD_WINDOW_UPDATE, (void *)window);
+	app_write_cmd(APP_CMD_WINDOW_UPDATE, (void *)window);
 }
 static void onInputQueueCreated (ANativeActivity *UNUSED (act), AInputQueue *queue) {
-  app_write_cmd (APP_CMD_INPUT_UPDATE, (void *)queue);
+	app_write_cmd(APP_CMD_INPUT_UPDATE, (void *)queue);
 }
 static void onConfigurationChanged (ANativeActivity *act) {
-  app_write_cmd (APP_CMD_CONFIG_CHANGED, (void *)act->assetManager);
+	app_write_cmd(APP_CMD_CONFIG_CHANGED, (void *)act->assetManager);
 }
 static void onLowMemory (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_LOW_MEMORY, NULL);
+	app_write_cmd(APP_CMD_LOW_MEMORY, NULL);
 }
 static void onWindowFocusChanged (ANativeActivity *UNUSED (act), int f) {
-  intptr_t focus = f;
-  app_write_cmd (APP_CMD_FOCUS_CHANGED, (void *)focus);
+	intptr_t focus = f;
+	app_write_cmd(APP_CMD_FOCUS_CHANGED, (void*)focus);
 }
 static void onNativeWindowResized (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  app_write_cmd (APP_CMD_WINDOW_RESIZED, NULL);
+	app_write_cmd(APP_CMD_WINDOW_RESIZED, NULL);
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  app_write_cmd (APP_CMD_WINDOW_REDRAW_NEEDED, NULL);
+	app_write_cmd(APP_CMD_WINDOW_REDRAW_NEEDED, NULL);
 }
 static void onContentRectChanged (ANativeActivity *UNUSED (act), const ARect *UNUSED (r)) {
-  app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, NULL);
+	app_write_cmd(APP_CMD_CONTENT_RECT_CHANGED, NULL);
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (act), size_t *outLen) {
-  app_write_cmd (APP_CMD_SAVE_STATE, NULL);
+	app_write_cmd(APP_CMD_SAVE_STATE, NULL);
   *outLen = 0;
   return NULL;
 }
 static void onNativeWindowDestroyed (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  app_write_cmd (APP_CMD_WINDOW_UPDATE, NULL);
+	app_write_cmd(APP_CMD_WINDOW_UPDATE, NULL);
 }
 static void onInputQueueDestroyed (ANativeActivity *UNUSED (act), AInputQueue *UNUSED (queue)) {
-  app_write_cmd (APP_CMD_INPUT_UPDATE, NULL);
+	app_write_cmd(APP_CMD_INPUT_UPDATE, NULL);
 }
 static void onPause (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_PAUSE, NULL);
+	app_write_cmd(APP_CMD_PAUSE, NULL);
 }
 static void onStop (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_STOP, NULL);
+	app_write_cmd(APP_CMD_STOP, NULL);
 }
 static void onDestroy (ANativeActivity *UNUSED (act)) {
-  app_write_cmd (APP_CMD_DESTROY, NULL);
+	app_write_cmd(APP_CMD_DESTROY, NULL);
   close (app->msgread);
   close (app->msgwrite);
   free_mem (app);
@@ -222,7 +222,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
 
-  while (pipe (&app->msgread) < 0) {
+  while (pipe (&app->msgread) == -1) {
     LOGE ("could not create pipe: %s", strerror (errno));
   }
   // start thread game
@@ -234,6 +234,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 }
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
