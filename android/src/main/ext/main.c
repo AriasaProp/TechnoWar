@@ -187,7 +187,7 @@ static void onStart (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Start");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onResume (ANativeActivity *act) {
@@ -198,7 +198,7 @@ static void onResume (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Resume");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) {
@@ -209,7 +209,7 @@ static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) 
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
@@ -220,7 +220,7 @@ static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Input Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onConfigurationChanged (ANativeActivity *act) {
@@ -231,7 +231,7 @@ static void onConfigurationChanged (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Config changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onLowMemory (ANativeActivity *act) {
@@ -242,7 +242,7 @@ static void onLowMemory (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Low memory");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onWindowFocusChanged (ANativeActivity *act, int f) {
@@ -254,7 +254,7 @@ static void onWindowFocusChanged (ANativeActivity *act, int f) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Focus changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
@@ -265,7 +265,7 @@ static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (
   jstring msg = (*act->env)->NewStringUTF (act->env, "Resize Window");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
@@ -276,7 +276,7 @@ static void onNativeWindowRedrawNeeded (ANativeActivity *act, ANativeWindow *UNU
   jstring msg = (*act->env)->NewStringUTF (act->env, "Redraw");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onContentRectChanged (ANativeActivity *act, const ARect *UNUSED (r)) {
@@ -287,7 +287,7 @@ static void onContentRectChanged (ANativeActivity *act, const ARect *UNUSED (r))
   jstring msg = (*act->env)->NewStringUTF (act->env, "Rect changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
@@ -299,7 +299,7 @@ static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Saved state");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
   return NULL;
 }
@@ -311,7 +311,7 @@ static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window lost");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (queue)) {
@@ -330,7 +330,7 @@ static void onPause (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Pause");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onStop (ANativeActivity *act) {
@@ -341,7 +341,7 @@ static void onStop (ANativeActivity *act) {
   jstring msg = (*act->env)->NewStringUTF (act->env, "Stop");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 static void onDestroy (ANativeActivity *act) {
@@ -359,7 +359,7 @@ static void onDestroy (ANativeActivity *act) {
   (*act->env)->DeleteGlobalRef (act->env, ma);
   ma = NULL;
 #else
-	(void)act;
+  (void)act;
 #endif
 }
 
@@ -406,8 +406,8 @@ JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv
     mi = (*env)->GetMethodID (env, jc, "showToast", "(Ljava/lang/String;)V");
   }
 #else
-	(void)env;
-	(void)o;
+  (void)env;
+  (void)o;
 #endif
   if (app == NULL) return;
   android_graphicsManager_resizeInsets (left, top, right, bottom);
