@@ -50,7 +50,7 @@ static struct opengles_data {
   struct vec2 viewportSize; //
   struct vec2 screenSize;   //
   struct vec4 insets;
-} src = {0};
+} src = { 0 };
 
 static struct vec2 android_opengles_getScreenSize () { return src.screenSize; }
 static void android_opengles_toScreenCoordinate (struct vec2 *v) {
@@ -196,6 +196,8 @@ void android_opengles_validateResources () {
   glDepthRangef (0.0f, 1.0f);
   glClearDepthf (1.0f);
   glDepthFunc (GL_LESS);
+  glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
   // enable blend
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -442,5 +444,5 @@ void android_opengles_term () {
 
   free_mem (textures);
   free_mem (meshes);
-  memset (&src, 0, sizeof (struct opengles_data));
+  memset(&src, 0, sizeof(struct opengles_data));
 }

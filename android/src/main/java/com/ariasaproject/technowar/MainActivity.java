@@ -61,7 +61,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceCreated (SurfaceHolder holder) {
-    getWindow ().getDecorView ().requestApplyInsets ();
+  	showToast("surface Create");
     super.surfaceCreated (holder);
   }
 
@@ -79,6 +79,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceDestroyed (SurfaceHolder holder) {
+  	showToast("surface Destroy");
     super.surfaceDestroyed (holder);
   }
 
