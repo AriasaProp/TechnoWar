@@ -12,7 +12,7 @@ static struct android_graphicsManager {
   EGLContext context;
   EGLConfig eConfig;
   int flags;
-} g = { 0 };
+} g = {0};
 
 // private function
 enum {
