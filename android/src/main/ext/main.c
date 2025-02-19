@@ -295,9 +295,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
 
-  if (pipe (&app->msgread) < 0) {
+  while (pipe (&app->msgread) < 0) {
     LOGE ("could not create pipe: %s", strerror (errno));
-    return NULL;
   }
 
   // initialize lifecycle
@@ -327,6 +326,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 }
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
