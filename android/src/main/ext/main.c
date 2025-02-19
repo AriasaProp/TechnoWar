@@ -49,7 +49,7 @@ enum {
   APP_FLAG_ANIMATING = 1,
   APP_FLAG_WAITING = 2,
   APP_FLAG_DESTROY = 4,
-}
+};
 
 struct android_app {
   int flags;
@@ -128,7 +128,7 @@ static void *android_app_entry (void *n) {
   engine_init ();
   AConfiguration_fromAssetManager (app->aconfig, act->assetManager);
   app->looper = ALooper_prepare (0);
-  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_comand, NULL);
+  ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_comand, NULL);
   // android_inputManager_init (app->looper);
   // android_graphicsManager_init ();
   do {
