@@ -304,7 +304,7 @@ static void onDestroy (ANativeActivity *act) {
   app = NULL;
   jstring msg = (*act->env)->NewStringUTF (env, "Destroyed");
   (*act->env)->CallVoidMethod (env, ma, mi, msg);
-  
+
   (*act->env)->DeleteGlobalRef (act->env, ma);
   ma = NULL;
 }
