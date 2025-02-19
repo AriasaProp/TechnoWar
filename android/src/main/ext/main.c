@@ -140,7 +140,7 @@ get_event:
     }
   }
   {
-  	JNIEnv *env;
+    JNIEnv *env;
     if ((*act->vm)->AttachCurrentThread (&env) == JNI_OK) {
       jstring msg = (*env)->NewStringUTF (env, "Hello");
 
