@@ -27,8 +27,12 @@
 #include "manager.h"
 #include "util.h"
 
+// #define NOTOAST
+
+#ifdef NOTOAST
 jobject ma = NULL;
 jmethodID mi;
+#endif
 
 enum APP_CMD {
   APP_CMD_CREATE = 0,
@@ -179,93 +183,142 @@ static void onStart (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_START;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Start");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onResume (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_RESUME;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Resume");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) {
   main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
   main_pipe.data = (void *)window;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
   main_pipe.data = (void *)queue;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Input Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onConfigurationChanged (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_CONFIG_CHANGED;
   main_pipe.data = (void *)act->assetManager;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Config changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onLowMemory (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_LOW_MEMORY;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Low memory");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onWindowFocusChanged (ANativeActivity *act, int f) {
   main_pipe.cmd = APP_CMD_FOCUS_CHANGED;
   intptr_t focus = f;
   main_pipe.data = (void *)focus;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Focus changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_RESIZED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Resize Window");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Redraw");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onContentRectChanged (ANativeActivity *act, const ARect *UNUSED (r)) {
   main_pipe.cmd = APP_CMD_CONTENT_RECT_CHANGED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Rect changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
   main_pipe.cmd = APP_CMD_SAVE_STATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   *outLen = 0;
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Saved state");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
   return NULL;
 }
 static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window lost");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (queue)) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Input Lost");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
 }
@@ -273,15 +326,23 @@ static void onPause (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_PAUSE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Pause");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onStop (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_STOP;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Stop");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
+#else
+	(void)act;
+#endif
 }
 static void onDestroy (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_DESTROY;
@@ -292,11 +353,14 @@ static void onDestroy (ANativeActivity *act) {
   close (app->pipeChild);
   free_mem (app);
   app = NULL;
+#ifdef NOTOAST
   jstring msg = (*act->env)->NewStringUTF (act->env, "Destroyed");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-
   (*act->env)->DeleteGlobalRef (act->env, ma);
   ma = NULL;
+#else
+	(void)act;
+#endif
 }
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata), size_t UNUSED (save_len)) {
@@ -335,11 +399,16 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+#ifdef NOTOAST
   if (ma == NULL) {
     ma = (*env)->NewGlobalRef (env, o);
     jclass jc = (*env)->FindClass (env, "com/ariasaproject/technowar/MainActivity");
     mi = (*env)->GetMethodID (env, jc, "showToast", "(Ljava/lang/String;)V");
   }
+#else
+	(void)env;
+	(void)o;
+#endif
   if (app == NULL) return;
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
