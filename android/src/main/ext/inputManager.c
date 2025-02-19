@@ -31,7 +31,7 @@ static struct android_inputManager {
 } *m = NULL;
 
 // processing input
-static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), void * UNUSED(data)) {
+static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
   AInputEvent *outEvent;
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
@@ -40,7 +40,7 @@ static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), v
   AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
   return 1;
 }
-static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), void *UNUSED(data)) {
+static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
   while ((j = ASensorEventQueue_getEvents (m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
