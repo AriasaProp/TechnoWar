@@ -346,9 +346,9 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   if (ma == NULL) {
-    ma = (*env)->NewGlobalRef (act->env, o);
-    jclass jc = (*env)->FindClass (act->env, "com/ariasaproject/technowar/MainActivity");
-    mi = (*env)->GetMethodID (act->env, jc, "showToast", "(Ljava/lang/String;)V");
+    ma = (*env)->NewGlobalRef (env, o);
+    jclass jc = (*env)->FindClass (env, "com/ariasaproject/technowar/MainActivity");
+    mi = (*env)->GetMethodID (env, jc, "showToast", "(Ljava/lang/String;)V");
   }
   if (app == NULL) return;
   android_graphicsManager_resizeInsets (left, top, right, bottom);
