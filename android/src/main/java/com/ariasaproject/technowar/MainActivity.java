@@ -61,7 +61,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceCreated (SurfaceHolder holder) {
-  	showToast("surface Create");
+    showToast ("surface Create");
     super.surfaceCreated (holder);
   }
 
@@ -79,7 +79,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceDestroyed (SurfaceHolder holder) {
-  	showToast("surface Destroy");
+    showToast ("surface Destroy");
     super.surfaceDestroyed (holder);
   }
 
