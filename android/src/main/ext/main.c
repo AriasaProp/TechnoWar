@@ -98,13 +98,11 @@ get_event:
       }
       child_pipe.cmd = APP_REQ_ACC;
       child_pipe.data = NULL;
-      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_FOCUS_CHANGED:
       android_inputManager_switchSensor (child_pipe.data);
       child_pipe.cmd = APP_REQ_ACC;
       child_pipe.data = NULL;
-      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_INPUT_UPDATE:
       android_inputManager_setInputQueue (looper, (AInputQueue *)child_pipe.data);
