@@ -326,6 +326,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 }
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
