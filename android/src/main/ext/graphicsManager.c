@@ -5,14 +5,13 @@
 #include "util.h"
 
 // private value
-
 static struct android_graphicsManager {
   ANativeWindow *window;
   EGLDisplay display;
   EGLSurface surface;
   EGLContext context;
   EGLConfig eConfig;
-  int g->flags = 0;
+  int flags;
 } *g = NULL;
 
 // private function

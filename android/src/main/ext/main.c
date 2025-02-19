@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
+#include <sys/socket.h>
 #include <unistd.h>
 
 #include <android/asset_manager.h>
@@ -42,6 +43,7 @@ enum APP_CMD {
   APP_CMD_PAUSE,
   APP_CMD_STOP,
   APP_CMD_DESTROY,
+	APP_REQ_ACC,
 };
 enum {
   APP_FLAG_WAITING = 1,
@@ -50,9 +52,7 @@ enum {
 
 struct android_app {
   int flags;
-  int msgread, msgwrite;
-  pthread_mutex_t mutex;
-  pthread_cond_t cond;
+  int pipeMain, pipeChild;
   pthread_t thread;
 } *app = NULL;
 
@@ -62,12 +62,12 @@ struct msg_pipe {
 };
 
 enum {
-  STATE_CREATED = 1,
+  STATE_CREATE = 1,
   STATE_RUNNING = 2,
-  STATE_STARTED = 4,
-  STATE_RESUME = 8,
-  STATE_WINDOW_EXIST = 16,
-  STATE_DESTROY = 32,
+  STATE_RESUME = 4,
+  STATE_PAUSE = 8,
+  STATE_DESTROY = 16,
+  STATE_WINDOW_EXIST = 32,
 };
 
 static void *android_app_entry (void *n) {
@@ -76,253 +76,197 @@ static void *android_app_entry (void *n) {
   AConfiguration *aconfig = AConfiguration_new ();
   AConfiguration_fromAssetManager (aconfig, act->assetManager);
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
-  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
-  int StateFlags = 0;
+  ALooper_addFd (looper, app->pipeMain, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
+  int StateFlags = STATE_CREATE;
   android_inputManager_init (looper);
   android_graphicsManager_init ();
-  struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
-  do {
-    switch (ALooper_pollOnce ((!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST)) * -1, NULL, NULL, NULL)) {
-    case 1:
-      // activity handler
-      if (read (app->msgread, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-        switch (read_cmd.cmd) {
-        case APP_CMD_WINDOW_UPDATE:
-          android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
-          StateFlags |= (int)read_cmd.data * STATE_WINDOW_EXIST;
-          break;
-        case APP_CMD_FOCUS_CHANGED:
-          android_inputManager_switchSensor (read_cmd.data);
-          break;
-        case APP_CMD_INPUT_UPDATE:
-          android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
-          break;
-        case APP_CMD_PAUSE:
-          if (android_graphicsManager_preRender ()) {
-            Main_pause ();
-            android_graphicsManager_postRender ();
-            StateFlags &= ~STATE_RUNNING;
-          }
-          break;
-        case APP_CMD_SAVE_STATE:
-          break;
-        case APP_CMD_CONFIG_CHANGED:
-          AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
-          break;
-        case APP_CMD_STOP:
-          StateFlags &= ~STATE_STARTED;
-          break;
-        case APP_CMD_START:
-          StateFlags |= STATE_STARTED;
-          break;
-        case APP_CMD_RESUME:
-          StateFlags |= STATE_RUNNING | STATE_RESUME;
-          break;
-        case APP_CMD_WINDOW_REDRAW_NEEDED:
-          break;
-        case APP_CMD_CONTENT_RECT_CHANGED:
-          android_graphicsManager_onWindowResize ();
-          break;
-        case APP_CMD_WINDOW_RESIZED:
-          android_graphicsManager_onWindowResizeDisplay ();
-          break;
-        case APP_CMD_LOW_MEMORY:
-          break;
-        case APP_CMD_DESTROY:
-          StateFlags |= STATE_DESTROY;
-          continue;
-        default:
-          break;
-        }
-        pthread_mutex_lock (&app->mutex);
-        if (app->flags & APP_FLAG_WAITING) {
-          app->flags &= ~APP_FLAG_WAITING;
-          pthread_cond_broadcast (&app->cond);
-        }
-        pthread_mutex_unlock (&app->mutex);
-      }
+  struct msg_pipe child_pipe = {APP_CMD_CREATE, NULL};
+get_event:
+  if (ALooper_pollOnce ((!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST)) * -1, NULL, NULL, NULL) == 1) {
+    // activity handler
+    read (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+    switch (child_pipe.cmd) {
+    case APP_CMD_WINDOW_UPDATE:
+      android_graphicsManager_onWindowChange ((ANativeWindow *)child_pipe.data);
+    	if (child_pipe.data != NULL) {
+    		StateFlags |= STATE_WINDOW_EXIST;
+    	} else {
+    		StateFlags &= ~STATE_WINDOW_EXIST;
+    	}
+		  child_pipe.cmd = APP_REQ_ACC;
+		  child_pipe.data = NULL;
+    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
+    case APP_CMD_FOCUS_CHANGED:
+      android_inputManager_switchSensor (child_pipe.data);
+		  child_pipe.cmd = APP_REQ_ACC;
+		  child_pipe.data = NULL;
+    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+      break;
+    case APP_CMD_INPUT_UPDATE:
+      android_inputManager_setInputQueue (looper, (AInputQueue *)child_pipe.data);
+		  child_pipe.cmd = APP_REQ_ACC;
+		  child_pipe.data = NULL;
+    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+      break;
+    case APP_CMD_PAUSE:
+      StateFlags |= STATE_PAUSE;
+      break;
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager (aconfig, (AAssetManager *)child_pipe.data);
+      break;
+    case APP_CMD_SAVE_STATE:
+    case APP_CMD_STOP:
+    case APP_CMD_START:
+    case APP_CMD_LOW_MEMORY:
+    case APP_CMD_WINDOW_REDRAW_NEEDED:
     default:
-    case ALOOPER_POLL_CALLBACK:
-      // base render
-      if (
-          (StateFlags & STATE_RUNNING) &&
-          (StateFlags & STATE_WINDOW_EXIST) &&
-          android_graphicsManager_preRender ()) {
-        // engine_input_process_event ();
-
-        if (!(StateFlags & STATE_CREATED)) {
-          Main_start ();
-          StateFlags |= STATE_CREATED;          // created
-          StateFlags &= ~STATE_RESUME;          // not resume
-        } else if (StateFlags & STATE_RESUME) { // resuming
-          Main_resume ();
-          StateFlags &= ~STATE_RESUME; // not resume
-        }
-        Main_update ();
-        android_graphicsManager_postRender ();
-      }
       break;
+    case APP_CMD_RESUME:
+      StateFlags |= STATE_RUNNING | STATE_RESUME;
+      break;
+    case APP_CMD_CONTENT_RECT_CHANGED:
+      android_graphicsManager_onWindowResize ();
+      break;
+    case APP_CMD_WINDOW_RESIZED:
+      android_graphicsManager_onWindowResizeDisplay ();
+      break;
+    case APP_CMD_DESTROY:
+    	StateFlags |= STATE_DESTROY;
+      goto render;
     }
-  } while (!(StateFlags & STATE_DESTROY));
-  StateFlags = 0; // reset flags
-  // when destroy
+  }
+  if (!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST))
+  	goto get_event;
+render: // base render
+  // engine_input_process_event ();
+  if (StateFlags & STATE_CREATE) {
+    Main_start ();
+    StateFlags &= ~STATE_CREATE;
+    StateFlags &= ~STATE_RESUME;
+  }
+  if (StateFlags & STATE_RESUME) {
+    Main_resume ();
+    StateFlags &= ~STATE_RESUME;
+  }
+  
   if (android_graphicsManager_preRender ())
+  	Main_update ();
+  
+  if (StateFlags & STATE_PAUSE) {
+    StateFlags &= ~STATE_PAUSE;
+    StateFlags &= ~STATE_RUNNING;
+  	Main_pause ();
+  }
+  if (StateFlags & STATE_DESTROY) {
     Main_end ();
+    goto end;
+  }
+  android_graphicsManager_postRender ();
+  goto get_event;
+end: // loop ends
+  StateFlags = 0; // reset flags
   android_graphicsManager_term ();
   android_inputManager_term ();
-  // loop ends
-  ALooper_removeFd (looper, app->msgread);
+  ALooper_removeFd (looper, app->pipeMain);
   AConfiguration_delete (aconfig);
-  pthread_mutex_lock (&app->mutex);
-  app->flags = APP_FLAG_DESTROYED;
-  pthread_cond_broadcast (&app->cond);
-  pthread_mutex_unlock (&app->mutex);
+  child_pipe.cmd = APP_REQ_ACC;
+  child_pipe.data = NULL;
+	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
   return NULL;
 }
 
-static struct msg_pipe write_cmd;
+static struct msg_pipe main_pipe;
 static void onStart (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_START;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_START;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onResume (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_RESUME;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_RESUME;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onNativeWindowCreated (ANativeActivity *UNUSED (act), ANativeWindow *window) {
-  pthread_mutex_lock (&app->mutex);
-  app->flags |= APP_FLAG_WAITING;
-  pthread_mutex_unlock (&app->mutex);
-  write_cmd.cmd = APP_CMD_WINDOW_UPDATE;
-  write_cmd.data = (void *)window;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->flags & APP_FLAG_WAITING)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+  main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
+  main_pipe.data = (void *)window;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onInputQueueCreated (ANativeActivity *UNUSED (act), AInputQueue *queue) {
-  pthread_mutex_lock (&app->mutex);
-  app->flags |= APP_FLAG_WAITING;
-  pthread_mutex_unlock (&app->mutex);
-  write_cmd.cmd = APP_CMD_INPUT_UPDATE;
-  write_cmd.data = (void *)queue;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->flags & APP_FLAG_WAITING)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+  main_pipe.cmd = APP_CMD_INPUT_UPDATE;
+  main_pipe.data = (void *)queue;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onConfigurationChanged (ANativeActivity *act) {
-  write_cmd.cmd = APP_CMD_CONFIG_CHANGED;
-  write_cmd.data = (void *)act->assetManager;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_CONFIG_CHANGED;
+  main_pipe.data = (void *)act->assetManager;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onLowMemory (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_LOW_MEMORY;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_LOW_MEMORY;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onWindowFocusChanged (ANativeActivity *UNUSED (act), int f) {
-  pthread_mutex_lock (&app->mutex);
-  app->flags |= APP_FLAG_WAITING;
-  pthread_mutex_unlock (&app->mutex);
-  write_cmd.cmd = APP_CMD_FOCUS_CHANGED;
+  main_pipe.cmd = APP_CMD_FOCUS_CHANGED;
   intptr_t focus = f;
-  write_cmd.data = (void *)focus;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->flags & APP_FLAG_WAITING)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+  main_pipe.data = (void *)focus;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onNativeWindowResized (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  write_cmd.cmd = APP_CMD_WINDOW_RESIZED;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_WINDOW_RESIZED;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  write_cmd.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onContentRectChanged (ANativeActivity *UNUSED (act), const ARect *UNUSED (window)) {
-  write_cmd.cmd = APP_CMD_CONTENT_RECT_CHANGED;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_CONTENT_RECT_CHANGED;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (act), size_t *outLen) {
-  write_cmd.cmd = APP_CMD_SAVE_STATE;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_SAVE_STATE;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   *outLen = 0;
   return NULL;
 }
 static void onNativeWindowDestroyed (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
-  pthread_mutex_lock (&app->mutex);
-  app->flags |= APP_FLAG_WAITING;
-  pthread_mutex_unlock (&app->mutex);
-  write_cmd.cmd = APP_CMD_WINDOW_UPDATE;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->flags & APP_FLAG_WAITING)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+  main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onInputQueueDestroyed (ANativeActivity *UNUSED (act), AInputQueue *UNUSED (queue)) {
-  pthread_mutex_lock (&app->mutex);
-  app->flags |= APP_FLAG_WAITING;
-  pthread_mutex_unlock (&app->mutex);
-  write_cmd.cmd = APP_CMD_INPUT_UPDATE;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (app->flags & APP_FLAG_WAITING)
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
+  main_pipe.cmd = APP_CMD_INPUT_UPDATE;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onPause (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_PAUSE;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_PAUSE;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onStop (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_STOP;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
+  main_pipe.cmd = APP_CMD_STOP;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onDestroy (ANativeActivity *UNUSED (act)) {
-  write_cmd.cmd = APP_CMD_DESTROY;
-  write_cmd.data = NULL;
-  while (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
-    LOGE ("cannot write on pipe , %s", strerror (errno));
-  pthread_mutex_lock (&app->mutex);
-  while (!(app->flags & APP_FLAG_DESTROYED))
-    pthread_cond_wait (&app->cond, &app->mutex);
-  pthread_mutex_unlock (&app->mutex);
-  close (app->msgread);
-  close (app->msgwrite);
-  pthread_cond_destroy (&app->cond);
-  pthread_mutex_destroy (&app->mutex);
+  main_pipe.cmd = APP_CMD_DESTROY;
+  main_pipe.data = NULL;
+  write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
+  close (app->pipeMain);
+  close (app->pipeChild);
   free_mem (app);
   app = NULL;
 }
@@ -330,9 +274,7 @@ static void onDestroy (ANativeActivity *UNUSED (act)) {
 void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata), size_t UNUSED (save_len)) {
   // initialize application
   app = (struct android_app *)new_imem (sizeof (struct android_app));
-  pthread_mutex_init (&app->mutex, NULL);
-  pthread_cond_init (&app->cond, NULL);
-  while (pipe (&app->msgread) == -1) {
+  while (socketpair(AF_UNIX, SOCK_STREAM, 0, &app->pipeMain) == -1) {
     // force loop to provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
@@ -368,3 +310,37 @@ JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv
   if (app == NULL) return;
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
+/*
+void callJavaMethod(JavaVM* javaVM, jobject activity) {
+    JNIEnv* env;
+
+    // Attach thread jika belum terhubung ke JVM
+    if (javaVM->GetEnv((void**)&env, JNI_VERSION_1_6) != JNI_OK)
+    	return;
+    if (javaVM->AttachCurrentThread(&env, nullptr) != JNI_OK)
+      return;
+
+    // Dapatkan class dari MainActivity (bisa sesuaikan dengan package)
+    jclass activityClass = env->GetObjectClass(activity);
+    if (!activityClass) {
+        LOGI("Gagal mendapatkan class Activity");
+        if (needDetach) javaVM->DetachCurrentThread();
+        return;
+    }
+
+    // Dapatkan ID method yang ingin dipanggil
+    jmethodID methodID = env->GetMethodID(activityClass, "showToast", "(java/lang/String;)V");
+    if (!methodID) {
+        LOGI("Metode Java tidak ditemukan");
+        if (needDetach) javaVM->DetachCurrentThread();
+        return;
+    }
+    jstring msg;
+
+    // Panggil metode Java
+    env->CallVoidMethod(activity, methodID, msg);
+    LOGI("Metode Java dipanggil!");
+
+    javaVM->DetachCurrentThread();
+}
+*/

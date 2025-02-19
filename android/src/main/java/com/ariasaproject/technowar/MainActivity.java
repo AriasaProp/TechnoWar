@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowInsets;
+import android.widget.Toast;
 
 public class MainActivity extends NativeActivity implements View.OnApplyWindowInsetsListener {
     static {
@@ -105,9 +106,10 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     protected void onDestroy() {
         super.onDestroy();
     }
-
+    
+    @Keep
     private void showToast(String message) {
-        // Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     // c implementation
