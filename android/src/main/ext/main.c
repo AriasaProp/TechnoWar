@@ -139,14 +139,6 @@ get_event:
       goto render;
     }
   }
-  {
-    JNIEnv *env;
-    if ((*act->vm)->AttachCurrentThread (act->vm, &env, NULL) == JNI_OK) {
-      jstring msg = (*env)->NewStringUTF (env, "Hello");
-      (*env)->CallVoidMethod (env, ma, mi, msg);
-      (*act->vm)->DetachCurrentThread (act->vm);
-    }
-  }
   if (!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST))
     goto get_event;
 render: // base render
@@ -188,88 +180,118 @@ end:              // loop ends
 }
 
 static struct msg_pipe main_pipe;
-static void onStart (ANativeActivity *UNUSED (act)) {
+static void onStart (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_START;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Start");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onResume (ANativeActivity *UNUSED (act)) {
+static void onResume (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_RESUME;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Resume");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onNativeWindowCreated (ANativeActivity *UNUSED (act), ANativeWindow *window) {
+static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) {
   main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
   main_pipe.data = (void *)window;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Window Create");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
-static void onInputQueueCreated (ANativeActivity *UNUSED (act), AInputQueue *queue) {
+static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
   main_pipe.data = (void *)queue;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Input Create");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onConfigurationChanged (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_CONFIG_CHANGED;
   main_pipe.data = (void *)act->assetManager;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Config changes");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onLowMemory (ANativeActivity *UNUSED (act)) {
+static void onLowMemory (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_LOW_MEMORY;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Low memory");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onWindowFocusChanged (ANativeActivity *UNUSED (act), int f) {
+static void onWindowFocusChanged (ANativeActivity *act, int f) {
   main_pipe.cmd = APP_CMD_FOCUS_CHANGED;
   intptr_t focus = f;
   main_pipe.data = (void *)focus;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Focus changes");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
-static void onNativeWindowResized (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_RESIZED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Resize Window");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowRedrawNeeded (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_REDRAW_NEEDED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Redraw");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onContentRectChanged (ANativeActivity *UNUSED (act), const ARect *UNUSED (window)) {
+static void onContentRectChanged (ANativeActivity *act, const ARect *UNUSED (r)) {
   main_pipe.cmd = APP_CMD_CONTENT_RECT_CHANGED;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Rect changes");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void *onSaveInstanceState (ANativeActivity *UNUSED (act), size_t *outLen) {
+static void *onSaveInstanceState (ANativeActivity *act, size_t *outLen) {
   main_pipe.cmd = APP_CMD_SAVE_STATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   *outLen = 0;
+  jstring msg = (*act->env)->NewStringUTF (env, "Saved state");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   return NULL;
 }
-static void onNativeWindowDestroyed (ANativeActivity *UNUSED (act), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_UPDATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Window lost");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
-static void onInputQueueDestroyed (ANativeActivity *UNUSED (act), AInputQueue *UNUSED (queue)) {
+static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (queue)) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Input Lost");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
   read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
-static void onPause (ANativeActivity *UNUSED (act)) {
+static void onPause (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_PAUSE;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Pause");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
-static void onStop (ANativeActivity *UNUSED (act)) {
+static void onStop (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_STOP;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
+  jstring msg = (*act->env)->NewStringUTF (env, "Stop");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
 }
 static void onDestroy (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_DESTROY;
@@ -280,6 +302,9 @@ static void onDestroy (ANativeActivity *act) {
   close (app->pipeChild);
   free_mem (app);
   app = NULL;
+  jstring msg = (*act->env)->NewStringUTF (env, "Destroyed");
+  (*act->env)->CallVoidMethod (env, ma, mi, msg);
+  
   (*act->env)->DeleteGlobalRef (act->env, ma);
   ma = NULL;
 }
