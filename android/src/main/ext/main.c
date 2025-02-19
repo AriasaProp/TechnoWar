@@ -28,7 +28,7 @@
 #include "util.h"
 
 jobject ma = NULL;
-jmethidID mi;
+jmethodID mi;
 
 enum APP_CMD {
   APP_CMD_CREATE = 0,
