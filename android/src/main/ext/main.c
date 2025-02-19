@@ -64,9 +64,9 @@ struct msg_pipe {
 };
 
 static void *android_app_entry (void *n) {
-  engine_init ();
   ANativeActivity *act = (ANativeActivity *)n;
   AConfiguration *aconfig = AConfiguration_new ();
+  engine_init ();
   AConfiguration_fromAssetManager (aconfig, act->assetManager);
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
@@ -86,21 +86,50 @@ static void *android_app_entry (void *n) {
         } else {
           animating &= ~1;
         }
+        android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_FOCUS_CHANGED:
         android_inputManager_switchSensor (read_cmd.data);
+        android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_INPUT_UPDATE:
         android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
+        android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_CONFIG_CHANGED:
         AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
+        android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_CONTENT_RECT_CHANGED:
         android_graphicsManager_onWindowResize ();
+        android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_WINDOW_RESIZED:
         android_graphicsManager_onWindowResizeDisplay ();
+	      pthread_mutex_lock (&app->mutex);
+	      app->flags &= ~APP_FLAG_WAITING;
+	      pthread_cond_broadcast (&app->cond);
+	    	pthread_mutex_unlock (&app->mutex);
         break;
       case APP_CMD_DESTROY:
         animating |= 2;
@@ -116,16 +145,10 @@ static void *android_app_entry (void *n) {
         break;
       }
     }
-    if ((animating & 1) && android_graphicsManager_preRender ()) {
+    if (android_graphicsManager_preRender ()) {
       Main_update ();
       android_graphicsManager_postRender ();
     }
-    if (app->flags & APP_FLAG_WAITING) {
-      pthread_mutex_lock (&app->mutex);
-      app->flags &= ~APP_FLAG_WAITING;
-      pthread_cond_broadcast (&app->cond);
-    }
-    pthread_mutex_unlock (&app->mutex);
   } while ((animating & 2) != 2);
 
   animating = 0; // reset flags
@@ -326,6 +349,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 }
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED(env), jobject UNUSED(o), jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
