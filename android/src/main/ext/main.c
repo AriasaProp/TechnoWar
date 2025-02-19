@@ -140,13 +140,13 @@ get_event:
     }
   }
   {
-    act->vm JNIEnv *env;
-    if ((*act->vm)->AttachCurrentThread (&env, NULL) == JNI_OK) {
+  	JNIEnv *env;
+    if ((*act->vm)->AttachCurrentThread (&env) == JNI_OK) {
       jstring msg = (*env)->NewStringUTF (env, "Hello");
 
       (*env)->CallVoidMethod (env, ma, mi, msg);
 
-      (*act->vm)->DetachCurrentThread ();
+      (*act->vm)->DetachCurrentThread (env);
     }
   }
   if (!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST))
@@ -273,7 +273,7 @@ static void onStop (ANativeActivity *UNUSED (act)) {
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
 }
-static void onDestroy (ANativeActivity *UNUSED (act)) {
+static void onDestroy (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_DESTROY;
   main_pipe.data = NULL;
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
@@ -282,7 +282,7 @@ static void onDestroy (ANativeActivity *UNUSED (act)) {
   close (app->pipeChild);
   free_mem (app);
   app = NULL;
-  (*env)->DeleteGlobalRef (env, ma);
+  (*act->env)->DeleteGlobalRef (act->env, ma);
   ma = NULL;
 }
 
@@ -322,11 +322,11 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
-  if (app == NULL) return;
-  android_graphicsManager_resizeInsets (left, top, right, bottom);
   if (ma == NULL) {
     ma = (*env)->NewGlobalRef (env, o);
     jclass jc = (*env)->FindClass (env, "com/ariasaproject/technowar/MainActivity");
     mi = (*env)->GetMethodID (env, jc, "showToast", "(java/lang/String;)V");
   }
+  if (app == NULL) return;
+  android_graphicsManager_resizeInsets (left, top, right, bottom);
 }
