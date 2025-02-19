@@ -46,13 +46,13 @@ enum APP_CMD {
 };
 
 enum {
-	APP_FLAG_ANIMATING = 1,
-	APP_FLAG_WAITING = 2,
-	APP_FLAG_DESTROY = 4,
+  APP_FLAG_ANIMATING = 1,
+  APP_FLAG_WAITING = 2,
+  APP_FLAG_DESTROY = 4,
 }
 
 struct android_app {
-	int flags;
+  int flags;
   int msgread, msgwrite;
   pthread_t thread;
   pthread_mutex_t mutex;
@@ -65,58 +65,58 @@ struct msg_pipe {
 };
 
 static struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
-static int process_comand(int fd, int UNUSED(event), void *UNUSED(data)) {
-	    // activity handler
-	if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof(struct msg_pipe)) {
-	  switch (read_cmd.cmd) {
-	    case APP_CMD_WINDOW_UPDATE:
-	      //android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
-	      if (read_cmd.data) {
-	        app->flags |= APP_FLAG_ANIMATING;
-	      } else {
-	        app->flags &= ~APP_FLAG_ANIMATING;
-	      }
-	      break;
-	    case APP_CMD_FOCUS_CHANGED:
-	      //android_inputManager_switchSensor (read_cmd.data);
-	      break;
-	    case APP_CMD_INPUT_UPDATE:
-	      //android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
-	      break;
-	    case APP_CMD_CONFIG_CHANGED:
-	      AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
-	      break;
-	    case APP_CMD_CONTENT_RECT_CHANGED:
-	      //android_graphicsManager_onWindowResize ();
-	      break;
-	    case APP_CMD_WINDOW_RESIZED:
-	      //android_graphicsManager_onWindowResizeDisplay ();
-	      break;
-	    case APP_CMD_DESTROY:
-			  //android_graphicsManager_term ();
-			  //android_inputManager_term ();
-			  ALooper_removeFd (looper, app->msgread);
-			  AConfiguration_delete (aconfig);
-	      app->flags |= APP_FLAG_DESTROY;
-	      break;
-	    case APP_CMD_PAUSE:
-	    case APP_CMD_SAVE_STATE:
-	    case APP_CMD_STOP:
-	    case APP_CMD_START:
-	    case APP_CMD_LOW_MEMORY:
-	    case APP_CMD_WINDOW_REDRAW_NEEDED:
-	    case APP_CMD_RESUME:
-	    default:
-	      break;
-	  }
-	  pthread_mutex_lock (&app->mutex);
-	  app->flags &= ~APP_FLAG_WAITING;
-	  pthread_cond_broadcast (&app->cond);
-		pthread_mutex_unlock (&app->mutex);
-	} else {
-		LOGE("No command readed on pipe, %s", strerror (errno));
-	}
-	return 1;
+static int process_comand (int fd, int UNUSED (event), void *UNUSED (data)) {
+  // activity handler
+  if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
+    switch (read_cmd.cmd) {
+    case APP_CMD_WINDOW_UPDATE:
+      // android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
+      if (read_cmd.data) {
+        app->flags |= APP_FLAG_ANIMATING;
+      } else {
+        app->flags &= ~APP_FLAG_ANIMATING;
+      }
+      break;
+    case APP_CMD_FOCUS_CHANGED:
+      // android_inputManager_switchSensor (read_cmd.data);
+      break;
+    case APP_CMD_INPUT_UPDATE:
+      // android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
+      break;
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
+      break;
+    case APP_CMD_CONTENT_RECT_CHANGED:
+      // android_graphicsManager_onWindowResize ();
+      break;
+    case APP_CMD_WINDOW_RESIZED:
+      // android_graphicsManager_onWindowResizeDisplay ();
+      break;
+    case APP_CMD_DESTROY:
+      // android_graphicsManager_term ();
+      // android_inputManager_term ();
+      ALooper_removeFd (looper, app->msgread);
+      AConfiguration_delete (aconfig);
+      app->flags |= APP_FLAG_DESTROY;
+      break;
+    case APP_CMD_PAUSE:
+    case APP_CMD_SAVE_STATE:
+    case APP_CMD_STOP:
+    case APP_CMD_START:
+    case APP_CMD_LOW_MEMORY:
+    case APP_CMD_WINDOW_REDRAW_NEEDED:
+    case APP_CMD_RESUME:
+    default:
+      break;
+    }
+    pthread_mutex_lock (&app->mutex);
+    app->flags &= ~APP_FLAG_WAITING;
+    pthread_cond_broadcast (&app->cond);
+    pthread_mutex_unlock (&app->mutex);
+  } else {
+    LOGE ("No command readed on pipe, %s", strerror (errno));
+  }
+  return 1;
 }
 
 static void *android_app_entry (void *n) {
@@ -126,11 +126,11 @@ static void *android_app_entry (void *n) {
   AConfiguration_fromAssetManager (aconfig, act->assetManager);
   ALooper *looper = ALooper_prepare ();
   ALooper_setCallback (looper, app->msgread, ALOOPER_EVENT_INPUT, process_comand, NULL);
-  //android_inputManager_init (looper);
-  //android_graphicsManager_init ();
+  // android_inputManager_init (looper);
+  // android_graphicsManager_init ();
   do {
-    while (ALooper_pollOnce((app->flags & APP_FLAG_ANIMATING) ? 0 : -1)) {
-	    ;
+    while (ALooper_pollOnce ((app->flags & APP_FLAG_ANIMATING) ? 0 : -1)) {
+      ;
     }
     /*
     if ((app->flags & APP_FLAG_ANIMATING) && //android_graphicsManager_preRender ()) {
@@ -208,8 +208,8 @@ static void onDestroy (ANativeActivity *UNUSED (act)) {
   app_write_cmd (APP_CMD_DESTROY, NULL);
   close (app->msgread);
   close (app->msgwrite);
-  pthread_cond_destroy(&app->cond);
-  pthread_mutex_destroy(&app->mutex);
+  pthread_cond_destroy (&app->cond);
+  pthread_mutex_destroy (&app->mutex);
   free_mem (app);
   app = NULL;
 }
