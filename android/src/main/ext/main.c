@@ -108,9 +108,6 @@ get_event:
       break;
     case APP_CMD_INPUT_UPDATE:
       android_inputManager_setInputQueue (looper, (AInputQueue *)child_pipe.data);
-      child_pipe.cmd = APP_REQ_ACC;
-      child_pipe.data = NULL;
-      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_PAUSE:
       StateFlags |= STATE_PAUSE;
@@ -208,7 +205,6 @@ static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   jstring msg = (*act->env)->NewStringUTF (act->env, "Input Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onConfigurationChanged (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_CONFIG_CHANGED;
@@ -277,7 +273,6 @@ static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (qu
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   jstring msg = (*act->env)->NewStringUTF (act->env, "Input Lost");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onPause (ANativeActivity *act) {
   main_pipe.cmd = APP_CMD_PAUSE;
