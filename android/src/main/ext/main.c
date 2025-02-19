@@ -46,7 +46,7 @@ enum APP_CMD {
   APP_CMD_PAUSE,
   APP_CMD_STOP,
   APP_CMD_DESTROY,
-	APP_REQ_ACC,
+  APP_REQ_ACC,
 };
 enum {
   APP_FLAG_WAITING = 1,
@@ -91,26 +91,26 @@ get_event:
     switch (child_pipe.cmd) {
     case APP_CMD_WINDOW_UPDATE:
       android_graphicsManager_onWindowChange ((ANativeWindow *)child_pipe.data);
-    	if (child_pipe.data != NULL) {
-    		StateFlags |= STATE_WINDOW_EXIST;
-    	} else {
-    		StateFlags &= ~STATE_WINDOW_EXIST;
-    	}
-		  child_pipe.cmd = APP_REQ_ACC;
-		  child_pipe.data = NULL;
-    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+      if (child_pipe.data != NULL) {
+        StateFlags |= STATE_WINDOW_EXIST;
+      } else {
+        StateFlags &= ~STATE_WINDOW_EXIST;
+      }
+      child_pipe.cmd = APP_REQ_ACC;
+      child_pipe.data = NULL;
+      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_FOCUS_CHANGED:
       android_inputManager_switchSensor (child_pipe.data);
-		  child_pipe.cmd = APP_REQ_ACC;
-		  child_pipe.data = NULL;
-    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+      child_pipe.cmd = APP_REQ_ACC;
+      child_pipe.data = NULL;
+      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_INPUT_UPDATE:
       android_inputManager_setInputQueue (looper, (AInputQueue *)child_pipe.data);
-		  child_pipe.cmd = APP_REQ_ACC;
-		  child_pipe.data = NULL;
-    	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+      child_pipe.cmd = APP_REQ_ACC;
+      child_pipe.data = NULL;
+      write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
       break;
     case APP_CMD_PAUSE:
       StateFlags |= STATE_PAUSE;
@@ -135,24 +135,22 @@ get_event:
       android_graphicsManager_onWindowResizeDisplay ();
       break;
     case APP_CMD_DESTROY:
-    	StateFlags |= STATE_DESTROY;
+      StateFlags |= STATE_DESTROY;
       goto render;
     }
   }
   {
-	  act->vm
-		JNIEnv* env;
-	  if ((*act->vm)->AttachCurrentThread(&env, NULL) == JNI_OK) {
-			jstring msg = (*env)->NewStringUTF(env, "Hello");
-	  	
-		  (*env)->CallVoidMethod(env, ma, mi, msg);
-		
-		  (*act->vm)->DetachCurrentThread();
-	  }
-	
+    act->vm JNIEnv *env;
+    if ((*act->vm)->AttachCurrentThread (&env, NULL) == JNI_OK) {
+      jstring msg = (*env)->NewStringUTF (env, "Hello");
+
+      (*env)->CallVoidMethod (env, ma, mi, msg);
+
+      (*act->vm)->DetachCurrentThread ();
+    }
   }
   if (!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST))
-  	goto get_event;
+    goto get_event;
 render: // base render
   // engine_input_process_event ();
   if (StateFlags & STATE_CREATE) {
@@ -164,14 +162,14 @@ render: // base render
     Main_resume ();
     StateFlags &= ~STATE_RESUME;
   }
-  
+
   if (android_graphicsManager_preRender ())
-  	Main_update ();
-  
+    Main_update ();
+
   if (StateFlags & STATE_PAUSE) {
     StateFlags &= ~STATE_PAUSE;
     StateFlags &= ~STATE_RUNNING;
-  	Main_pause ();
+    Main_pause ();
   }
   if (StateFlags & STATE_DESTROY) {
     Main_end ();
@@ -179,7 +177,7 @@ render: // base render
   }
   android_graphicsManager_postRender ();
   goto get_event;
-end: // loop ends
+end:              // loop ends
   StateFlags = 0; // reset flags
   android_graphicsManager_term ();
   android_inputManager_term ();
@@ -187,7 +185,7 @@ end: // loop ends
   AConfiguration_delete (aconfig);
   child_pipe.cmd = APP_REQ_ACC;
   child_pipe.data = NULL;
-	write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+  write (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
   return NULL;
 }
 
@@ -284,14 +282,14 @@ static void onDestroy (ANativeActivity *UNUSED (act)) {
   close (app->pipeChild);
   free_mem (app);
   app = NULL;
-  (*env)->DeleteGlobalRef(env, ma);
+  (*env)->DeleteGlobalRef (env, ma);
   ma = NULL;
 }
 
 void ANativeActivity_onCreate (ANativeActivity *activity, void *UNUSED (savedata), size_t UNUSED (save_len)) {
   // initialize application
   app = (struct android_app *)new_imem (sizeof (struct android_app));
-  while (socketpair(AF_UNIX, SOCK_STREAM, 0, &app->pipeMain) == -1) {
+  while (socketpair (AF_UNIX, SOCK_STREAM, 0, &app->pipeMain) == -1) {
     // force loop to provide pipe
     LOGE ("Failed to create pipe, %s", strerror (errno));
   }
@@ -327,11 +325,8 @@ JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv
   if (app == NULL) return;
   android_graphicsManager_resizeInsets (left, top, right, bottom);
   if (ma == NULL) {
-  	ma = (*env)->NewGlobalRef(env, o);
-  	jclass jc = (*env)->FindClass(env, "com/ariasaproject/technowar/MainActivity");
-	  mi = (*env)->GetMethodID(env, jc, "showToast", "(java/lang/String;)V");
+    ma = (*env)->NewGlobalRef (env, o);
+    jclass jc = (*env)->FindClass (env, "com/ariasaproject/technowar/MainActivity");
+    mi = (*env)->GetMethodID (env, jc, "showToast", "(java/lang/String;)V");
   }
 }
-
-
-
