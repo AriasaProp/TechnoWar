@@ -66,64 +66,64 @@ static void *android_app_entry (void *n) {
   ALooper *looper = ALooper_prepare (ALOOPER_PREPARE_ALLOW_NON_CALLBACKS);
   ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, NULL, NULL);
   int animating = 0;
-  //android_inputManager_init (looper);
-  //android_graphicsManager_init ();
+  // android_inputManager_init (looper);
+  // android_graphicsManager_init ();
   struct msg_pipe read_cmd = {APP_CMD_CREATE, NULL};
   do {
-    switch (ALooper_pollOnce((animating & 1) ? 0 : -1, NULL, NULL, NULL)) {
-	    case 1:
-	      // activity handler
-	      read (app->msgwrite, &read_cmd, sizeof (struct msg_pipe));
-	      switch (read_cmd.cmd) {
-		      case APP_CMD_WINDOW_UPDATE:
-		        //android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
-		        if (read_cmd.data) {
-		          animating |= 1;
-		        } else {
-		          animating &= ~1;
-		        }
-		        break;
-		      case APP_CMD_FOCUS_CHANGED:
-		        //android_inputManager_switchSensor (read_cmd.data);
-		        break;
-		      case APP_CMD_INPUT_UPDATE:
-		        //android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
-		        break;
-		      case APP_CMD_CONFIG_CHANGED:
-		        AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
-		        break;
-		      case APP_CMD_CONTENT_RECT_CHANGED:
-		        //android_graphicsManager_onWindowResize ();
-		        break;
-		      case APP_CMD_WINDOW_RESIZED:
-		        //android_graphicsManager_onWindowResizeDisplay ();
-		        break;
-		      case APP_CMD_DESTROY:
-					  //android_graphicsManager_term ();
-					  //android_inputManager_term ();
-					  ALooper_removeFd (looper, app->msgread);
-					  AConfiguration_delete (aconfig);
-		        animating = 2;
-		        break;
-		      case APP_CMD_PAUSE:
-		      case APP_CMD_SAVE_STATE:
-		      case APP_CMD_STOP:
-		      case APP_CMD_START:
-		      case APP_CMD_LOW_MEMORY:
-		      case APP_CMD_WINDOW_REDRAW_NEEDED:
-		      case APP_CMD_RESUME:
-		      default:
-		        break;
-	      }
-	      pthread_mutex_lock (&app->mutex);
-	      app->waiting = 0;
-	      pthread_cond_broadcast (&app->cond);
-	    	pthread_mutex_unlock (&app->mutex);
-	    	break;
-	    case ALOOPER_POLL_CALLBACK:
-	    	break;
-	    default:
-	    	break;
+    switch (ALooper_pollOnce ((animating & 1) ? 0 : -1, NULL, NULL, NULL)) {
+    case 1:
+      // activity handler
+      read (app->msgwrite, &read_cmd, sizeof (struct msg_pipe));
+      switch (read_cmd.cmd) {
+      case APP_CMD_WINDOW_UPDATE:
+        // android_graphicsManager_onWindowChange ((ANativeWindow *)read_cmd.data);
+        if (read_cmd.data) {
+          animating |= 1;
+        } else {
+          animating &= ~1;
+        }
+        break;
+      case APP_CMD_FOCUS_CHANGED:
+        // android_inputManager_switchSensor (read_cmd.data);
+        break;
+      case APP_CMD_INPUT_UPDATE:
+        // android_inputManager_setInputQueue (looper, (AInputQueue *)read_cmd.data);
+        break;
+      case APP_CMD_CONFIG_CHANGED:
+        AConfiguration_fromAssetManager (aconfig, (AAssetManager *)read_cmd.data);
+        break;
+      case APP_CMD_CONTENT_RECT_CHANGED:
+        // android_graphicsManager_onWindowResize ();
+        break;
+      case APP_CMD_WINDOW_RESIZED:
+        // android_graphicsManager_onWindowResizeDisplay ();
+        break;
+      case APP_CMD_DESTROY:
+        // android_graphicsManager_term ();
+        // android_inputManager_term ();
+        ALooper_removeFd (looper, app->msgread);
+        AConfiguration_delete (aconfig);
+        animating = 2;
+        break;
+      case APP_CMD_PAUSE:
+      case APP_CMD_SAVE_STATE:
+      case APP_CMD_STOP:
+      case APP_CMD_START:
+      case APP_CMD_LOW_MEMORY:
+      case APP_CMD_WINDOW_REDRAW_NEEDED:
+      case APP_CMD_RESUME:
+      default:
+        break;
+      }
+      pthread_mutex_lock (&app->mutex);
+      app->waiting = 0;
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      break;
+    case ALOOPER_POLL_CALLBACK:
+      break;
+    default:
+      break;
 >>>>>>> 0cb085d (test-toast : 22:56:46 02/19/25)
     }
     /*
