@@ -141,12 +141,10 @@ get_event:
   }
   {
     JNIEnv *env;
-    if ((*act->vm)->AttachCurrentThread (&env) == JNI_OK) {
+    if ((*act->vm)->AttachCurrentThread (act->vm, &env, NULL) == JNI_OK) {
       jstring msg = (*env)->NewStringUTF (env, "Hello");
-
       (*env)->CallVoidMethod (env, ma, mi, msg);
-
-      (*act->vm)->DetachCurrentThread (env);
+      (*act->vm)->DetachCurrentThread (act->vm);
     }
   }
   if (!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST))
