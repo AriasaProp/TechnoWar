@@ -87,7 +87,7 @@ static void *android_app_entry (void *n) {
 get_event:
   if (ALooper_pollOnce ((!(StateFlags & STATE_RUNNING) || !(StateFlags & STATE_WINDOW_EXIST)) * -1, NULL, NULL, NULL) == 1) {
     // activity handler
-    read (app->pipeMain, &child_pipe, sizeof (struct msg_pipe));
+    read (app->pipeChild, &child_pipe, sizeof (struct msg_pipe));
     switch (child_pipe.cmd) {
     case APP_CMD_WINDOW_UPDATE:
       android_graphicsManager_onWindowChange ((ANativeWindow *)child_pipe.data);
@@ -197,7 +197,6 @@ static void onNativeWindowCreated (ANativeActivity *act, ANativeWindow *window) 
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window Create");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onInputQueueCreated (ANativeActivity *act, AInputQueue *queue) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
@@ -227,7 +226,6 @@ static void onWindowFocusChanged (ANativeActivity *act, int f) {
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   jstring msg = (*act->env)->NewStringUTF (act->env, "Focus changes");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onNativeWindowResized (ANativeActivity *act, ANativeWindow *UNUSED (window)) {
   main_pipe.cmd = APP_CMD_WINDOW_RESIZED;
@@ -265,7 +263,6 @@ static void onNativeWindowDestroyed (ANativeActivity *act, ANativeWindow *UNUSED
   write (app->pipeChild, &main_pipe, sizeof (struct msg_pipe));
   jstring msg = (*act->env)->NewStringUTF (act->env, "Window lost");
   (*act->env)->CallVoidMethod (act->env, ma, mi, msg);
-  read (app->pipeMain, &main_pipe, sizeof (struct msg_pipe));
 }
 static void onInputQueueDestroyed (ANativeActivity *act, AInputQueue *UNUSED (queue)) {
   main_pipe.cmd = APP_CMD_INPUT_UPDATE;
