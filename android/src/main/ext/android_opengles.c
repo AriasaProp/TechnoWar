@@ -36,6 +36,7 @@ static struct opengles_mesh {
 } *meshes;
 static struct opengles_data {
   int flags;
+  int wasValid;
   struct {
     GLint shader, uniform_proj, uniform_tex;
     GLuint vao, vbo, ibo;
@@ -49,12 +50,12 @@ static struct opengles_data {
   struct vec2 viewportSize; //
   struct vec2 screenSize;   //
   struct vec4 insets;
-} *src;
+} src = { 0 };
 
-static struct vec2 android_opengles_getScreenSize () { return src->screenSize; }
+static struct vec2 android_opengles_getScreenSize () { return src.screenSize; }
 static void android_opengles_toScreenCoordinate (struct vec2 *v) {
-  v->x -= src->insets.x;
-  v->y = src->viewportSize.y - v->y - src->insets.w;
+  v->x -= src.insets.x;
+  v->y = src.viewportSize.y - v->y - src.insets.w;
 }
 static void android_opengles_clear (const int m) {
   glClear (
@@ -100,18 +101,18 @@ static void android_opengles_deleteTexture (const texture t) {
 }
 static void android_opengles_flatRender (const texture t, struct flat_vertex *v, const size_t l) {
   glDisable (GL_DEPTH_TEST);
-  glUseProgram (src->ui.shader);
+  glUseProgram (src.ui.shader);
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
-  glUniform1i (src->ui.uniform_tex, 0);
-  if (src->flags & UI_UPDATE) {
+  glUniform1i (src.ui.uniform_tex, 0);
+  if (src.flags & UI_UPDATE) {
     float mat[16] = {
-        2.f / src->viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src->viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.00001f, 0.f, (2.0f * src->insets.x / src->viewportSize.x) - 1.0f, (2.0f * src->insets.w / src->viewportSize.y) - 1.0f, 0.f, 1.f};
-    glUniformMatrix4fv (src->ui.uniform_proj, 1, GL_FALSE, mat);
-    src->flags &= ~UI_UPDATE;
+        2.f / src.viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src.viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.00001f, 0.f, (2.0f * src.insets.x / src.viewportSize.x) - 1.0f, (2.0f * src.insets.w / src.viewportSize.y) - 1.0f, 0.f, 1.f};
+    glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, mat);
+    src.flags &= ~UI_UPDATE;
   }
-  glBindVertexArray (src->ui.vao);
-  glBindBuffer (GL_ARRAY_BUFFER, src->ui.vbo);
+  glBindVertexArray (src.ui.vao);
+  glBindBuffer (GL_ARRAY_BUFFER, src.ui.vbo);
   glBufferSubData (GL_ARRAY_BUFFER, 0, 4 * l * sizeof (struct flat_vertex), (void *)v);
   glDrawElements (GL_TRIANGLES, 6 * l, GL_UNSIGNED_SHORT, NULL);
   glBindVertexArray (0);
@@ -150,16 +151,16 @@ static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, me
 }
 static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
-  glUseProgram (src->world.shader);
-  if (src->flags & WORLD_UPDATE) {
+  glUseProgram (src.world.shader);
+  if (src.flags & WORLD_UPDATE) {
     float mat[16] = {
-        2.f / src->viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src->viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f};
-    glUniformMatrix4fv (src->world.uniform_proj, 1, GL_FALSE, mat);
-    src->flags &= ~WORLD_UPDATE;
+        2.f / src.viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src.viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f};
+    glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, mat);
+    src.flags &= ~WORLD_UPDATE;
   }
   for (size_t i = 0; i < l; i++) {
     struct opengles_mesh m = meshes[ms[i]];
-    glUniformMatrix4fv (src->world.uniform_transProj, 1, GL_FALSE, m.trans);
+    glUniformMatrix4fv (src.world.uniform_transProj, 1, GL_FALSE, m.trans);
     glBindVertexArray (m.vao);
     if (m.flags) {
       if (m.flags & MESH_VERTEX_DIRTY) {
@@ -185,10 +186,9 @@ static void android_opengles_deleteMesh (mesh m) {
   memset (meshes + m, 0, sizeof (struct opengles_mesh));
 }
 
-static int wasValid = 0;
 static unsigned char nullTextureData[4] = {0xff, 0xff, 0xff, 0xff};
 void android_opengles_validateResources () {
-  if (wasValid) return;
+  if (src.wasValid) return;
   // cullface to front
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
@@ -201,7 +201,7 @@ void android_opengles_validateResources () {
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // flat draw
   {
-    src->ui.shader = glCreateProgram ();
+    src.ui.shader = glCreateProgram ();
     GLuint vi = glCreateShader (GL_VERTEX_SHADER);
     const char *vt = "#version 300 es"
                      "\n#define LOW lowp"
@@ -224,7 +224,7 @@ void android_opengles_validateResources () {
                      "\n}";
     glShaderSource (vi, 1, &vt, 0);
     glCompileShader (vi);
-    glAttachShader (src->ui.shader, vi);
+    glAttachShader (src.ui.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
     const char *ft = "#version 300 es"
                      "\n#define LOW lowp"
@@ -244,15 +244,15 @@ void android_opengles_validateResources () {
                      "\n}";
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
-    glAttachShader (src->ui.shader, fi);
-    glLinkProgram (src->ui.shader);
+    glAttachShader (src.ui.shader, fi);
+    glLinkProgram (src.ui.shader);
     glDeleteShader (vi);
     glDeleteShader (fi);
-    src->ui.uniform_proj = glGetUniformLocation (src->ui.shader, "u_proj");
-    src->ui.uniform_tex = glGetUniformLocation (src->ui.shader, "u_tex");
-    glGenVertexArrays (1, &src->ui.vao);
-    glGenBuffers (2, &src->ui.vbo);
-    glBindVertexArray (src->ui.vao);
+    src.ui.uniform_proj = glGetUniformLocation (src.ui.shader, "u_proj");
+    src.ui.uniform_tex = glGetUniformLocation (src.ui.shader, "u_tex");
+    glGenVertexArrays (1, &src.ui.vao);
+    glGenBuffers (2, &src.ui.vbo);
+    glBindVertexArray (src.ui.vao);
     unsigned short indexs[MAX_UI_DRAW * 6];
     for (unsigned short i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
       indexs[j] = k++;
@@ -261,9 +261,9 @@ void android_opengles_validateResources () {
       indexs[j + 3] = k++;
     }
     // 0, 1, 2, 3, 2, 1
-    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo);
+    glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, src.ui.ibo);
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof (unsigned short), (void *)indexs, GL_STATIC_DRAW);
-    glBindBuffer (GL_ARRAY_BUFFER, src->ui.vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, src.ui.vbo);
     glBufferData (GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof (struct flat_vertex), NULL, GL_DYNAMIC_DRAW);
     glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)0);
     glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)sizeof (struct vec2));
@@ -272,7 +272,7 @@ void android_opengles_validateResources () {
   }
   // world draw
   {
-    src->world.shader = glCreateProgram ();
+    src.world.shader = glCreateProgram ();
     GLuint vi = glCreateShader (GL_VERTEX_SHADER);
     const char *vt = "#version 300 es"
                      "\n#define LOW lowp"
@@ -293,7 +293,7 @@ void android_opengles_validateResources () {
                      "\n}";
     glShaderSource (vi, 1, &vt, 0);
     glCompileShader (vi);
-    glAttachShader (src->world.shader, vi);
+    glAttachShader (src.world.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
     const char *ft = "#version 300 es"
                      "\n#define LOW lowp"
@@ -311,12 +311,12 @@ void android_opengles_validateResources () {
                      "\n}";
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
-    glAttachShader (src->world.shader, fi);
-    glLinkProgram (src->world.shader);
+    glAttachShader (src.world.shader, fi);
+    glLinkProgram (src.world.shader);
     glDeleteShader (vi);
     glDeleteShader (fi);
-    src->world.uniform_proj = glGetUniformLocation (src->world.shader, "worldview_proj");
-    src->world.uniform_transProj = glGetUniformLocation (src->world.shader, "trans_proj");
+    src.world.uniform_proj = glGetUniformLocation (src.world.shader, "worldview_proj");
+    src.world.uniform_transProj = glGetUniformLocation (src.world.shader, "trans_proj");
   }
   // texture
   // made for 0 texture test
@@ -359,33 +359,33 @@ void android_opengles_validateResources () {
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof (mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW);
   }
   glBindVertexArray (0);
-  wasValid = 1;
+  src.wasValid = 1;
 }
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
-  src->insets.x = x;
-  src->insets.y = y;
-  src->insets.z = z;
-  src->insets.w = w;
-  src->screenSize.x = src->viewportSize.x - x - z;
-  src->screenSize.y = src->viewportSize.y - y - w;
-  src->flags |= UI_UPDATE;
+  src.insets.x = x;
+  src.insets.y = y;
+  src.insets.z = z;
+  src.insets.w = w;
+  src.screenSize.x = src.viewportSize.x - x - z;
+  src.screenSize.y = src.viewportSize.y - y - w;
+  src.flags |= UI_UPDATE;
 }
 void android_opengles_resizeWindow (float w, float h) {
-  src->viewportSize.x = w;
-  src->viewportSize.y = h;
+  src.viewportSize.x = w;
+  src.viewportSize.y = h;
   glViewport (0, 0, w, h);
-  src->screenSize.x = w - src->insets.x - src->insets.z;
-  src->screenSize.y = h - src->insets.y - src->insets.w;
-  src->flags |= WORLD_UPDATE;
+  src.screenSize.x = w - src.insets.x - src.insets.z;
+  src.screenSize.y = h - src.insets.y - src.insets.w;
+  src.flags |= WORLD_UPDATE;
 }
 void android_opengles_invalidateResources () {
-  if (!wasValid) return;
+  if (!src.wasValid) return;
   // world draw
-  glDeleteProgram (src->world.shader);
+  glDeleteProgram (src.world.shader);
   // flat draw
-  glDeleteProgram (src->ui.shader);
-  glDeleteVertexArrays (1, &src->ui.vao);
-  glDeleteBuffers (2, &src->ui.vbo);
+  glDeleteProgram (src.ui.shader);
+  glDeleteVertexArrays (1, &src.ui.vao);
+  glDeleteBuffers (2, &src.ui.vbo);
   // mesh
   for (mesh i = 0; i < MAX_RESOURCE; ++i) {
     if (meshes[i].vertex_len == 0) continue;
@@ -398,7 +398,7 @@ void android_opengles_invalidateResources () {
     glDeleteTextures (1, &textures[i].id);
   }
 
-  wasValid = 0;
+  src.wasValid = 0;
 }
 
 void android_opengles_init () {
@@ -417,16 +417,15 @@ void android_opengles_init () {
 
   textures = (struct opengles_texture *)new_imem (sizeof (struct opengles_texture) * MAX_RESOURCE);
   meshes = (struct opengles_mesh *)new_imem (sizeof (struct opengles_mesh) * MAX_RESOURCE);
-  src = (struct opengles_data *)new_imem (sizeof (struct opengles_data));
 }
 void android_opengles_term () {
-  if (wasValid) {
+  if (src.wasValid) {
     // world draw
-    glDeleteProgram (src->world.shader);
+    glDeleteProgram (src.world.shader);
     // flat draw
-    glDeleteProgram (src->ui.shader);
-    glDeleteVertexArrays (1, &src->ui.vao);
-    glDeleteBuffers (2, &src->ui.vbo);
+    glDeleteProgram (src.ui.shader);
+    glDeleteVertexArrays (1, &src.ui.vao);
+    glDeleteBuffers (2, &src.ui.vbo);
     // texture
     for (texture i = 0; i < MAX_RESOURCE; ++i) {
       if (textures[i].size.x == 0) continue;
@@ -438,10 +437,10 @@ void android_opengles_term () {
       glDeleteVertexArrays (1, &meshes[i].vao);
       glDeleteBuffers (2, &meshes[i].vbo);
     }
-    wasValid = 0;
+    src.wasValid = 0;
   }
 
   free_mem (textures);
   free_mem (meshes);
-  free_mem (src);
+  memset(&src, 0, sizeof(opengles_data));
 }
