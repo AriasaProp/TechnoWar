@@ -354,7 +354,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 
 static void *android_app_entry (void *param) {
   app->config = AConfiguration_new ();
-  AConfiguration_fromAssetManager (app->config, (AAsetManager *)param);
+  AConfiguration_fromAssetManager (app->config, (struct AAsetManager *)param);
 
   app->looper = ALooper_prepare (0);
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
