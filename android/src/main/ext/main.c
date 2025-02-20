@@ -274,27 +274,26 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CHANGED:
-      AInputQueue *q = (AInputQueue *)read_cmd.data;
-      if (q) {
-        AInputQueue_attachLooper (q, app->looper, 2, process_input, NULL);
-      } else {
+    	if (!read_cmd.data && app->inputQueue) {
         AInputQueue_detachLooper (app->inputQueue);
       }
       pthread_mutex_lock (&app->mutex);
-      app->inputQueue = q;
+      app->inputQueue = (AInputQueue *)read_cmd.data;
+      if (app->inputQueue) {
+        AInputQueue_attachLooper (app->inputQueue, app->looper, 2, process_input, NULL);
+      }
       pthread_cond_broadcast (&app->cond);
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_WINDOW_CHANGED:
       // The window is being shown, get it ready.
-      ANativeWindow *w = (ANativeWindow *)read_cmd.data;
-      if (w) {
+      pthread_mutex_lock (&app->mutex);
+      app->window = (ANativeWindow *)read_cmd.data;
+      if (app->window) {
         engine_init_display (engine);
       } else {
         engine_term_display (engine);
       }
-      pthread_mutex_lock (&app->mutex);
-      app->window = w;
       pthread_cond_broadcast (&app->cond);
       pthread_mutex_unlock (&app->mutex);
       break;
