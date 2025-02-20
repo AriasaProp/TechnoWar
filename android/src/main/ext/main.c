@@ -35,7 +35,7 @@ static struct android_app {
   AConfiguration *config;
   void *savedState;
   size_t savedStateSize;
-  
+
   AInputQueue *inputQueue;
   ANativeWindow *window;
   ARect contentRect;
@@ -256,7 +256,7 @@ static int process_input (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) 
 }
 
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
-	static struct msg_pipe read_cmd;
+  static struct msg_pipe read_cmd;
   if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
     struct Engine *engine = (struct Engine *)app->userData;
     switch (read_cmd.cmd) {
@@ -274,7 +274,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CHANGED:
-    	if (!read_cmd.data && app->inputQueue) {
+      if (!read_cmd.data && app->inputQueue) {
         AInputQueue_detachLooper (app->inputQueue);
       }
       pthread_mutex_lock (&app->mutex);
@@ -288,17 +288,17 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_WINDOW_CHANGED:
       // The window is being shown, get it ready.
       if (read_cmd.data) {
-    		pthread_mutex_lock (&app->mutex);
-      	app->window = (ANativeWindow *)read_cmd.data;
-	      pthread_cond_broadcast (&app->cond);
-	      pthread_mutex_unlock (&app->mutex);
+        pthread_mutex_lock (&app->mutex);
+        app->window = (ANativeWindow *)read_cmd.data;
+        pthread_cond_broadcast (&app->cond);
+        pthread_mutex_unlock (&app->mutex);
         engine_init_display (engine);
       } else {
         engine_term_display (engine);
-    		pthread_mutex_lock (&app->mutex);
-      	app->window = NULL;
-	      pthread_cond_broadcast (&app->cond);
-	      pthread_mutex_unlock (&app->mutex);
+        pthread_mutex_lock (&app->mutex);
+        app->window = NULL;
+        pthread_cond_broadcast (&app->cond);
+        pthread_mutex_unlock (&app->mutex);
       }
       break;
     case APP_CMD_RESUME:
@@ -315,9 +315,9 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
           ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
         }
         if (!engine->running_) {
-			    engine->running_ = 1;
-			    ScheduleNextTick (engine);
-			  }
+          engine->running_ = 1;
+          ScheduleNextTick (engine);
+        }
       } else {
         if (engine->accelerometerSensor != NULL) {
           ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
@@ -340,7 +340,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
-	ANativeActivity *activity = (ANativeActivity*)param;
+  ANativeActivity *activity = (ANativeActivity *)param;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
@@ -384,7 +384,7 @@ static void *android_app_entry (void *param) {
   return NULL;
 }
 static void android_app_write_cmd (int8_t cmd, void *data) {
-	static struct msg_pipe write_cmd;
+  static struct msg_pipe write_cmd;
   write_cmd.cmd = cmd;
   write_cmd.data = data;
   if (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
