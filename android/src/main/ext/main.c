@@ -7,8 +7,6 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 #include <android/set_abort_message.h>
-#include <android/configuration.h>
-#include <android/looper.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -301,7 +299,7 @@ static void CreateSensorListener (struct Engine *engine, ALooper_callbackFunc ca
 
 static void Pause (struct Engine *engine) { engine->running_ = 0; }
 static void ScheduleNextTick (struct Engine *);
-static void Tick (long UNUSED(timeout), void *data) {
+static void Tick (long UNUSED (timeout), void *data) {
   struct Engine *engine = (struct Engine *)data;
   if (!engine->running_) {
     return;
@@ -358,7 +356,7 @@ static int engine_init_display (struct Engine *engine) {
    * find the best match if possible, otherwise use the very first one
    */
   eglChooseConfig (display, attribs, nullptr, 0, &numConfigs);
-  EGLConfig *supportedConfigs = (EGLConfig *)new_mem(sizeof(EGLConfig)*numConfigs);
+  EGLConfig *supportedConfigs = (EGLConfig *)new_mem (sizeof (EGLConfig) * numConfigs);
   eglChooseConfig (display, attribs, supportedConfigs, numConfigs, &numConfigs);
   if (!numConfigs) {
     LOGW ("Unable to initialize EGLConfig");
@@ -377,7 +375,7 @@ static int engine_init_display (struct Engine *engine) {
       break;
     }
   }
-  free_mem(supportedConfigs);
+  free_mem (supportedConfigs);
 
   /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
