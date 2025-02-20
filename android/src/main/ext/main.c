@@ -8,8 +8,6 @@
 #include <android/sensor.h>
 #include <android/set_abort_message.h>
 #include <android_native_app_glue.h>
-#include <android/configuration.h>
-#include <android/looper.h>
 
 #include <assert.h>
 #include <errno.h>
