@@ -353,7 +353,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
-	ANativeActivity *activity = (ANativeActivity*)param;
+  ANativeActivity *activity = (ANativeActivity *)param;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
