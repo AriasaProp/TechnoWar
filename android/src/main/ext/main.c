@@ -339,7 +339,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       }
       break;
     case APP_CMD_CONFIG_CHANGED:
-      AConfiguration_fromAssetManager (app->config, (AAssetManager *)read_cmd.data);
+      AConfiguration_fromAssetManager (app->config, (struct AAssetManager *)read_cmd.data);
       break;
     case APP_CMD_DESTROY:
       app->destroyRequested = 1;
