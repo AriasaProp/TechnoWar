@@ -116,12 +116,6 @@ static void Tick (long UNUSED (timeout), void *data) {
 static void ScheduleNextTick (struct Engine *engine) {
   AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, engine);
 }
-static void Resume (struct Engine *engine) {
-  if (!engine->running_) {
-    engine->running_ = 1;
-    ScheduleNextTick (engine);
-  }
-}
 static int engine_init_display (struct Engine *engine) {
   // initialize OpenGL ES and EGL
 
@@ -235,10 +229,6 @@ int OnSensorEvent (int UNUSED (fd), int UNUSED (events), void *data) {
     // ("accelerometer: x=%f y=%f z=%f", event.acceleration.x, event.acceleration.y, event.acceleration.z);
   }
 
-  // From the docs:
-  //
-  // Implementations should return 1 to continue receiving callbacks, or 0 to
-  // have this file descriptor and callback unregistered from the looper.
   return 1;
 }
 static void free_saved_state () {
@@ -284,27 +274,27 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CHANGED:
-      pthread_mutex_lock (&app->mutex);
-      if (read_cmd.data) {
-        app->inputQueue = (AInputQueue *)read_cmd.data;
-        AInputQueue_attachLooper (app->inputQueue, app->looper, 2, process_input, NULL);
+      AInputQueue *q = (AInputQueue *)read_cmd.data;
+      if (q) {
+        AInputQueue_attachLooper (q, app->looper, 2, process_input, NULL);
       } else {
         AInputQueue_detachLooper (app->inputQueue);
-        app->inputQueue = NULL;
       }
+      pthread_mutex_lock (&app->mutex);
+      app->inputQueue = q;
       pthread_cond_broadcast (&app->cond);
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_WINDOW_CHANGED:
       // The window is being shown, get it ready.
-      pthread_mutex_lock (&app->mutex);
-      if (read_cmd.data) {
-        app->window = (ANativeWindow *)read_cmd.data;
+      ANativeWindow *w = (ANativeWindow *)read_cmd.data;
+      if (w) {
         engine_init_display (engine);
       } else {
         engine_term_display (engine);
-        app->window = NULL;
       }
+      pthread_mutex_lock (&app->mutex);
+      app->window = w;
       pthread_cond_broadcast (&app->cond);
       pthread_mutex_unlock (&app->mutex);
       break;
@@ -330,7 +320,10 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
           ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
           ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
         }
-        Resume (engine);
+        if (!engine->running_) {
+			    engine->running_ = 1;
+			    ScheduleNextTick (engine);
+			  }
       } else {
         if (engine->accelerometerSensor != NULL) {
           ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
@@ -353,7 +346,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
-  ANativeActivity *activity = (ANativeActivity *)param;
+	ANativeActivity *activity = (ANativeActivity*)param;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
@@ -386,7 +379,7 @@ static void *android_app_entry (void *param) {
 
   free_saved_state ();
   pthread_mutex_lock (&app->mutex);
-  if (app->inputQueue != NULL) {
+  if (app->inputQueue) {
     AInputQueue_detachLooper (app->inputQueue);
   }
   AConfiguration_delete (app->config);
