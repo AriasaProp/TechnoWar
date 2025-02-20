@@ -274,7 +274,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CHANGED:
-    	if (!read_cmd.data && app->inputQueue) {
+      if (!read_cmd.data && app->inputQueue) {
         AInputQueue_detachLooper (app->inputQueue);
       }
       pthread_mutex_lock (&app->mutex);
