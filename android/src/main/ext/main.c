@@ -504,7 +504,7 @@ static void android_app_set_activity_state (int8_t cmd) {
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onDestroy (ANativeActivity *UNUSED(activity)) {
+static void onDestroy (ANativeActivity *UNUSED (activity)) {
   pthread_mutex_lock (&app->mutex);
   android_app_write_cmd (APP_CMD_DESTROY);
   while (!app->destroyed) {
@@ -520,15 +520,15 @@ static void onDestroy (ANativeActivity *UNUSED(activity)) {
   app = NULL;
 }
 
-static void onStart (ANativeActivity *UNUSED(activity)) {
+static void onStart (ANativeActivity *UNUSED (activity)) {
   android_app_set_activity_state (APP_CMD_START);
 }
 
-static void onResume (ANativeActivity *UNUSED(activity)) {
+static void onResume (ANativeActivity *UNUSED (activity)) {
   android_app_set_activity_state (APP_CMD_RESUME);
 }
 
-static void *onSaveInstanceState (ANativeActivity *UNUSED(activity), size_t *outLen) {
+static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
   void *savedState = NULL;
 
   pthread_mutex_lock (&app->mutex);
@@ -550,19 +550,19 @@ static void *onSaveInstanceState (ANativeActivity *UNUSED(activity), size_t *out
   return savedState;
 }
 
-static void onPause (ANativeActivity *UNUSED(activity)) {
+static void onPause (ANativeActivity *UNUSED (activity)) {
   android_app_set_activity_state (APP_CMD_PAUSE);
 }
 
-static void onStop (ANativeActivity *UNUSED(activity)) {
+static void onStop (ANativeActivity *UNUSED (activity)) {
   android_app_set_activity_state (APP_CMD_STOP);
 }
 
-static void onConfigurationChanged (ANativeActivity *UNUSED(activity)) {
+static void onConfigurationChanged (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_CONFIG_CHANGED);
 }
 
-static void onLowMemory (ANativeActivity *UNUSED(activity)) {
+static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY);
 }
 
