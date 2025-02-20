@@ -306,7 +306,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   }
 }
 
-int OnSensorEvent (int UNUSED(fd), int UNUSED(events), void *data) {
+int OnSensorEvent (int UNUSED (fd), int UNUSED (events), void *data) {
   struct Engine *engine = (struct Engine *)data;
 
   ASensorEvent event;
@@ -377,7 +377,6 @@ int8_t android_app_read_cmd (struct android_app *android_app) {
   }
   return -1;
 }
-
 
 void android_app_pre_exec_cmd (struct android_app *android_app, int8_t cmd) {
   switch (cmd) {
@@ -465,7 +464,7 @@ static void android_app_destroy (struct android_app *android_app) {
   // Can't touch android_app object after this.
 }
 
-static void process_input (struct android_app *app, struct android_poll_source *UNUSED(source)) {
+static void process_input (struct android_app *app, struct android_poll_source *UNUSED (source)) {
   AInputEvent *event = NULL;
   if (AInputQueue_getEvent (app->inputQueue, &event) >= 0) {
     if (AInputQueue_preDispatchEvent (app->inputQueue, event)) {
@@ -479,7 +478,7 @@ static void process_input (struct android_app *app, struct android_poll_source *
   }
 }
 
-static void process_cmd (struct android_app *app, struct android_poll_source *UNUSED(source)) {
+static void process_cmd (struct android_app *app, struct android_poll_source *UNUSED (source)) {
   int8_t cmd = android_app_read_cmd (app);
   android_app_pre_exec_cmd (app, cmd);
   if (app->onAppCmd != NULL) app->onAppCmd (app, cmd);
@@ -491,7 +490,6 @@ static void *android_app_entry (void *param) {
 
   android_app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (android_app->config, android_app->activity->assetManager);
-
 
   android_app->cmdPollSource.id = LOOPER_ID_MAIN;
   android_app->cmdPollSource.app = android_app;
@@ -689,7 +687,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   }
   pthread_mutex_unlock (&android_app->mutex);
 }
-
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
