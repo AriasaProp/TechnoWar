@@ -946,6 +946,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity,
   activity->instance = android_app_create (activity, savedState, savedStateSize);
 }
 
+
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
