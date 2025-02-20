@@ -565,10 +565,10 @@ static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY);
 }
 
-static void onWindowFocusChanged (ANativeActivity *UNUSED(activity), int focused) {
+static void onWindowFocusChanged (ANativeActivity *UNUSED (activity), int focused) {
   android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
-static void onNativeWindowCreated (ANativeActivity *UNUSED(activity), ANativeWindow *window) {
+static void onNativeWindowCreated (ANativeActivity *UNUSED (activity), ANativeWindow *window) {
   pthread_mutex_lock (&app->mutex);
   app->pendingWindow = window;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
@@ -577,7 +577,7 @@ static void onNativeWindowCreated (ANativeActivity *UNUSED(activity), ANativeWin
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onNativeWindowDestroyed (ANativeActivity *UNUSED(activity), ANativeWindow *UNUSED (window)) {
+static void onNativeWindowDestroyed (ANativeActivity *UNUSED (activity), ANativeWindow *UNUSED (window)) {
   pthread_mutex_lock (&app->mutex);
   app->pendingWindow = NULL;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
@@ -586,7 +586,7 @@ static void onNativeWindowDestroyed (ANativeActivity *UNUSED(activity), ANativeW
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueCreated (ANativeActivity *UNUSED(activity), AInputQueue *queue) {
+static void onInputQueueCreated (ANativeActivity *UNUSED (activity), AInputQueue *queue) {
   pthread_mutex_lock (&app->mutex);
   app->pendingInputQueue = queue;
   android_app_write_cmd (APP_CMD_INPUT_CHANGED);
@@ -595,7 +595,7 @@ static void onInputQueueCreated (ANativeActivity *UNUSED(activity), AInputQueue 
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueDestroyed (ANativeActivity *UNUSED(activity), AInputQueue *UNUSED (queue)) {
+static void onInputQueueDestroyed (ANativeActivity *UNUSED (activity), AInputQueue *UNUSED (queue)) {
   pthread_mutex_lock (&app->mutex);
   app->pendingInputQueue = NULL;
   android_app_write_cmd (APP_CMD_INPUT_CHANGED);
