@@ -26,8 +26,7 @@
 struct android_app;
 struct android_poll_source {
   int32_t id;
-  struct android_app *app;
-  void (*process) (struct android_app *app, struct android_poll_source *source);
+  void (*process) (struct android_poll_source *source);
 };
 struct android_app {
   void *userData;
@@ -86,8 +85,7 @@ enum {
   APP_CMD_PAUSE,
   APP_CMD_STOP,
   APP_CMD_DESTROY,
-} *
-    app;
+};
 int8_t android_app_read_cmd ();
 void android_app_pre_exec_cmd (int8_t cmd);
 void android_app_post_exec_cmd (int8_t cmd);
@@ -119,7 +117,7 @@ static void CreateSensorListener (struct Engine *engine, ALooper_callbackFunc ca
     return;
   }
   engine->accelerometerSensor = ASensorManager_getDefaultSensor (engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  engine->sensorEventQueue = ASensorManager_createEventQueue (engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, callback, engine);
+  engine->sensorEventQueue = ASensorManager_createEventQueue (engine->sensorManager, app->looper, ALOOPER_POLL_CALLBACK, callback, engine);
 }
 
 static void Pause (struct Engine *engine) { engine->running_ = 0; }
@@ -204,7 +202,7 @@ static int engine_init_display (struct Engine *engine) {
    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
   eglGetConfigAttrib (display, config, EGL_NATIVE_VISUAL_ID, &format);
   surface =
-      eglCreateWindowSurface (display, config, engine->app->window, NULL);
+      eglCreateWindowSurface (display, config, app->window, NULL);
 
   /* A version of OpenGL has not been specified here.  This will default to
    * OpenGL 1.0.  You will need to change this if you want to use the newer
@@ -264,13 +262,13 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   switch (cmd) {
   case APP_CMD_SAVE_STATE:
     // The system has asked us to save our current state.  Do so.
-    engine->app->savedState = new_mem (sizeof (struct SavedState));
-    *((struct SavedState *)engine->app->savedState) = engine->state;
-    engine->app->savedStateSize = sizeof (struct SavedState);
+    app->savedState = new_mem (sizeof (struct SavedState));
+    *((struct SavedState *)app->savedState) = engine->state;
+    app->savedStateSize = sizeof (struct SavedState);
     break;
   case APP_CMD_WINDOW_CHANGED:
     // The window is being shown, get it ready.
-    if (engine->app->window) {
+    if (app->window) {
       engine_init_display (engine);
     } else {
       engine_term_display (engine);
@@ -506,7 +504,7 @@ static void android_app_set_activity_state (int8_t cmd) {
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onDestroy (ANativeActivity *activity) {
+static void onDestroy (ANativeActivity *UNUSED(activity)) {
   pthread_mutex_lock (&app->mutex);
   android_app_write_cmd (APP_CMD_DESTROY);
   while (!app->destroyed) {
@@ -522,15 +520,15 @@ static void onDestroy (ANativeActivity *activity) {
   app = NULL;
 }
 
-static void onStart (ANativeActivity *activity) {
+static void onStart (ANativeActivity *UNUSED(activity)) {
   android_app_set_activity_state (APP_CMD_START);
 }
 
-static void onResume (ANativeActivity *activity) {
+static void onResume (ANativeActivity *UNUSED(activity)) {
   android_app_set_activity_state (APP_CMD_RESUME);
 }
 
-static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
+static void *onSaveInstanceState (ANativeActivity *UNUSED(activity), size_t *outLen) {
   void *savedState = NULL;
 
   pthread_mutex_lock (&app->mutex);
@@ -552,19 +550,19 @@ static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
   return savedState;
 }
 
-static void onPause (ANativeActivity *activity) {
+static void onPause (ANativeActivity *UNUSED(activity)) {
   android_app_set_activity_state (APP_CMD_PAUSE);
 }
 
-static void onStop (ANativeActivity *activity) {
+static void onStop (ANativeActivity *UNUSED(activity)) {
   android_app_set_activity_state (APP_CMD_STOP);
 }
 
-static void onConfigurationChanged (ANativeActivity *activity) {
+static void onConfigurationChanged (ANativeActivity *UNUSED(activity)) {
   android_app_write_cmd (APP_CMD_CONFIG_CHANGED);
 }
 
-static void onLowMemory (ANativeActivity *activity) {
+static void onLowMemory (ANativeActivity *UNUSED(activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY);
 }
 
