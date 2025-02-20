@@ -496,7 +496,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   }
 }
 
-int OnSensorEvent (int UNUSED(fd), int UNUSED(events), void *data) {
+int OnSensorEvent (int UNUSED (fd), int UNUSED (events), void *data) {
   struct Engine *engine = (struct Engine *)data;
 
   ASensorEvent event;
