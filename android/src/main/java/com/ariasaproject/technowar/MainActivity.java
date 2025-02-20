@@ -16,7 +16,6 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
   @Override
   protected void onCreate (Bundle savedInstanceState) {
     super.onCreate (savedInstanceState);
-    showToast ("onCreate");
     getWindow ().getDecorView ().setOnApplyWindowInsetsListener (this);
   }
 
@@ -62,7 +61,6 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceCreated (SurfaceHolder holder) {
-    showToast ("surface Create");
     super.surfaceCreated (holder);
   }
 
@@ -80,19 +78,16 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   @Override
   public void surfaceDestroyed (SurfaceHolder holder) {
-    showToast ("surface Destroy");
     super.surfaceDestroyed (holder);
   }
 
   @Override
   protected void onStart () {
-    showToast ("onStart");
     super.onStart ();
   }
 
   @Override
   protected void onResume () {
-    showToast ("onResume");
     super.onResume ();
   }
 
