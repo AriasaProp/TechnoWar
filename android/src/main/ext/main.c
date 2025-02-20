@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <jni.h>
 #include <poll.h>
 #include <pthread.h>
@@ -18,7 +19,6 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include "log.h"
 #include "manager.h"
@@ -268,84 +268,84 @@ static int process_input (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) 
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
   struct msg_pipe read_cmd;
   if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-		struct Engine *engine = (struct Engine *)app->userData;
-	  switch (read_cmd.cmd) {
-	    case APP_CMD_SAVE_STATE:
-	      // pre
-	      free_saved_state ();
-		    // The system has asked us to save our current state.  Do so.
-		    app->savedState = new_mem (sizeof (struct SavedState));
-		    *((struct SavedState *)app->savedState) = engine->state;
-		    app->savedStateSize = sizeof (struct SavedState);
-	      // post
-		    pthread_mutex_lock (&app->mutex);
-		    app->stateSaved = 1;
-		    pthread_cond_broadcast (&app->cond);
-		    pthread_mutex_unlock (&app->mutex);
-		    break;
-		  case APP_CMD_INPUT_CHANGED:
-		    pthread_mutex_lock (&app->mutex);
-		  	if (read_cmd.data) {
-		    	app->inputQueue = (AInputQueue*)read_cmd.data;
-		      AInputQueue_attachLooper (app->inputQueue, app->looper, 2, process_input, NULL);
-		  	} else {
-		      AInputQueue_detachLooper (app->inputQueue);
-		    	app->inputQueue = NULL;
-		  	}
-		    pthread_cond_broadcast (&app->cond);
-		    pthread_mutex_unlock (&app->mutex);
-		    break;
-		  case APP_CMD_WINDOW_CHANGED:
-		    // The window is being shown, get it ready.
-		    pthread_mutex_lock (&app->mutex);
-		    if (read_cmd.data) {
-		    	app->window = (ANativeWindow*)read_cmd.data;
-		      engine_init_display (engine);
-		    } else {
-		      engine_term_display (engine);
-		    	app->window = NULL;
-		    }
-		    pthread_cond_broadcast (&app->cond);
-		    pthread_mutex_unlock (&app->mutex);
-		    break;
-		  case APP_CMD_RESUME:
-		    pthread_mutex_lock (&app->mutex);
-		    app->activityState = read_cmd.cmd;
-		    pthread_cond_broadcast (&app->cond);
-		    pthread_mutex_unlock (&app->mutex);
-	    	// post
-	    	free_saved_state ();
-		    break;
-		  case APP_CMD_START:
-		  case APP_CMD_PAUSE:
-		  case APP_CMD_STOP:
-		    pthread_mutex_lock (&app->mutex);
-		    app->activityState = read_cmd.cmd;
-		    pthread_cond_broadcast (&app->cond);
-		    pthread_mutex_unlock (&app->mutex);
-		    break;
-		  case APP_CMD_FOCUS_CHANGE:
-		  	if (read_cmd.data) {
-			    if (engine->accelerometerSensor != NULL) {
-			      ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
-			      ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
-			    }
-			    Resume (engine);
-		  	} else {
-			    if (engine->accelerometerSensor != NULL) {
-			      ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
-			    }
-			    engine->running_ = 0;
-		  	}
-		    break;
-		  case APP_CMD_CONFIG_CHANGED:
-		    AConfiguration_fromAssetManager (app->config, (AAssetManager*)read_cmd.data);
-		    break;
-		  case APP_CMD_DESTROY:
-		    app->destroyRequested = 1;
-		    break;
-	  }
-  	return 1;
+    struct Engine *engine = (struct Engine *)app->userData;
+    switch (read_cmd.cmd) {
+    case APP_CMD_SAVE_STATE:
+      // pre
+      free_saved_state ();
+      // The system has asked us to save our current state.  Do so.
+      app->savedState = new_mem (sizeof (struct SavedState));
+      *((struct SavedState *)app->savedState) = engine->state;
+      app->savedStateSize = sizeof (struct SavedState);
+      // post
+      pthread_mutex_lock (&app->mutex);
+      app->stateSaved = 1;
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      break;
+    case APP_CMD_INPUT_CHANGED:
+      pthread_mutex_lock (&app->mutex);
+      if (read_cmd.data) {
+        app->inputQueue = (AInputQueue *)read_cmd.data;
+        AInputQueue_attachLooper (app->inputQueue, app->looper, 2, process_input, NULL);
+      } else {
+        AInputQueue_detachLooper (app->inputQueue);
+        app->inputQueue = NULL;
+      }
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      break;
+    case APP_CMD_WINDOW_CHANGED:
+      // The window is being shown, get it ready.
+      pthread_mutex_lock (&app->mutex);
+      if (read_cmd.data) {
+        app->window = (ANativeWindow *)read_cmd.data;
+        engine_init_display (engine);
+      } else {
+        engine_term_display (engine);
+        app->window = NULL;
+      }
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      break;
+    case APP_CMD_RESUME:
+      pthread_mutex_lock (&app->mutex);
+      app->activityState = read_cmd.cmd;
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      // post
+      free_saved_state ();
+      break;
+    case APP_CMD_START:
+    case APP_CMD_PAUSE:
+    case APP_CMD_STOP:
+      pthread_mutex_lock (&app->mutex);
+      app->activityState = read_cmd.cmd;
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+      break;
+    case APP_CMD_FOCUS_CHANGE:
+      if (read_cmd.data) {
+        if (engine->accelerometerSensor != NULL) {
+          ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
+          ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
+        }
+        Resume (engine);
+      } else {
+        if (engine->accelerometerSensor != NULL) {
+          ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
+        }
+        engine->running_ = 0;
+      }
+      break;
+    case APP_CMD_CONFIG_CHANGED:
+      AConfiguration_fromAssetManager (app->config, (AAssetManager *)read_cmd.data);
+      break;
+    case APP_CMD_DESTROY:
+      app->destroyRequested = 1;
+      break;
+    }
+    return 1;
   } else {
     LOGE ("No data on command pipe!");
     return 0;
