@@ -339,7 +339,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       }
       break;
     case APP_CMD_CONFIG_CHANGED:
-      AConfiguration_fromAssetManager (app->config, (struct AAssetManager *)read_cmd.data);
+      AConfiguration_fromAssetManager (app->config, (AAssetManager *)read_cmd.data);
       break;
     case APP_CMD_DESTROY:
       app->destroyRequested = 1;
@@ -353,8 +353,9 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
+	ANativeActivity *activity = (ANativeActivity*)param;
   app->config = AConfiguration_new ();
-  AConfiguration_fromAssetManager (app->config, (struct AAsetManager *)param);
+  AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
   app->looper = ALooper_prepare (0);
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
