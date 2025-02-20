@@ -35,10 +35,10 @@ static struct android_app {
   AConfiguration *config;
   void *savedState;
   size_t savedStateSize;
+  
   AInputQueue *inputQueue;
   ANativeWindow *window;
   ARect contentRect;
-  int activityState;
   int destroyRequested;
 
   pthread_mutex_t mutex;
@@ -256,7 +256,7 @@ static int process_input (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) 
 }
 
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
-  struct msg_pipe read_cmd;
+	static struct msg_pipe read_cmd;
   if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
     struct Engine *engine = (struct Engine *)app->userData;
     switch (read_cmd.cmd) {
@@ -274,7 +274,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CHANGED:
-      if (!read_cmd.data && app->inputQueue) {
+    	if (!read_cmd.data && app->inputQueue) {
         AInputQueue_detachLooper (app->inputQueue);
       }
       pthread_mutex_lock (&app->mutex);
@@ -287,42 +287,37 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       break;
     case APP_CMD_WINDOW_CHANGED:
       // The window is being shown, get it ready.
-      pthread_mutex_lock (&app->mutex);
-      app->window = (ANativeWindow *)read_cmd.data;
-      if (app->window) {
+      if (read_cmd.data) {
+    		pthread_mutex_lock (&app->mutex);
+      	app->window = (ANativeWindow *)read_cmd.data
+	      pthread_cond_broadcast (&app->cond);
+	      pthread_mutex_unlock (&app->mutex);
         engine_init_display (engine);
       } else {
         engine_term_display (engine);
+    		pthread_mutex_lock (&app->mutex);
+      	app->window = NULL;
+	      pthread_cond_broadcast (&app->cond);
+	      pthread_mutex_unlock (&app->mutex);
       }
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_RESUME:
-      pthread_mutex_lock (&app->mutex);
-      app->activityState = read_cmd.cmd;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      // post
       free_saved_state ();
       break;
     case APP_CMD_START:
     case APP_CMD_PAUSE:
     case APP_CMD_STOP:
-      pthread_mutex_lock (&app->mutex);
-      app->activityState = read_cmd.cmd;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_FOCUS_CHANGE:
-      if (read_cmd.data) {
+      if ((intptr_t)read_cmd.data != 0) {
         if (engine->accelerometerSensor != NULL) {
           ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
           ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
         }
         if (!engine->running_) {
-          engine->running_ = 1;
-          ScheduleNextTick (engine);
-        }
+			    engine->running_ = 1;
+			    ScheduleNextTick (engine);
+			  }
       } else {
         if (engine->accelerometerSensor != NULL) {
           ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
@@ -345,7 +340,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
-  ANativeActivity *activity = (ANativeActivity *)param;
+	ANativeActivity *activity = (ANativeActivity*)param;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
@@ -388,21 +383,13 @@ static void *android_app_entry (void *param) {
   // Can't touch app object after this.
   return NULL;
 }
-static struct msg_pipe write_cmd;
 static void android_app_write_cmd (int8_t cmd, void *data) {
+	static struct msg_pipe write_cmd;
   write_cmd.cmd = cmd;
   write_cmd.data = data;
   if (write (app->msgwrite, &write_cmd, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
   }
-}
-static void android_app_set_activity_state (int8_t cmd) {
-  android_app_write_cmd (cmd, NULL);
-  pthread_mutex_lock (&app->mutex);
-  while (app->activityState != cmd) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock (&app->mutex);
 }
 
 static void onDestroy (ANativeActivity *UNUSED (activity)) {
@@ -421,10 +408,10 @@ static void onDestroy (ANativeActivity *UNUSED (activity)) {
   app = NULL;
 }
 static void onStart (ANativeActivity *UNUSED (activity)) {
-  android_app_set_activity_state (APP_CMD_START);
+  android_app_write_cmd (APP_CMD_START, NULL);
 }
 static void onResume (ANativeActivity *UNUSED (activity)) {
-  android_app_set_activity_state (APP_CMD_RESUME);
+  android_app_write_cmd (APP_CMD_RESUME, NULL);
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
   void *savedState = NULL;
@@ -448,10 +435,10 @@ static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *ou
   return savedState;
 }
 static void onPause (ANativeActivity *UNUSED (activity)) {
-  android_app_set_activity_state (APP_CMD_PAUSE);
+  android_app_write_cmd (APP_CMD_PAUSE, NULL);
 }
 static void onStop (ANativeActivity *UNUSED (activity)) {
-  android_app_set_activity_state (APP_CMD_STOP);
+  android_app_write_cmd (APP_CMD_STOP, NULL);
 }
 static void onConfigurationChanged (ANativeActivity *activity) {
   android_app_write_cmd (APP_CMD_CONFIG_CHANGED, (void *)activity->assetManager);
