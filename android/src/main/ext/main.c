@@ -496,7 +496,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   }
 }
 
-int OnSensorEvent (int UNUSED (fd), int UNUSED (events), void *data) {
+int OnSensorEvent (int UNUSED(fd), int UNUSED(events), void *data) {
   struct Engine *engine = (struct Engine *)data;
 
   ASensorEvent event;
@@ -693,7 +693,7 @@ static void android_app_destroy (struct android_app *android_app) {
   // Can't touch android_app object after this.
 }
 
-static void process_input (struct android_app *app, struct android_poll_source *source) {
+static void process_input (struct android_app *app, struct android_poll_source *UNUSED(source)) {
   AInputEvent *event = NULL;
   if (AInputQueue_getEvent (app->inputQueue, &event) >= 0) {
     LOGI ("New input event: type=%d\n", AInputEvent_getType (event));
@@ -708,7 +708,7 @@ static void process_input (struct android_app *app, struct android_poll_source *
   }
 }
 
-static void process_cmd (struct android_app *app, struct android_poll_source *source) {
+static void process_cmd (struct android_app *app, struct android_poll_source *UNUSED(source)) {
   int8_t cmd = android_app_read_cmd (app);
   android_app_pre_exec_cmd (app, cmd);
   if (app->onAppCmd != NULL) app->onAppCmd (app, cmd);
@@ -826,10 +826,6 @@ static void android_app_set_activity_state (struct android_app *android_app, int
   }
   pthread_mutex_unlock (&android_app->mutex);
 }
-
-static void android_app_free (struct android_app *android_app) {
-}
-
 static void onDestroy (ANativeActivity *activity) {
   LOGI ("Destroy: %p\n", activity);
   struct android_app *android_app = (struct android_app *)activity->instance;
