@@ -86,7 +86,8 @@ enum {
   APP_CMD_PAUSE,
   APP_CMD_STOP,
   APP_CMD_DESTROY,
-} *app;
+} *
+    app;
 int8_t android_app_read_cmd ();
 void android_app_pre_exec_cmd (int8_t cmd);
 void android_app_post_exec_cmd (int8_t cmd);
@@ -272,7 +273,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
     if (engine->app->window) {
       engine_init_display (engine);
     } else {
-    	engine_term_display (engine);
+      engine_term_display (engine);
     }
     break;
     break;
@@ -463,7 +464,7 @@ static void process_cmd (struct android_poll_source *UNUSED (source)) {
   android_app_post_exec_cmd (cmd);
 }
 
-static void *android_app_entry (void *UNUSED(param)) {
+static void *android_app_entry (void *UNUSED (param)) {
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, app->activity->assetManager);
 
@@ -571,7 +572,7 @@ static void onWindowFocusChanged (ANativeActivity *activity, int focused) {
   android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
 static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *window) {
-	pthread_mutex_lock (&app->mutex);
+  pthread_mutex_lock (&app->mutex);
   app->pendingWindow = window;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
   while (!app->window) {
@@ -580,7 +581,7 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   pthread_mutex_unlock (&app->mutex);
 }
 static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *UNUSED (window)) {
-	pthread_mutex_lock (&app->mutex);
+  pthread_mutex_lock (&app->mutex);
   app->pendingWindow = NULL;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
   while (app->window) {
