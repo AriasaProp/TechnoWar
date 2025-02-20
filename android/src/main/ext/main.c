@@ -496,7 +496,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   }
 }
 
-int OnSensorEvent (int UNUSED(fd), int UNUSED(events), void *data) {
+int OnSensorEvent (int UNUSED (fd), int UNUSED (events), void *data) {
   struct Engine *engine = (struct Engine *)data;
 
   ASensorEvent event;
@@ -693,7 +693,7 @@ static void android_app_destroy (struct android_app *android_app) {
   // Can't touch android_app object after this.
 }
 
-static void process_input (struct android_app *app, struct android_poll_source *UNUSED(source)) {
+static void process_input (struct android_app *app, struct android_poll_source *UNUSED (source)) {
   AInputEvent *event = NULL;
   if (AInputQueue_getEvent (app->inputQueue, &event) >= 0) {
     LOGI ("New input event: type=%d\n", AInputEvent_getType (event));
@@ -708,7 +708,7 @@ static void process_input (struct android_app *app, struct android_poll_source *
   }
 }
 
-static void process_cmd (struct android_app *app, struct android_poll_source *UNUSED(source)) {
+static void process_cmd (struct android_app *app, struct android_poll_source *UNUSED (source)) {
   int8_t cmd = android_app_read_cmd (app);
   android_app_pre_exec_cmd (app, cmd);
   if (app->onAppCmd != NULL) app->onAppCmd (app, cmd);
@@ -945,7 +945,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity,
 
   activity->instance = android_app_create (activity, savedState, savedStateSize);
 }
-
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *UNUSED (env), jobject UNUSED (o), jint left, jint top, jint right, jint bottom) {
