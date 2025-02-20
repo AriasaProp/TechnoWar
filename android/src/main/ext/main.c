@@ -7,6 +7,8 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 #include <android/set_abort_message.h>
+#include <android/configuration.h>
+#include <android/looper.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -21,6 +23,7 @@
 
 #include "log.h"
 #include "manager.h"
+#include "util.h"
 
 struct android_app;
 
@@ -290,7 +293,7 @@ struct Engine {
 static void CreateSensorListener (struct Engine *engine, ALooper_callbackFunc callback) {
 
   engine->sensorManager = ASensorManager_getInstance ();
-  if (engine->sensorManager == nullptr) {
+  if (engine->sensorManager == NULL) {
     return;
   }
   engine->accelerometerSensor = ASensorManager_getDefaultSensor (engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
@@ -299,17 +302,17 @@ static void CreateSensorListener (struct Engine *engine, ALooper_callbackFunc ca
 
 static void Pause (struct Engine *engine) { engine->running_ = 0; }
 static void ScheduleNextTick (struct Engine *);
-static void Tick (long UNUSED (timeout), void *data) {
+static void Tick (long UNUSED(timeout), void *data) {
   struct Engine *engine = (struct Engine *)data;
   if (!engine->running_) {
     return;
   }
-  ScheduleNextTick ();
+  ScheduleNextTick (engine);
   engine->state.angle += .01f;
   if (engine->state.angle > 1) {
     engine->state.angle = 0;
   }
-  if (engine->display == nullptr) {
+  if (engine->display == NULL) {
     // No display.
     return;
   }
@@ -326,7 +329,7 @@ static void ScheduleNextTick (struct Engine *engine) {
 static void Resume (struct Engine *engine) {
   if (!engine->running_) {
     engine->running_ = 1;
-    ScheduleNextTick ();
+    ScheduleNextTick (engine);
   }
 }
 
@@ -344,27 +347,27 @@ static int engine_init_display (struct Engine *engine) {
   const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
   EGLint w, h, format;
   EGLint numConfigs;
-  EGLConfig config = nullptr;
+  EGLConfig config = NULL;
   EGLSurface surface;
   EGLContext context;
 
   EGLDisplay display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
 
-  eglInitialize (display, nullptr, nullptr);
+  eglInitialize (display, NULL, NULL);
 
   /* Here, the application chooses the configuration it desires.
    * find the best match if possible, otherwise use the very first one
    */
-  eglChooseConfig (display, attribs, nullptr, 0, &numConfigs);
-  EGLConfig *supportedConfigs = (EGLConfig *)new_mem (sizeof (EGLConfig) * numConfigs);
+  eglChooseConfig (display, attribs, NULL, 0, &numConfigs);
+  EGLConfig *supportedConfigs = (EGLConfig *)new_mem(sizeof(EGLConfig)*numConfigs);
   eglChooseConfig (display, attribs, supportedConfigs, numConfigs, &numConfigs);
   if (!numConfigs) {
     LOGW ("Unable to initialize EGLConfig");
     return -1;
   }
-  size_t i = 0;
+  
   config = supportedConfigs[0];
-  for (; i < numConfigs; ++i) {
+  for (EGLint i = 0; i < numConfigs; ++i) {
     EGLint r, g, b, d;
     if (eglGetConfigAttrib (display, supportedConfigs[i], EGL_RED_SIZE, &r) &&
         eglGetConfigAttrib (display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
@@ -375,7 +378,7 @@ static int engine_init_display (struct Engine *engine) {
       break;
     }
   }
-  free_mem (supportedConfigs);
+  free_mem(supportedConfigs);
 
   /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
@@ -383,12 +386,12 @@ static int engine_init_display (struct Engine *engine) {
    * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
   eglGetConfigAttrib (display, config, EGL_NATIVE_VISUAL_ID, &format);
   surface =
-      eglCreateWindowSurface (display, config, engine->app->window, nullptr);
+      eglCreateWindowSurface (display, config, engine->app->window, NULL);
 
   /* A version of OpenGL has not been specified here.  This will default to
    * OpenGL 1.0.  You will need to change this if you want to use the newer
    * features of OpenGL like shaders. */
-  context = eglCreateContext (display, config, nullptr, nullptr);
+  context = eglCreateContext (display, config, NULL, NULL);
 
   if (eglMakeCurrent (display, surface, surface, context) == EGL_FALSE) {
     LOGW ("Unable to eglMakeCurrent");
@@ -427,7 +430,7 @@ static void engine_term_display (struct Engine *engine) {
     }
     eglTerminate (engine->display);
   }
-  engine->Pause ();
+  Pause (engine);
   engine->display = EGL_NO_DISPLAY;
   engine->context = EGL_NO_CONTEXT;
   engine->surface = EGL_NO_SURFACE;
@@ -461,7 +464,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
     break;
   case APP_CMD_INIT_WINDOW:
     // The window is being shown, get it ready.
-    if (engine->app->window != nullptr) {
+    if (engine->app->window != NULL) {
       engine_init_display (engine);
     }
     break;
@@ -471,7 +474,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
     break;
   case APP_CMD_GAINED_FOCUS:
     // When our app gains focus, we start monitoring the accelerometer.
-    if (engine->accelerometerSensor != nullptr) {
+    if (engine->accelerometerSensor != NULL) {
       ASensorEventQueue_enableSensor (engine->sensorEventQueue,
                                       engine->accelerometerSensor);
       // We'd like to get 60 events per second (in us).
@@ -484,7 +487,7 @@ static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
   case APP_CMD_LOST_FOCUS:
     // When our app loses focus, we stop monitoring the accelerometer.
     // This is to avoid consuming battery while not being used.
-    if (engine->accelerometerSensor != nullptr) {
+    if (engine->accelerometerSensor != NULL) {
       ASensorEventQueue_disableSensor (engine->sensorEventQueue,
                                        engine->accelerometerSensor);
     }
@@ -521,7 +524,7 @@ void android_main (struct android_app *state) {
   // Prepare to monitor accelerometer
   CreateSensorListener (&engine, OnSensorEvent);
 
-  if (state->savedState != nullptr) {
+  if (state->savedState != NULL) {
     // We are starting with a previous saved state; restore from it.
     engine.state = *(struct SavedState *)state->savedState;
   }
@@ -529,13 +532,13 @@ void android_main (struct android_app *state) {
   while (!state->destroyRequested) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
-    android_poll_source *source = nullptr;
-    int result = ALooper_pollOnce (-1, nullptr, nullptr, reinterpret_cast<void **> (&source));
+    android_poll_source *source = NULL;
+    int result = ALooper_pollOnce (-1, NULL, NULL, reinterpret_cast<void **> (&source));
     if (result == ALOOPER_POLL_ERROR) {
       LOGE ("ALooper_pollOnce returned an error");
     }
 
-    if (source != nullptr) {
+    if (source != NULL) {
       source->process (state, source);
     }
   }
