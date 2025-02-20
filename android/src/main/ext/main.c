@@ -630,7 +630,7 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   android_app_set_window ((struct android_app *)activity->instance, window);
 }
 
-static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *UNUSED(window)) {
+static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *UNUSED (window)) {
   android_app_set_window ((struct android_app *)activity->instance, NULL);
 }
 
@@ -638,7 +638,7 @@ static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) 
   android_app_set_input ((struct android_app *)activity->instance, queue);
 }
 
-static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *UNUSED(queue)) {
+static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *UNUSED (queue)) {
   android_app_set_input ((struct android_app *)activity->instance, NULL);
 }
 
