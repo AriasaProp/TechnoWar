@@ -321,9 +321,9 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
           ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
         }
         if (!engine->running_) {
-			    engine->running_ = 1;
-			    ScheduleNextTick (engine);
-			  }
+          engine->running_ = 1;
+          ScheduleNextTick (engine);
+        }
       } else {
         if (engine->accelerometerSensor != NULL) {
           ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
@@ -346,7 +346,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
 }
 
 static void *android_app_entry (void *param) {
-	ANativeActivity *activity = (ANativeActivity*)param;
+  ANativeActivity *activity = (ANativeActivity *)param;
   app->config = AConfiguration_new ();
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
 
