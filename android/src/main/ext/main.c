@@ -7,6 +7,8 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 #include <android/set_abort_message.h>
+#include <android/configuration.h>
+#include <android/looper.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -297,21 +299,10 @@ static void CreateSensorListener (struct Engine *engine, ALooper_callbackFunc ca
   engine->sensorEventQueue = ASensorManager_createEventQueue (engine->sensorManager, engine->app->looper, ALOOPER_POLL_CALLBACK, callback, engine);
 }
 
-static void ScheduleNextTick (struct Engine *engine) {
-  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, engine);
-}
-static void Resume (struct Engine *engine) {
-  if (!engine->running_) {
-    engine->running_ = 1;
-    ScheduleNextTick ();
-  }
-}
 static void Pause (struct Engine *engine) { engine->running_ = 0; }
-static void Tick (long, void *data) {
-  DoTick ((struct Engine *)data);
-}
-
-void DoTick (struct Engine *engine) {
+static void ScheduleNextTick (struct Engine *);
+static void Tick (long UNUSED(timeout), void *data) {
+  struct Engine *engine = (struct Engine *)data;
   if (!engine->running_) {
     return;
   }
@@ -330,6 +321,15 @@ void DoTick (struct Engine *engine) {
   glClear (GL_COLOR_BUFFER_BIT);
 
   eglSwapBuffers (engine->display, engine->surface);
+}
+static void ScheduleNextTick (struct Engine *engine) {
+  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, engine);
+}
+static void Resume (struct Engine *engine) {
+  if (!engine->running_) {
+    engine->running_ = 1;
+    ScheduleNextTick ();
+  }
 }
 
 /**
@@ -358,31 +358,26 @@ static int engine_init_display (struct Engine *engine) {
    * find the best match if possible, otherwise use the very first one
    */
   eglChooseConfig (display, attribs, nullptr, 0, &numConfigs);
-  std::unique_ptr<EGLConfig[]> supportedConfigs (new EGLConfig[numConfigs]);
-  assert (supportedConfigs);
-  eglChooseConfig (display, attribs, supportedConfigs.get (), numConfigs, &numConfigs);
-  assert (numConfigs);
-  auto i = 0;
-  for (; i < numConfigs; i++) {
-    auto &cfg = supportedConfigs[i];
+  EGLConfig *supportedConfigs = (EGLConfig *)new_mem(sizeof(EGLConfig)*numConfigs);
+  eglChooseConfig (display, attribs, supportedConfigs, numConfigs, &numConfigs);
+  if (!numConfigs) {
+    LOGW ("Unable to initialize EGLConfig");
+    return -1;
+  }
+  size_t i = 0;
+  config = supportedConfigs[0];
+  for (; i < numConfigs; ++i) {
     EGLint r, g, b, d;
-    if (eglGetConfigAttrib (display, cfg, EGL_RED_SIZE, &r) &&
-        eglGetConfigAttrib (display, cfg, EGL_GREEN_SIZE, &g) &&
-        eglGetConfigAttrib (display, cfg, EGL_BLUE_SIZE, &b) &&
-        eglGetConfigAttrib (display, cfg, EGL_DEPTH_SIZE, &d) && r == 8 &&
+    if (eglGetConfigAttrib (display, supportedConfigs[i], EGL_RED_SIZE, &r) &&
+        eglGetConfigAttrib (display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
+        eglGetConfigAttrib (display, supportedConfigs[i], EGL_BLUE_SIZE, &b) &&
+        eglGetConfigAttrib (display, supportedConfigs[i], EGL_DEPTH_SIZE, &d) && r == 8 &&
         g == 8 && b == 8 && d == 0) {
       config = supportedConfigs[i];
       break;
     }
   }
-  if (i == numConfigs) {
-    config = supportedConfigs[0];
-  }
-
-  if (config == nullptr) {
-    LOGW ("Unable to initialize EGLConfig");
-    return -1;
-  }
+  free_mem(supportedConfigs);
 
   /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
@@ -412,16 +407,9 @@ static int engine_init_display (struct Engine *engine) {
   engine->height = h;
   engine->state.angle = 0;
 
-  // Check openGL on the system
-  auto opengl_info = {GL_VENDOR, GL_RENDERER, GL_VERSION, GL_EXTENSIONS};
-  for (auto name : opengl_info) {
-    auto info = glGetString (name);
-    LOGI ("OpenGL Info: %s", info);
-  }
   // Initialize GL state.
   glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
   glEnable (GL_CULL_FACE);
-  glShadeModel (GL_SMOOTH);
   glDisable (GL_DEPTH_TEST);
 
   return 0;
@@ -544,9 +532,9 @@ void android_main (struct android_app *state) {
     // Our input, sensor, and update/render logic is all driven by callbacks, so
     // we don't need to use the non-blocking poll.
     android_poll_source *source = nullptr;
-    auto result = ALooper_pollOnce (-1, nullptr, nullptr, reinterpret_cast<void **> (&source));
+    int result = ALooper_pollOnce (-1, nullptr, nullptr, reinterpret_cast<void **> (&source));
     if (result == ALOOPER_POLL_ERROR) {
-      fatal ("ALooper_pollOnce returned an error");
+      LOGE ("ALooper_pollOnce returned an error");
     }
 
     if (source != nullptr) {
