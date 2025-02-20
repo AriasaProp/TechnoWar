@@ -30,8 +30,8 @@ struct android_poll_source {
 };
 struct android_app {
   void *userData;
-  void (*onAppCmd) (struct android_app *app, int32_t cmd);
-  int32_t (*onInputEvent) (struct android_app *app, AInputEvent *event);
+  void (*onAppCmd) (int32_t cmd);
+  int32_t (*onInputEvent) (AInputEvent *event);
   ANativeActivity *activity;
   AConfiguration *config;
   void *savedState;
@@ -247,8 +247,7 @@ static void engine_term_display (struct Engine *engine) {
   engine->context = EGL_NO_CONTEXT;
   engine->surface = EGL_NO_SURFACE;
 }
-static int32_t engine_handle_input (struct android_app *app,
-                                    AInputEvent *event) {
+static int32_t engine_handle_input (AInputEvent *event) {
   struct Engine *engine = (struct Engine *)app->userData;
   if (AInputEvent_getType (event) == AINPUT_EVENT_TYPE_MOTION) {
     engine->state.x = AMotionEvent_getX (event, 0);
@@ -257,7 +256,7 @@ static int32_t engine_handle_input (struct android_app *app,
   }
   return 0;
 }
-static void engine_handle_cmd (struct android_app *app, int32_t cmd) {
+static void engine_handle_cmd (int32_t cmd) {
   struct Engine *engine = (struct Engine *)app->userData;
   switch (cmd) {
   case APP_CMD_SAVE_STATE:
@@ -566,10 +565,10 @@ static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY);
 }
 
-static void onWindowFocusChanged (ANativeActivity *activity, int focused) {
+static void onWindowFocusChanged (ANativeActivity *UNUSED(activity), int focused) {
   android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS);
 }
-static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *window) {
+static void onNativeWindowCreated (ANativeActivity *UNUSED(activity), ANativeWindow *window) {
   pthread_mutex_lock (&app->mutex);
   app->pendingWindow = window;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
@@ -578,7 +577,7 @@ static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *win
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *UNUSED (window)) {
+static void onNativeWindowDestroyed (ANativeActivity *UNUSED(activity), ANativeWindow *UNUSED (window)) {
   pthread_mutex_lock (&app->mutex);
   app->pendingWindow = NULL;
   android_app_write_cmd (APP_CMD_WINDOW_CHANGED);
@@ -587,7 +586,7 @@ static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *U
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
+static void onInputQueueCreated (ANativeActivity *UNUSED(activity), AInputQueue *queue) {
   pthread_mutex_lock (&app->mutex);
   app->pendingInputQueue = queue;
   android_app_write_cmd (APP_CMD_INPUT_CHANGED);
@@ -596,7 +595,7 @@ static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) 
   }
   pthread_mutex_unlock (&app->mutex);
 }
-static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *UNUSED (queue)) {
+static void onInputQueueDestroyed (ANativeActivity *UNUSED(activity), AInputQueue *UNUSED (queue)) {
   pthread_mutex_lock (&app->mutex);
   app->pendingInputQueue = NULL;
   android_app_write_cmd (APP_CMD_INPUT_CHANGED);
@@ -641,7 +640,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_attr_t attr;
   pthread_attr_init (&attr);
   pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create (&app->thread, &attr, android_app_entry, android_app);
+  pthread_create (&app->thread, &attr, android_app_entry, NULL);
 
   // Wait for thread to start.
   pthread_mutex_lock (&app->mutex);
