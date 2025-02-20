@@ -60,8 +60,7 @@ enum {
   APP_CMD_WINDOW_RESIZED,
   APP_CMD_WINDOW_REDRAW_NEEDED,
   APP_CMD_CONTENT_RECT_CHANGED,
-  APP_CMD_GAINED_FOCUS,
-  APP_CMD_LOST_FOCUS,
+  APP_CMD_FOCUS_CHANGE,
   APP_CMD_CONFIG_CHANGED,
   APP_CMD_LOW_MEMORY,
   APP_CMD_START,
@@ -268,84 +267,83 @@ static int process_input (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) 
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
   struct msg_pipe read_cmd;
   if (read (fd, &read_cmd, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-    struct Engine *engine = (struct Engine *)app->userData;
-    switch (read_cmd.cmd) {
-    case APP_CMD_SAVE_STATE:
-      // pre
-      free_saved_state ();
-      // The system has asked us to save our current state.  Do so.
-      app->savedState = new_mem (sizeof (struct SavedState));
-      *((struct SavedState *)app->savedState) = engine->state;
-      app->savedStateSize = sizeof (struct SavedState);
-      // post
-      pthread_mutex_lock (&app->mutex);
-      app->stateSaved = 1;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      break;
-    case APP_CMD_INPUT_CHANGED:
-      AInputQueue *rq = (AInputQueue *)read_cmd.data;
-      if (rq) {
-        AInputQueue_attachLooper (rq, app->looper, 2, process_input, NULL);
-      } else {
-        AInputQueue_detachLooper (app->inputQueue);
-      }
-      pthread_mutex_lock (&app->mutex);
-      app->inputQueue = rq;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      break;
-    case APP_CMD_WINDOW_CHANGED:
-      ANativeWindow *rw = (ANativeWindow *)read_cmd.data;
-      // The window is being shown, get it ready.
-      if (rw) {
-        engine_init_display (engine);
-      } else {
-        engine_term_display (engine);
-      }
-      pthread_mutex_lock (&app->mutex);
-      app->window = rw;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      break;
-    case APP_CMD_RESUME:
-      pthread_mutex_lock (&app->mutex);
-      app->activityState = cmd;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      // post
-      free_saved_state ();
-      break;
-    case APP_CMD_START:
-    case APP_CMD_PAUSE:
-    case APP_CMD_STOP:
-      pthread_mutex_lock (&app->mutex);
-      app->activityState = cmd;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-      break;
-    case APP_CMD_FOCUS_CHANGE:
-      if (read_cmd.data) {
-        if (engine->accelerometerSensor != NULL) {
-          ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
-          ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
-        }
-        Resume (engine);
-      } else {
-        if (engine->accelerometerSensor != NULL) {
-          ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
-        }
-        engine->running_ = 0;
-      }
-      break;
-    case APP_CMD_CONFIG_CHANGED:
-      AConfiguration_fromAssetManager (app->config, (AAssetManager *)read_cmd.data);
-      break;
-    case APP_CMD_DESTROY:
-      app->destroyRequested = 1;
-      break;
-    }
-    return 1;
+		struct Engine *engine = (struct Engine *)app->userData;
+	  switch (read_cmd.cmd) {
+	    case APP_CMD_SAVE_STATE:
+	      // pre
+	      free_saved_state ();
+		    // The system has asked us to save our current state.  Do so.
+		    app->savedState = new_mem (sizeof (struct SavedState));
+		    *((struct SavedState *)app->savedState) = engine->state;
+		    app->savedStateSize = sizeof (struct SavedState);
+	      // post
+		    pthread_mutex_lock (&app->mutex);
+		    app->stateSaved = 1;
+		    pthread_cond_broadcast (&app->cond);
+		    pthread_mutex_unlock (&app->mutex);
+		    break;
+		  case APP_CMD_INPUT_CHANGED:
+		  	AInputQueue *rq = (AInputQueue*)read_cmd.data;
+		  	if (rq) {
+		      AInputQueue_attachLooper (rq, app->looper, 2, process_input, NULL);
+		  	} else {
+		      AInputQueue_detachLooper (app->inputQueue);
+		  	}
+		    pthread_mutex_lock (&app->mutex);
+		    app->inputQueue = rq;
+		    pthread_cond_broadcast (&app->cond);
+		    pthread_mutex_unlock (&app->mutex);
+		    break;
+		  case APP_CMD_WINDOW_CHANGED:
+		    // The window is being shown, get it ready.
+		    pthread_mutex_lock (&app->mutex);
+		    app->window = (ANativeWindow *)read_cmd.data;
+		    pthread_cond_broadcast (&app->cond);
+		    pthread_mutex_unlock (&app->mutex);
+		    if (app->window) {
+		      engine_init_display (engine);
+		    } else {
+		      engine_term_display (engine);
+		    }
+		    break;
+		  case APP_CMD_RESUME:
+		    pthread_mutex_lock (&app->mutex);
+		    app->activityState = read_cmd.cmd;
+		    pthread_cond_broadcast (&app->cond);
+		    pthread_mutex_unlock (&app->mutex);
+	    	// post
+	    	free_saved_state ();
+		    break;
+		  case APP_CMD_START:
+		  case APP_CMD_PAUSE:
+		  case APP_CMD_STOP:
+		    pthread_mutex_lock (&app->mutex);
+		    app->activityState = read_cmd.cmd;
+		    pthread_cond_broadcast (&app->cond);
+		    pthread_mutex_unlock (&app->mutex);
+		    break;
+		  case APP_CMD_FOCUS_CHANGE:
+		  	if (read_cmd.data) {
+			    if (engine->accelerometerSensor != NULL) {
+			      ASensorEventQueue_enableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
+			      ASensorEventQueue_setEventRate (engine->sensorEventQueue, engine->accelerometerSensor, (1000L / 60) * 1000);
+			    }
+			    Resume (engine);
+		  	} else {
+			    if (engine->accelerometerSensor != NULL) {
+			      ASensorEventQueue_disableSensor (engine->sensorEventQueue, engine->accelerometerSensor);
+			    }
+			    engine->running_ = 0;
+		  	}
+		    break;
+		  case APP_CMD_CONFIG_CHANGED:
+		    AConfiguration_fromAssetManager (app->config, (AAssetManager*)read_cmd.data);
+		    break;
+		  case APP_CMD_DESTROY:
+		    app->destroyRequested = 1;
+		    break;
+	  }
+  	return 1;
   } else {
     LOGE ("No data on command pipe!");
     return 0;
@@ -368,12 +366,12 @@ static void *android_app_entry (void *param) {
   struct Engine engine = {0};
   app->userData = &engine;
   // Prepare to monitor accelerometer
-  engine->sensorManager = ASensorManager_getInstance ();
-  if (engine->sensorManager == NULL) {
+  engine.sensorManager = ASensorManager_getInstance ();
+  if (engine.sensorManager == NULL) {
     return;
   }
-  engine->accelerometerSensor = ASensorManager_getDefaultSensor (engine->sensorManager, ASENSOR_TYPE_ACCELEROMETER);
-  engine->sensorEventQueue = ASensorManager_createEventQueue (engine->sensorManager, app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, engine);
+  engine.accelerometerSensor = ASensorManager_getDefaultSensor (engine.sensorManager, ASENSOR_TYPE_ACCELEROMETER);
+  engine.sensorEventQueue = ASensorManager_createEventQueue (engine.sensorManager, app->looper, ALOOPER_POLL_CALLBACK, OnSensorEvent, &engine);
 
   if (app->savedState != NULL) {
     engine.state = *(struct SavedState *)app->savedState;
