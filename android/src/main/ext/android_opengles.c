@@ -151,7 +151,7 @@ static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, me
   return m;
 }
 static void android_opengles_setMeshTransform (const mesh ms, float *mat) {
-	memcpy(meshes[ms].trans, mat, 16 * sizeof(float));
+  memcpy (meshes[ms].trans, mat, 16 * sizeof (float));
 }
 static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
