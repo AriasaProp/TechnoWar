@@ -36,6 +36,8 @@ struct android_app {
   ALooper *looper;
   ANativeWindow *window;
   ARect contentRect;
+  
+  int8_t cmdState;
   int destroyRequested;
 
   pthread_mutex_t mutex;
@@ -46,7 +48,6 @@ struct android_app {
   pthread_t thread;
 
   int running;
-  int stateSaved;
   int destroyed;
   int redrawNeeded;
   ARect pendingContentRect;
@@ -237,11 +238,6 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       app->savedState = new_mem (sizeof (struct SavedState));
       *((struct SavedState *)app->savedState) = engine->state;
       app->savedStateSize = sizeof (struct SavedState);
-      // post
-      pthread_mutex_lock (&app->mutex);
-      app->stateSaved = 1;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_INPUT_CREATED:
       android_inputManager_createInputQueue ((AInputQueue *)rmsg.data);
@@ -250,10 +246,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       android_inputManager_destroyInputQueue ();
       break;
     case APP_CMD_WINDOW_CREATED:
-      pthread_mutex_lock (&app->mutex);
       app->window = (ANativeWindow *)rmsg.data;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
       engine_init_display (engine);
       engine->running_ &= ~2;
       ScheduleNextTick (engine);
@@ -261,10 +254,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_WINDOW_DESTROYED:
       engine->running_ |= 2;
       engine_term_display (engine);
-      pthread_mutex_lock (&app->mutex);
       app->window = NULL;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
       break;
     case APP_CMD_RESUME:
       // post
@@ -275,7 +265,10 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_PAUSE:
       engine->running_ |= 1;
       break;
+    case APP_CMD_CONTENT_RECT_CHANGED:
+      break;
     case APP_CMD_WINDOW_RESIZE:
+      break;
     case APP_CMD_WINDOW_REDRAW:
       break;
     case APP_CMD_START:
@@ -294,7 +287,10 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       app->destroyRequested = 1;
       break;
     }
-
+    pthread_mutex_lock (&app->mutex);
+    app->cmdState = rmsg.cmd;
+    pthread_cond_broadcast (&app->cond);
+    pthread_mutex_unlock (&app->mutex);
     return 1;
   } else {
     LOGE ("No data on command pipe!");
@@ -336,6 +332,7 @@ static void *android_app_entry (void *param) {
 
   free_saved_state ();
   AConfiguration_delete (app->config);
+  pthread_mutex_lock (&app->mutex);
   app->destroyed = 1;
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
@@ -350,11 +347,17 @@ static void android_app_write_cmd (int8_t cmd, void *data) {
   if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
   }
+  pthread_mutex_lock (&app->mutex);
+  while (app->cmd_state != cmd) {
+    pthread_cond_wait (&app->cond, &app->mutex);
+  }
+  pthread_cond_broadcast (&app->cond);
+  pthread_mutex_unlock (&app->mutex);
 }
 
 static void onDestroy (ANativeActivity *UNUSED (activity)) {
-  pthread_mutex_lock (&app->mutex);
   android_app_write_cmd (APP_CMD_DESTROY, NULL);
+  pthread_mutex_lock (&app->mutex);
   while (!app->destroyed) {
     pthread_cond_wait (&app->cond, &app->mutex);
   }
@@ -375,13 +378,7 @@ static void onResume (ANativeActivity *UNUSED (activity)) {
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
   void *savedState = NULL;
-
-  pthread_mutex_lock (&app->mutex);
-  app->stateSaved = 0;
   android_app_write_cmd (APP_CMD_SAVE_STATE, NULL);
-  while (!app->stateSaved) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
 
   if (app->savedState != NULL) {
     savedState = app->savedState;
@@ -389,9 +386,6 @@ static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *ou
     app->savedState = NULL;
     app->savedStateSize = 0;
   }
-
-  pthread_mutex_unlock (&app->mutex);
-
   return savedState;
 }
 static void onPause (ANativeActivity *UNUSED (activity)) {
@@ -407,7 +401,10 @@ static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY, NULL);
 }
 static void onWindowFocusChanged (ANativeActivity *UNUSED (activity), int focused) {
-  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, NULL);
+  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, (void*)((intptr_t)focused));
+}
+static void onContentRectChanged (ANativeActivity *UNUSED (activity), const ARect *rect) {
+  android_app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, (void*)rect);
 }
 static void onNativeWindowResized (ANativeActivity *UNUSED (activity), ANativeWindow *UNUSED (window)) {
   android_app_write_cmd (APP_CMD_WINDOW_RESIZE, NULL);
@@ -417,19 +414,9 @@ static void onNativeWindowRedrawNeeded (ANativeActivity *UNUSED (activity), ANat
 }
 static void onNativeWindowCreated (ANativeActivity *UNUSED (activity), ANativeWindow *window) {
   android_app_write_cmd (APP_CMD_WINDOW_CREATED, (void *)window);
-  pthread_mutex_lock (&app->mutex);
-  while (!app->window) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock (&app->mutex);
 }
 static void onNativeWindowDestroyed (ANativeActivity *UNUSED (activity), ANativeWindow *UNUSED (window)) {
   android_app_write_cmd (APP_CMD_WINDOW_DESTROYED, NULL);
-  pthread_mutex_lock (&app->mutex);
-  while (app->window) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock (&app->mutex);
 }
 static void onInputQueueCreated (ANativeActivity *UNUSED (activity), AInputQueue *queue) {
   android_app_write_cmd (APP_CMD_INPUT_CREATED, (void *)queue);
@@ -448,6 +435,9 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   activity->callbacks->onConfigurationChanged = onConfigurationChanged;
   activity->callbacks->onLowMemory = onLowMemory;
   activity->callbacks->onWindowFocusChanged = onWindowFocusChanged;
+  activity->callbacks->onContentRectChanged = onContentRectChanged;
+  activity->callbacks->onNativeWindowResized = onNativeWindowResized;
+  activity->callbacks->onNativeWindowRedrawNeeded = onNativeWindowRedrawNeeded;
   activity->callbacks->onNativeWindowCreated = onNativeWindowCreated;
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
