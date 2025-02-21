@@ -36,7 +36,7 @@ struct android_app {
   ALooper *looper;
   ANativeWindow *window;
   ARect contentRect;
-
+  
   int8_t cmdState;
   int destroyRequested;
 
@@ -348,7 +348,7 @@ static void android_app_write_cmd (int8_t cmd, void *data) {
     LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
   }
   pthread_mutex_lock (&app->mutex);
-  while (app->cmd_state != cmd) {
+  while (app->cmdState != cmd) {
     pthread_cond_wait (&app->cond, &app->mutex);
   }
   pthread_cond_broadcast (&app->cond);
@@ -401,10 +401,10 @@ static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY, NULL);
 }
 static void onWindowFocusChanged (ANativeActivity *UNUSED (activity), int focused) {
-  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, (void *)((intptr_t)focused));
+  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, (void*)((intptr_t)focused));
 }
 static void onContentRectChanged (ANativeActivity *UNUSED (activity), const ARect *rect) {
-  android_app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, (void *)rect);
+  android_app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, (void*)rect);
 }
 static void onNativeWindowResized (ANativeActivity *UNUSED (activity), ANativeWindow *UNUSED (window)) {
   android_app_write_cmd (APP_CMD_WINDOW_RESIZE, NULL);
