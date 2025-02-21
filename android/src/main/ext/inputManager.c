@@ -30,12 +30,14 @@ static struct android_inputManager {
   } sensor_data[MAX_SENSOR_COUNT];
 
   int flags;
-  struct { struct vec2 pos; } pointers[MAX_POINTER];
+  struct {
+    struct vec2 pos;
+  } pointers[MAX_POINTER];
 } *m = NULL;
 
-//core implementation
+// core implementation
 static struct vec2 getTouch (size_t p) {
-	return m->pointers[p].pos;
+  return m->pointers[p].pos;
 }
 
 // processing input
@@ -90,7 +92,7 @@ void android_inputManager_init (ALooper *looper) {
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue (m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
-  
+
   get_engine ()->i.getTouch = getTouch;
 }
 void android_inputManager_createInputQueue (AInputQueue *queue) {
