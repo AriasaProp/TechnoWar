@@ -1,6 +1,6 @@
 struct core {
-  float x, y;
+	float x, y;
 };
-extern struct core init_core;
 
-extern void Main_update ();
+extern void Main_update (struct core *);
+extern void Main_term(struct core *);
