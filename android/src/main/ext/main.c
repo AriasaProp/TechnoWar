@@ -30,7 +30,7 @@ enum {
   STATE_APP_WINDOW = 2,
   STATE_APP_RUNNING = 4,
   STATE_APP_DESTROY = 8,
-}
+};
 
 struct android_app {
   void *userData;

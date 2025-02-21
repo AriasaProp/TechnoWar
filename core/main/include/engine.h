@@ -58,7 +58,7 @@ struct engine {
   struct engine_extras e;
 };
 
-struct engine *engine_init ();
-struct engine *get_engine ();
+extern struct engine *engine_init ();
+extern struct engine *get_engine ();
 
 #endif // ENGINE_INCLUDED_
