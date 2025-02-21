@@ -15,10 +15,10 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include "core.h"
 #include "log.h"
 #include "manager.h"
 #include "util.h"
-#include "core.h"
 
 struct msg_pipe {
   int8_t cmd;
@@ -26,10 +26,10 @@ struct msg_pipe {
 };
 
 enum {
-	STATE_APP_INIT = 1,
-	STATE_APP_WINDOW = 2,
-	STATE_APP_RUNNING = 4,
-	STATE_APP_DESTROY = 8,
+  STATE_APP_INIT = 1,
+  STATE_APP_WINDOW = 2,
+  STATE_APP_RUNNING = 4,
+  STATE_APP_DESTROY = 8,
 }
 
 struct android_app {
@@ -50,7 +50,7 @@ struct android_app {
   int msgread, msgwrite;
 
   pthread_t thread;
-  
+
   int stateApp;
 } *app = NULL;
 
@@ -75,13 +75,13 @@ enum {
 };
 
 static void ScheduleNextTick (struct Engine *);
-static void Tick (long UNUSED (timeout), void *UNUSED(data)) {
+static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
   if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING)) return;
-  if (!android_graphicsManager_preRender()) return;
+  if (!android_graphicsManager_preRender ()) return;
   ScheduleNextTick ();
-  
-  Main_update();
-  
+
+  Main_update ();
+
   android_graphicsManager_postRender ();
 }
 static void ScheduleNextTick () {
@@ -102,7 +102,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       android_inputManager_destroyInputQueue ();
       break;
     case APP_CMD_WINDOW_CREATED:
-      android_graphicsManager_onWindowCreate((ANativeWindow *)rmsg.data);
+      android_graphicsManager_onWindowCreate ((ANativeWindow *)rmsg.data);
       app->stateApp |= STATE_APP_WINDOW;
       ScheduleNextTick ();
       break;
@@ -119,10 +119,10 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       app->stateApp &= ~STATE_APP_RUNNING;
       break;
     case APP_CMD_CONTENT_RECT_CHANGED:
-    	android_graphicsManager_onWindowResize();
+      android_graphicsManager_onWindowResize ();
       break;
     case APP_CMD_WINDOW_RESIZE:
-    	android_graphicsManager_onWindowResizeDisplay();
+      android_graphicsManager_onWindowResizeDisplay ();
       break;
     case APP_CMD_WINDOW_REDRAW:
       break;
@@ -161,21 +161,21 @@ static void *android_app_entry (void *param) {
   app->looper = ALooper_prepare (0);
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
-  engine_init();
+  engine_init ();
   android_inputManager_init (app->looper);
   android_graphicsManager_init ();
-  
+
   pthread_mutex_lock (&app->mutex);
   app->stateApp |= STATE_APP_INIT;
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
-  
+
   while (!app->destroyRequested) {
     if (ALooper_pollOnce (-1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
       LOGE ("ALooper_pollOnce returned an error");
     }
   }
-  
+
   android_graphicsManager_term ();
   android_inputManager_term ();
 
@@ -232,8 +232,8 @@ static void onResume (ANativeActivity *UNUSED (activity)) {
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
   android_app_write_cmd (APP_CMD_SAVE_STATE, NULL);
-  void *savedState = (void*)&init_core;
-  *outLen = sizeof(struct core);
+  void *savedState = (void *)&init_core;
+  *outLen = sizeof (struct core);
   return savedState;
 }
 static void onPause (ANativeActivity *UNUSED (activity)) {
@@ -297,8 +297,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
 
-  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
-    memcpy (&init_core, savedState, sizeof(struct core));
+  if (savedState != NULL && savedStateSize == sizeof (struct core)) {
+    memcpy (&init_core, savedState, sizeof (struct core));
   }
 
   if (pipe (&app->msgread)) {

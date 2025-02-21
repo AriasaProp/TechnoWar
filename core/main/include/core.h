@@ -1,5 +1,5 @@
 struct core {
-	float x, y;
+  float x, y;
 };
 extern struct core init_core;
 
