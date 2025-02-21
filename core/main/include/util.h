@@ -67,6 +67,6 @@ size_t get_mem_usage ();
 
 // math
 void matrix4_idt (float *);
-void matrix4_rotateDeg(float *, struct vec3);
+void matrix4_rotateDeg (float *, struct vec3);
 
 #endif // UTIL_INCLUDED_
