@@ -81,7 +81,7 @@ void matrix4_mul (float *a, float *b) {
       }
     }
   }
-  memcpy(a, stemp.mat, 16 * sizeof(float));
+  memcpy (a, stemp.mat, 16 * sizeof (float));
 }
 void matrix4_rotateDeg (float *m, struct vec3 deg) {
   // yaw
@@ -101,5 +101,5 @@ void matrix4_rotateDeg (float *m, struct vec3 deg) {
         m[i + 2] * (pitchCos * rollCos);
     stemp.mat[i + 3] = m[i + 3];
   }
-  memcpy(m, stemp.mat, 16 * sizeof(float));
+  memcpy (m, stemp.mat, 16 * sizeof (float));
 }
