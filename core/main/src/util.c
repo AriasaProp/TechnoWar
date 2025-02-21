@@ -81,7 +81,7 @@ void matrix4_mul (float *a, float *b) {
       }
     }
   }
-  memcpy (a, stemp.mat, 16 * sizeof (float));
+  memcpy(a, stemp.mat, 16 * sizeof(float));
 }
 void matrix4_rotateDeg (float *m, struct vec3 deg) {
   // yaw
@@ -91,7 +91,7 @@ void matrix4_rotateDeg (float *m, struct vec3 deg) {
   // roll
   float rollSin = sin (deg.z / 180.0f * M_PI), rollCos = cos (deg.z / 180.0f * M_PI);
 
-  for (size_t i = 0; i < 16; i += 4;) {
+  for (size_t i = 0; i < 16; i += 4) {
     stemp.mat[i] = m[i] * pitchCos * rollCos + m[i + 1] * pitchCos * rollSin - m[i + 2] * pitchSin;
     stemp.mat[i + 1] = m[i] * (yawSin * pitchSin * rollCos - yawCos * rollSin) +
         m[i + 1] * (yawSin * pitchSin * rollSin + yawCos * rollCos) +
@@ -101,5 +101,5 @@ void matrix4_rotateDeg (float *m, struct vec3 deg) {
         m[i + 2] * (pitchCos * rollCos);
     stemp.mat[i + 3] = m[i + 3];
   }
-  memcpy (m, stemp.mat, 16 * sizeof (float));
+  memcpy(m, stemp.mat, 16 * sizeof(float));
 }
