@@ -15,8 +15,8 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
-#include "engine.h"
 #include "core.h"
+#include "engine.h"
 #include "log.h"
 #include "manager.h"
 #include "util.h"
