@@ -2,8 +2,8 @@
 #include <android/native_activity.h>
 #include <android/sensor.h>
 
-#include "manager.h"
 #include "engine.h"
+#include "manager.h"
 #include "util.h"
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
