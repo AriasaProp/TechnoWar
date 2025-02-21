@@ -43,7 +43,7 @@ struct engine_asset {
 };
 struct engine_input {
   void *data;
-  vec2 (*getTouch) (size_t);
+  struct vec2 (*getTouch) (size_t);
   void (*funct2) ();
 };
 struct engine_extras {
