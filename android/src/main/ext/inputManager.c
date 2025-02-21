@@ -18,7 +18,7 @@ enum {
 };
 
 static struct android_inputManager {
-  ALooper *looper;
+	ALooper *looper;
   AInputQueue *inputQueue;
 
   ASensorManager *sensorMngr;
@@ -29,7 +29,7 @@ static struct android_inputManager {
   } sensor_data[MAX_SENSOR_COUNT];
 
   int flags;
-  int (*do_input) (AInputEvent *);
+  int (*do_input)(AInputEvent*);
 } *m = NULL;
 
 // processing input
@@ -38,7 +38,7 @@ static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), v
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
   if (AInputQueue_preDispatchEvent (m->inputQueue, outEvent)) return 1;
-  int handled = m->do_input (outEvent);
+  int handled = m->do_input(outEvent);
   AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
   return 1;
 }
@@ -80,7 +80,8 @@ void android_inputManager_init (ALooper *looper) {
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue (m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
 }
-void android_inputManager_listener (int (*ihandle) (AInputEvent *)) {
+void android_inputManager_listener(int (*ihandle)(AInputEvent*)) {
+	m->do_input = ihandle;
 }
 void android_inputManager_createInputQueue (AInputQueue *queue) {
   AInputQueue_attachLooper (queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
@@ -101,7 +102,7 @@ void android_inputManager_enableSensor () {
     android_inputManager_processSensor (0, 0, m);
   }
 }
-void android_inputManager_disableSensor (void *s) {
+void android_inputManager_disableSensor () {
   if (m->flags & INPUT_SENSOR_ENABLED) {
     // detach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -111,17 +112,17 @@ void android_inputManager_disableSensor (void *s) {
       m->sensor_data[i].value[2] = 0;
     }
     m->flags &= ~INPUT_SENSOR_ENABLED;
-  }
+  } 
 }
 void android_inputManager_term () {
-  // disable sensor
+	// disable sensor
   for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
     ASensorEventQueue_disableSensor (m->sensorQueue, m->sensor_data[i].sensor);
     m->sensor_data[i].value[0] = 0;
     m->sensor_data[i].value[1] = 0;
     m->sensor_data[i].value[2] = 0;
   }
-  // disable input
+	// disable input
   if (m->inputQueue)
     AInputQueue_detachLooper (m->inputQueue);
   free_mem (m);
