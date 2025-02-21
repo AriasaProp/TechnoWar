@@ -73,12 +73,13 @@ enum {
   APP_CMD_DESTROY,
 };
 
-static void ScheduleNextTick (struct Engine *);
+static void ScheduleNextTick ();
 static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
   if (
-      !(app->stateApp & STATE_APP_WINDOW) ||
-      !(app->stateApp & STATE_APP_RUNNING) ||
-      !android_graphicsManager_preRender ()) return;
+  	!(app->stateApp & STATE_APP_WINDOW) ||
+  	!(app->stateApp & STATE_APP_RUNNING) ||
+  	!android_graphicsManager_preRender ()
+  ) return;
   ScheduleNextTick ();
 
   Main_update (app->savedState);
@@ -176,7 +177,7 @@ static void *android_app_entry (void *param) {
       LOGE ("ALooper_pollOnce returned an error");
     }
   }
-  Main_term (app->savedState);
+  Main_term(app->savedState);
   app->savedState = NULL;
 
   android_graphicsManager_term ();
@@ -208,9 +209,8 @@ static void android_app_write_cmd (int8_t cmd, void *data) {
 }
 
 static void onDestroy (ANativeActivity *UNUSED (activity)) {
-  android_app_write_cmd (APP_CMD_DESTROY, NULL);
-  wmsg.cmd = cmd;
-  wmsg.data = data;
+  wmsg.cmd = APP_CMD_DESTROY;
+  wmsg.data = NULL;
   if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
   }
@@ -234,9 +234,9 @@ static void onResume (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_RESUME, NULL);
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
-  *outLen = sizeof (struct core);
-  void *savedState = malloc (*outLen);
-  memcpy (savedState, (void *)app->savedState, *outLen);
+  *outLen = sizeof(struct core);
+  void *savedState = malloc(*outLen); 
+  memcpy(savedState, (void *)app->savedState, *outLen);
   android_app_write_cmd (APP_CMD_SAVE_STATE, NULL);
   return savedState;
 }
@@ -300,12 +300,13 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
 
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
+  
 
   if (savedState != NULL && savedStateSize == sizeof (struct core)) {
-    app->savedState = (struct core *)new_mem (sizeof (struct core));
+    app->savedState = (struct core*)new_mem(sizeof(struct core));
     memcpy (app->savedState, savedState, sizeof (struct core));
   } else {
-    app->savedState = (struct core *)new_imem (sizeof (struct core));
+    app->savedState = (struct core*)new_imem(sizeof(struct core));
   }
 
   if (pipe (&app->msgread)) {

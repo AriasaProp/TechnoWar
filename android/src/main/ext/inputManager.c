@@ -3,6 +3,7 @@
 #include <android/sensor.h>
 
 #include "manager.h"
+#include "engine.h"
 #include "util.h"
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
@@ -41,15 +42,15 @@ static struct vec2 getTouch (size_t p) {
 }
 
 // processing input
-static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
+static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (event), void *UNUSED (data)) {
   AInputEvent *outEvent;
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
   if (AInputQueue_preDispatchEvent (m->inputQueue, outEvent)) return 1;
   int32_t handled = 0;
-  if (AInputEvent_getType (event) == AINPUT_EVENT_TYPE_MOTION) {
-    m->pointers[0].pos.x = AMotionEvent_getX (event, 0);
-    m->pointers[0].pos.y = AMotionEvent_getY (event, 0);
+  if (AInputEvent_getType (outEvent) == AINPUT_EVENT_TYPE_MOTION) {
+    m->pointers[0].pos.x = AMotionEvent_getX (outEvent, 0);
+    m->pointers[0].pos.y = AMotionEvent_getY (outEvent, 0);
     handled = 1;
   }
   AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
