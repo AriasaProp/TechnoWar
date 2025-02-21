@@ -51,6 +51,7 @@ union temp {
   int ints[MAX_TEMPORARY_BYTE / sizeof (int)];
   unsigned int uints[MAX_TEMPORARY_BYTE / sizeof (unsigned int)];
   float floats[MAX_TEMPORARY_BYTE / sizeof (float)];
+  float mat[16];
 };
 
 extern union temp stemp;
@@ -66,5 +67,6 @@ size_t get_mem_usage ();
 
 // math
 void matrix4_idt (float *);
+void matrix4_rotateDeg(float *, struct vec3);
 
 #endif // UTIL_INCLUDED_

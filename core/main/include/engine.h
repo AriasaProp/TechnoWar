@@ -33,6 +33,7 @@ struct engine_graphics {
   void (*deleteTexture) (const texture);
   void (*flatRender) (const texture, struct flat_vertex *, const size_t);
   mesh (*genMesh) (struct mesh_vertex *, const size_t, mesh_index *, const size_t);
+  void (*setMeshTransform) (const mesh, float *);
   void (*meshRender) (mesh *, const size_t);
   void (*deleteMesh) (const mesh);
 };

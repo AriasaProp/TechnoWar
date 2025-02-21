@@ -27,6 +27,7 @@ enum {
 
 extern void android_opengles_init ();
 extern void android_opengles_validateResources ();
+extern void android_opengles_preRender ();
 extern void android_opengles_resizeInsets (float, float, float, float);
 extern void android_opengles_resizeWindow (float, float);
 extern void android_opengles_invalidateResources ();
@@ -130,6 +131,7 @@ int android_graphicsManager_preRender () {
     android_opengles_resizeWindow ((float)w, (float)h);
     g.flags &= ~RESIZE_ONLY;
   }
+  android_opengles_preRender ();
   return 1;
 }
 void android_graphicsManager_postRender () {

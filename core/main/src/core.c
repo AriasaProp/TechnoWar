@@ -2,17 +2,21 @@
 #include "engine.h"
 #include "util.h"
 
+struct flat_vertex triangle[3] {
+	{(struct vec2) {200.0f, 200.0f}, (struct vec2) {0.0f, 0.0f} }, 
+	{(struct vec2) {700.0f, 200.0f}, (struct vec2) {0.0f, 0.0f} }, 
+	{(struct vec2) {300.0f, 700.0f}, (struct vec2) {0.0f, 0.0f} } 
+};
+
+struct core core_cache = { 0 };
+
+
+
 void Main_update (struct core *ic) {
   if ((ic->x += 0.08f) > 1.0f) ic->x = 0.f;
   if ((ic->y += 0.15f) > 1.0f) ic->y = 0.f;
-
-  // Just fill the screen with a color.
-  get_engine ()->g.clearColor ((struct fcolor){
-      ((float)get_engine ()->i.getTouch (0).x / get_engine ()->g.getScreenSize ().x * 0.5f) + (ic->x * 0.5f),
-      ((float)get_engine ()->i.getTouch (0).y * 0.5f) + (ic->y * 0.5f),
-      ((float)get_engine ()->i.getTouch (0).y / get_engine ()->g.getScreenSize ().y * 0.3f) + (ic->x * 0.3f) + (ic->y * 0.4f),
-      1.0f});
-  get_engine ()->g.clear (GRAPHICS_CLEAR_COLOR);
+  
+  get_engine()->g.flatRender(0, triangle, 3);
 }
 
 void Main_term (struct core *ic) {

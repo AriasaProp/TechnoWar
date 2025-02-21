@@ -19,6 +19,7 @@ enum {
   UI_UPDATE = 1,
   WORLD_UPDATE = 2,
   VIEWPORT_UPDATE = 4,
+  VALID_RESOURCES = 8,
 };
 
 static struct opengles_texture {
@@ -36,7 +37,6 @@ static struct opengles_mesh {
 } *meshes;
 static struct opengles_data {
   int flags;
-  int wasValid;
   struct {
     GLint shader, uniform_proj, uniform_tex;
     GLuint vao, vbo, ibo;
@@ -52,6 +52,7 @@ static struct opengles_data {
   struct vec4 insets;
 } src = {0};
 
+// core implementation
 static struct vec2 android_opengles_getScreenSize () { return src.screenSize; }
 static void android_opengles_toScreenCoordinate (struct vec2 *v) {
   v->x -= src.insets.x;
@@ -149,6 +150,9 @@ static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, me
   meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
   return m;
 }
+static void setMeshTransform (const mesh ms, float *mat) {
+	memcpy(meshes[ms].trans, mat, 16 * sizeof(float));
+}
 static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
@@ -188,16 +192,14 @@ static void android_opengles_deleteMesh (mesh m) {
 
 static unsigned char nullTextureData[4] = {0xff, 0xff, 0xff, 0xff};
 void android_opengles_validateResources () {
-  if (src.wasValid) return;
+  if (src.flags & VALID_RESOURCES) return;
   // cullface to front
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
   // enable depth
   glDepthRangef (0.0f, 1.0f);
-  glClearDepthf (1.0f);
   glDepthFunc (GL_LESS);
-  glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
-  glClear (GL_COLOR_BUFFER_BIT);
+  glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
   // enable blend
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -215,12 +217,9 @@ void android_opengles_validateResources () {
                      "\n#endif"
                      "\nuniform mat4 u_proj;"
                      "\nlayout(location = 0) in vec4 a_position;"
-                     "\nlayout(location = 1) in vec4 a_color;"
-                     "\nlayout(location = 2) in vec2 a_texCoord;"
-                     "\nout vec4 v_color;"
+                     "\nlayout(location = 1) in vec2 a_texCoord;"
                      "\nout vec2 v_texCoord;"
                      "\nvoid main() {"
-                     "\n    v_color = a_color;"
                      "\n    v_texCoord = a_texCoord;"
                      "\n    gl_Position = u_proj * a_position;"
                      "\n}";
@@ -238,11 +237,10 @@ void android_opengles_validateResources () {
                      "\n#endif"
                      "\nprecision MED float;"
                      "\nuniform sampler2D u_tex;"
-                     "\nin vec4 v_color;"
                      "\nin vec2 v_texCoord;"
                      "\nlayout(location = 0) out vec4 fragColor;"
                      "\nvoid main() {"
-                     "\n    fragColor = v_color * texture(u_tex, v_texCoord);"
+                     "\n    fragColor = texture(u_tex, v_texCoord);"
                      "\n}";
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
@@ -361,7 +359,11 @@ void android_opengles_validateResources () {
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof (mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW);
   }
   glBindVertexArray (0);
-  src.wasValid = 1;
+  src.flags |= VALID_RESOURCES;
+}
+void android_opengles_preRender () {
+  glClearDepthf (1.0f);
+  glClear (GL_COLOR_BUFFER_BIT);
 }
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
   src.insets.x = x;
@@ -381,7 +383,7 @@ void android_opengles_resizeWindow (float w, float h) {
   src.flags |= WORLD_UPDATE;
 }
 void android_opengles_invalidateResources () {
-  if (!src.wasValid) return;
+  if (!(src.flags & VALID_RESOURCES)) return;
   // world draw
   glDeleteProgram (src.world.shader);
   // flat draw
@@ -400,7 +402,7 @@ void android_opengles_invalidateResources () {
     glDeleteTextures (1, &textures[i].id);
   }
 
-  src.wasValid = 0;
+  src.flags &= ~VALID_RESOURCES;
 }
 
 void android_opengles_init () {
@@ -421,7 +423,7 @@ void android_opengles_init () {
   meshes = (struct opengles_mesh *)new_imem (sizeof (struct opengles_mesh) * MAX_RESOURCE);
 }
 void android_opengles_term () {
-  if (src.wasValid) {
+  if (src.flags & VALID_RESOURCES) {
     // world draw
     glDeleteProgram (src.world.shader);
     // flat draw
@@ -439,7 +441,7 @@ void android_opengles_term () {
       glDeleteVertexArrays (1, &meshes[i].vao);
       glDeleteBuffers (2, &meshes[i].vbo);
     }
-    src.wasValid = 0;
+    src.flags &= ~VALID_RESOURCES;
   }
 
   free_mem (textures);
