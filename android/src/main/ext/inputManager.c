@@ -11,6 +11,7 @@ enum inputManagerState {
   INPUT_SENSOR_ENABLED = 1,
 };
 #define MAX_SENSOR_COUNT 3
+#define MAX_POINTER 10
 enum {
   SENSOR_ACCELEROMETER = 0,
   SENSOR_GYROSCOPE = 1,
@@ -29,8 +30,13 @@ static struct android_inputManager {
   } sensor_data[MAX_SENSOR_COUNT];
 
   int flags;
-  int (*do_input) (AInputEvent *);
+  struct { vec2 pos; } pointers[MAX_POINTER];
 } *m = NULL;
+
+//core implementation
+static vec2 getTouch (size_t p) {
+	return m->pointers[p].pos;
+}
 
 // processing input
 static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
@@ -38,7 +44,12 @@ static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (e), v
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
   if (AInputQueue_preDispatchEvent (m->inputQueue, outEvent)) return 1;
-  int handled = m->do_input (outEvent);
+  int32_t handled = 0;
+  if (AInputEvent_getType (event) == AINPUT_EVENT_TYPE_MOTION) {
+    m->pointers[0].pos.x = AMotionEvent_getX (event, 0);
+    m->pointers[0].pos.y = AMotionEvent_getY (event, 0);
+    handled = 1;
+  }
   AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
   return 1;
 }
@@ -79,9 +90,8 @@ void android_inputManager_init (ALooper *looper) {
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue (m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
-}
-void android_inputManager_listener (int (*ihandle) (AInputEvent *)) {
-  m->do_input = ihandle;
+  
+  get_engine ()->i.getTouch = getTouch;
 }
 void android_inputManager_createInputQueue (AInputQueue *queue) {
   AInputQueue_attachLooper (queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);

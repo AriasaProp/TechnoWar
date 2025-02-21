@@ -54,19 +54,21 @@ static inline void killEGL (const int EGLTermReq) {
 void android_graphicsManager_init () {
   android_opengles_init ();
 }
-void android_graphicsManager_onWindowChange (ANativeWindow *w) {
-  if (g.window)
-    killEGL (TERM_EGL_SURFACE);
+void android_graphicsManager_onWindowCreate (ANativeWindow *w) {
   g.window = w;
+}
+void android_graphicsManager_onWindowDestroy () {
+  killEGL (TERM_EGL_SURFACE);
+  g.window = NULL;
 }
 void android_graphicsManager_onWindowResizeDisplay () {
   g.flags |= RESIZE_DISPLAY;
 }
-void android_graphicsManager_resizeInsets (float x, float y, float z, float w) {
-  android_opengles_resizeInsets (x, y, z, w);
-}
 void android_graphicsManager_onWindowResize () {
   g.flags |= RESIZE_ONLY;
+}
+void android_graphicsManager_resizeInsets (float x, float y, float z, float w) {
+  android_opengles_resizeInsets (x, y, z, w);
 }
 int android_graphicsManager_preRender () {
   if (!g.window) return 0;

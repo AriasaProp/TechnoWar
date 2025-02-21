@@ -1,8 +1,5 @@
-#include <EGL/egl.h>
-#include <GLES/gl.h>
 #include <android/choreographer.h>
 #include <android/configuration.h>
-#include <android/log.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
 #include <android/set_abort_message.h>
@@ -21,11 +18,19 @@
 #include "log.h"
 #include "manager.h"
 #include "util.h"
+#include "core.h"
 
 struct msg_pipe {
   int8_t cmd;
   void *data;
 };
+
+enum {
+	STATE_APP_INIT = 1,
+	STATE_APP_WINDOW = 2,
+	STATE_APP_RUNNING = 4,
+	STATE_APP_DESTROY = 8,
+}
 
 struct android_app {
   void *userData;
@@ -34,7 +39,6 @@ struct android_app {
   void *savedState;
   size_t savedStateSize;
   ALooper *looper;
-  ANativeWindow *window;
   ARect contentRect;
 
   int8_t cmdState;
@@ -46,11 +50,8 @@ struct android_app {
   int msgread, msgwrite;
 
   pthread_t thread;
-
-  int running;
-  int destroyed;
-  int redrawNeeded;
-  ARect pendingContentRect;
+  
+  int stateApp;
 } *app = NULL;
 
 enum {
@@ -72,172 +73,27 @@ enum {
   APP_CMD_STOP,
   APP_CMD_DESTROY,
 };
-struct SavedState {
-  float angle;
-  int32_t x;
-  int32_t y;
-};
-
-struct Engine {
-  EGLDisplay display;
-  EGLSurface surface;
-  EGLContext context;
-  int32_t width;
-  int32_t height;
-  struct SavedState state;
-  int running_;
-};
 
 static void ScheduleNextTick (struct Engine *);
-static void Tick (long UNUSED (timeout), void *data) {
-  struct Engine *engine = (struct Engine *)data;
-  if (engine->running_) return;
-  ScheduleNextTick (engine);
-  engine->state.angle += .01f;
-  if (engine->state.angle > 1) {
-    engine->state.angle = 0;
-  }
-  if (engine->display == NULL) {
-    // No display.
-    return;
-  }
-
-  // Just fill the screen with a color.
-  glClearColor (((float)engine->state.x) / engine->width, engine->state.angle, ((float)engine->state.y) / engine->height, 1);
-  glClear (GL_COLOR_BUFFER_BIT);
-
-  eglSwapBuffers (engine->display, engine->surface);
+static void Tick (long UNUSED (timeout), void *UNUSED(data)) {
+  if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING)) return;
+  if (!android_graphicsManager_preRender()) return;
+  ScheduleNextTick ();
+  
+  Main_update();
+  
+  android_graphicsManager_postRender ();
 }
-static void ScheduleNextTick (struct Engine *engine) {
-  if (engine->running_) return;
-  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, engine);
-}
-static int engine_init_display (struct Engine *engine) {
-  // initialize OpenGL ES and EGL
-
-  /*
-   * Here specify the attributes of the desired configuration.
-   * Below, we select an EGLConfig with at least 8 bits per color
-   * component compatible with on-screen windows
-   */
-  const EGLint attribs[] = {EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8, EGL_NONE};
-  EGLint w, h, format;
-  EGLint numConfigs;
-  EGLConfig config = NULL;
-  EGLSurface surface;
-  EGLContext context;
-
-  EGLDisplay display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
-
-  eglInitialize (display, NULL, NULL);
-
-  /* Here, the application chooses the configuration it desires.
-   * find the best match if possible, otherwise use the very first one
-   */
-  eglChooseConfig (display, attribs, NULL, 0, &numConfigs);
-  EGLConfig *supportedConfigs = (EGLConfig *)new_mem (sizeof (EGLConfig) * numConfigs);
-  eglChooseConfig (display, attribs, supportedConfigs, numConfigs, &numConfigs);
-  if (!numConfigs) {
-    LOGW ("Unable to initialize EGLConfig");
-    return -1;
-  }
-
-  config = supportedConfigs[0];
-  for (EGLint i = 0; i < numConfigs; ++i) {
-    EGLint r, g, b, d;
-    if (eglGetConfigAttrib (display, supportedConfigs[i], EGL_RED_SIZE, &r) &&
-        eglGetConfigAttrib (display, supportedConfigs[i], EGL_GREEN_SIZE, &g) &&
-        eglGetConfigAttrib (display, supportedConfigs[i], EGL_BLUE_SIZE, &b) &&
-        eglGetConfigAttrib (display, supportedConfigs[i], EGL_DEPTH_SIZE, &d) && r == 8 &&
-        g == 8 && b == 8 && d == 0) {
-      config = supportedConfigs[i];
-      break;
-    }
-  }
-  free_mem (supportedConfigs);
-
-  /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
-   * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
-   * As soon as we picked a EGLConfig, we can safely reconfigure the
-   * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
-  eglGetConfigAttrib (display, config, EGL_NATIVE_VISUAL_ID, &format);
-  surface =
-      eglCreateWindowSurface (display, config, app->window, NULL);
-
-  /* A version of OpenGL has not been specified here.  This will default to
-   * OpenGL 1.0.  You will need to change this if you want to use the newer
-   * features of OpenGL like shaders. */
-  context = eglCreateContext (display, config, NULL, NULL);
-
-  if (eglMakeCurrent (display, surface, surface, context) == EGL_FALSE) {
-    LOGW ("Unable to eglMakeCurrent");
-    return -1;
-  }
-
-  eglQuerySurface (display, surface, EGL_WIDTH, &w);
-  eglQuerySurface (display, surface, EGL_HEIGHT, &h);
-
-  engine->display = display;
-  engine->context = context;
-  engine->surface = surface;
-  engine->width = w;
-  engine->height = h;
-  engine->state.angle = 0;
-
-  // Initialize GL state.
-  glHint (GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
-  glEnable (GL_CULL_FACE);
-  glDisable (GL_DEPTH_TEST);
-
-  return 0;
-}
-static void engine_term_display (struct Engine *engine) {
-  if (engine->display != EGL_NO_DISPLAY) {
-    eglMakeCurrent (engine->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (engine->context != EGL_NO_CONTEXT) {
-      eglDestroyContext (engine->display, engine->context);
-    }
-    if (engine->surface != EGL_NO_SURFACE) {
-      eglDestroySurface (engine->display, engine->surface);
-    }
-    eglTerminate (engine->display);
-  }
-  engine->display = EGL_NO_DISPLAY;
-  engine->context = EGL_NO_CONTEXT;
-  engine->surface = EGL_NO_SURFACE;
-}
-static int engine_handle_input (AInputEvent *event) {
-  struct Engine *engine = (struct Engine *)app->userData;
-  if (AInputEvent_getType (event) == AINPUT_EVENT_TYPE_MOTION) {
-    engine->state.x = AMotionEvent_getX (event, 0);
-    engine->state.y = AMotionEvent_getY (event, 0);
-    return 1;
-  }
-  return 0;
-}
-
-static void free_saved_state () {
-  pthread_mutex_lock (&app->mutex);
-  if (app->savedState != NULL) {
-    free_mem (app->savedState);
-    app->savedState = NULL;
-    app->savedStateSize = 0;
-  }
-  pthread_mutex_unlock (&app->mutex);
+static void ScheduleNextTick () {
+  if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING)) return;
+  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
 }
 
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
   static struct msg_pipe rmsg;
   if (read (fd, &rmsg, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-    struct Engine *engine = (struct Engine *)app->userData;
     switch (rmsg.cmd) {
     case APP_CMD_SAVE_STATE:
-      // pre
-      free_saved_state ();
-      // The system has asked us to save our current state.  Do so.
-      app->savedState = new_mem (sizeof (struct SavedState));
-      *((struct SavedState *)app->savedState) = engine->state;
-      app->savedStateSize = sizeof (struct SavedState);
       break;
     case APP_CMD_INPUT_CREATED:
       android_inputManager_createInputQueue ((AInputQueue *)rmsg.data);
@@ -246,28 +102,27 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       android_inputManager_destroyInputQueue ();
       break;
     case APP_CMD_WINDOW_CREATED:
-      app->window = (ANativeWindow *)rmsg.data;
-      engine_init_display (engine);
-      engine->running_ &= ~2;
-      ScheduleNextTick (engine);
+      android_graphicsManager_onWindowCreate((ANativeWindow *)rmsg.data);
+      app->stateApp |= STATE_APP_WINDOW;
+      ScheduleNextTick ();
       break;
     case APP_CMD_WINDOW_DESTROYED:
-      engine->running_ |= 2;
-      engine_term_display (engine);
-      app->window = NULL;
+      android_graphicsManager_onWindowDestroy ();
+      app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_RESUME:
       // post
-      free_saved_state ();
-      engine->running_ &= ~1;
-      ScheduleNextTick (engine);
+      app->stateApp |= STATE_APP_RUNNING;
+      ScheduleNextTick ();
       break;
     case APP_CMD_PAUSE:
-      engine->running_ |= 1;
+      app->stateApp &= ~STATE_APP_RUNNING;
       break;
     case APP_CMD_CONTENT_RECT_CHANGED:
+    	android_graphicsManager_onWindowResize();
       break;
     case APP_CMD_WINDOW_RESIZE:
+    	android_graphicsManager_onWindowResizeDisplay();
       break;
     case APP_CMD_WINDOW_REDRAW:
       break;
@@ -306,40 +161,34 @@ static void *android_app_entry (void *param) {
   app->looper = ALooper_prepare (0);
   ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
+  engine_init();
+  android_inputManager_init (app->looper);
+  android_graphicsManager_init ();
+  
   pthread_mutex_lock (&app->mutex);
-  app->running = 1;
+  app->stateApp |= STATE_APP_INIT;
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
-
-  struct Engine engine = {0};
-  app->userData = &engine;
-
-  android_inputManager_init (app->looper);
-  android_inputManager_listener (engine_handle_input);
-
-  if (app->savedState != NULL) {
-    engine.state = *(struct SavedState *)app->savedState;
-  }
-
+  
   while (!app->destroyRequested) {
     if (ALooper_pollOnce (-1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
       LOGE ("ALooper_pollOnce returned an error");
     }
   }
-
-  engine_term_display (&engine);
+  
+  android_graphicsManager_term ();
   android_inputManager_term ();
 
-  free_saved_state ();
   AConfiguration_delete (app->config);
   pthread_mutex_lock (&app->mutex);
-  app->destroyed = 1;
+  app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
   // Can't touch app object after this.
   return NULL;
 }
 
+static struct msg_pipe wmsg;
 static void android_app_write_cmd (int8_t cmd, void *data) {
   static struct msg_pipe wmsg;
   wmsg.cmd = cmd;
@@ -357,8 +206,13 @@ static void android_app_write_cmd (int8_t cmd, void *data) {
 
 static void onDestroy (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_DESTROY, NULL);
+  wmsg.cmd = cmd;
+  wmsg.data = data;
+  if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
+    LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
+  }
   pthread_mutex_lock (&app->mutex);
-  while (!app->destroyed) {
+  while (!(app->stateApp & STATE_APP_DESTROY)) {
     pthread_cond_wait (&app->cond, &app->mutex);
   }
   pthread_mutex_unlock (&app->mutex);
@@ -377,15 +231,9 @@ static void onResume (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_RESUME, NULL);
 }
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
-  void *savedState = NULL;
   android_app_write_cmd (APP_CMD_SAVE_STATE, NULL);
-
-  if (app->savedState != NULL) {
-    savedState = app->savedState;
-    *outLen = app->savedStateSize;
-    app->savedState = NULL;
-    app->savedStateSize = 0;
-  }
+  void *savedState = (void*)&init_core;
+  *outLen = sizeof(struct core);
   return savedState;
 }
 static void onPause (ANativeActivity *UNUSED (activity)) {
@@ -401,7 +249,7 @@ static void onLowMemory (ANativeActivity *UNUSED (activity)) {
   android_app_write_cmd (APP_CMD_LOW_MEMORY, NULL);
 }
 static void onWindowFocusChanged (ANativeActivity *UNUSED (activity), int focused) {
-  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, (void *)((intptr_t)focused));
+  android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, NULL);
 }
 static void onContentRectChanged (ANativeActivity *UNUSED (activity), const ARect *rect) {
   android_app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, (void *)rect);
@@ -449,10 +297,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
 
-  if (savedState != NULL) {
-    app->savedState = new_mem (savedStateSize);
-    app->savedStateSize = savedStateSize;
-    memcpy (app->savedState, savedState, savedStateSize);
+  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
+    memcpy (&init_core, savedState, sizeof(struct core));
   }
 
   if (pipe (&app->msgread)) {
@@ -467,7 +313,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
 
   // Wait for thread to start.
   pthread_mutex_lock (&app->mutex);
-  while (!app->running) {
+  while (!(app->stateApp & STATE_APP_INIT)) {
     pthread_cond_wait (&app->cond, &app->mutex);
   }
   pthread_mutex_unlock (&app->mutex);
