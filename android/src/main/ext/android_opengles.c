@@ -150,8 +150,8 @@ static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, me
   meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
   return m;
 }
-static void setMeshTransform (const mesh ms, float *mat) {
-  memcpy (meshes[ms].trans, mat, 16 * sizeof (float));
+static void android_opengles_setMeshTransform (const mesh ms, float *mat) {
+	memcpy(meshes[ms].trans, mat, 16 * sizeof(float));
 }
 static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
@@ -416,6 +416,7 @@ void android_opengles_init () {
   get_engine ()->g.deleteTexture = android_opengles_deleteTexture;
   get_engine ()->g.flatRender = android_opengles_flatRender;
   get_engine ()->g.genMesh = android_opengles_genMesh;
+  get_engine ()->g.setMeshTransform = android_opengles_setMeshTransform;
   get_engine ()->g.meshRender = android_opengles_meshRender;
   get_engine ()->g.deleteMesh = android_opengles_deleteMesh;
 
