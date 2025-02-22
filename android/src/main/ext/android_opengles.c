@@ -388,11 +388,11 @@ void android_opengles_validateResources () {
 void android_opengles_preRender () {
   glClearColor (
 #ifdef NDEBUG
-      errorf, 1.0f,
+      errorf, 0.0f,
 #else
       0.0f, 0.0f,
 #endif // NDEBUG
-      0.0f,
+      1.0f,
       1.0f);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
@@ -436,7 +436,7 @@ void android_opengles_resizeInsets (float x, float y, float z, float w) {
 
 #ifdef NDEBUG
   GLEnum err = glGetError ();
-  sprintf (extGLMsg, em (err));
+  sprintf (extGLMsg, "Msg: %s", em (err));
 #endif // NDEBUG
 }
 void android_opengles_resizeWindow (float w, float h) {

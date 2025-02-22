@@ -34,6 +34,7 @@ extern void android_opengles_invalidateResources ();
 extern void android_opengles_term ();
 static inline void killEGL (const int EGLTermReq) {
   if (!EGLTermReq || !g.display) return;
+  android_opengles_invalidateResources ();
   eglMakeCurrent (g.display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   if (g.surface && (EGLTermReq & 5)) {
     // invalidate Framebuffer, RenderBuffer
@@ -42,7 +43,6 @@ static inline void killEGL (const int EGLTermReq) {
   }
   if (g.context && (EGLTermReq & 6)) {
     // invalidating gles
-    android_opengles_invalidateResources ();
     eglDestroyContext (g.display, g.context);
     g.context = EGL_NO_CONTEXT;
   }
@@ -74,10 +74,11 @@ void android_graphicsManager_resizeInsets (float x, float y, float z, float w) {
 int android_graphicsManager_preRender () {
   if (!g.window) return 0;
   if (!g.display || !g.context || !g.surface) {
-    while (!g.display) {
+    if (!g.display) {
       g.context = EGL_NO_CONTEXT;
       g.surface = EGL_NO_SURFACE;
       g.display = eglGetDisplay (EGL_DEFAULT_DISPLAY);
+      if (!g.display) return 0;
 
       EGLint temp, temp1;
       eglInitialize (g.display, &temp, &temp1);
@@ -86,6 +87,7 @@ int android_graphicsManager_preRender () {
       const EGLint configAttr[] = {
           EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_BUFFER_SIZE, 16, EGL_NONE};
       eglChooseConfig (g.display, configAttr, NULL, 0, &temp);
+      if (temp <= 0) return 0;
       EGLConfig *conf = (EGLConfig *)new_mem (temp * sizeof (EGLConfig));
       EGLConfig *configs = conf;
       EGLConfig *configs_end = configs + temp;
@@ -93,12 +95,13 @@ int android_graphicsManager_preRender () {
       g.eConfig = *configs;
       size_t k = 0, l;
       do {
-        eglGetConfigAttrib (g.display, *configs, EGL_BUFFER_SIZE, &temp);
-        l = temp;
-        eglGetConfigAttrib (g.display, *configs, EGL_DEPTH_SIZE, &temp);
-        l += temp;
-        eglGetConfigAttrib (g.display, *configs, EGL_STENCIL_SIZE, &temp);
-        l += temp;
+      	l = 0;
+        if (eglGetConfigAttrib (g.display, *configs, EGL_BUFFER_SIZE, &temp))
+        	l += temp;
+        if (eglGetConfigAttrib (g.display, *configs, EGL_DEPTH_SIZE, &temp))
+        	l += temp;
+        if (eglGetConfigAttrib (g.display, *configs, EGL_STENCIL_SIZE, &temp))
+        	l += temp;
         if (l > k) {
           k = l;
           g.eConfig = *configs;
@@ -106,16 +109,18 @@ int android_graphicsManager_preRender () {
       } while (++configs < configs_end);
       free_mem (conf);
     }
-    while (!g.context) {
+    if (!g.context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       g.context = eglCreateContext (g.display, g.eConfig, NULL, ctxAttr);
-
-      android_opengles_validateResources ();
+    	if (!g.context) return 0;
     }
-    while (!g.surface)
+    if (!g.surface) {
       g.surface = eglCreateWindowSurface (g.display, g.eConfig, g.window, NULL);
+    	if (!g.surface) return 0;
+    }
 
     eglMakeCurrent (g.display, g.surface, g.surface, g.context);
+    android_opengles_validateResources ();
     g.flags |= RESIZE_ONLY;
     g.flags &= ~RESIZE_DISPLAY;
   } else if (g.flags & RESIZE_DISPLAY) {
