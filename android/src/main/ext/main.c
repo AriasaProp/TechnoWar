@@ -75,10 +75,10 @@ enum {
 
 static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
   if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING))
-  	return;
+    return;
   AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
   if (!android_graphicsManager_preRender ())
-  	return;
+    return;
 
   Main_update ();
 
@@ -316,9 +316,9 @@ extern char extGLMsg[512];
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
-  jclass cls = (*env)->GetObjectClass(env, o);
-  jstring jmsg = (*env)->NewStringUTF(env, extGLMsg);
-  jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
-  (*env)->CallVoidMethod(env, o, id, jmsg);
-  (*env)->ReleaseStringUTFChars(env, jmsg);
+  jclass cls = (*env)->GetObjectClass (env, o);
+  jstring jmsg = (*env)->NewStringUTF (env, extGLMsg);
+  jmethodID id = (*env)->GetMethodID (env, cls, "showToast", "(Ljava/lang/String;)V");
+  (*env)->CallVoidMethod (env, o, id, jmsg);
+  (*env)->ReleaseStringUTFChars (env, jmsg);
 }
