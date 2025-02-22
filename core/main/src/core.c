@@ -9,32 +9,29 @@ struct flat_vertex rectangle[] = {
     {(struct vec2){400.0f, 500.0f}, (struct vec2){0.0f, 0.0f}}};
 struct core core_cache = {0};
 
-
 enum {
-	STATE_SYSTEM_INIT = 1, 
-	STATE_SYSTEM_RUNNING = 2, 
+  STATE_SYSTEM_INIT = 1,
+  STATE_SYSTEM_RUNNING = 2,
 };
 static int stateSystem = 0;
 // only called in Main_update when stateSystem not init
 static void Main_init () {
-	stateSystem |= STATE_SYSTEM_INIT;
-	
+  stateSystem |= STATE_SYSTEM_INIT;
 }
 // only called in Main_update when stateSystem not running
 static void Main_resume () {
-	stateSystem |= STATE_SYSTEM_RUNNING;
+  stateSystem |= STATE_SYSTEM_RUNNING;
 }
 
 void Main_update () {
-	if (!(stateSystem & STATE_SYSTEM_INIT)) Main_init ();
-	if (!(stateSystem & STATE_SYSTEM_RUNNING)) Main_resume ();
-	
+  if (!(stateSystem & STATE_SYSTEM_INIT)) Main_init ();
+  if (!(stateSystem & STATE_SYSTEM_RUNNING)) Main_resume ();
 }
 void Main_pause () {
-	stateSystem &= ~STATE_SYSTEM_RUNNING;
+  stateSystem &= ~STATE_SYSTEM_RUNNING;
 }
 
 void Main_term () {
-	stateSystem = 0;
-  memset (&core_cache, 0, sizeof(struct core));
+  stateSystem = 0;
+  memset (&core_cache, 0, sizeof (struct core));
 }
