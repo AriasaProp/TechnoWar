@@ -217,7 +217,7 @@ void android_opengles_validateResources () {
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // flat draw
 #ifdef NDEBUG
-	GLint success;
+  GLint success;
 #endif // NDEBUG
   {
     src.ui.shader = glCreateProgram ();
@@ -241,10 +241,10 @@ void android_opengles_validateResources () {
     glShaderSource (vi, 1, &vt, 0);
     glCompileShader (vi);
 #ifdef NDEBUG
-    glGetShaderiv(vi, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			errorf = 0.2f;
-		}
+    glGetShaderiv (vi, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      errorf = 0.2f;
+    }
 #endif // NDEBUG
     glAttachShader (src.ui.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
@@ -266,18 +266,18 @@ void android_opengles_validateResources () {
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
 #ifdef NDEBUG
-    glGetShaderiv(fi, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			errorf = 0.6f;
-		}
+    glGetShaderiv (fi, GL_COMPILE_STATUS, &success);
+    if (!success) {
+      errorf = 0.6f;
+    }
 #endif // NDEBUG
     glAttachShader (src.ui.shader, fi);
     glLinkProgram (src.ui.shader);
 #ifdef NDEBUG
-		glGetProgramiv(src.ui.shader, GL_LINK_STATUS, &success);
-		if (!success) {
-			errorf = 1.0f;
-		}
+    glGetProgramiv (src.ui.shader, GL_LINK_STATUS, &success);
+    if (!success) {
+      errorf = 1.0f;
+    }
 #endif // NDEBUG
     glDeleteShader (vi);
     glDeleteShader (fi);
@@ -385,12 +385,13 @@ void android_opengles_validateResources () {
 }
 void android_opengles_preRender () {
   glClearColor (
- #ifdef NDEBUG
-  	errorf, 1.0f * (glGetError() == GL_NO_ERROR)
- #else
-		0.0f, 0.0f,
- #endif //NDEBUG
-  	0.0f, 1.0f);
+#ifdef NDEBUG
+      errorf, 1.0f * (glGetError () == GL_NO_ERROR)
+#else
+      0.0f, 0.0f,
+#endif // NDEBUG
+                         0.0f,
+      1.0f);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
