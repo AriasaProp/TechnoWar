@@ -82,7 +82,7 @@ static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
       !android_graphicsManager_preRender ()) return;
   ScheduleNextTick ();
 
-  Main_update (app->savedState);
+  Main_update ();
 
   android_graphicsManager_postRender ();
 }
@@ -177,8 +177,7 @@ static void *android_app_entry (void *param) {
       LOGE ("ALooper_pollOnce returned an error");
     }
   }
-  Main_term (app->savedState);
-  app->savedState = NULL;
+  Main_term ();
 
   android_graphicsManager_term ();
   android_inputManager_term ();
@@ -236,7 +235,7 @@ static void onResume (ANativeActivity *UNUSED (activity)) {
 static void *onSaveInstanceState (ANativeActivity *UNUSED (activity), size_t *outLen) {
   *outLen = sizeof (struct core);
   void *savedState = malloc (*outLen);
-  memcpy (savedState, (void *)app->savedState, *outLen);
+  memcpy (savedState, &core_cache, *outLen);
   android_app_write_cmd (APP_CMD_SAVE_STATE, NULL);
   return savedState;
 }
@@ -302,12 +301,8 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_cond_init (&app->cond, NULL);
 
   if (savedState != NULL && savedStateSize == sizeof (struct core)) {
-    app->savedState = (struct core *)new_mem (sizeof (struct core));
-    memcpy (app->savedState, savedState, sizeof (struct core));
-  } else {
-    app->savedState = (struct core *)new_imem (sizeof (struct core));
+    memcpy (&core_cache, savedState, sizeof (struct core));
   }
-
   if (pipe (&app->msgread)) {
     LOGE ("could not create pipe: %s", strerror (errno));
     return;

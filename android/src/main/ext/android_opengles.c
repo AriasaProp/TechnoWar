@@ -40,11 +40,9 @@ static struct opengles_data {
   struct {
     GLint shader, uniform_proj, uniform_tex;
     GLuint vao, vbo, ibo;
-    float proj[16];
   } ui;
   struct {
     GLint shader, uniform_proj, uniform_transProj;
-    float proj[16];
   } world;
 
   struct vec2 viewportSize; //
@@ -107,9 +105,14 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src.ui.uniform_tex, 0);
   if (src.flags & UI_UPDATE) {
-    float mat[16] = {
-        2.f / src.viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src.viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.00001f, 0.f, (2.0f * src.insets.x / src.viewportSize.x) - 1.0f, (2.0f * src.insets.w / src.viewportSize.y) - 1.0f, 0.f, 1.f};
-    glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, mat);
+  	memset(stemp.mat, 0, 16 * sizeof(float));
+    stemp.mat[0] = 2.f / src.viewportSize.x;
+    stemp.mat[5] = 2.f / src.viewportSize.y;
+    stemp.mat[10] = 0.00001f;
+    stemp.mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
+    stemp.mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
+    stemp.mat[15] = 1.f;
+    glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, stemp.mat);
     src.flags &= ~UI_UPDATE;
   }
   glBindVertexArray (src.ui.vao);
@@ -157,9 +160,12 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
   if (src.flags & WORLD_UPDATE) {
-    float mat[16] = {
-        2.f / src.viewportSize.x, 0.f, 0.f, 0.f, 0.f, 2.f / src.viewportSize.y, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 1.f};
-    glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, mat);
+    memset(stemp.mat, 0, 16 * sizeof(float));
+    stemp.mat[0] = 2.f / src.viewportSize.x;
+    stemp.mat[5] = 2.f / src.viewportSize.y;
+    stemp.mat[10] = 1.f;
+    stemp.mat[15] = 1.f;
+    glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, stemp.mat);
     src.flags &= ~WORLD_UPDATE;
   }
   for (size_t i = 0; i < l; i++) {
@@ -199,7 +205,7 @@ void android_opengles_validateResources () {
   // enable depth
   glDepthRangef (0.0f, 1.0f);
   glDepthFunc (GL_LESS);
-  glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor (1.0f, 0.0f, 0.0f, 1.0f);
   // enable blend
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
