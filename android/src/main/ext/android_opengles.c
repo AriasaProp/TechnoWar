@@ -5,6 +5,7 @@
 #include "util.h"
 
 #include <inttypes.h>
+#include <stdio.h>
 
 #define MAX_UI_DRAW 200
 #define MAX_RESOURCE 256
@@ -24,6 +25,8 @@ enum {
 #ifdef NDEBUG
 static float errorf = 0.0f;
 #endif // NDEBUG
+
+char extGLMsg[512];
 
 static struct opengles_texture {
   GLuint id;
@@ -216,7 +219,7 @@ void android_opengles_validateResources () {
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   // flat draw
 #ifdef NDEBUG
-  GLint success;
+	GLint success;
 #endif // NDEBUG
   {
     src.ui.shader = glCreateProgram ();
@@ -240,10 +243,10 @@ void android_opengles_validateResources () {
     glShaderSource (vi, 1, &vt, 0);
     glCompileShader (vi);
 #ifdef NDEBUG
-    glGetShaderiv (vi, GL_COMPILE_STATUS, &success);
-    if (!success) {
-      errorf = 0.2f;
-    }
+    glGetShaderiv(vi, GL_COMPILE_STATUS, &success);
+		if (!success) {
+			errorf = 0.2f;
+		}
 #endif // NDEBUG
     glAttachShader (src.ui.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
@@ -265,18 +268,18 @@ void android_opengles_validateResources () {
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
 #ifdef NDEBUG
-    glGetShaderiv (fi, GL_COMPILE_STATUS, &success);
-    if (!success) {
-      errorf = 0.6f;
-    }
+    glGetShaderiv(fi, GL_COMPILE_STATUS, &success);
+		if (!success) {
+			errorf = 0.6f;
+		}
 #endif // NDEBUG
     glAttachShader (src.ui.shader, fi);
     glLinkProgram (src.ui.shader);
 #ifdef NDEBUG
-    glGetProgramiv (src.ui.shader, GL_LINK_STATUS, &success);
-    if (!success) {
-      errorf = 1.0f;
-    }
+		glGetProgramiv(src.ui.shader, GL_LINK_STATUS, &success);
+		if (!success) {
+			errorf = 1.0f;
+		}
 #endif // NDEBUG
     glDeleteShader (vi);
     glDeleteShader (fi);
@@ -384,15 +387,43 @@ void android_opengles_validateResources () {
 }
 void android_opengles_preRender () {
   glClearColor (
-#ifdef NDEBUG
-      errorf, 1.0f * (glGetError () == GL_NO_ERROR),
-#else
-      0.0f, 0.0f,
-#endif // NDEBUG
-      0.0f,
-      1.0f);
+ #ifdef NDEBUG
+  	errorf, 1.0f,
+ #else
+		0.0f, 0.0f,
+ #endif //NDEBUG
+  	0.0f, 1.0f);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
+
+#ifdef NDEBUG
+const char *em (GLEnum e) {
+	switch (gle) {
+    case GL_NO_ERROR:
+      return "GL_NO_ERROR";
+    case GL_INVALID_ENUM:
+      return "GL_INVALID_ENUM";
+    case GL_INVALID_VALUE:
+      return "GL_INVALID_VALUE";
+    case GL_INVALID_OPERATION:
+      return "GL_INVALID_OPERATION";
+    case GL_STACK_OVERFLOW:
+      return "GL_STACK_OVERFLOW";
+    case GL_STACK_UNDERFLOW:
+      return "GL_STACK_UNDERFLOW";
+    case GL_OUT_OF_MEMORY:
+      return "GL_OUT_OF_MEMORY";
+    case GL_TABLE_TOO_LARGE:
+      return "GL_TABLE_TOO_LARGE";
+    // opengl 3 errors (1)
+    case GL_INVALID_FRAMEBUFFER_OPERATION:
+      return "GL_INVALID_FRAMEBUFFER_OPERATION";
+    default:
+    	return "unknown";
+	}
+	return "unknown";
+}
+#endif // NDEBUG
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
   src.insets.x = x;
   src.insets.y = y;
@@ -401,6 +432,11 @@ void android_opengles_resizeInsets (float x, float y, float z, float w) {
   src.screenSize.x = src.viewportSize.x - x - z;
   src.screenSize.y = src.viewportSize.y - y - w;
   src.flags |= UI_UPDATE;
+  
+#ifdef NDEBUG
+	GLEnum err = glGetError();
+	sprintf(extGLMsg, em(err));
+#endif // NDEBUG
 }
 void android_opengles_resizeWindow (float w, float h) {
   src.viewportSize.x = w;
