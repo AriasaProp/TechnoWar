@@ -105,7 +105,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src.ui.uniform_tex, 0);
   if (src.flags & UI_UPDATE) {
-  	memset(stemp.mat, 0, 16 * sizeof(float));
+    memset (stemp.mat, 0, 16 * sizeof (float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 0.00001f;
@@ -160,7 +160,7 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
   if (src.flags & WORLD_UPDATE) {
-    memset(stemp.mat, 0, 16 * sizeof(float));
+    memset (stemp.mat, 0, 16 * sizeof (float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 1.f;
