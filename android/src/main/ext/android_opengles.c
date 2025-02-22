@@ -26,7 +26,7 @@ enum {
 static float errorf = 0.0f;
 #endif // NDEBUG
 
-char extGLMsg[1024] = { 0 };
+char extGLMsg[1024] = {0};
 
 static struct opengles_texture {
   GLuint id;
@@ -433,7 +433,7 @@ void android_opengles_resizeInsets (float x, float y, float z, float w) {
 #ifdef NDEBUG
   GLenum err = glGetError ();
   if (err != GL_NO_ERROR) {
-  	sprintf (extGLMsg, "%s, ", em (err));
+    sprintf (extGLMsg, "%s, ", em (err));
   }
 #endif // NDEBUG
 }
