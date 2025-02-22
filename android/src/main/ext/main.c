@@ -76,10 +76,10 @@ enum {
 static void ScheduleNextTick ();
 static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
   if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING))
-    return;
+  	return;
   AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
   if (!android_graphicsManager_preRender ())
-    return;
+  	return;
 
   Main_update ();
 
@@ -100,7 +100,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_WINDOW_CREATED:
       android_graphicsManager_onWindowCreate ((ANativeWindow *)rmsg.data);
       app->stateApp |= STATE_APP_WINDOW;
-      Tick ();
+      Tick (0, NULL);
       break;
     case APP_CMD_WINDOW_DESTROYED:
       android_graphicsManager_onWindowDestroy ();
@@ -109,7 +109,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_RESUME:
       // post
       app->stateApp |= STATE_APP_RUNNING;
-      Tick ();
+      Tick (0, NULL);
       break;
     case APP_CMD_PAUSE:
       app->stateApp &= ~STATE_APP_RUNNING;
