@@ -104,9 +104,9 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src.ui.uniform_tex, 0);
   if (src.flags & UI_UPDATE) {
-    matrix4_idt (stemp.mat);
-    /*
-    memset(stemp.mat, 0, 16 * sizeof(float));
+  	matrix4_idt(stemp.mat);
+  	/*
+  	memset(stemp.mat, 0, 16 * sizeof(float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 0.00001f;
@@ -162,7 +162,7 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
   if (src.flags & WORLD_UPDATE) {
-    memset (stemp.mat, 0, 16 * sizeof (float));
+    memset(stemp.mat, 0, 16 * sizeof(float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 1.f;
@@ -228,7 +228,7 @@ void android_opengles_validateResources () {
                      "\nout vec2 v_texCoord;"
                      "\nvoid main() {"
                      "\n    v_texCoord = a_texCoord;"
-                     "\n    gl_Position = u_proj * a_position;"
+                     "\n    gl_Position = a_position;"
                      "\n}";
     glShaderSource (vi, 1, &vt, 0);
     glCompileShader (vi);
@@ -247,7 +247,7 @@ void android_opengles_validateResources () {
                      "\nin vec2 v_texCoord;"
                      "\nlayout(location = 0) out vec4 fragColor;"
                      "\nvoid main() {"
-                     "\n    fragColor = texture(u_tex, v_texCoord);"
+                     "\n    fragColor = vec4(1.0);"
                      "\n}";
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
@@ -418,11 +418,11 @@ void android_opengles_init () {
 
   textures = (struct opengles_texture *)new_imem (sizeof (struct opengles_texture) * MAX_RESOURCE);
   {
-    // add default texture
-    textures[0].size.x = 1;
-    textures[0].size.y = 1;
-    textures[0].data = new_mem (4);
-    memset (textures[0].data, 0xff, 4);
+  	// add default texture
+  	textures[0].size.x = 1;
+  	textures[0].size.y = 1;
+  	textures[0].data = new_mem(4);
+  	memset(textures[0].data, 0xff, 4);
   }
   meshes = (struct opengles_mesh *)new_imem (sizeof (struct opengles_mesh) * MAX_RESOURCE);
 }
@@ -438,15 +438,15 @@ void android_opengles_term () {
     for (texture i = 0; i < MAX_RESOURCE; ++i) {
       if (textures[i].size.x == 0) continue;
       glDeleteTextures (1, &textures[i].id);
-      free_mem (textures[i].data);
+      free_mem(textures[i].data);
     }
     // mesh
     for (mesh i = 0; i < MAX_RESOURCE; ++i) {
       if (meshes[i].vertex_len == 0) continue;
       glDeleteVertexArrays (1, &meshes[i].vao);
       glDeleteBuffers (2, &meshes[i].vbo);
-      free_mem (meshes[i].vertexs);
-      free_mem (meshes[i].indices);
+      free_mem(meshes[i].vertexs);
+      free_mem(meshes[i].indices);
     }
     src.flags &= ~VALID_RESOURCES;
   }
