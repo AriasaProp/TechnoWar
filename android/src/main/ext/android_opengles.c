@@ -398,8 +398,8 @@ void android_opengles_preRender () {
 }
 
 #ifdef NDEBUG
-const char *em (GLEnum e) {
-  switch (gle) {
+const char *em (GLenum e) {
+  switch (e) {
   case GL_NO_ERROR:
     return "GL_NO_ERROR";
   case GL_INVALID_ENUM:
@@ -414,8 +414,6 @@ const char *em (GLEnum e) {
     return "GL_STACK_UNDERFLOW";
   case GL_OUT_OF_MEMORY:
     return "GL_OUT_OF_MEMORY";
-  case GL_TABLE_TOO_LARGE:
-    return "GL_TABLE_TOO_LARGE";
   // opengl 3 errors (1)
   case GL_INVALID_FRAMEBUFFER_OPERATION:
     return "GL_INVALID_FRAMEBUFFER_OPERATION";
@@ -435,7 +433,7 @@ void android_opengles_resizeInsets (float x, float y, float z, float w) {
   src.flags |= UI_UPDATE;
 
 #ifdef NDEBUG
-  GLEnum err = glGetError ();
+  GLenum err = glGetError ();
   sprintf (extGLMsg, "Msg: %s", em (err));
 #endif // NDEBUG
 }
