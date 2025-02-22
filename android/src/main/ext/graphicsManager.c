@@ -95,13 +95,13 @@ int android_graphicsManager_preRender () {
       g.eConfig = *configs;
       size_t k = 0, l;
       do {
-      	l = 0;
+        l = 0;
         if (eglGetConfigAttrib (g.display, *configs, EGL_BUFFER_SIZE, &temp))
-        	l += temp;
+          l += temp;
         if (eglGetConfigAttrib (g.display, *configs, EGL_DEPTH_SIZE, &temp))
-        	l += temp;
+          l += temp;
         if (eglGetConfigAttrib (g.display, *configs, EGL_STENCIL_SIZE, &temp))
-        	l += temp;
+          l += temp;
         if (l > k) {
           k = l;
           g.eConfig = *configs;
@@ -112,11 +112,11 @@ int android_graphicsManager_preRender () {
     if (!g.context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       g.context = eglCreateContext (g.display, g.eConfig, NULL, ctxAttr);
-    	if (!g.context) return 0;
+      if (!g.context) return 0;
     }
     if (!g.surface) {
       g.surface = eglCreateWindowSurface (g.display, g.eConfig, g.window, NULL);
-    	if (!g.surface) return 0;
+      if (!g.surface) return 0;
     }
 
     eglMakeCurrent (g.display, g.surface, g.surface, g.context);
