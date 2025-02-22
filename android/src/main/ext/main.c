@@ -42,7 +42,6 @@ struct android_app {
   ARect contentRect;
 
   int8_t cmdState;
-  int destroyRequested;
 
   pthread_mutex_t mutex;
   pthread_cond_t cond;
@@ -76,21 +75,16 @@ enum {
 
 static void ScheduleNextTick ();
 static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
-  if (
-      !(app->stateApp & STATE_APP_WINDOW) ||
-      !(app->stateApp & STATE_APP_RUNNING) ||
-      !android_graphicsManager_preRender ()) return;
-  ScheduleNextTick ();
+  if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING))
+  	return;
+  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
+  if (!android_graphicsManager_preRender ())
+  	return;
 
   Main_update ();
 
   android_graphicsManager_postRender ();
 }
-static void ScheduleNextTick () {
-  if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING)) return;
-  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
-}
-
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
   static struct msg_pipe rmsg;
   if (read (fd, &rmsg, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
@@ -106,7 +100,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_WINDOW_CREATED:
       android_graphicsManager_onWindowCreate ((ANativeWindow *)rmsg.data);
       app->stateApp |= STATE_APP_WINDOW;
-      ScheduleNextTick ();
+      Tick ();
       break;
     case APP_CMD_WINDOW_DESTROYED:
       android_graphicsManager_onWindowDestroy ();
@@ -115,7 +109,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
     case APP_CMD_RESUME:
       // post
       app->stateApp |= STATE_APP_RUNNING;
-      ScheduleNextTick ();
+      Tick ();
       break;
     case APP_CMD_PAUSE:
       app->stateApp &= ~STATE_APP_RUNNING;
@@ -141,7 +135,7 @@ static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
       AConfiguration_fromAssetManager (app->config, (AAssetManager *)rmsg.data);
       break;
     case APP_CMD_DESTROY:
-      app->destroyRequested = 1;
+      app->stateApp &= ~STATE_APP_INIT;
       break;
     }
     pthread_mutex_lock (&app->mutex);
@@ -172,13 +166,12 @@ static void *android_app_entry (void *param) {
   pthread_cond_broadcast (&app->cond);
   pthread_mutex_unlock (&app->mutex);
 
-  while (!app->destroyRequested) {
+  while (app->stateApp & STATE_APP_INIT) {
     if (ALooper_pollOnce (-1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
       LOGE ("ALooper_pollOnce returned an error");
     }
   }
   Main_term ();
-
   android_graphicsManager_term ();
   android_inputManager_term ();
 

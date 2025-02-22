@@ -1,4 +1,3 @@
-#include <EGL/egl.h>
 #include <GLES3/gl32.h> //API 24
 
 #include "engine.h"
@@ -105,7 +104,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src.ui.uniform_tex, 0);
   if (src.flags & UI_UPDATE) {
-    memset (stemp.mat, 0, 16 * sizeof (float));
+  	memset(stemp.mat, 0, 16 * sizeof(float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 0.00001f;
@@ -160,7 +159,7 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
   if (src.flags & WORLD_UPDATE) {
-    memset (stemp.mat, 0, 16 * sizeof (float));
+    memset(stemp.mat, 0, 16 * sizeof(float));
     stemp.mat[0] = 2.f / src.viewportSize.x;
     stemp.mat[5] = 2.f / src.viewportSize.y;
     stemp.mat[10] = 1.f;
@@ -196,15 +195,15 @@ static void android_opengles_deleteMesh (mesh m) {
   memset (meshes + m, 0, sizeof (struct opengles_mesh));
 }
 
-static unsigned char nullTextureData[4] = {0xff, 0xff, 0xff, 0xff};
 void android_opengles_validateResources () {
   if (src.flags & VALID_RESOURCES) return;
   // cullface to front
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
   // enable depth
-  glDepthRangef (0.0f, 1.0f);
   glDepthFunc (GL_LESS);
+  glDepthRangef (0.0f, 1.0f);
+  glClearDepthf (1.0f);
   glClearColor (1.0f, 0.0f, 0.0f, 1.0f);
   // enable blend
   glEnable (GL_BLEND);
@@ -325,28 +324,17 @@ void android_opengles_validateResources () {
     src.world.uniform_transProj = glGetUniformLocation (src.world.shader, "trans_proj");
   }
   // texture
-  // made for 0 texture test
-  glGenTextures (1, &textures[0].id);
-  textures[0].size.x = 1;
-  textures[0].size.y = 1;
-  glBindTexture (GL_TEXTURE_2D, textures[0].id);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (void *)nullTextureData);
-
-  for (texture t = 1; t < MAX_RESOURCE; ++t) {
+  // start from 0 to validate default texture
+  for (texture t = 0; t < MAX_RESOURCE; ++t) {
     if (textures[t].size.x == 0) continue;
     glGenTextures (1, &textures[t].id);
     glBindTexture (GL_TEXTURE_2D, textures[t].id);
     glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA8, textures[t].size.x, textures[t].size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textures[t].data);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   }
   glBindTexture (GL_TEXTURE_2D, 0);
   // mesh
@@ -368,8 +356,7 @@ void android_opengles_validateResources () {
   src.flags |= VALID_RESOURCES;
 }
 void android_opengles_preRender () {
-  glClearDepthf (1.0f);
-  glClear (GL_COLOR_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
   src.insets.x = x;
@@ -427,6 +414,13 @@ void android_opengles_init () {
   get_engine ()->g.deleteMesh = android_opengles_deleteMesh;
 
   textures = (struct opengles_texture *)new_imem (sizeof (struct opengles_texture) * MAX_RESOURCE);
+  {
+  	// add default texture
+  	textures[0].size.x = 1;
+  	textures[0].size.y = 1;
+  	textures[0].data = new_mem(4);
+  	memset(textures[0].data, 0xff, 4);
+  }
   meshes = (struct opengles_mesh *)new_imem (sizeof (struct opengles_mesh) * MAX_RESOURCE);
 }
 void android_opengles_term () {
@@ -441,12 +435,15 @@ void android_opengles_term () {
     for (texture i = 0; i < MAX_RESOURCE; ++i) {
       if (textures[i].size.x == 0) continue;
       glDeleteTextures (1, &textures[i].id);
+      free_mem(textures[i].data);
     }
     // mesh
     for (mesh i = 0; i < MAX_RESOURCE; ++i) {
       if (meshes[i].vertex_len == 0) continue;
       glDeleteVertexArrays (1, &meshes[i].vao);
       glDeleteBuffers (2, &meshes[i].vbo);
+      free_mem(meshes[i].vertexs);
+      free_mem(meshes[i].indices);
     }
     src.flags &= ~VALID_RESOURCES;
   }
