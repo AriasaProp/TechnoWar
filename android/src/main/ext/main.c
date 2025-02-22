@@ -73,13 +73,12 @@ enum {
   APP_CMD_DESTROY,
 };
 
-static void ScheduleNextTick ();
 static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
   if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING))
-    return;
+  	return;
   AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
   if (!android_graphicsManager_preRender ())
-    return;
+  	return;
 
   Main_update ();
 
