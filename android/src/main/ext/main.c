@@ -1,8 +1,6 @@
-#include <android/choreographer.h>
 #include <android/configuration.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
-#include <android/set_abort_message.h>
 
 #include <assert.h>
 #include <errno.h>
@@ -31,6 +29,8 @@ enum {
   STATE_APP_WINDOW = 2,
   STATE_APP_RUNNING = 4,
   STATE_APP_DESTROY = 8,
+  STATE_APP_DELAY_UNWINDOW = 16,
+  STATE_APP_DELAY_UNRUNNING = 32,
 };
 
 struct android_app {
@@ -41,6 +41,7 @@ struct android_app {
   ALooper *looper;
   ARect contentRect;
 
+  int8_t delayed_cmdState;
   int8_t cmdState;
 
   pthread_mutex_t mutex;
@@ -54,6 +55,7 @@ struct android_app {
 } *app = NULL;
 
 enum {
+  APP_CMD_NONE,
   APP_CMD_INPUT_CREATED,
   APP_CMD_INPUT_DESTROYED,
   APP_CMD_WINDOW_CREATED,
@@ -73,79 +75,52 @@ enum {
   APP_CMD_DESTROY,
 };
 
-static void Tick (long UNUSED (timeout), void *UNUSED (data)) {
-  if (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING))
-    return;
-  AChoreographer_postFrameCallback (AChoreographer_getInstance (), Tick, NULL);
-  if (!android_graphicsManager_preRender ())
-    return;
-
-  Main_update ();
-
-  android_graphicsManager_postRender ();
-}
 static int process_cmd (int fd, int UNUSED (event), void *UNUSED (data)) {
   static struct msg_pipe rmsg;
-  if (read (fd, &rmsg, sizeof (struct msg_pipe)) == sizeof (struct msg_pipe)) {
-    switch (rmsg.cmd) {
-    case APP_CMD_SAVE_STATE:
-      break;
-    case APP_CMD_INPUT_CREATED:
-      android_inputManager_createInputQueue ((AInputQueue *)rmsg.data);
-      break;
-    case APP_CMD_INPUT_DESTROYED:
-      android_inputManager_destroyInputQueue ();
-      break;
-    case APP_CMD_WINDOW_CREATED:
-      android_graphicsManager_onWindowCreate ((ANativeWindow *)rmsg.data);
-      app->stateApp |= STATE_APP_WINDOW;
-      Tick (0, NULL);
-      break;
-    case APP_CMD_WINDOW_DESTROYED:
-      android_graphicsManager_onWindowDestroy ();
-      app->stateApp &= ~STATE_APP_WINDOW;
-      break;
-    case APP_CMD_RESUME:
-      // post
-      app->stateApp |= STATE_APP_RUNNING;
-      Tick (0, NULL);
-      break;
-    case APP_CMD_PAUSE:
-      app->stateApp &= ~STATE_APP_RUNNING;
-      break;
-    case APP_CMD_CONTENT_RECT_CHANGED:
-      android_graphicsManager_onWindowResize ();
-      break;
-    case APP_CMD_WINDOW_RESIZE:
-      android_graphicsManager_onWindowResizeDisplay ();
-      break;
-    case APP_CMD_WINDOW_REDRAW:
-      break;
-    case APP_CMD_START:
-    case APP_CMD_STOP:
-      break;
-    case APP_CMD_GAINED_FOCUS:
-      android_inputManager_enableSensor ();
-      break;
-    case APP_CMD_LOST_FOCUS:
-      android_inputManager_disableSensor ();
-      break;
-    case APP_CMD_CONFIG_CHANGED:
-      AConfiguration_fromAssetManager (app->config, (AAssetManager *)rmsg.data);
-      break;
-    case APP_CMD_DESTROY:
-      app->stateApp &= ~STATE_APP_INIT;
-      break;
-    }
-    pthread_mutex_lock (&app->mutex);
-    app->cmdState = rmsg.cmd;
-    pthread_cond_broadcast (&app->cond);
-    pthread_mutex_unlock (&app->mutex);
-    return 1;
-  } else {
+  if (read (fd, &rmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("No data on command pipe!");
     return 0;
   }
+  switch (rmsg.cmd) {
+  case APP_CMD_SAVE_STATE:
+  case APP_CMD_WINDOW_REDRAW:
+  case APP_CMD_START:
+  case APP_CMD_STOP:
+    break;
+  case APP_CMD_INPUT_CREATED:
+    android_inputManager_createInputQueue ((AInputQueue *)rmsg.data);
+    break;
+  case APP_CMD_INPUT_DESTROYED:
+    android_inputManager_destroyInputQueue ();
+    break;
+  case APP_CMD_WINDOW_CREATED:
+    android_graphicsManager_onWindowCreate ((ANativeWindow *)rmsg.data);
+    app->stateApp |= STATE_APP_WINDOW;
+    break;
+  case APP_CMD_RESUME:
+    app->stateApp |= STATE_APP_RUNNING;
+    break;
+  case APP_CMD_CONTENT_RECT_CHANGED:
+    android_graphicsManager_onWindowResize ();
+    break;
+  case APP_CMD_WINDOW_RESIZE:
+    android_graphicsManager_onWindowResizeDisplay ();
+    break;
+  case APP_CMD_GAINED_FOCUS:
+    android_inputManager_enableSensor ();
+    break;
+  case APP_CMD_LOST_FOCUS:
+    android_inputManager_disableSensor ();
+    break;
+  case APP_CMD_CONFIG_CHANGED:
+    AConfiguration_fromAssetManager (app->config, (AAssetManager *)rmsg.data);
+    break;
+  case APP_CMD_DESTROY:
+    app->stateApp &= ~STATE_APP_INIT;
+    break;
+  }
+  app->delayed_cmdState = rmsg.cmd;
+  return 1;
 }
 
 static void *android_app_entry (void *param) {
@@ -166,10 +141,38 @@ static void *android_app_entry (void *param) {
   pthread_mutex_unlock (&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
-    if (ALooper_pollOnce (-1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
-      LOGE ("ALooper_pollOnce returned an error");
+    int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
+
+    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
+      LOGE("ALooper_pollOnce returned an error");
     }
-  }
+
+    if ((app->stateApp & STATE_APP_WINDOW) &&
+    		(app->stateApp & STATE_APP_RUNNING) &&
+		  	android_graphicsManager_preRender ()
+    ) {
+		  Main_update ();
+		  if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
+		  		(app->delayed_cmdState == APP_CMD_PAUSE)) {
+		  	Main_pause ();
+		  }
+		  android_graphicsManager_postRender ();
+    }
+		switch (app->delayed_cmdState) {
+		  case APP_CMD_WINDOW_DESTROYED:
+      	android_graphicsManager_onWindowDestroy ();
+		    app->stateApp &= ~STATE_APP_WINDOW;
+		    break;
+		  case APP_CMD_PAUSE:
+		    app->stateApp &= ~STATE_APP_RUNNING;
+		}
+		if (app->cmdState != app->delayed_cmdState) {
+		  pthread_mutex_lock (&app->mutex);
+		  app->cmdState = app->delayed_cmdState;
+		  pthread_cond_broadcast (&app->cond);
+		  pthread_mutex_unlock (&app->mutex);
+		}
+	}
   Main_term ();
   android_graphicsManager_term ();
   android_inputManager_term ();
@@ -185,7 +188,6 @@ static void *android_app_entry (void *param) {
 
 static struct msg_pipe wmsg;
 static void android_app_write_cmd (int8_t cmd, void *data) {
-  static struct msg_pipe wmsg;
   wmsg.cmd = cmd;
   wmsg.data = data;
   if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
@@ -287,7 +289,6 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
   app = (struct android_app *)new_imem (sizeof (struct android_app));
-  app->activity = activity;
 
   pthread_mutex_init (&app->mutex, NULL);
   pthread_cond_init (&app->cond, NULL);
