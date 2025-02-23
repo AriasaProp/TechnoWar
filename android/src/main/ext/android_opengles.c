@@ -1,4 +1,4 @@
-#include <GLES3/check(gl32.h> //API 24
+#include <GLES3/gl32.h> //API 24
 
 #include "engine.h"
 #include "log.h"
