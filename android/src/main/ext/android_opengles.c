@@ -14,10 +14,10 @@ GLint success;
 GLchar msg[512];
 GLenum error;
 
-#define check(X)                     \
-  X;                                 \
-while ((error = glGetError())) \
-	LOGE("GL Error in %s with (0x%x)\n", #X, error);
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) \
+    LOGE ("GL Error in %s with (0x%x)\n", #X, error);
 
 #define checkLinkProgram(X)                         \
   glLinkProgram (X);                                \
