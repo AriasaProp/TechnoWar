@@ -120,7 +120,7 @@ int android_graphicsManager_preRender () {
     }
 
     eglMakeCurrent (g.display, g.surface, g.surface, g.context);
-  	android_opengles_validateResources ();
+    android_opengles_validateResources ();
     g.flags |= RESIZE_ONLY;
     g.flags &= ~RESIZE_DISPLAY;
   } else if (g.flags & RESIZE_DISPLAY) {

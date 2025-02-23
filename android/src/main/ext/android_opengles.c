@@ -538,4 +538,3 @@ void android_opengles_term () {
   free_mem (meshes);
   memset (&src, 0, sizeof (struct opengles_data));
 }
-
