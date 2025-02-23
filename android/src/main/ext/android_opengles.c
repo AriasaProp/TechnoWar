@@ -14,10 +14,10 @@ GLint success;
 GLchar msg[512];
 GLenum error;
 
-#define check(X)                  \
-  X;                              \
-  while ((error = glGetError ())) \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error);
+#define check(X)                     \
+  X;                                 \
+while ((error = glGetError())) \
+	LOGE("GL Error in %s with (0x%x)\n", #X, error);
 
 #define checkLinkProgram(X)                         \
   glLinkProgram (X);                                \
@@ -203,8 +203,8 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
 static void android_opengles_deleteMesh (mesh m) {
   check(glDeleteVertexArrays (1, &meshes[m].vao))
   check(glDeleteBuffers (2, &meshes[m].vbo))
-  free_mem (meshes[m].vertexs))
-  free_mem (meshes[m].indices))
+  free_mem (meshes[m].vertexs);
+  free_mem (meshes[m].indices);
   memset (meshes + m, 0, sizeof (struct opengles_mesh));
 }
 
