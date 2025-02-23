@@ -16,7 +16,7 @@ GLenum error;
 
 #define check(X)                     \
   X;                                 \
-while ((error = check(glGetError())) \
+while ((error = glGetError())) \
 	LOGE("GL Error in %s with (0x%x)\n", #X, error);
 
 #define checkLinkProgram(X)                         \
