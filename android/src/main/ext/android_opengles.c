@@ -174,8 +174,8 @@ static void android_opengles_deleteMesh (mesh m) {
   free_mem (meshes[m].indices);
   memset (meshes + m, 0, sizeof (struct opengles_mesh));
 }
-void initOpenGL();
-void draw();
+void initOpenGL ();
+void draw ();
 void android_opengles_validateResources () {
   if (textures[0].id != 0) return;
   // when validate, projection need to be update
@@ -196,7 +196,7 @@ void android_opengles_validateResources () {
   GLchar msg[512];
 #endif // NDEBUG
   // test draw
-  initOpenGL();
+  initOpenGL ();
   // flat draw
   {
     src.ui.shader = glCreateProgram ();
@@ -542,84 +542,85 @@ void android_opengles_term () {
   memset (&src, 0, sizeof (struct opengles_data));
 }
 
-
-#include <GLES3/gl32.h>
 #include <EGL/egl.h>
+#include <GLES3/gl32.h>
 
 // Vertex shader source
-const char* vertexShaderSource = "#version 320 es"
-"\nlayout (location = 0) in vec2 aPos;"
-"\nvoid main() {"
-"\n	gl_Position = vec4(aPos, 0.0, 1.0);"
-"\n}";
+const char *vertexShaderSource = "#version 320 es"
+                                 "\nlayout (location = 0) in vec2 aPos;"
+                                 "\nvoid main() {"
+                                 "\n	gl_Position = vec4(aPos, 0.0, 1.0);"
+                                 "\n}";
 
 // Fragment shader source
-const char* fragmentShaderSource = "#version 320 es"
-"\nprecision mediump float;"
-"\nout vec4 FragColor;"
-"\nvoid main() {"
-"\n	FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
-"\n}";
+const char *fragmentShaderSource = "#version 320 es"
+                                   "\nprecision mediump float;"
+                                   "\nout vec4 FragColor;"
+                                   "\nvoid main() {"
+                                   "\n	FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+                                   "\n}";
 
 // Vertex data (Segitiga)
 GLfloat vertices[] = {
-    0.0f,  0.5f,  // Atas
-   -0.5f, -0.5f,  // Kiri bawah
-    0.5f, -0.5f   // Kanan bawah
+    0.0f, 0.5f, // Atas
+    -0.5f,
+    -0.5f, // Kiri bawah
+    0.5f,
+    -0.5f // Kanan bawah
 };
 GLuint shaderProgram, VAO, VBO;
 // Fungsi untuk membuat shader
-GLuint compileShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
+GLuint compileShader (GLenum type, const char *source) {
+  GLuint shader = glCreateShader (type);
+  glShaderSource (shader, 1, &source, NULL);
+  glCompileShader (shader);
 
-    // Cek error
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char log[512];
-        glGetShaderInfoLog(shader, 512, NULL, log);
-        __android_log_print(ANDROID_LOG_ERROR, "OpenGL", "Shader Error: %s", log);
-    }
-    return shader;
+  // Cek error
+  GLint success;
+  glGetShaderiv (shader, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    char log[512];
+    glGetShaderInfoLog (shader, 512, NULL, log);
+    __android_log_print (ANDROID_LOG_ERROR, "OpenGL", "Shader Error: %s", log);
+  }
+  return shader;
 }
 // Fungsi untuk inisialisasi OpenGL ES 3.2
-void initOpenGL() {
-    // Compile shader
-    GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSource);
-    GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
+void initOpenGL () {
+  // Compile shader
+  GLuint vertexShader = compileShader (GL_VERTEX_SHADER, vertexShaderSource);
+  GLuint fragmentShader = compileShader (GL_FRAGMENT_SHADER, fragmentShaderSource);
 
-    // Buat program shader
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+  // Buat program shader
+  shaderProgram = glCreateProgram ();
+  glAttachShader (shaderProgram, vertexShader);
+  glAttachShader (shaderProgram, fragmentShader);
+  glLinkProgram (shaderProgram);
 
-    // Hapus shader setelah di-link
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+  // Hapus shader setelah di-link
+  glDeleteShader (vertexShader);
+  glDeleteShader (fragmentShader);
 
-    // Setup VAO & VBO
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+  // Setup VAO & VBO
+  glGenVertexArrays (1, &VAO);
+  glGenBuffers (1, &VBO);
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  glBindVertexArray (VAO);
+  glBindBuffer (GL_ARRAY_BUFFER, VBO);
+  glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+  glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof (float), (void *)0);
+  glEnableVertexAttribArray (0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+  glBindBuffer (GL_ARRAY_BUFFER, 0);
+  glBindVertexArray (0);
 }
 
 // Fungsi untuk menggambar segitiga
-void draw() {
+void draw () {
 
-    glUseProgram(shaderProgram);
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glUseProgram(0);
+  glUseProgram (shaderProgram);
+  glBindVertexArray (VAO);
+  glDrawArrays (GL_TRIANGLES, 0, 3);
+  glUseProgram (0);
 }
