@@ -3,10 +3,10 @@
 #include "util.h"
 
 struct flat_vertex rectangle[] = {
-    {(struct vec2){.5f, -.5f}, (struct vec2){0.0f, 0.0f}},
-    {(struct vec2){.5f, .5f}, (struct vec2){0.0f, 0.0f}},
-    {(struct vec2){-.5f, -.5f}, (struct vec2){0.0f, 0.0f}},
-    {(struct vec2){-.5f, .5f}, (struct vec2){0.0f, 0.0f}}};
+    {(struct vec2){800f, 100f}, (struct vec2){0.0f, 0.0f}},
+    {(struct vec2){800f, 400f}, (struct vec2){0.0f, 0.0f}},
+    {(struct vec2){100f, 100f}, (struct vec2){0.0f, 0.0f}},
+    {(struct vec2){100f, 400f}, (struct vec2){0.0f, 0.0f}}};
 struct core core_cache = {0};
 
 enum {

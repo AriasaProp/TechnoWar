@@ -1,9 +1,9 @@
 #include <GLES3/gl32.h> //API 24
 
 #include "engine.h"
-#include "log.h"
 #include "manager.h"
 #include "util.h"
+#include "log.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -22,6 +22,7 @@ enum {
   VIEWPORT_UPDATE = 4,
   VALID_RESOURCES = 8,
 };
+
 
 static struct opengles_texture {
   GLuint id;
@@ -105,20 +106,6 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, textures[t].id);
   glUniform1i (src.ui.uniform_tex, 0);
-  if (src.flags & UI_UPDATE) {
-    matrix4_idt (stemp.mat);
-    /*
-    memset(stemp.mat, 0, 16 * sizeof(float));
-    stemp.mat[0] = 2.f / src.viewportSize.x;
-    stemp.mat[5] = 2.f / src.viewportSize.y;
-    stemp.mat[10] = 0.00001f;
-    stemp.mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
-    stemp.mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
-    stemp.mat[15] = 1.f;
-    */
-    glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, stemp.mat);
-    src.flags &= ~UI_UPDATE;
-  }
   glBindVertexArray (src.ui.vao);
   glBindBuffer (GL_ARRAY_BUFFER, src.ui.vbo);
   glBufferSubData (GL_ARRAY_BUFFER, 0, 4 * l * sizeof (struct flat_vertex), (void *)v);
@@ -163,15 +150,6 @@ static void android_opengles_setMeshTransform (const mesh ms, float *mat) {
 static void android_opengles_meshRender (mesh *ms, const size_t l) {
   glEnable (GL_DEPTH_TEST);
   glUseProgram (src.world.shader);
-  if (src.flags & WORLD_UPDATE) {
-    memset (stemp.mat, 0, 16 * sizeof (float));
-    stemp.mat[0] = 2.f / src.viewportSize.x;
-    stemp.mat[5] = 2.f / src.viewportSize.y;
-    stemp.mat[10] = 1.f;
-    stemp.mat[15] = 1.f;
-    glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, stemp.mat);
-    src.flags &= ~WORLD_UPDATE;
-  }
   for (size_t i = 0; i < l; i++) {
     struct opengles_mesh m = meshes[ms[i]];
     glUniformMatrix4fv (src.world.uniform_transProj, 1, GL_FALSE, m.trans);
@@ -202,6 +180,8 @@ static void android_opengles_deleteMesh (mesh m) {
 
 void android_opengles_validateResources () {
   if (src.flags & VALID_RESOURCES) return;
+  // when validate, projection need to be update
+  src.flags |= WORLD_UPDATE | UI_UPDATE;
   // cullface to front
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
@@ -242,8 +222,8 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
     glGetShaderiv (vi, GL_COMPILE_STATUS, &success);
     if (!success) {
-      glGetShaderInfoLog (vi, MAX_MSG, NULL, msg);
-      LOGE ("Flat vertex shader compiling error: %s", msg);
+    	glGetShaderInfoLog(vi, MAX_MSG, NULL, msg);
+    	LOGE("Flat vertex shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glAttachShader (src.ui.shader, vi);
@@ -261,15 +241,15 @@ void android_opengles_validateResources () {
                      "\nin vec2 v_texCoord;"
                      "\nlayout(location = 0) out vec4 fragColor;"
                      "\nvoid main() {"
-                     "\n    fragColor = vec4(1.0);"
+                     "\n    fragColor = texture(u_tex, v_texCoord);"
                      "\n}";
     glShaderSource (fi, 1, &ft, 0);
     glCompileShader (fi);
 #ifdef NDEBUG
     glGetShaderiv (fi, GL_COMPILE_STATUS, &success);
     if (!success) {
-      glGetShaderInfoLog (fi, MAX_MSG, NULL, msg);
-      LOGE ("Flat fragmrnt shader compiling error: %s", msg);
+    	glGetShaderInfoLog(fi, MAX_MSG, NULL, msg);
+    	LOGE("Flat fragmrnt shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glAttachShader (src.ui.shader, fi);
@@ -277,8 +257,8 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
     glGetProgramiv (src.ui.shader, GL_LINK_STATUS, &success);
     if (!success) {
-      glGetProgramInfoLog (src.ui.shader, MAX_MSG, NULL, msg);
-      LOGE ("Flat program shader compiling error: %s", msg);
+    	glGetProgramInfoLog(src.ui.shader, MAX_MSG, NULL, msg);
+    	LOGE("Flat program shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glDeleteShader (vi);
@@ -331,8 +311,8 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
     glGetShaderiv (vi, GL_COMPILE_STATUS, &success);
     if (!success) {
-      glGetShaderInfoLog (vi, MAX_MSG, NULL, msg);
-      LOGE ("World vertex shader compiling error: %s", msg);
+    	glGetShaderInfoLog(vi, MAX_MSG, NULL, msg);
+    	LOGE("World vertex shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glAttachShader (src.world.shader, vi);
@@ -356,8 +336,8 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
     glGetShaderiv (fi, GL_COMPILE_STATUS, &success);
     if (!success) {
-      glGetShaderInfoLog (fi, MAX_MSG, NULL, msg);
-      LOGE ("World fragmrnt shader compiling error: %s", msg);
+    	glGetShaderInfoLog(fi, MAX_MSG, NULL, msg);
+    	LOGE("World fragmrnt shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glAttachShader (src.world.shader, fi);
@@ -365,8 +345,8 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
     glGetProgramiv (src.ui.shader, GL_LINK_STATUS, &success);
     if (!success) {
-      glGetProgramInfoLog (src.ui.shader, MAX_MSG, NULL, msg);
-      LOGE ("World program shader compiling error: %s", msg);
+    	glGetProgramInfoLog(src.ui.shader, MAX_MSG, NULL, msg);
+    	LOGE("World program shader compiling error: %s", msg);
     }
 #endif // NDEBUG
     glDeleteShader (vi);
@@ -408,38 +388,64 @@ void android_opengles_validateResources () {
 #ifdef NDEBUG
   GLenum err = glGetError ();
   switch (err) {
-  case GL_NO_ERROR:
-    break;
-  case GL_INVALID_ENUM:
-    LOGE ("GL error cause GL_INVALID_ENUM");
-    break;
-  case GL_INVALID_VALUE:
-    LOGE ("GL error cause GL_INVALID_VALUE");
-    break;
-  case GL_INVALID_OPERATION:
-    LOGE ("GL error cause GL_INVALID_OPERATION");
-    break;
-  case GL_STACK_OVERFLOW:
-    LOGE ("GL error cause GL_STACK_OVERFLOW");
-    break;
-  case GL_STACK_UNDERFLOW:
-    LOGE ("GL error cause GL_STACK_UNDERFLOW");
-    break;
-  case GL_OUT_OF_MEMORY:
-    LOGE ("GL error cause GL_OUT_OF_MEMORY");
-    break;
-  // opengl 3 errors (1)
-  case GL_INVALID_FRAMEBUFFER_OPERATION:
-    LOGE ("GL error cause GL_INVALID_FRAMEBUFFER_OPERATION");
-    break;
-  default:
-    LOGE ("GL error cause unknown %d", err);
-    break;
+	  case GL_NO_ERROR:
+	  	break;
+	  case GL_INVALID_ENUM:
+	    LOGE("GL error cause GL_INVALID_ENUM");
+	  	break;
+	  case GL_INVALID_VALUE:
+	    LOGE ("GL error cause GL_INVALID_VALUE");
+	  	break;
+	  case GL_INVALID_OPERATION:
+	    LOGE ("GL error cause GL_INVALID_OPERATION");
+	  	break;
+	  case GL_STACK_OVERFLOW:
+	    LOGE ("GL error cause GL_STACK_OVERFLOW");
+	  	break;
+	  case GL_STACK_UNDERFLOW:
+	    LOGE ("GL error cause GL_STACK_UNDERFLOW");
+	  	break;
+	  case GL_OUT_OF_MEMORY:
+	    LOGE ("GL error cause GL_OUT_OF_MEMORY");
+	  	break;
+	  // opengl 3 errors (1)
+	  case GL_INVALID_FRAMEBUFFER_OPERATION:
+	    LOGE ("GL error cause GL_INVALID_FRAMEBUFFER_OPERATION");
+	  	break;
+	  default:
+	  	LOGE ("GL error cause unknown %d", err); 
+	  	break;
   }
 #endif // NDEBUG
 }
 void android_opengles_preRender () {
-  glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+	if (src.flags & (WORLD_UPDATE | UI_UPDATE)) {
+	  if (src.flags & WORLD_UPDATE) {
+	    glUseProgram (src.world.shader);
+	    memset (stemp.mat, 0, 16 * sizeof (float));
+	    stemp.mat[0] = 2.f / src.viewportSize.x;
+	    stemp.mat[5] = 2.f / src.viewportSize.y;
+	    stemp.mat[10] = 1.f;
+	    stemp.mat[15] = 1.f;
+	    glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, stemp.mat);
+	    src.flags &= ~WORLD_UPDATE;
+	  }
+	  if (src.flags & UI_UPDATE) {
+		  glUseProgram (src.ui.shader);
+	    matrix4_idt (stemp.mat);
+	    memset(stemp.mat, 0, 16 * sizeof(float));
+	    stemp.mat[0] = 2.f / src.viewportSize.x;
+	    stemp.mat[5] = 2.f / src.viewportSize.y;
+	    stemp.mat[10] = 0.00001f;
+	    stemp.mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
+	    stemp.mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
+	    stemp.mat[15] = 1.f;
+	    glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, stemp.mat);
+	    src.flags &= ~UI_UPDATE;
+	  }
+    glUseProgram (0);
+	}
+  glClearColor (0.0f, 0.0f,0.0f,1.0f);
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
@@ -458,7 +464,7 @@ void android_opengles_resizeWindow (float w, float h) {
   glViewport (0, 0, w, h);
   src.screenSize.x = w - src.insets.x - src.insets.z;
   src.screenSize.y = h - src.insets.y - src.insets.w;
-  src.flags |= WORLD_UPDATE;
+  src.flags |= WORLD_UPDATE | UI_UPDATE;
 }
 void android_opengles_invalidateResources () {
   if (!(src.flags & VALID_RESOURCES)) return;
