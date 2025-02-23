@@ -143,36 +143,35 @@ static void *android_app_entry (void *param) {
   while (app->stateApp & STATE_APP_INIT) {
     int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
 
-    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
-      LOGE("ALooper_pollOnce returned an error");
+    if (ALooper_pollOnce (block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
+      LOGE ("ALooper_pollOnce returned an error");
     }
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
-    		(app->stateApp & STATE_APP_RUNNING) &&
-		  	android_graphicsManager_preRender ()
-    ) {
-		  Main_update ();
-		  if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
-		  		(app->delayed_cmdState == APP_CMD_PAUSE)) {
-		  	Main_pause ();
-		  }
-		  android_graphicsManager_postRender ();
+        (app->stateApp & STATE_APP_RUNNING) &&
+        android_graphicsManager_preRender ()) {
+      Main_update ();
+      if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
+          (app->delayed_cmdState == APP_CMD_PAUSE)) {
+        Main_pause ();
+      }
+      android_graphicsManager_postRender ();
     }
-		switch (app->delayed_cmdState) {
-		  case APP_CMD_WINDOW_DESTROYED:
-      	android_graphicsManager_onWindowDestroy ();
-		    app->stateApp &= ~STATE_APP_WINDOW;
-		    break;
-		  case APP_CMD_PAUSE:
-		    app->stateApp &= ~STATE_APP_RUNNING;
-		}
-		if (app->cmdState != app->delayed_cmdState) {
-		  pthread_mutex_lock (&app->mutex);
-		  app->cmdState = app->delayed_cmdState;
-		  pthread_cond_broadcast (&app->cond);
-		  pthread_mutex_unlock (&app->mutex);
-		}
-	}
+    switch (app->delayed_cmdState) {
+    case APP_CMD_WINDOW_DESTROYED:
+      android_graphicsManager_onWindowDestroy ();
+      app->stateApp &= ~STATE_APP_WINDOW;
+      break;
+    case APP_CMD_PAUSE:
+      app->stateApp &= ~STATE_APP_RUNNING;
+    }
+    if (app->cmdState != app->delayed_cmdState) {
+      pthread_mutex_lock (&app->mutex);
+      app->cmdState = app->delayed_cmdState;
+      pthread_cond_broadcast (&app->cond);
+      pthread_mutex_unlock (&app->mutex);
+    }
+  }
   Main_term ();
   android_graphicsManager_term ();
   android_inputManager_term ();
