@@ -174,12 +174,13 @@ static void android_opengles_deleteMesh (mesh m) {
   free_mem (meshes[m].indices);
   memset (meshes + m, 0, sizeof (struct opengles_mesh));
 }
-void initOpenGL ();
-void draw ();
+
 void android_opengles_validateResources () {
   if (textures[0].id != 0) return;
   // when validate, projection need to be update
   src.flags |= WORLD_UPDATE | UI_UPDATE;
+  // set clear
+  glClearColor (1.0f, 0.0f, 0.0f, 1.0f);
   // cullface to front
   glEnable (GL_CULL_FACE);
   glCullFace (GL_FRONT);
@@ -195,13 +196,11 @@ void android_opengles_validateResources () {
   GLint success;
   GLchar msg[512];
 #endif // NDEBUG
-  // test draw
-  initOpenGL ();
   // flat draw
   {
     src.ui.shader = glCreateProgram ();
     GLuint vi = glCreateShader (GL_VERTEX_SHADER);
-    const char *vt = "#version 300 es"
+    const char *vt = "#version 320 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -228,7 +227,7 @@ void android_opengles_validateResources () {
 #endif // NDEBUG
     glAttachShader (src.ui.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
-    const char *ft = "#version 300 es"
+    const char *ft = "#version 320 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -289,7 +288,7 @@ void android_opengles_validateResources () {
   {
     src.world.shader = glCreateProgram ();
     GLuint vi = glCreateShader (GL_VERTEX_SHADER);
-    const char *vt = "#version 300 es"
+    const char *vt = "#version 320 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -317,7 +316,7 @@ void android_opengles_validateResources () {
 #endif // NDEBUG
     glAttachShader (src.world.shader, vi);
     GLuint fi = glCreateShader (GL_FRAGMENT_SHADER);
-    const char *ft = "#version 300 es"
+    const char *ft = "#version 320 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -384,7 +383,6 @@ void android_opengles_validateResources () {
     glBufferData (GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof (mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW);
   }
   glBindVertexArray (0);
-  glClearColor (1.0f, 0.0f, 0.0f, 1.0f);
 #ifdef NDEBUG
   GLenum err = glGetError ();
   switch (err) {
@@ -446,7 +444,6 @@ void android_opengles_preRender () {
     glUseProgram (0);
   }
   glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  draw ();
 }
 
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
@@ -542,85 +539,3 @@ void android_opengles_term () {
   memset (&src, 0, sizeof (struct opengles_data));
 }
 
-#include <EGL/egl.h>
-#include <GLES3/gl32.h>
-
-// Vertex shader source
-const char *vertexShaderSource = "#version 320 es"
-                                 "\nlayout (location = 0) in vec2 aPos;"
-                                 "\nvoid main() {"
-                                 "\n	gl_Position = vec4(aPos, 0.0, 1.0);"
-                                 "\n}";
-
-// Fragment shader source
-const char *fragmentShaderSource = "#version 320 es"
-                                   "\nprecision mediump float;"
-                                   "\nout vec4 FragColor;"
-                                   "\nvoid main() {"
-                                   "\n	FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
-                                   "\n}";
-
-// Vertex data (Segitiga)
-GLfloat vertices[] = {
-    0.0f, 0.5f, // Atas
-    -0.5f,
-    -0.5f, // Kiri bawah
-    0.5f,
-    -0.5f // Kanan bawah
-};
-GLuint shaderProgram, VAO, VBO;
-// Fungsi untuk membuat shader
-GLuint compileShader (GLenum type, const char *source) {
-  GLuint shader = glCreateShader (type);
-  glShaderSource (shader, 1, &source, NULL);
-  glCompileShader (shader);
-
-  // Cek error
-  GLint success;
-  glGetShaderiv (shader, GL_COMPILE_STATUS, &success);
-  if (!success) {
-    char log[512];
-    glGetShaderInfoLog (shader, 512, NULL, log);
-    __android_log_print (ANDROID_LOG_ERROR, "OpenGL", "Shader Error: %s", log);
-  }
-  return shader;
-}
-// Fungsi untuk inisialisasi OpenGL ES 3.2
-void initOpenGL () {
-  // Compile shader
-  GLuint vertexShader = compileShader (GL_VERTEX_SHADER, vertexShaderSource);
-  GLuint fragmentShader = compileShader (GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-  // Buat program shader
-  shaderProgram = glCreateProgram ();
-  glAttachShader (shaderProgram, vertexShader);
-  glAttachShader (shaderProgram, fragmentShader);
-  glLinkProgram (shaderProgram);
-
-  // Hapus shader setelah di-link
-  glDeleteShader (vertexShader);
-  glDeleteShader (fragmentShader);
-
-  // Setup VAO & VBO
-  glGenVertexArrays (1, &VAO);
-  glGenBuffers (1, &VBO);
-
-  glBindVertexArray (VAO);
-  glBindBuffer (GL_ARRAY_BUFFER, VBO);
-  glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
-
-  glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof (float), (void *)0);
-  glEnableVertexAttribArray (0);
-
-  glBindBuffer (GL_ARRAY_BUFFER, 0);
-  glBindVertexArray (0);
-}
-
-// Fungsi untuk menggambar segitiga
-void draw () {
-
-  glUseProgram (shaderProgram);
-  glBindVertexArray (VAO);
-  glDrawArrays (GL_TRIANGLES, 0, 3);
-  glUseProgram (0);
-}
