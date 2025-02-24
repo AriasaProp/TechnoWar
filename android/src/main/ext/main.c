@@ -2,12 +2,12 @@
 #include <android/looper.h>
 #include <android/native_activity.h>
 
-#include <stdio.h>
 #include <errno.h>
 #include <jni.h>
 #include <poll.h>
 #include <pthread.h>
 #include <sched.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
@@ -320,15 +320,14 @@ JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 #ifdef NDEBUG
   if (listError[0]) {
-	  jclass cls = (*env)->GetObjectClass(env, o);
-	  jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
-    jstring jmsg = (*env)->NewStringUTF(env, listError);
-    (*env)->CallVoidMethod(env, o, id, jmsg);
-	  memset(listError, 0, 512);
+    jclass cls = (*env)->GetObjectClass (env, o);
+    jmethodID id = (*env)->GetMethodID (env, cls, "showToast", "(Ljava/lang/String;)V");
+    jstring jmsg = (*env)->NewStringUTF (env, listError);
+    (*env)->CallVoidMethod (env, o, id, jmsg);
+    memset (listError, 0, 512);
   }
 #else
   ((void)env);
   ((void)o);
 #endif
 }
-
