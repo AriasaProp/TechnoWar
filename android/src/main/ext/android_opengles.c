@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[MAX_MSG];
 GLenum error;
 
-#define check(X)                  \
-  X;                              \
-  while ((error = glGetError ())) { \
-  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
-  	if (!listError[0]) \
-  		snprintf(listError, 128, "%s(0x%x)", #X, error); \
+#define check(X)                                        \
+  X;                                                    \
+  while ((error = glGetError ())) {                     \
+    LOGE ("GL Error in %s with (0x%x)\n", #X, error);   \
+    if (!listError[0])                                  \
+      snprintf (listError, 128, "%s(0x%x)", #X, error); \
   }
 
 #define checkLinkProgram(X)                         \
