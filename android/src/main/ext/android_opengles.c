@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[MAX_MSG];
 GLenum error;
 
-#define check(X)                                        \
-  X;                                                    \
-  while ((error = glGetError ())) {                     \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error);   \
-    if (!listError[0])                                  \
-      snprintf (listError, 128, "%s(0x%x)", #X, error); \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s(0x%x)", #X, error); \
   }
 
 #define checkLinkProgram(X)                         \
@@ -29,6 +29,8 @@ GLenum error;
   if (!success) {                                   \
     glGetProgramInfoLog (X, MAX_MSG, NULL, msg);    \
     LOGE ("Program shader linking error: %s", msg); \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s", msg); \
   }
 
 #define checkCompileShader(X)                               \
@@ -37,6 +39,8 @@ GLenum error;
   if (!success) {                                           \
     glGetShaderInfoLog (X, MAX_MSG, NULL, msg);             \
     LOGE ("Flat fragmrnt shader compiling error: %s", msg); \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s", msg); \
   }
 
 #else
@@ -232,7 +236,7 @@ void android_opengles_validateResources () {
   {
     src.ui.shader = check (glCreateProgram ());
     GLuint vi = check (glCreateShader (GL_VERTEX_SHADER));
-    const char *vt = "#version 320 es"
+    const char *vt = "#version 300 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
@@ -252,7 +256,7 @@ void android_opengles_validateResources () {
     checkCompileShader (vi);
     check (glAttachShader (src.ui.shader, vi));
     GLuint fi = check (glCreateShader (GL_FRAGMENT_SHADER));
-    const char *ft = "#version 320 es"
+    const char *ft = "#version 300 es"
                      "\n#define LOW lowp"
                      "\n#define MED mediump"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
