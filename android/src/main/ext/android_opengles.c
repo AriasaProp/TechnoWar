@@ -9,18 +9,18 @@
 #include <stdio.h>
 
 #ifdef NDEBUG
+char listError[128] = {0};
 #define MAX_MSG 512
-char listError[512] = {0};
 GLint success;
-GLchar msg[512];
+GLchar msg[MAX_MSG];
 GLenum error;
 
-#define check(X)                                       \
-  X;                                                   \
-  while ((error = glGetError ())) {                    \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error);  \
-    memmove (listError + 12, listError, MAX_MSG - 12); \
-    snprintf (listError, 12, "%s", #X);                \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s(0x%x)", #X, error); \
   }
 
 #define checkLinkProgram(X)                         \
@@ -54,7 +54,7 @@ enum {
   MESH_VERTEX_DIRTY = 1,
   MESH_INDEX_DIRTY = 2,
 };
-// flags check(global 2d/3d uniform update
+// flags global 2d/3d uniform update
 enum {
   UI_UPDATE = 1,
   WORLD_UPDATE = 2,
