@@ -10,17 +10,17 @@
 
 #ifdef NDEBUG
 #define MAX_MSG 512
-int listError[256] = {0};
+char listError[512] = {0};
 GLint success;
 GLchar msg[512];
 GLenum error;
 
-#define check(X)                                      \
-  X;                                                  \
-  while ((error = glGetError ())) {                   \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
-    memmove (listError + 1, listError, MAX_MSG - 1);  \
-    listError[0] = error;                             \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	memmove(listError+12, listError, MAX_MSG - 1); \
+  	snprintf(listError, 12, "%s", #X); \
   }
 
 #define checkLinkProgram(X)                         \
