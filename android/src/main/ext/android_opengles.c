@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[512];
 GLenum error;
 
-#define check(X)                                      \
-  X;                                                  \
-  while ((error = glGetError ())) {                   \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
-    memmove (listError + 1, listError, MAX_MSG - 1);  \
-    listError[0] = error;                             \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	memmove(listError+1, listError, MAX_MSG - 1); \
+  	listError[0] = error; \
   }
 
 #define checkLinkProgram(X)                         \
@@ -148,7 +148,6 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   check (glDrawElements (GL_TRIANGLES, 6 * l, GL_UNSIGNED_SHORT, NULL));
   check (glBindVertexArray (0));
   check (glBindTexture (GL_TEXTURE_2D, 0));
-  check (glUseProgram (0));
 }
 static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
@@ -204,7 +203,6 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
     check (glDrawElements (GL_TRIANGLES, m.index_len, GL_UNSIGNED_SHORT, NULL));
   }
   check (glBindVertexArray (0));
-  check (glUseProgram (0));
 }
 static void android_opengles_deleteMesh (mesh m) {
   check (glDeleteVertexArrays (1, &meshes[m].vao));
@@ -401,7 +399,6 @@ void android_opengles_preRender () {
       check (glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, stemp.mat));
       src.flags &= ~UI_UPDATE;
     }
-    check (glUseProgram (0));
   }
   check (glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
