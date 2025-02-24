@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[MAX_MSG];
 GLenum error;
 
-#define check(X)                  \
-  X;                              \
-  while ((error = glGetError ())) { \
-  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
-  	if (!listError[0]) \
-  		snprintf(listError, 128, "%s(0x%x)", #X, error); \
+#define check(X)                                        \
+  X;                                                    \
+  while ((error = glGetError ())) {                     \
+    LOGE ("GL Error in %s with (0x%x)\n", #X, error);   \
+    if (!listError[0])                                  \
+      snprintf (listError, 128, "%s(0x%x)", #X, error); \
   }
 
 #define checkLinkProgram(X)                         \
@@ -29,8 +29,8 @@ GLenum error;
   if (!success) {                                   \
     glGetProgramInfoLog (X, MAX_MSG, NULL, msg);    \
     LOGE ("Program shader linking error: %s", msg); \
-  	if (!listError[0]) \
-  		snprintf(listError, 128, "%s", msg); \
+    if (!listError[0])                              \
+      snprintf (listError, 128, "%s", msg);         \
   }
 
 #define checkCompileShader(X)                               \
@@ -39,8 +39,8 @@ GLenum error;
   if (!success) {                                           \
     glGetShaderInfoLog (X, MAX_MSG, NULL, msg);             \
     LOGE ("Flat fragmrnt shader compiling error: %s", msg); \
-  	if (!listError[0]) \
-  		snprintf(listError, 128, "%s", msg); \
+    if (!listError[0])                                      \
+      snprintf (listError, 128, "%s", msg);                 \
   }
 
 #else
