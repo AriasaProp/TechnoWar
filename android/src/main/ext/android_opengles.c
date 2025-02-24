@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[MAX_MSG];
 GLenum error;
 
-#define check(X)                                        \
-  X;                                                    \
-  while ((error = glGetError ())) {                     \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error);   \
-    if (!listError[0])                                  \
-      snprintf (listError, 128, "%s(0x%x)", #X, error); \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s(0x%x)", #X, error); \
   }
 
 #define checkLinkProgram(X)                         \
@@ -29,8 +29,8 @@ GLenum error;
   if (!success) {                                   \
     glGetProgramInfoLog (X, MAX_MSG, NULL, msg);    \
     LOGE ("Program shader linking error: %s", msg); \
-    if (!listError[0])                              \
-      snprintf (listError, 128, "%s", msg);         \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s", msg); \
   }
 
 #define checkCompileShader(X)                               \
@@ -39,8 +39,8 @@ GLenum error;
   if (!success) {                                           \
     glGetShaderInfoLog (X, MAX_MSG, NULL, msg);             \
     LOGE ("Flat fragmrnt shader compiling error: %s", msg); \
-    if (!listError[0])                                      \
-      snprintf (listError, 128, "%s", msg);                 \
+  	if (!listError[0]) \
+  		snprintf(listError, 128, "%s", msg); \
   }
 
 #else
@@ -162,6 +162,7 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   check (glBindVertexArray (0));
   check (glBindTexture (GL_TEXTURE_2D, 0));
   check (glUseProgram (0));
+  
 }
 static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
@@ -239,7 +240,7 @@ void android_opengles_validateResources () {
   // when validate, projection need to be update
   src.flags |= WORLD_UPDATE | UI_UPDATE;
   // set clear
-  check (glClearColor (1.0f, 0.0f, 0.0f, 1.0f));
+  check (glClearColor (0.0f, 0.0f, 0.0f, 1.0f));
   // cullface to front
   check (glEnable (GL_CULL_FACE));
   check (glCullFace (GL_FRONT));
