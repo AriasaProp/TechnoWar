@@ -15,12 +15,12 @@ GLint success;
 GLchar msg[512];
 GLenum error;
 
-#define check(X)                                      \
-  X;                                                  \
-  while ((error = glGetError ())) {                   \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
-    memmove (listError + 1, listError, MAX_MSG - 1);  \
-    listError[0] = error;                             \
+#define check(X)                  \
+  X;                              \
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	memmove(listError+1, listError, MAX_MSG - 1); \
+  	listError[0] = error; \
   }
 
 #define checkLinkProgram(X)                         \
@@ -400,7 +400,7 @@ void android_opengles_preRender () {
       src.flags &= ~UI_UPDATE;
     }
   }
-  check (glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+  check (glClear (GL_COLOR_BUFFER_BIT));
 }
 
 void android_opengles_resizeInsets (float x, float y, float z, float w) {
@@ -438,8 +438,7 @@ void android_opengles_invalidateResources () {
   for (texture i = 0; i < MAX_RESOURCE; ++i) {
     if (textures[i].size.x == 0) continue;
     check (glDeleteTextures (1, &textures[i].id));
-    textures[i]
-        .id = 0;
+    textures[i].id = 0;
   }
 }
 
