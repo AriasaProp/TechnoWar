@@ -2,7 +2,7 @@
 #include <android/looper.h>
 #include <android/native_activity.h>
 
-#include <assert.h>
+#include <stdio.h>
 #include <errno.h>
 #include <jni.h>
 #include <poll.h>
@@ -313,17 +313,26 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_mutex_unlock (&app->mutex);
 }
 // extern char extGLMsg[1024];
+extern int listError[256];
 // native MainActivity.java
+
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
-  ((void)env);
-  ((void)o);
-  /*
-  if (extGLMsg[0]) {
-    jclass cls = (*env)->GetObjectClass(env, o);
-    jstring jmsg = (*env)->NewStringUTF(env, extGLMsg);
-    jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+#ifdef NDEBUG
+  if (listError[0]) {
+  	char buffer[2560] = {0};
+		for (int i = 256, offset = 0; (i--); ) {
+			if (!listError[i]) continue;
+	    offset += snprintf(buffer + offset, 2560 - offset, "0x%08x,", listError[i]);
+	  }
+	  jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+	  jclass cls = (*env)->GetObjectClass(env, o);
+    jstring jmsg = (*env)->NewStringUTF(env, buffer);
     (*env)->CallVoidMethod(env, o, id, jmsg);
   }
-  */
+#else
+  ((void)env);
+  ((void)o);
+#endif
 }
+

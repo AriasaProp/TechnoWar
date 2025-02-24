@@ -10,14 +10,18 @@
 
 #ifdef NDEBUG
 #define MAX_MSG 512
+int listError[256] = {0};
 GLint success;
 GLchar msg[512];
 GLenum error;
 
 #define check(X)                  \
   X;                              \
-  while ((error = glGetError ())) \
-  LOGE ("GL Error in %s with (0x%x)\n", #X, error)
+  while ((error = glGetError ())) { \
+  	LOGE ("GL Error in %s with (0x%x)\n", #X, error); \
+  	memmove(listError+1, listError, MAX_MSG - 1); \
+  	listError[0] = error; \
+  }
 
 #define checkLinkProgram(X)                         \
   glLinkProgram (X);                                \
@@ -37,9 +41,9 @@ GLenum error;
 
 #else
 
-#define check(X) X;
-#define checkCompileShader(X) glCompileShader (X);
-#define checkLinkProgram(X) glLinkProgram (X);
+#define check(X) X
+#define checkCompileShader(X) glCompileShader (X)
+#define checkLinkProgram(X) glLinkProgram (X)
 
 #endif
 
@@ -169,12 +173,11 @@ static mesh android_opengles_genMesh (struct mesh_vertex *v, const size_t vl, me
   check (glEnableVertexAttribArray (0));
   check (glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)0));
   check (glEnableVertexAttribArray (1));
-  check (glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)sizeof (struct vec3)))
-      check (glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
+  check (glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)sizeof (struct vec3)));
+  check (glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
   check (glBufferData (GL_ELEMENT_ARRAY_BUFFER, il * sizeof (mesh_index), (void *)i, GL_STATIC_DRAW));
   check (glBindVertexArray (0));
-  meshes[m]
-      .flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
+  meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
   return m;
 }
 static void android_opengles_setMeshTransform (const mesh ms, float *mat) {
@@ -292,7 +295,7 @@ void android_opengles_validateResources () {
     check (glEnableVertexAttribArray (0));
     check (glEnableVertexAttribArray (1));
     check (glVertexAttribPointer (0, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)0));
-    check (glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)sizeof (struct vec2)))
+    check (glVertexAttribPointer (1, 2, GL_FLOAT, GL_FALSE, sizeof (struct flat_vertex), (void *)sizeof (struct vec2)));
   }
   // world draw
   {
@@ -367,16 +370,14 @@ void android_opengles_validateResources () {
     check (glEnableVertexAttribArray (0));
     check (glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, sizeof (struct mesh_vertex), (void *)0));
     check (glEnableVertexAttribArray (1));
-    check (glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)sizeof (struct vec3)))
-        check (glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
+    check (glVertexAttribPointer (1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof (struct mesh_vertex), (void *)sizeof (struct vec3)));
+    check (glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
     check (glBufferData (GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof (mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW));
   }
   check (glBindVertexArray (0));
 }
 void android_opengles_preRender () {
-  if (src.flags & (WORLD_UPDATE | UI_UPDATE))
-    ;
-  {
+  if (src.flags & (WORLD_UPDATE | UI_UPDATE)) {
     if (src.flags & WORLD_UPDATE) {
       check (glUseProgram (src.world.shader));
       memset (stemp.mat, 0, 16 * sizeof (float));
