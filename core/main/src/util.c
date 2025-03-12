@@ -1,73 +1,40 @@
 #include "util.h"
+
+#include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
 union temp stemp;
 
-#ifndef NDEBUG
-#define MAX_WATCHED_MEMORY 2048
-static size_t total_mem = 0;
-static struct watched_memory {
-  void *p;
-  size_t l;
-} watched_memory_list[MAX_WATCHED_MEMORY] = {0};
-#endif
-
-void *new_mem (size_t l) {
-#ifndef NDEBUG
-  for (size_t i = 0; i < MAX_WATCHED_MEMORY; ++i) {
-    if (watched_memory_list[i].p == 0) {
-      watched_memory_list[i].p = malloc (l);
-      watched_memory_list[i].l = l;
-      total_mem += l;
-      return watched_memory_list[i].p;
-    }
-  }
-#endif
-  return malloc (l);
+// helper
+#if defined(_WIN32)
+extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+int convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input) {
+   return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
 }
-void *new_imem (size_t l) {
-#ifndef NDEBUG
-  for (size_t i = 0; i < MAX_WATCHED_MEMORY; ++i) {
-    if (watched_memory_list[i].p == 0) {
-      watched_memory_list[i].p = calloc (1, l);
-      watched_memory_list[i].l = l;
-      total_mem += l;
-      return watched_memory_list[i].p;
-    }
-  }
 #endif
-  return calloc (1, l);
-}
-void free_mem (void *a) {
-#ifndef NDEBUG
-  for (size_t i = 0, j; i < MAX_WATCHED_MEMORY; ++i) {
-    if (watched_memory_list[i].p == 0)
-      break;
-    else if (watched_memory_list[i].p == a) {
-      total_mem -= watched_memory_list[i].l;
-      free (watched_memory_list[i].p);
-      j = i + 1;
-      if (j < MAX_WATCHED_MEMORY) {
-        memmove (watched_memory_list + i, watched_memory_list + j, sizeof (struct watched_memory) * (MAX_WATCHED_MEMORY - j));
-      }
-      watched_memory_list[MAX_WATCHED_MEMORY - 1].p = 0;
-      watched_memory_list[MAX_WATCHED_MEMORY - 1].l = 0;
-    }
-  }
-#endif
-  free (a);
-}
-size_t get_mem_usage () {
-#ifndef NDEBUG
-  return total_mem;
-#else
-  return 0;
-#endif
-}
 
 // math
+int lrotl(int x, size_t n) {
+#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateleft32)  // GCC 12+ / Clang 14+
+    return __builtin_rotateleft32(x, n);
+#elif defined(_MSC_VER)
+		return _lrotl(x,n);
+#else
+		return (x << n) | (x >> (-n & 31));
+#endif
+}
+int lrotr(int x, size_t n) {
+#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateright32)  // GCC 12+ / Clang 14+
+    return __builtin_rotateright32(x, n);
+#elif defined(_MSC_VER)
+		return _lrotr(x,n);
+#else
+		return (x >> n) | (x << (-n & 31));
+#endif
+}
 void matrix4_idt (float *m) {
   memset (m, 0, 16 * sizeof (float));
   m[0] = m[5] = m[10] = m[15] = 1.0f;

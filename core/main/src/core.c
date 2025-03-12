@@ -1,6 +1,9 @@
 #include "core.h"
+
 #include "engine.h"
 #include "util.h"
+
+#include <string.h>
 
 struct flat_vertex rectangle[] = {
     // Persegi 1

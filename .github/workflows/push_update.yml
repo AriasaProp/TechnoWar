@@ -50,12 +50,19 @@ jobs:
           cd core
           cmake -S . -B build
           cmake --build build
-          ./build/core_test .. . 
- 
+          ./build/core_test
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: Image
+          path: ${{ github.workspace }}/core/uiskin_pack.png 
+
+
   android:
     runs-on: ubuntu-latest
     needs: format-core
-    #if: needs.format-core.outputs.android == 'true'
+    if: needs.format-core.outputs.android == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.1

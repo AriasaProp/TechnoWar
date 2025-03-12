@@ -88,7 +88,7 @@ int android_graphicsManager_preRender () {
           EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_BUFFER_SIZE, 16, EGL_NONE};
       eglChooseConfig (g.display, configAttr, NULL, 0, &temp);
       if (temp <= 0) return 0;
-      EGLConfig *conf = (EGLConfig *)new_mem (temp * sizeof (EGLConfig));
+      EGLConfig *conf = (EGLConfig *)malloc (temp * sizeof (EGLConfig));
       EGLConfig *configs = conf;
       EGLConfig *configs_end = configs + temp;
       eglChooseConfig (g.display, configAttr, configs, temp, &temp);
@@ -107,7 +107,7 @@ int android_graphicsManager_preRender () {
           g.eConfig = *configs;
         }
       } while (++configs < configs_end);
-      free_mem (conf);
+      free (conf);
     }
     if (!g.context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
