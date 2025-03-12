@@ -21,17 +21,17 @@ const char *files[IMAGE_FILES] = {
 int image_pack_test (void) {
 	// nothing todo
 	printf("Image RectPack test\n");
-	char buffer[512];
+	char buffer[1024];
 	int temp[3];
 	
 	struct stbrp_rect *rects = (struct stbrp_rect* )malloc(sizeof(struct stbrp_rect )*IMAGE_FILES);
 	//generate random rects
 	for (int i = 0; i < IMAGE_FILES; ++i) {
 		rects[i].was_packed = 0;
-		sprintf(buffer, "assets/uiskin/default/%s.png\0", files[i]);
+		sprintf(buffer, "assets/uiskin/default/%s.png", files[i]);
 		ASSERT(stbi_info(buffer, &rects[i].w, &rects[i].h, temp));
-		rects[i].name = malloc(strlen(buffer));
-		memcpy(rects[i].name, buffer, strlen(buffer));
+		rects[i].name = malloc(strlen(buffer) + 1);
+		memcpy(rects[i].name, buffer, strlen(buffer) + 1);
 	}
 	ASSERT (stbrp_pack_rects(rects, IMAGE_FILES, IMAGE_MAX_SIDE, IMAGE_MAX_SIDE));
 	unsigned char *output_image_packs = (unsigned char*)malloc(IMAGE_MAX_SIDE*IMAGE_MAX_SIDE*IMAGE_CHANNELS);
