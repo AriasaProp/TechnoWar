@@ -1,7 +1,7 @@
 #include "util.h"
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -9,30 +9,30 @@ union temp stemp;
 
 // helper
 #if defined(_WIN32)
-extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
-int convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input) {
-   return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
+extern __declspec (dllimport) int __stdcall MultiByteToWideChar (unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
+extern __declspec (dllimport) int __stdcall WideCharToMultiByte (unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+int convert_wchar_to_utf8 (char *buffer, size_t bufferlen, const wchar_t *input) {
+  return WideCharToMultiByte (65001 /* UTF8 */, 0, input, -1, buffer, (int)bufferlen, NULL, NULL);
 }
 #endif
 
 // math
-int lrotl(int x, size_t n) {
-#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateleft32)  // GCC 12+ / Clang 14+
-    return __builtin_rotateleft32(x, n);
+int lrotl (int x, size_t n) {
+#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateleft32) // GCC 12+ / Clang 14+
+  return __builtin_rotateleft32 (x, n);
 #elif defined(_MSC_VER)
-		return _lrotl(x,n);
+  return _lrotl (x, n);
 #else
-		return (x << n) | (x >> (-n & 31));
+  return (x << n) | (x >> (-n & 31));
 #endif
 }
-int lrotr(int x, size_t n) {
-#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateright32)  // GCC 12+ / Clang 14+
-    return __builtin_rotateright32(x, n);
+int lrotr (int x, size_t n) {
+#if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateright32) // GCC 12+ / Clang 14+
+  return __builtin_rotateright32 (x, n);
 #elif defined(_MSC_VER)
-		return _lrotr(x,n);
+  return _lrotr (x, n);
 #else
-		return (x >> n) | (x << (-n & 31));
+  return (x >> n) | (x << (-n & 31));
 #endif
 }
 void matrix4_idt (float *m) {
