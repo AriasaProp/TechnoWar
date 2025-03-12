@@ -28,7 +28,7 @@ int image_pack_test (void) {
 	//generate random rects
 	for (int i = 0; i < IMAGE_FILES; ++i) {
 		rects[i].was_packed = 0;
-		sprintf(buffer, "assets/uiskin/default/%s.png", files[i]);
+		sprintf(buffer, "assets/uiskin/default/%s.png\0", files[i]);
 		ASSERT(stbi_info(buffer, &rects[i].w, &rects[i].h, temp));
 		rects[i].name = malloc(strlen(buffer));
 		memcpy(rects[i].name, buffer, strlen(buffer));

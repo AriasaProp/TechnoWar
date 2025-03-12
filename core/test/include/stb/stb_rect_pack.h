@@ -6,7 +6,7 @@ typedef int stbrp_coord;
 struct stbrp_rect {
    int was_packed;  // non-zero if valid packing
    stbrp_coord    w, h, x, y;
-   void *name;
+   char *name;
 
 }; // 16 bytes, nominally
 extern int stbrp_pack_rects (struct stbrp_rect *rects, int num_rects, int width, int height);

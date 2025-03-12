@@ -42,7 +42,7 @@ static struct vec2 getTouch (size_t p) {
 }
 
 // processing input
-static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (event), void *UNUSED (data)) {
+static int android_inputManager_processInput (int UNUSED_ARG (fd), int UNUSED_ARG (event), void *UNUSED_ARG (data)) {
   AInputEvent *outEvent;
   if (!m->inputQueue) return 1;
   if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
@@ -56,7 +56,7 @@ static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (event
   AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
   return 1;
 }
-static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
+static int android_inputManager_processSensor (int UNUSED_ARG (fd), int UNUSED_ARG (e), void *UNUSED_ARG (data)) {
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
   while ((j = ASensorEventQueue_getEvents (m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
@@ -86,7 +86,7 @@ static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), 
 }
 
 void android_inputManager_init (ALooper *looper) {
-  m = (struct android_inputManager *)new_imem (sizeof (struct android_inputManager));
+  m = (struct android_inputManager *)calloc (1, sizeof (struct android_inputManager));
   m->looper = looper;
   m->sensorMngr = ASensorManager_getInstance ();
   m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
@@ -138,5 +138,5 @@ void android_inputManager_term () {
   // disable input
   if (m->inputQueue)
     AInputQueue_detachLooper (m->inputQueue);
-  free_mem (m);
+  free (m);
 }
