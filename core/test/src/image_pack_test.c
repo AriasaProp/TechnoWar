@@ -42,7 +42,6 @@ int image_pack_test (void) {
 		for(int j = 0; j < rects[i].h; ++j) {
 			int xres = rects[i].x * IMAGE_CHANNELS;
 			int wcontainer = IMAGE_CHANNELS * IMAGE_MAX_SIDE;
-			int yres = rects[i].y;
 			int wres = IMAGE_CHANNELS * rects[i].w;
 			for (int k = 0; k < rects[i].h; ++k) {
 				memcpy(output_image_packs + xres + (rects[i].y + k) * wcontainer, result + (wres * k), wres);

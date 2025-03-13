@@ -34,24 +34,16 @@ enum {
 };
 
 struct android_app {
-  void *userData;
-  ANativeActivity *activity;
   AConfiguration *config;
-  struct core *savedState;
-  ALooper *looper;
   ARect contentRect;
 
-  int8_t delayed_cmdState;
   int8_t cmdState;
+  int msgread, msgwrite;
+  int stateApp;
 
   pthread_mutex_t mutex;
   pthread_cond_t cond;
-
-  int msgread, msgwrite;
-
   pthread_t thread;
-
-  int stateApp;
 } *app = NULL;
 
 enum {
@@ -121,25 +113,28 @@ static int process_cmd (int fd, int event, void *data) {
     app->stateApp &= ~STATE_APP_INIT;
     break;
   }
-  app->delayed_cmdState = rmsg.cmd;
+  app->cmdState = rmsg.cmd;
   return 1;
 }
 
 static void *android_app_entry (void *param) {
+  // set config
   app->config = AConfiguration_new ();
-  ANativeActivity *activity = (ANativeActivity *)param;
+  ANativeActivity *activity = (ANativeActivity*)param;
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
+  while (pipe (&app->msgread))
+    LOGE ("could not create pipe: %s", strerror (errno));
 
-  app->looper = ALooper_prepare (0);
-  ALooper_addFd (app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
+  ALooper *looper = ALooper_prepare (0);
+  ALooper_addFd (looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
   engine_init ();
-  android_inputManager_init (app->looper);
+  android_inputManager_init (looper);
   android_graphicsManager_init ();
 
   pthread_mutex_lock (&app->mutex);
   app->stateApp |= STATE_APP_INIT;
-  pthread_cond_broadcast (&app->cond);
+  pthread_cond_signal (&app->cond);
   pthread_mutex_unlock (&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
@@ -153,13 +148,13 @@ static void *android_app_entry (void *param) {
         (app->stateApp & STATE_APP_RUNNING) &&
         android_graphicsManager_preRender ()) {
       Main_update ();
-      if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
-          (app->delayed_cmdState == APP_CMD_PAUSE)) {
+      if ((app->cmdState == APP_CMD_WINDOW_DESTROYED) ||
+          (app->cmdState == APP_CMD_PAUSE)) {
         Main_pause ();
       }
       android_graphicsManager_postRender ();
     }
-    switch (app->delayed_cmdState) {
+    switch (app->cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
       android_graphicsManager_onWindowDestroy ();
       app->stateApp &= ~STATE_APP_WINDOW;
@@ -167,12 +162,9 @@ static void *android_app_entry (void *param) {
     case APP_CMD_PAUSE:
       app->stateApp &= ~STATE_APP_RUNNING;
     }
-    if (app->cmdState != app->delayed_cmdState) {
-      pthread_mutex_lock (&app->mutex);
-      app->cmdState = app->delayed_cmdState;
-      pthread_cond_broadcast (&app->cond);
-      pthread_mutex_unlock (&app->mutex);
-    }
+    pthread_mutex_lock (&app->mutex);
+    pthread_cond_signal (&app->cond);
+    pthread_mutex_unlock (&app->mutex);
   }
   Main_term ();
   android_graphicsManager_term ();
@@ -181,7 +173,7 @@ static void *android_app_entry (void *param) {
   AConfiguration_delete (app->config);
   pthread_mutex_lock (&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
-  pthread_cond_broadcast (&app->cond);
+  pthread_cond_signal (&app->cond);
   pthread_mutex_unlock (&app->mutex);
   // Can't touch app object after this.
   return NULL;
@@ -191,14 +183,10 @@ static struct msg_pipe wmsg;
 static void android_app_write_cmd (int8_t cmd, void *data) {
   wmsg.cmd = cmd;
   wmsg.data = data;
-  if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
+  while (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe))
     LOGE ("Failure writing android_app cmd: %s\n", strerror (errno));
-  }
   pthread_mutex_lock (&app->mutex);
-  while (app->cmdState != cmd) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
-  pthread_cond_broadcast (&app->cond);
+  pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
 }
 
@@ -308,29 +296,26 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
   app = (struct android_app *)calloc (1, sizeof (struct android_app));
-
+  pthread_mutexattr_t mutex_attr;
+	pthread_mutexattr_init(&mutex_attr);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
   pthread_mutex_init (&app->mutex, NULL);
+	pthread_mutexattr_destroy(&mutex_attr);
+
   pthread_cond_init (&app->cond, NULL);
 
   if (savedState != NULL && savedStateSize == sizeof (struct core)) {
     memcpy (&core_cache, savedState, sizeof (struct core));
   }
-  if (pipe (&app->msgread)) {
-    LOGE ("could not create pipe: %s", strerror (errno));
-    return;
-  }
-
+  
   pthread_attr_t attr;
   pthread_attr_init (&attr);
   pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
   pthread_create (&app->thread, &attr, android_app_entry, activity);
-
-  // Wait for thread to start.
   pthread_mutex_lock (&app->mutex);
-  while (!(app->stateApp & STATE_APP_INIT)) {
-    pthread_cond_wait (&app->cond, &app->mutex);
-  }
+  pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
+	pthread_attr_destroy(&attr);
 }
 // extern char extGLMsg[1024];
 extern char listError[128];
