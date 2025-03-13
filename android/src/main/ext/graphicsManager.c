@@ -1,9 +1,9 @@
 #include "manager.h"
 
-#include <EGL/egl.h>
-#include <string.h>
 #include "engine.h"
 #include "util.h"
+#include <EGL/egl.h>
+#include <string.h>
 
 // private value
 static struct android_graphicsManager {

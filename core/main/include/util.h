@@ -30,36 +30,35 @@ typedef unsigned __int64 size_t;
 #endif
 
 #ifdef _WIN32
-		#ifndef _CRT_SECURE_NO_WARNINGS
-		#define _CRT_SECURE_NO_WARNINGS
-		#endif
-		#ifndef _CRT_NONSTDC_NO_DEPRECATE
-		#define _CRT_NONSTDC_NO_DEPRECATE
-		#endif
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+#ifndef _CRT_NONSTDC_NO_DEPRECATE
+#define _CRT_NONSTDC_NO_DEPRECATE
+#endif
 #endif
 
 #if defined(_MSC_VER)
-    #define CDECL __cdecl
-    #define UNUSED(x) ((void)x)
-    #define UNUSED_ARG(x) __pragma(warning(suppress: 4100 4101)) x
+#define CDECL __cdecl
+#define UNUSED(x) ((void)x)
+#define UNUSED_ARG(x) __pragma (warning (suppress : 4100 4101)) x
 #elif defined(__GNUC__) || defined(__clang__)
-    #define CDECL /* no translate */
-    #define UNUSED(x) ((void)x)
-    #define UNUSED_ARG(x) __attribute__((unused)) x
+#define CDECL /* no translate */
+#define UNUSED(x) ((void)x)
+#define UNUSED_ARG(x) __attribute__ ((unused)) x
 #else
-    #define CDECL /* no translate */
-    #define UNUSED(x) /* no parameter */
-    #define UNUSED_ARG(x) /* no parameter */
+#define CDECL         /* no translate */
+#define UNUSED(x)     /* no parameter */
+#define UNUSED_ARG(x) /* no parameter */
 #endif
 
 #define MAX_TEMPORARY_BYTE 4096
 
 #include <assert.h>
-#define ASSERT(X) assert(X)
+#define ASSERT(X) assert (X)
 
-#define MAX(X,Y) ((X > Y) ? X : Y)
-#define MIN(X,Y) ((X < Y) ? X : Y)
-
+#define MAX(X, Y) ((X > Y) ? X : Y)
+#define MIN(X, Y) ((X < Y) ? X : Y)
 
 // ================================
 //  Constant dan Variabel
@@ -99,15 +98,15 @@ extern union temp stemp;
 //  Function
 // ===============================
 
-//helper
+// helper
 
 #ifdef _WIN32
-extern int convert_wchar_to_utf8(char *, size_t, const wchar_t*);
+extern int convert_wchar_to_utf8 (char *, size_t, const wchar_t *);
 #endif
 
 // math
-extern int lrotl(int, size_t);
-extern int lrotr(int, size_t);
+extern int lrotl (int, size_t);
+extern int lrotr (int, size_t);
 extern void matrix4_idt (float *);
 extern void matrix4_rotateDeg (float *, struct vec3);
 
