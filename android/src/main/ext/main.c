@@ -120,7 +120,7 @@ static int process_cmd (int fd, int event, void *data) {
 static void *android_app_entry (void *param) {
   // set config
   app->config = AConfiguration_new ();
-  ANativeActivity *activity = (ANativeActivity*)param;
+  ANativeActivity *activity = (ANativeActivity *)param;
   AConfiguration_fromAssetManager (app->config, activity->assetManager);
   while (pipe (&app->msgread))
     LOGE ("could not create pipe: %s", strerror (errno));
@@ -297,17 +297,17 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
 
   app = (struct android_app *)calloc (1, sizeof (struct android_app));
   pthread_mutexattr_t mutex_attr;
-	pthread_mutexattr_init(&mutex_attr);
-	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
+  pthread_mutexattr_init (&mutex_attr);
+  pthread_mutexattr_settype (&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
   pthread_mutex_init (&app->mutex, NULL);
-	pthread_mutexattr_destroy(&mutex_attr);
+  pthread_mutexattr_destroy (&mutex_attr);
 
   pthread_cond_init (&app->cond, NULL);
 
   if (savedState != NULL && savedStateSize == sizeof (struct core)) {
     memcpy (&core_cache, savedState, sizeof (struct core));
   }
-  
+
   pthread_attr_t attr;
   pthread_attr_init (&attr);
   pthread_attr_setdetachstate (&attr, PTHREAD_CREATE_DETACHED);
@@ -315,7 +315,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_mutex_lock (&app->mutex);
   pthread_cond_wait (&app->cond, &app->mutex);
   pthread_mutex_unlock (&app->mutex);
-	pthread_attr_destroy(&attr);
+  pthread_attr_destroy (&attr);
 }
 // extern char extGLMsg[1024];
 extern char listError[128];
