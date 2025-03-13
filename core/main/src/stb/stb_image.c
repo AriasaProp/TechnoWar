@@ -4358,7 +4358,7 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
 	if (!stbi__check_png_header(s)) return 0;
 	
 	if (scan == STBI__SCAN_type) return 1;
-	uint32_t pngchunk_len, pngchunk_type, pngchunk_type_last = 0;
+	uint32_t pngchunk_len, pngchunk_type;
 	for (;;) {
 	  pngchunk_len = stbi__get32be(s);
 	  pngchunk_type = stbi__get32be(s);
@@ -4515,7 +4515,6 @@ static int stbi__parse_png_file(stbi__png *z, int scan, int req_comp) {
 	        break;
 	     }
 	  }
-	  pngchunk_type_last = pngchunk_type;
 	  // end of PNG chunk, read and skip CRC
 	  stbi__get32be(s);
 	}
