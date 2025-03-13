@@ -1,7 +1,8 @@
-#include <EGL/egl.h>
-
-#include "engine.h"
 #include "manager.h"
+
+#include <EGL/egl.h>
+#include <string.h>
+#include "engine.h"
 #include "util.h"
 
 // private value
