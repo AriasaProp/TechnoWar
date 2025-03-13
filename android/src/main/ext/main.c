@@ -68,8 +68,8 @@ enum {
 };
 
 static int process_cmd (int fd, int event, void *data) {
-  UNUSED (event);
-  UNUSED (data);
+	UNUSED(event);
+	UNUSED(data);
   static struct msg_pipe rmsg;
   if (read (fd, &rmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("No data on command pipe!");
@@ -191,7 +191,7 @@ static void android_app_write_cmd (int8_t cmd, void *data) {
 }
 
 static void onDestroy (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   wmsg.cmd = APP_CMD_DESTROY;
   wmsg.data = NULL;
   if (write (app->msgwrite, &wmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
@@ -211,15 +211,15 @@ static void onDestroy (ANativeActivity *activity) {
   app = NULL;
 }
 static void onStart (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_START, NULL);
 }
 static void onResume (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_RESUME, NULL);
 }
 static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
-  UNUSED (activity);
+	UNUSED(activity);
   *outLen = sizeof (struct core);
   void *savedState = malloc (*outLen);
   memcpy (savedState, &core_cache, *outLen);
@@ -227,53 +227,51 @@ static void *onSaveInstanceState (ANativeActivity *activity, size_t *outLen) {
   return savedState;
 }
 static void onPause (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_PAUSE, NULL);
 }
 static void onStop (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_STOP, NULL);
 }
 static void onConfigurationChanged (ANativeActivity *activity) {
   android_app_write_cmd (APP_CMD_CONFIG_CHANGED, (void *)activity->assetManager);
 }
 static void onLowMemory (ANativeActivity *activity) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_LOW_MEMORY, NULL);
 }
 static void onWindowFocusChanged (ANativeActivity *activity, int focused) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, NULL);
 }
 static void onContentRectChanged (ANativeActivity *activity, const ARect *rect) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_CONTENT_RECT_CHANGED, (void *)rect);
 }
 static void onNativeWindowResized (ANativeActivity *activity, ANativeWindow *window) {
-  UNUSED (activity);
-  UNUSED (window);
+	UNUSED(activity);
+	UNUSED(window);
   android_app_write_cmd (APP_CMD_WINDOW_RESIZE, NULL);
 }
 static void onNativeWindowRedrawNeeded (ANativeActivity *activity, ANativeWindow *window) {
-  UNUSED (activity);
-  UNUSED (window);
+	UNUSED(activity);
+	UNUSED(window);
   android_app_write_cmd (APP_CMD_WINDOW_REDRAW, NULL);
 }
 static void onNativeWindowCreated (ANativeActivity *activity, ANativeWindow *window) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_WINDOW_CREATED, (void *)window);
 }
-static void onNativeWindowDestroyed (ANativeActivity *activity, ANativeWindow *window) {
-  UNUSED (activity);
-  UNUSED (window);
+static void onNativeWindowDestroyed (ANativeActivity *UNUSED_ARG(activity), ANativeWindow *UNUSED_ARG(window)) {
   android_app_write_cmd (APP_CMD_WINDOW_DESTROYED, NULL);
 }
 static void onInputQueueCreated (ANativeActivity *activity, AInputQueue *queue) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_INPUT_CREATED, (void *)queue);
 }
 static void onInputQueueDestroyed (ANativeActivity *activity, AInputQueue *UNUSED_ARG (queue)) {
-  UNUSED (activity);
+	UNUSED(activity);
   android_app_write_cmd (APP_CMD_INPUT_DESTROYED, NULL);
 }
 
@@ -296,11 +294,7 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
   app = (struct android_app *)calloc (1, sizeof (struct android_app));
-  pthread_mutexattr_t mutex_attr;
-  pthread_mutexattr_init (&mutex_attr);
-  pthread_mutexattr_settype (&mutex_attr, PTHREAD_MUTEX_ADAPTIVE_NP);
   pthread_mutex_init (&app->mutex, NULL);
-  pthread_mutexattr_destroy (&mutex_attr);
 
   pthread_cond_init (&app->cond, NULL);
 
@@ -332,7 +326,7 @@ JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv
     memset (listError, 0, 128);
   }
 #else
-  UNUSED (env);
-  UNUSED (o);
+  UNUSED(env);
+  UNUSED(o);
 #endif
 }
