@@ -1,0 +1,3 @@
+/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles/rebuild_cache.dir
+/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles/edit_cache.dir
+/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles/sdlview.dir

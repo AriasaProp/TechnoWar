@@ -1,0 +1,12 @@
+[
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/sdlview",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DGLES2 -I/storage/emulated/0/prj/TechnoWar/sdlview/sdlview -I/storage/emulated/0/prj/TechnoWar/sdlview/include -Wall -std=c99 -fallow-void-main -o CMakeFiles/sdlview.dir/src/main.c.o -c /storage/emulated/0/prj/TechnoWar/sdlview/src/main.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/sdlview/src/main.c"
+},
+{
+  "directory": "/storage/emulated/0/prj/TechnoWar/sdlview",
+  "command": "/data/user/0/ru.iiec.cxxdroid/files/bin/clang -DGLES2 -I/storage/emulated/0/prj/TechnoWar/sdlview/sdlview -I/storage/emulated/0/prj/TechnoWar/sdlview/include -Wall -std=c99 -fallow-void-main -o CMakeFiles/sdlview.dir/src/triangle_renderer.c.o -c /storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c",
+  "file": "/storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c"
+}
+]
