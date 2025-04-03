@@ -24,11 +24,16 @@ jobs:
           filters: |
             core:
               - 'core/**'
+              - 'tools/**'
             android:
               - 'android/**'
             src:
-              - added|modified: 'core/main/src/*.c'
-              - added|modified: 'core/main/include/*.h'
+              - added|modified: 'core/src/*.c'
+              - added|modified: 'core/include/*.h'
+              - added|modified: 'tools/main/src/*.c'
+              - added|modified: 'tools/main/include/*.h'
+              - added|modified: 'tools/test/src/*.c'
+              - added|modified: 'tools/test/include/*.h'
               - added|modified: 'android/src/main/ext/**/*.c'
               - added|modified: 'android/src/main/java/**/*.java'
 
