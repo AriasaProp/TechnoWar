@@ -99,7 +99,7 @@ static int android_inputManager_processSensor(int UNUSED_ARG(fd), int UNUSED_ARG
 void android_inputManager_init(void *looper)
 {
   m = (struct android_inputManager *)calloc(1, sizeof(struct android_inputManager));
-  m->looper = (ALooper*)looper;
+  m->looper = (ALooper *)looper;
   m->sensorMngr = ASensorManager_getInstance();
   m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
@@ -110,8 +110,8 @@ void android_inputManager_init(void *looper)
 }
 void android_inputManager_createInputQueue(void *queue)
 {
-  AInputQueue_attachLooper((AInputQueue*)queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
-  m->inputQueue = (AInputQueue*)queue;
+  AInputQueue_attachLooper((AInputQueue *)queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
+  m->inputQueue = (AInputQueue *)queue;
 }
 void android_inputManager_destroyInputQueue()
 {
