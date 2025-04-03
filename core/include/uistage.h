@@ -3,7 +3,8 @@
 
 #define IMAGE_TYPE_TOTAL 4
 
-enum image_type {
+enum image_type
+{
   PANEL = 0,
   BUTTON_LIFE,
   BUTTON_PRESSED,

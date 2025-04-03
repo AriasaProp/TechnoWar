@@ -41,49 +41,55 @@ typedef unsigned __int64 size_t;
 #endif
 
 #if defined(_MSC_VER)
-#define INLINE __forceinline
-#define CDECL __cdecl
-#define UNUSED(x) ((void)x)
-#define UNUSED_ARG(x) __pragma (warning (suppress : 4100 4101)) x
+#define INLINE        __forceinline
+#define CDECL         __cdecl
+#define UNUSED(x)     ((void)x)
+#define UNUSED_ARG(x) __pragma(warning(suppress : 4100 4101)) x
 #elif defined(__GNUC__) || defined(__clang__)
-#define INLINE inline
-#define CDECL /* no translate */
-#define UNUSED(x) ((void)x)
-#define UNUSED_ARG(x) __attribute__ ((unused)) x
+#define INLINE        inline
+#define CDECL         /* no translate */
+#define UNUSED(x)     ((void)x)
+#define UNUSED_ARG(x) __attribute__((unused)) x
 #else
-#define INLINE inline
+#define INLINE        inline
 #define CDECL         /* no translate */
 #define UNUSED(x)     /* no parameter */
 #define UNUSED_ARG(x) /* no parameter */
 #endif
 
 #include <assert.h>
-#define ASSERT(X) assert (X)
+#define ASSERT(X) assert(X)
 
-#define MAX(X, Y) ((X > Y) ? (X) : (Y))
-#define MIN(X, Y) ((X < Y) ? (X) : (Y))
+#define MAX(X, Y)      ((X > Y) ? (X) : (Y))
+#define MIN(X, Y)      ((X < Y) ? (X) : (Y))
 #define CLAMP(X, Y, Z) ((X < Z) ? ((Y > Z) ? (Z) : (Y)) : (X))
 
 // ================================
 //  Constant dan Variabel
 // ================================
 
-struct fcolor {
+struct fcolor
+{
   float r, g, b, a;
 };
-struct icolor {
+struct icolor
+{
   uint8_t r, g, b, a;
 }; // packed color bit
-struct vec2 {
+struct vec2
+{
   float x, y;
 };
-struct vec3 {
+struct vec3
+{
   float x, y, z;
 };
-struct uivec2 {
+struct uivec2
+{
   uint16_t x, y;
 };
-struct vec4 {
+struct vec4
+{
   float x, y, z, w;
 };
 
@@ -94,13 +100,13 @@ struct vec4 {
 // helper
 
 #ifdef _WIN32
-extern int convert_wchar_to_utf8 (char *, size_t, const wchar_t *);
+extern int convert_wchar_to_utf8(char *, size_t, const wchar_t *);
 #endif
 
 // math
-extern int lrotl (int, size_t);
-extern int lrotr (int, size_t);
-extern void matrix4_idt (float *);
-extern void matrix4_rotateDeg (float *, struct vec3);
+extern int lrotl(int, size_t);
+extern int lrotr(int, size_t);
+extern void matrix4_idt(float *);
+extern void matrix4_rotateDeg(float *, struct vec3);
 
 #endif // UTIL_INCLUDED_
