@@ -46,7 +46,7 @@ struct engine_asset
 {
   void *data;
   void (*funct1)();
-  int (*assetBuffer)(const char *, void **, int *);
+  int (*assetBuffer)(const char *, const void **, int *);
   int (*openAsset)(const char *);
   int (*assetRead)(int, void *, size_t);
   size_t (*assetLength)(int);
