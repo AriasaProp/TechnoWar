@@ -30,7 +30,7 @@ BraceWrapping:
   AfterClass: true
   AfterControlStatement: Never
   AfterEnum: true
-  AfterFunction: true
+  AfterFunction: Before
   AfterNamespace: true
   AfterObjCDeclaration: true
   AfterStruct: true
@@ -81,16 +81,6 @@ SpaceInEmptyParentheses: false
 
 UseCRLF: false
 UseTab: Never
-
-ForEachMacros:
-  [
-    "spa_list_for_each",
-    "spa_list_for_each_safe",
-    "wl_list_for_each",
-    "wl_list_for_each_safe",
-    "wl_array_for_each",
-    "udev_list_entry_foreach",
-  ]
 
 ---
 

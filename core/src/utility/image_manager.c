@@ -122,6 +122,7 @@ static int png_decode(im_image *out, void *c, read_callback rc, seek_callback sc
 #undef FORCE_READ
 #undef READABLE32
 #undef CHUNK_PARSE
+	UNUSED(internal);
 png_parse_end:
 	return result;
 }
@@ -151,7 +152,7 @@ static im_image im_image_read(void *c, read_callback rc, seek_callback sc, eof_c
 
 static size_t im_memory_read(void *c, uint8_t *buff, size_t len) {
 	const unsigned char **mc = (const unsigned char**)c;
-	len = MIN(len, mc[2] - mc[1]);
+	len = MIN((long)len, mc[2] - mc[1]);
 	memcpy(buff, mc[1], len);
 	mc[1] += len;
 	return len;
@@ -190,10 +191,15 @@ im_image im_read_image_from_file(const char *filename) {
 }
 
 void *im_write_image_to_mem(im_image o, im_image_format f, unsigned int *outlen) {
-	
+	UNUSED(o);
+	UNUSED(f);
+	UNUSED(outlen);
 	return 0;
 }
 int im_write_image_to_file(const char *filename, im_image o, im_image_format f) {
+	UNUSED(filename);
+	UNUSED(o);
+	UNUSED(f);
 	
 	
 	return 1;
