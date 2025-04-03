@@ -40,7 +40,7 @@ int image_codec_test() {
 			unsigned char *encode = stbi_write_png_to_mem(load, temp[0], temp[1], temp[2], temp + 3);
 			if (encode) {
 				if (temp[3] != mem_len) {
-					printf(" failed result len %d != %d %s", temp[3], mem_len, buffer);
+					printf(" failed result len %d != %ld %s", temp[3], mem_len, buffer);
 				} else if (memcmp(encode, im_mem, mem_len)) {
 					printf(" failed different result %s", buffer);
 				}

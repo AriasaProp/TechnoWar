@@ -18,7 +18,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE core)
 
 #Test
 file(GLOB_RECURSE Test_Src "test/src/*.c")
-file(GLOB_RECURSE TTest_Src "main/src/stb/.c")
+file(GLOB_RECURSE TTest_Src "main/src/stb/*.c")
 add_executable(${PROJECT_NAME}_test ${Test_Src} ${TTest_Src})
 target_include_directories(${PROJECT_NAME}_test PRIVATE "main/include" "test/include" "${CORESRC}/include")
 target_link_libraries(${PROJECT_NAME}_test PRIVATE core)
