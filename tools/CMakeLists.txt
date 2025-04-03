@@ -9,7 +9,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSION OFF)
 
 set(CORESRC ../core)
-add_subdirectory(../core build/core)
+add_subdirectory(${CORESRC} build/core)
 
 file(GLOB_RECURSE SRC "main/src/*.c")
 add_executable(${PROJECT_NAME} ${SRC})
@@ -22,5 +22,3 @@ file(GLOB_RECURSE TTest_Src "main/src/stb/.c")
 add_executable(${PROJECT_NAME}_test ${Test_Src} ${TTest_Src})
 target_include_directories(${PROJECT_NAME}_test PRIVATE "main/include" "test/include" "${CORESRC}/include")
 target_link_libraries(${PROJECT_NAME}_test PRIVATE core)
-
-#Cxxdroid-binary: core_test

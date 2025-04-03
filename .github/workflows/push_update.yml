@@ -44,17 +44,17 @@ jobs:
           	git push
           fi
 
-      - name: Core Make Test
+      - name: Run Test
         if: steps.changes.outputs.core == 'true'
         run: |
-          cd core
+          cd tools
           cmake -S . -B build
           cmake --build build
           if [ $? -ne 0 ]; then
             echo "❌ Build failed!"
             exit 1
           fi
-          ./build/core_test
+          ./build/tools_test
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3
