@@ -2,6 +2,7 @@
 
 #include "engine.h"
 #include "util.h"
+#include "uistage.h"
 
 #include <string.h>
 
