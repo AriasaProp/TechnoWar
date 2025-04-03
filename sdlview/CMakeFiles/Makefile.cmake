@@ -31,6 +31,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "/data/data/ru.iiec.cxxdroid/files/share/cmake-3.20/Modules/Platform/Linux-GNU.cmake"
   "/data/data/ru.iiec.cxxdroid/files/share/cmake-3.20/Modules/Platform/Linux.cmake"
   "/data/data/ru.iiec.cxxdroid/files/share/cmake-3.20/Modules/Platform/UnixPaths.cmake"
+  "/storage/emulated/0/prj/TechnoWar/core/CMakeLists.txt"
   "CMakeFiles/3.20.3/CMakeCCompiler.cmake"
   "CMakeFiles/3.20.3/CMakeSystem.cmake"
   "CMakeLists.txt"
@@ -45,9 +46,11 @@ set(CMAKE_MAKEFILE_OUTPUTS
 # Byproducts of CMake generate step:
 set(CMAKE_MAKEFILE_PRODUCTS
   "CMakeFiles/CMakeDirectoryInformation.cmake"
+  "build/core/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/sdlview.dir/DependInfo.cmake"
+  "build/core/CMakeFiles/core.dir/DependInfo.cmake"
   )

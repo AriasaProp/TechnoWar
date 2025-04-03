@@ -82,35 +82,52 @@ CMakeFiles/sdlview.dir/src/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/sdlview.dir/src/main.c.s"
 	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /storage/emulated/0/prj/TechnoWar/sdlview/src/main.c -o CMakeFiles/sdlview.dir/src/main.c.s
 
-CMakeFiles/sdlview.dir/src/triangle_renderer.c.o: CMakeFiles/sdlview.dir/flags.make
-CMakeFiles/sdlview.dir/src/triangle_renderer.c.o: src/triangle_renderer.c
-CMakeFiles/sdlview.dir/src/triangle_renderer.c.o: CMakeFiles/sdlview.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/sdlview.dir/src/triangle_renderer.c.o"
-	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/sdlview.dir/src/triangle_renderer.c.o -MF CMakeFiles/sdlview.dir/src/triangle_renderer.c.o.d -o CMakeFiles/sdlview.dir/src/triangle_renderer.c.o -c /storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c
+CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o: CMakeFiles/sdlview.dir/flags.make
+CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o: src/managers/graphicsManager.c
+CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o: CMakeFiles/sdlview.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o -MF CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o.d -o CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o -c /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/graphicsManager.c
 
-CMakeFiles/sdlview.dir/src/triangle_renderer.c.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/sdlview.dir/src/triangle_renderer.c.i"
-	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c > CMakeFiles/sdlview.dir/src/triangle_renderer.c.i
+CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.i"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/graphicsManager.c > CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.i
 
-CMakeFiles/sdlview.dir/src/triangle_renderer.c.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/sdlview.dir/src/triangle_renderer.c.s"
-	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c -o CMakeFiles/sdlview.dir/src/triangle_renderer.c.s
+CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.s"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/graphicsManager.c -o CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.s
+
+CMakeFiles/sdlview.dir/src/managers/inputManager.c.o: CMakeFiles/sdlview.dir/flags.make
+CMakeFiles/sdlview.dir/src/managers/inputManager.c.o: src/managers/inputManager.c
+CMakeFiles/sdlview.dir/src/managers/inputManager.c.o: CMakeFiles/sdlview.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/sdlview.dir/src/managers/inputManager.c.o"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/sdlview.dir/src/managers/inputManager.c.o -MF CMakeFiles/sdlview.dir/src/managers/inputManager.c.o.d -o CMakeFiles/sdlview.dir/src/managers/inputManager.c.o -c /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/inputManager.c
+
+CMakeFiles/sdlview.dir/src/managers/inputManager.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/sdlview.dir/src/managers/inputManager.c.i"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/inputManager.c > CMakeFiles/sdlview.dir/src/managers/inputManager.c.i
+
+CMakeFiles/sdlview.dir/src/managers/inputManager.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/sdlview.dir/src/managers/inputManager.c.s"
+	/data/user/0/ru.iiec.cxxdroid/files/bin/clang $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /storage/emulated/0/prj/TechnoWar/sdlview/src/managers/inputManager.c -o CMakeFiles/sdlview.dir/src/managers/inputManager.c.s
 
 # Object files for target sdlview
 sdlview_OBJECTS = \
 "CMakeFiles/sdlview.dir/src/main.c.o" \
-"CMakeFiles/sdlview.dir/src/triangle_renderer.c.o"
+"CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o" \
+"CMakeFiles/sdlview.dir/src/managers/inputManager.c.o"
 
 # External object files for target sdlview
 sdlview_EXTERNAL_OBJECTS =
 
 sdlview: CMakeFiles/sdlview.dir/src/main.c.o
-sdlview: CMakeFiles/sdlview.dir/src/triangle_renderer.c.o
+sdlview: CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o
+sdlview: CMakeFiles/sdlview.dir/src/managers/inputManager.c.o
 sdlview: CMakeFiles/sdlview.dir/build.make
 sdlview: /data/user/0/ru.iiec.cxxdroid/files/sysroot/lib/libSDL2main.a
 sdlview: /data/user/0/ru.iiec.cxxdroid/files/sysroot/lib/libSDL2.a
+sdlview: build/core/libcore.a
 sdlview: CMakeFiles/sdlview.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking C executable sdlview"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/storage/emulated/0/prj/TechnoWar/sdlview/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking C executable sdlview"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/sdlview.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

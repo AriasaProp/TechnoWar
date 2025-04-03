@@ -1,8 +1,10 @@
 file(REMOVE_RECURSE
   "CMakeFiles/sdlview.dir/src/main.c.o"
   "CMakeFiles/sdlview.dir/src/main.c.o.d"
-  "CMakeFiles/sdlview.dir/src/triangle_renderer.c.o"
-  "CMakeFiles/sdlview.dir/src/triangle_renderer.c.o.d"
+  "CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o"
+  "CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o.d"
+  "CMakeFiles/sdlview.dir/src/managers/inputManager.c.o"
+  "CMakeFiles/sdlview.dir/src/managers/inputManager.c.o.d"
   "sdlview"
   "sdlview.pdb"
 )

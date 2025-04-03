@@ -1,6 +1,5 @@
 CMakeFiles/sdlview.dir/src/triangle_renderer.c.o: \
   /storage/emulated/0/prj/TechnoWar/sdlview/src/triangle_renderer.c \
-  /storage/emulated/0/prj/TechnoWar/sdlview/include/triangle_renderer.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/local/include/math.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/math.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/sys/cdefs.h \
@@ -19,4 +18,5 @@ CMakeFiles/sdlview.dir/src/triangle_renderer.c.o: \
   /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/stdint.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/stdint.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/bits/wchar_limits.h \
-  /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/stddef.h
+  /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/stddef.h \
+  /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/__stddef_max_align_t.h

@@ -11,7 +11,6 @@
 #include <string.h>
 
 #ifdef NDEBUG
-char listError[128] = {0};
 #define MAX_MSG 512
 GLint success;
 GLchar msg[MAX_MSG];
@@ -19,11 +18,8 @@ GLenum error;
 
 #define check(X)                                        \
   X;                                                    \
-  while ((error = glGetError ())) {                     \
-    LOGE ("GL Error in %s with (0x%x)\n", #X, error);   \
-    if (!listError[0])                                  \
-      snprintf (listError, 128, "%s(0x%x)", #X, error); \
-  }
+  while ((error = glGetError ()))                       \
+    LOGE ("GL Error in %s with (0x%x)\n", #X, error)
 
 #define checkLinkProgram(X)                         \
   glLinkProgram (X);                                \
@@ -31,8 +27,6 @@ GLenum error;
   if (!success) {                                   \
     glGetProgramInfoLog (X, MAX_MSG, NULL, msg);    \
     LOGE ("Program shader linking error: %s", msg); \
-    if (!listError[0])                              \
-      snprintf (listError, 128, "%s", msg);         \
   }
 
 #define checkCompileShader(X)                               \
@@ -40,9 +34,7 @@ GLenum error;
   glGetShaderiv (X, GL_COMPILE_STATUS, &success);           \
   if (!success) {                                           \
     glGetShaderInfoLog (X, MAX_MSG, NULL, msg);             \
-    LOGE ("Flat fragmrnt shader compiling error: %s", msg); \
-    if (!listError[0])                                      \
-      snprintf (listError, 128, "%s", msg);                 \
+    LOGE ("Shader compiling error: %s", msg); \
   }
 
 #else
@@ -146,12 +138,13 @@ static void android_opengles_flatRender (const texture t, struct flat_vertex *v,
   check (glDisable (GL_DEPTH_TEST));
   check (glUseProgram (src.ui.shader));
   if (src.flags & UI_UPDATE) {
-    matrix4_idt (stemp.mat);
-    stemp.mat[0] = 2.f / src.viewportSize.x;
-    stemp.mat[5] = 2.f / src.viewportSize.y;
-    stemp.mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
-    stemp.mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
-    check (glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, stemp.mat));
+  	float mat[16];
+    matrix4_idt (mat);
+    mat[0] = 2.f / src.viewportSize.x;
+    mat[5] = 2.f / src.viewportSize.y;
+    mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
+    mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
+    check (glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, mat));
     src.flags &= ~UI_UPDATE;
   }
   check (glActiveTexture (GL_TEXTURE0));
@@ -202,10 +195,11 @@ static void android_opengles_meshRender (mesh *ms, const size_t l) {
   check (glEnable (GL_DEPTH_TEST));
   check (glUseProgram (src.world.shader));
   if (src.flags & WORLD_UPDATE) {
-    matrix4_idt (stemp.mat);
-    stemp.mat[0] = 2.f / src.viewportSize.x;
-    stemp.mat[5] = 2.f / src.viewportSize.y;
-    check (glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, stemp.mat));
+  	float mat[16];
+    matrix4_idt (mat);
+    mat[0] = 2.f / src.viewportSize.x;
+    mat[5] = 2.f / src.viewportSize.y;
+    check (glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, mat));
     src.flags &= ~WORLD_UPDATE;
   }
   for (size_t i = 0; i < l; i++) {
@@ -256,13 +250,11 @@ void android_opengles_validateResources () {
   {
     src.ui.shader = check (glCreateProgram ());
     GLuint vi = check (glCreateShader (GL_VERTEX_SHADER));
-    const char *vt = "#version 300 es"
-                     "\n#define LOW lowp"
-                     "\n#define MED mediump"
+    const char *vt = "#version 320 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                     "\n    #define HIGH highp"
+                     "\n		precision highp float;"
                      "\n#else"
-                     "\n    #define HIGH mediump"
+                     "\n		precision mediump float;"
                      "\n#endif"
                      "\nuniform mat4 u_proj;"
                      "\nlayout(location = 0) in vec4 a_position;"
@@ -276,13 +268,11 @@ void android_opengles_validateResources () {
     checkCompileShader (vi);
     check (glAttachShader (src.ui.shader, vi));
     GLuint fi = check (glCreateShader (GL_FRAGMENT_SHADER));
-    const char *ft = "#version 300 es"
-                     "\n#define LOW lowp"
-                     "\n#define MED mediump"
+    const char *ft = "#version 320 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                     "\n    #define HIGH highp"
+                     "\n		precision highp float;"
                      "\n#else"
-                     "\n    #define HIGH mediump"
+                     "\n		precision mediump float;"
                      "\n#endif"
                      "\nprecision MED float;"
                      "\nuniform sampler2D u_tex;"
@@ -323,13 +313,11 @@ void android_opengles_validateResources () {
   {
     src.world.shader = check (glCreateProgram ());
     GLuint vi = check (glCreateShader (GL_VERTEX_SHADER));
-    const char *vt = "#version 300 es"
-                     "\n#define LOW lowp"
-                     "\n#define MED mediump"
+    const char *vt = "#version 320 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                     "\n    #define HIGH highp"
+                     "\n		precision highp float;"
                      "\n#else"
-                     "\n    #define HIGH mediump"
+                     "\n		precision mediump float;"
                      "\n#endif"
                      "\nuniform mat4 worldview_proj;"
                      "\nuniform mat4 trans_proj;"
@@ -344,15 +332,12 @@ void android_opengles_validateResources () {
     checkCompileShader (vi);
     check (glAttachShader (src.world.shader, vi));
     GLuint fi = check (glCreateShader (GL_FRAGMENT_SHADER));
-    const char *ft = "#version 300 es"
-                     "\n#define LOW lowp"
-                     "\n#define MED mediump"
+    const char *ft = "#version 320 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                     "\n    #define HIGH highp"
+                     "\n		precision highp float;"
                      "\n#else"
-                     "\n    #define HIGH mediump"
+                     "\n		precision mediump float;"
                      "\n#endif"
-                     "\nprecision MED float;"
                      "\nin vec4 v_color;"
                      "\nlayout(location = 0) out vec4 fragColor;"
                      "\nvoid main() {"

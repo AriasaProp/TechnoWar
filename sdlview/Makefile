@@ -128,6 +128,19 @@ sdlview/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/build
 .PHONY : sdlview/fast
 
+#=============================================================================
+# Target rules for targets named core
+
+# Build rule for target.
+core: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 core
+.PHONY : core
+
+# fast build rule for target.
+core/fast:
+	$(MAKE) $(MAKESILENT) -f build/core/CMakeFiles/core.dir/build.make build/core/CMakeFiles/core.dir/build
+.PHONY : core/fast
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -152,29 +165,53 @@ src/main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/main.c.s
 .PHONY : src/main.c.s
 
-src/triangle_renderer.o: src/triangle_renderer.c.o
-.PHONY : src/triangle_renderer.o
+src/managers/graphicsManager.o: src/managers/graphicsManager.c.o
+.PHONY : src/managers/graphicsManager.o
 
 # target to build an object file
-src/triangle_renderer.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/triangle_renderer.c.o
-.PHONY : src/triangle_renderer.c.o
+src/managers/graphicsManager.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.o
+.PHONY : src/managers/graphicsManager.c.o
 
-src/triangle_renderer.i: src/triangle_renderer.c.i
-.PHONY : src/triangle_renderer.i
+src/managers/graphicsManager.i: src/managers/graphicsManager.c.i
+.PHONY : src/managers/graphicsManager.i
 
 # target to preprocess a source file
-src/triangle_renderer.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/triangle_renderer.c.i
-.PHONY : src/triangle_renderer.c.i
+src/managers/graphicsManager.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.i
+.PHONY : src/managers/graphicsManager.c.i
 
-src/triangle_renderer.s: src/triangle_renderer.c.s
-.PHONY : src/triangle_renderer.s
+src/managers/graphicsManager.s: src/managers/graphicsManager.c.s
+.PHONY : src/managers/graphicsManager.s
 
 # target to generate assembly for a file
-src/triangle_renderer.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/triangle_renderer.c.s
-.PHONY : src/triangle_renderer.c.s
+src/managers/graphicsManager.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/graphicsManager.c.s
+.PHONY : src/managers/graphicsManager.c.s
+
+src/managers/inputManager.o: src/managers/inputManager.c.o
+.PHONY : src/managers/inputManager.o
+
+# target to build an object file
+src/managers/inputManager.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/inputManager.c.o
+.PHONY : src/managers/inputManager.c.o
+
+src/managers/inputManager.i: src/managers/inputManager.c.i
+.PHONY : src/managers/inputManager.i
+
+# target to preprocess a source file
+src/managers/inputManager.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/inputManager.c.i
+.PHONY : src/managers/inputManager.c.i
+
+src/managers/inputManager.s: src/managers/inputManager.c.s
+.PHONY : src/managers/inputManager.s
+
+# target to generate assembly for a file
+src/managers/inputManager.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdlview.dir/build.make CMakeFiles/sdlview.dir/src/managers/inputManager.c.s
+.PHONY : src/managers/inputManager.c.s
 
 # Help Target
 help:
@@ -184,13 +221,17 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... core"
 	@echo "... sdlview"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/triangle_renderer.o"
-	@echo "... src/triangle_renderer.i"
-	@echo "... src/triangle_renderer.s"
+	@echo "... src/managers/graphicsManager.o"
+	@echo "... src/managers/graphicsManager.i"
+	@echo "... src/managers/graphicsManager.s"
+	@echo "... src/managers/inputManager.o"
+	@echo "... src/managers/inputManager.i"
+	@echo "... src/managers/inputManager.s"
 .PHONY : help
 
 

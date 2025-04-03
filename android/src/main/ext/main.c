@@ -67,9 +67,7 @@ enum {
   APP_CMD_DESTROY,
 };
 
-static int process_cmd (int fd, int event, void *data) {
-  UNUSED (event);
-  UNUSED (data);
+static int process_cmd (int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   static struct msg_pipe rmsg;
   if (read (fd, &rmsg, sizeof (struct msg_pipe)) != sizeof (struct msg_pipe)) {
     LOGE ("No data on command pipe!");
@@ -80,6 +78,7 @@ static int process_cmd (int fd, int event, void *data) {
   case APP_CMD_WINDOW_REDRAW:
   case APP_CMD_START:
   case APP_CMD_STOP:
+  	// nothing important
     break;
   case APP_CMD_INPUT_CREATED:
     android_inputManager_createInputQueue ((AInputQueue *)rmsg.data);
@@ -131,6 +130,7 @@ static void *android_app_entry (void *param) {
   engine_init ();
   android_inputManager_init (looper);
   android_graphicsManager_init ();
+  android_assetManager_init(activity->assetManager);
 
   pthread_mutex_lock (&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -169,6 +169,7 @@ static void *android_app_entry (void *param) {
   Main_term ();
   android_graphicsManager_term ();
   android_inputManager_term ();
+  android_assetManager_term ();
 
   AConfiguration_delete (app->config);
   pthread_mutex_lock (&app->mutex);
@@ -311,19 +312,19 @@ void ANativeActivity_onCreate (ANativeActivity *activity, void *savedState, size
   pthread_mutex_unlock (&app->mutex);
   pthread_attr_destroy (&attr);
 }
-// extern char extGLMsg[1024];
-extern char listError[128];
+// used by log.h
+char error_pack[2048];
 // native MainActivity.java
 
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative (JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets (left, top, right, bottom);
 #ifdef NDEBUG
-  if (listError[0]) {
+  if (error_pack[0]) {
     jclass cls = (*env)->GetObjectClass (env, o);
     jmethodID id = (*env)->GetMethodID (env, cls, "showToast", "(Ljava/lang/String;)V");
-    jstring jmsg = (*env)->NewStringUTF (env, listError);
+    jstring jmsg = (*env)->NewStringUTF (env, error_pack);
     (*env)->CallVoidMethod (env, o, id, jmsg);
-    memset (listError, 0, 128);
+    memset (error_pack, 0, 2048);
   }
 #else
   UNUSED (env);

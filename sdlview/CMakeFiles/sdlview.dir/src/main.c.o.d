@@ -9,6 +9,7 @@ CMakeFiles/sdlview.dir/src/main.c.o: \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/android/ndk-version.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/sys/types.h \
   /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/stddef.h \
+  /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/__stddef_max_align_t.h \
   /data/data/ru.iiec.cxxdroid/files/lib/clang/9.0.1/include/stdint.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/stdint.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/bits/wchar_limits.h \
@@ -127,4 +128,9 @@ CMakeFiles/sdlview.dir/src/main.c.o: \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/KHR/khrplatform.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/GLES2/gl2.h \
   /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/GLES2/gl2ext.h \
-  /storage/emulated/0/prj/TechnoWar/sdlview/include/triangle_renderer.h
+  /storage/emulated/0/prj/TechnoWar/sdlview/../core/include/engine.h \
+  /storage/emulated/0/prj/TechnoWar/sdlview/../core/include/util.h \
+  /data/user/0/ru.iiec.cxxdroid/files/sysroot/usr/include/assert.h \
+  /storage/emulated/0/prj/TechnoWar/sdlview/../core/include/core.h \
+  /storage/emulated/0/prj/TechnoWar/sdlview/include/manager.h \
+  /storage/emulated/0/prj/TechnoWar/sdlview/include/log.h

@@ -4,7 +4,6 @@
 #include <android/native_window.h>
 #include <android/input.h>
 
-
 extern void android_inputManager_init(ALooper *);
 extern void android_inputManager_createInputQueue (AInputQueue *);
 extern void android_inputManager_destroyInputQueue ();
@@ -22,5 +21,7 @@ extern int android_graphicsManager_preRender ();
 extern void android_graphicsManager_postRender ();
 extern void android_graphicsManager_term();
 
+extern void android_assetManager_init();
+extern void android_assetManager_term();
 
 #endif // MANAGER_
