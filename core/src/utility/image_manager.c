@@ -43,6 +43,7 @@ typedef int (*eof_callback) (void*);
 // return 2 when data valid
 
 static int png_decode(im_image *out, void *c, read_callback rc, seek_callback sc, eof_callback re) {
+	UNUSED(sc);
 	code buffer;
 	size_t i;
 	// decode
