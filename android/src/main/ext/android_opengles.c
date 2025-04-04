@@ -253,7 +253,7 @@ void android_opengles_validateResources() {
   {
     src.ui.shader = check(glCreateProgram());
     GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-    const char *vt = "#version 320 es"
+    const char *vt = "#version 300 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
                      "\n		precision highp float;"
                      "\n#else"
@@ -271,7 +271,7 @@ void android_opengles_validateResources() {
     checkCompileShader(vi);
     check(glAttachShader(src.ui.shader, vi));
     GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-    const char *ft = "#version 320 es"
+    const char *ft = "#version 300 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
                      "\n		precision highp float;"
                      "\n#else"
@@ -280,7 +280,7 @@ void android_opengles_validateResources() {
                      "\nprecision MED float;"
                      "\nuniform sampler2D u_tex;"
                      "\nin vec2 v_texCoord;"
-                     "\nlayout(location = 0) out vec4 fragColor;"
+                     "\nout vec4 fragColor;"
                      "\nvoid main() {"
                      "\n    fragColor = texture(u_tex, v_texCoord);"
                      "\n}";
@@ -316,7 +316,7 @@ void android_opengles_validateResources() {
   {
     src.world.shader = check(glCreateProgram());
     GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-    const char *vt = "#version 320 es"
+    const char *vt = "#version 300 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
                      "\n		precision highp float;"
                      "\n#else"
@@ -335,14 +335,14 @@ void android_opengles_validateResources() {
     checkCompileShader(vi);
     check(glAttachShader(src.world.shader, vi));
     GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-    const char *ft = "#version 320 es"
+    const char *ft = "#version 300 es"
                      "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
                      "\n		precision highp float;"
                      "\n#else"
                      "\n		precision mediump float;"
                      "\n#endif"
                      "\nin vec4 v_color;"
-                     "\nlayout(location = 0) out vec4 fragColor;"
+                     "\nout vec4 fragColor;"
                      "\nvoid main() {"
                      "\n    fragColor = v_color;"
                      "\n}";
