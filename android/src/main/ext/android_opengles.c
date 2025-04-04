@@ -18,8 +18,7 @@ GLenum error;
 
 #define check(X)                 \
   X;                             \
-  while ((error = glGetError())) \
-  LOGE("GL Error in %s with (0x%x)\n", #X, error)
+  while ((error = glGetError())) LOGE("GL Error in %s with (0x%x)\n", #X, error)
 
 #define checkLinkProgram(X)                        \
   glLinkProgram(X);                                \
@@ -86,7 +85,7 @@ static struct opengles_data {
   struct vec2 viewportSize; //
   struct vec2 screenSize;   //
   struct vec4 insets;
-} src = {0};
+} *src = NULL;
 
 // core implementation
 static struct vec2 android_opengles_getScreenSize() { return src.screenSize; }
@@ -140,7 +139,7 @@ static void android_opengles_flatRender(const texture t, struct flat_vertex *v, 
   check(glDisable(GL_DEPTH_TEST));
   check(glUseProgram(src.ui.shader));
   if (src.flags & UI_UPDATE) {
-    float mat[16];
+    static float mat[16];
     matrix4_idt(mat);
     mat[0] = 2.f / src.viewportSize.x;
     mat[5] = 2.f / src.viewportSize.y;
@@ -233,7 +232,7 @@ static void android_opengles_deleteMesh(mesh m) {
 }
 
 void android_opengles_validateResources() {
-  if (textures[0].id != 0)
+  if (textures[0].id)
     return;
   // when validate, projection need to be update
   src.flags |= WORLD_UPDATE | UI_UPDATE;
@@ -413,7 +412,7 @@ void android_opengles_resizeWindow(float w, float h) {
   src.flags |= WORLD_UPDATE | UI_UPDATE;
 }
 void android_opengles_invalidateResources() {
-  if (textures[0].id == 0)
+  if (!textures[0].id)
     return;
   // world draw
   check(glDeleteProgram(src.world.shader));
@@ -460,10 +459,11 @@ void android_opengles_init() {
     textures[0].data = malloc(4);
     memset(textures[0].data, 0xff, 4);
   }
-  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
+  meshes = (struct opengles_mesh *) calloc (sizeof(struct opengles_mesh), MAX_RESOURCE);
+  src = (struct opengles_data *) calloc (1, sizeof (struct opengles_data));
 }
 void android_opengles_term() {
-  if (textures[0].id != 0) {
+  if (textures[0].id) {
     // world draw
     check(glDeleteProgram(src.world.shader));
     // flat draw
@@ -488,7 +488,7 @@ void android_opengles_term() {
     }
   }
 
-  free(textures);
-  free(meshes);
-  memset(&src, 0, sizeof(struct opengles_data));
+  free (textures);
+  free (meshes);
+  free (src);
 }

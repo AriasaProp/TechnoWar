@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'core/**'
+      - 'tools/**'
       - 'android/**'
       - '.github/workflows/push_update.yml'
 
@@ -61,11 +62,11 @@ jobs:
           fi
           ./build/tools_test
           
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4.3.3
-        with:
-          name: Image
-          path: ${{ github.workspace }}/core/uiskin_pack.png 
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v4.3.3
+#        with:
+#          name: Image
+#          path: ${{ github.workspace }}/core/uiskin_pack.png 
 
 
   android:
@@ -89,11 +90,11 @@ jobs:
       - name: build Android
         run: |
           cd android
-          gradle :build
+          gradle :build -Prelease
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: Android
-          path: ${{ github.workspace }}/android/build/outputs/apk/debug/android-debug.apk 
+          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
 
