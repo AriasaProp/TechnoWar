@@ -23,27 +23,8 @@ AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: MultiLine
 
-# Custom brace breaking
-BreakBeforeBraces: Custom
-BraceWrapping:
-  AfterCaseLabel: true
-  AfterClass: true
-  AfterControlStatement: Never
-  AfterEnum: true
-  AfterFunction: Before
-  AfterNamespace: true
-  AfterObjCDeclaration: true
-  AfterStruct: true
-  AfterUnion: true
-  AfterExternBlock: false
-  BeforeElse: false
-  BeforeWhile: false
-  IndentBraces: false
-  SplitEmptyFunction: true
-  SplitEmptyRecord: true
-
-# Make the closing brace of container literals go to a new line
-Cpp11BracedListStyle: false
+# brace breaking always surounding context
+BreakBeforeBraces: Attach
 
 # Never format includes
 IncludeBlocks: Preserve
