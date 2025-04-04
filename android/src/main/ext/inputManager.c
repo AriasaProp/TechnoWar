@@ -12,7 +12,7 @@ enum inputManagerState {
   INPUT_SENSOR_ENABLED = 1,
 };
 #define MAX_SENSOR_COUNT 3
-#define MAX_POINTER 10
+#define MAX_POINTER      10
 enum {
   SENSOR_ACCELEROMETER = 0,
   SENSOR_GYROSCOPE = 1,
@@ -37,29 +37,32 @@ static struct android_inputManager {
 } *m = NULL;
 
 // core implementation
-static struct vec2 getTouch (size_t p) {
+static struct vec2 getTouch(size_t p) {
   return m->pointers[p].pos;
 }
 
 // processing input
-static int android_inputManager_processInput (int UNUSED (fd), int UNUSED (event), void *UNUSED (data)) {
+static int android_inputManager_processInput(int UNUSED(fd), int UNUSED(event), void *UNUSED(data)) {
   AInputEvent *outEvent;
-  if (!m->inputQueue) return 1;
-  if (AInputQueue_getEvent (m->inputQueue, &outEvent) < 0) return 1;
-  if (AInputQueue_preDispatchEvent (m->inputQueue, outEvent)) return 1;
+  if (!m->inputQueue)
+    return 1;
+  if (AInputQueue_getEvent(m->inputQueue, &outEvent) < 0)
+    return 1;
+  if (AInputQueue_preDispatchEvent(m->inputQueue, outEvent))
+    return 1;
   int32_t handled = 0;
-  if (AInputEvent_getType (outEvent) == AINPUT_EVENT_TYPE_MOTION) {
-    m->pointers[0].pos.x = AMotionEvent_getX (outEvent, 0);
-    m->pointers[0].pos.y = AMotionEvent_getY (outEvent, 0);
+  if (AInputEvent_getType(outEvent) == AINPUT_EVENT_TYPE_MOTION) {
+    m->pointers[0].pos.x = AMotionEvent_getX(outEvent, 0);
+    m->pointers[0].pos.y = AMotionEvent_getY(outEvent, 0);
     handled = 1;
   }
-  AInputQueue_finishEvent (m->inputQueue, outEvent, handled);
+  AInputQueue_finishEvent(m->inputQueue, outEvent, handled);
   return 1;
 }
-static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), void *UNUSED (data)) {
+static int android_inputManager_processSensor(int UNUSED(fd), int UNUSED(e), void *UNUSED(data)) {
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
-  while ((j = ASensorEventQueue_getEvents (m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
+  while ((j = ASensorEventQueue_getEvents(m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
     for (size_t i = 0; i < j; ++i) {
       switch (event[i].type) {
       case ASENSOR_TYPE_ACCELEROMETER:
@@ -85,41 +88,41 @@ static int android_inputManager_processSensor (int UNUSED (fd), int UNUSED (e), 
   return 1;
 }
 
-void android_inputManager_init (ALooper *looper) {
-  m = (struct android_inputManager *)new_imem (sizeof (struct android_inputManager));
+void android_inputManager_init(ALooper *looper) {
+  m = (struct android_inputManager *)new_imem(sizeof(struct android_inputManager));
   m->looper = looper;
-  m->sensorMngr = ASensorManager_getInstance ();
-  m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
-  m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
-  m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor (m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
-  m->sensorQueue = ASensorManager_createEventQueue (m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
+  m->sensorMngr = ASensorManager_getInstance();
+  m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
+  m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
+  m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
+  m->sensorQueue = ASensorManager_createEventQueue(m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
 
-  get_engine ()->i.getTouch = getTouch;
+  get_engine()->i.getTouch = getTouch;
 }
-void android_inputManager_createInputQueue (AInputQueue *queue) {
-  AInputQueue_attachLooper (queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
+void android_inputManager_createInputQueue(AInputQueue *queue) {
+  AInputQueue_attachLooper(queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
   m->inputQueue = queue;
 }
-void android_inputManager_destroyInputQueue () {
-  AInputQueue_detachLooper (m->inputQueue);
+void android_inputManager_destroyInputQueue() {
+  AInputQueue_detachLooper(m->inputQueue);
   m->inputQueue = NULL;
 }
-void android_inputManager_enableSensor () {
+void android_inputManager_enableSensor() {
   if (!(m->flags & INPUT_SENSOR_ENABLED)) {
     // attach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
-      ASensorEventQueue_enableSensor (m->sensorQueue, m->sensor_data[i].sensor);
-      ASensorEventQueue_setEventRate (m->sensorQueue, m->sensor_data[i].sensor, SENSOR_EVENT_RATE);
+      ASensorEventQueue_enableSensor(m->sensorQueue, m->sensor_data[i].sensor);
+      ASensorEventQueue_setEventRate(m->sensorQueue, m->sensor_data[i].sensor, SENSOR_EVENT_RATE);
     }
     m->flags |= INPUT_SENSOR_ENABLED;
-    android_inputManager_processSensor (0, 0, m);
+    android_inputManager_processSensor(0, 0, m);
   }
 }
-void android_inputManager_disableSensor () {
+void android_inputManager_disableSensor() {
   if (m->flags & INPUT_SENSOR_ENABLED) {
     // detach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
-      ASensorEventQueue_disableSensor (m->sensorQueue, m->sensor_data[i].sensor);
+      ASensorEventQueue_disableSensor(m->sensorQueue, m->sensor_data[i].sensor);
       m->sensor_data[i].value[0] = 0;
       m->sensor_data[i].value[1] = 0;
       m->sensor_data[i].value[2] = 0;
@@ -127,16 +130,16 @@ void android_inputManager_disableSensor () {
     m->flags &= ~INPUT_SENSOR_ENABLED;
   }
 }
-void android_inputManager_term () {
+void android_inputManager_term() {
   // disable sensor
   for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
-    ASensorEventQueue_disableSensor (m->sensorQueue, m->sensor_data[i].sensor);
+    ASensorEventQueue_disableSensor(m->sensorQueue, m->sensor_data[i].sensor);
     m->sensor_data[i].value[0] = 0;
     m->sensor_data[i].value[1] = 0;
     m->sensor_data[i].value[2] = 0;
   }
   // disable input
   if (m->inputQueue)
-    AInputQueue_detachLooper (m->inputQueue);
-  free_mem (m);
+    AInputQueue_detachLooper(m->inputQueue);
+  free_mem(m);
 }
