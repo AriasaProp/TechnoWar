@@ -135,22 +135,21 @@ static void android_opengles_bindTexture(const texture t) {
 static void android_opengles_setTextureParam(const int param, const int val) {
   check(glTexParameteri(GL_TEXTURE_2D, param, val));
 }
-static void android_opengles_deleteTexture (const texture t) {
-  check (glDeleteTextures (1, &textures[t].id));
-  free (textures[t].data);
-  memset (textures + t, 0, sizeof (struct opengles_texture));
+static void android_opengles_deleteTexture(const texture t) {
+  check(glDeleteTextures(1, &textures[t].id));
+  free(textures[t].data);
+  memset(textures + t, 0, sizeof(struct opengles_texture));
 }
 static void android_opengles_flatRender(const texture t, struct flat_vertex *v, const size_t l) {
   check(glDisable(GL_DEPTH_TEST));
   check(glUseProgram(src.ui.shader));
   if (src.flags & UI_UPDATE) {
-  	static float mat[16]:
-    matrix4_idt (mat);
+    static float mat[16] : matrix4_idt(mat);
     mat[0] = 2.f / src.viewportSize.x;
     mat[5] = 2.f / src.viewportSize.y;
     mat[12] = (2.0f * src.insets.x / src.viewportSize.x) - 1.0f;
     mat[13] = (2.0f * src.insets.w / src.viewportSize.y) - 1.0f;
-    check (glUniformMatrix4fv (src.ui.uniform_proj, 1, GL_FALSE, mat));
+    check(glUniformMatrix4fv(src.ui.uniform_proj, 1, GL_FALSE, mat));
     src.flags &= ~UI_UPDATE;
   }
   check(glActiveTexture(GL_TEXTURE0));
@@ -201,11 +200,11 @@ static void android_opengles_meshRender(mesh *ms, const size_t l) {
   check(glEnable(GL_DEPTH_TEST));
   check(glUseProgram(src.world.shader));
   if (src.flags & WORLD_UPDATE) {
-  	static float mat[16];
-    matrix4_idt (mat);
+    static float mat[16];
+    matrix4_idt(mat);
     mat[0] = 2.f / src.viewportSize.x;
     mat[5] = 2.f / src.viewportSize.y;
-    check (glUniformMatrix4fv (src.world.uniform_proj, 1, GL_FALSE, mat));
+    check(glUniformMatrix4fv(src.world.uniform_proj, 1, GL_FALSE, mat));
     src.flags &= ~WORLD_UPDATE;
   }
   for (size_t i = 0; i < l; i++) {
@@ -228,12 +227,12 @@ static void android_opengles_meshRender(mesh *ms, const size_t l) {
   check(glBindVertexArray(0));
   check(glUseProgram(0));
 }
-static void android_opengles_deleteMesh (mesh m) {
-  check (glDeleteVertexArrays (1, &meshes[m].vao));
-  check (glDeleteBuffers (2, &meshes[m].vbo));
-  free (meshes[m].vertexs);
-  free (meshes[m].indices);
-  memset (meshes + m, 0, sizeof (struct opengles_mesh));
+static void android_opengles_deleteMesh(mesh m) {
+  check(glDeleteVertexArrays(1, &meshes[m].vao));
+  check(glDeleteBuffers(2, &meshes[m].vbo));
+  free(meshes[m].vertexs);
+  free(meshes[m].indices);
+  memset(meshes + m, 0, sizeof(struct opengles_mesh));
 }
 
 void android_opengles_validateResources() {
@@ -462,15 +461,15 @@ void android_opengles_init() {
   get_engine()->g.meshRender = android_opengles_meshRender;
   get_engine()->g.deleteMesh = android_opengles_deleteMesh;
 
-  textures = (struct opengles_texture *)calloc (sizeof (struct opengles_texture) , MAX_RESOURCE);
+  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
   {
     // add default texture
     textures[0].size.x = 1;
     textures[0].size.y = 1;
-    textures[0].data = malloc (4);
-    memset (textures[0].data, 0xff, 4);
+    textures[0].data = malloc(4);
+    memset(textures[0].data, 0xff, 4);
   }
-  meshes = (struct opengles_mesh *)calloc (sizeof (struct opengles_mesh) , MAX_RESOURCE);
+  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
 }
 void android_opengles_term() {
   if (textures[0].id != 0) {
@@ -482,21 +481,23 @@ void android_opengles_term() {
     check(glDeleteBuffers(2, &src.ui.vbo));
     // texture
     for (texture i = 0; i < MAX_RESOURCE; ++i) {
-      if (textures[i].size.x == 0) continue;
-      check (glDeleteTextures (1, &textures[i].id));
-      free (textures[i].data);
+      if (textures[i].size.x == 0)
+        continue;
+      check(glDeleteTextures(1, &textures[i].id));
+      free(textures[i].data);
     }
     // mesh
     for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-      if (meshes[i].vertex_len == 0) continue;
-      check (glDeleteVertexArrays (1, &meshes[i].vao));
-      check (glDeleteBuffers (2, &meshes[i].vbo));
-      free (meshes[i].vertexs);
-      free (meshes[i].indices);
+      if (meshes[i].vertex_len == 0)
+        continue;
+      check(glDeleteVertexArrays(1, &meshes[i].vao));
+      check(glDeleteBuffers(2, &meshes[i].vbo));
+      free(meshes[i].vertexs);
+      free(meshes[i].indices);
     }
   }
 
-  free (textures);
-  free (meshes);
-  memset (&src, 0, sizeof (struct opengles_data));
+  free(textures);
+  free(meshes);
+  memset(&src, 0, sizeof(struct opengles_data));
 }
