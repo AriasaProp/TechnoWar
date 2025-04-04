@@ -186,7 +186,7 @@ im_image im_read_image_from_mem(const unsigned char *bytes, unsigned int len) {
 }
 im_image im_read_image_from_file(const char *filename) {
 	FILE *f = fopen(filename, "wb");
-	im_image out = im_image_read((void*)f, im_memory_read, im_memory_seek, im_memory_eof);
+	im_image out = im_image_read((void*)f, im_file_read, im_file_seek, im_file_eof);
 	fclose (f);
 	return out;
 }
