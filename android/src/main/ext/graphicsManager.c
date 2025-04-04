@@ -111,7 +111,7 @@ int android_graphicsManager_preRender() {
           g.eConfig = *configs;
         }
       } while (++configs < configs_end);
-      free (conf);
+      free(conf);
     }
     if (!g.context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
