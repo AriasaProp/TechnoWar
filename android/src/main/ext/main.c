@@ -19,14 +19,12 @@
 #include "manager.h"
 #include "util.h"
 
-struct msg_pipe
-{
+struct msg_pipe {
   int8_t cmd;
   void *data;
 };
 
-enum
-{
+enum {
   STATE_APP_INIT = 1,
   STATE_APP_WINDOW = 2,
   STATE_APP_RUNNING = 4,
@@ -35,8 +33,7 @@ enum
   STATE_APP_DELAY_UNRUNNING = 32,
 };
 
-struct android_app
-{
+struct android_app {
   AConfiguration *config;
   ARect contentRect;
 
@@ -49,8 +46,7 @@ struct android_app
   pthread_t thread;
 } *app = NULL;
 
-enum
-{
+enum {
   APP_CMD_NONE,
   APP_CMD_INPUT_CREATED,
   APP_CMD_INPUT_DESTROYED,
@@ -71,8 +67,7 @@ enum
   APP_CMD_DESTROY,
 };
 
-static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data))
-{
+static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   static struct msg_pipe rmsg;
   if (read(fd, &rmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
     LOGE("No data on command pipe!");
@@ -121,8 +116,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data))
   return 1;
 }
 
-static void *android_app_entry(void *param)
-{
+static void *android_app_entry(void *param) {
   // set config
   app->config = AConfiguration_new();
   ANativeActivity *activity = (ANativeActivity *)param;
@@ -187,8 +181,7 @@ static void *android_app_entry(void *param)
 }
 
 static struct msg_pipe wmsg;
-static void android_app_write_cmd(int8_t cmd, void *data)
-{
+static void android_app_write_cmd(int8_t cmd, void *data) {
   wmsg.cmd = cmd;
   wmsg.data = data;
   while (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
@@ -198,8 +191,7 @@ static void android_app_write_cmd(int8_t cmd, void *data)
   pthread_mutex_unlock(&app->mutex);
 }
 
-static void onDestroy(ANativeActivity *activity)
-{
+static void onDestroy(ANativeActivity *activity) {
   UNUSED(activity);
   wmsg.cmd = APP_CMD_DESTROY;
   wmsg.data = NULL;
@@ -219,18 +211,15 @@ static void onDestroy(ANativeActivity *activity)
   free(app);
   app = NULL;
 }
-static void onStart(ANativeActivity *activity)
-{
+static void onStart(ANativeActivity *activity) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_START, NULL);
 }
-static void onResume(ANativeActivity *activity)
-{
+static void onResume(ANativeActivity *activity) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_RESUME, NULL);
 }
-static void *onSaveInstanceState(ANativeActivity *activity, size_t *outLen)
-{
+static void *onSaveInstanceState(ANativeActivity *activity, size_t *outLen) {
   UNUSED(activity);
   *outLen = sizeof(struct core);
   void *savedState = malloc(*outLen);
@@ -238,69 +227,56 @@ static void *onSaveInstanceState(ANativeActivity *activity, size_t *outLen)
   android_app_write_cmd(APP_CMD_SAVE_STATE, NULL);
   return savedState;
 }
-static void onPause(ANativeActivity *activity)
-{
+static void onPause(ANativeActivity *activity) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_PAUSE, NULL);
 }
-static void onStop(ANativeActivity *activity)
-{
+static void onStop(ANativeActivity *activity) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_STOP, NULL);
 }
-static void onConfigurationChanged(ANativeActivity *activity)
-{
+static void onConfigurationChanged(ANativeActivity *activity) {
   android_app_write_cmd(APP_CMD_CONFIG_CHANGED, (void *)activity->assetManager);
 }
-static void onLowMemory(ANativeActivity *activity)
-{
+static void onLowMemory(ANativeActivity *activity) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_LOW_MEMORY, NULL);
 }
-static void onWindowFocusChanged(ANativeActivity *activity, int focused)
-{
+static void onWindowFocusChanged(ANativeActivity *activity, int focused) {
   UNUSED(activity);
   android_app_write_cmd(focused ? APP_CMD_GAINED_FOCUS : APP_CMD_LOST_FOCUS, NULL);
 }
-static void onContentRectChanged(ANativeActivity *activity, const ARect *rect)
-{
+static void onContentRectChanged(ANativeActivity *activity, const ARect *rect) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_CONTENT_RECT_CHANGED, (void *)rect);
 }
-static void onNativeWindowResized(ANativeActivity *activity, ANativeWindow *window)
-{
+static void onNativeWindowResized(ANativeActivity *activity, ANativeWindow *window) {
   UNUSED(activity);
   UNUSED(window);
   android_app_write_cmd(APP_CMD_WINDOW_RESIZE, NULL);
 }
-static void onNativeWindowRedrawNeeded(ANativeActivity *activity, ANativeWindow *window)
-{
+static void onNativeWindowRedrawNeeded(ANativeActivity *activity, ANativeWindow *window) {
   UNUSED(activity);
   UNUSED(window);
   android_app_write_cmd(APP_CMD_WINDOW_REDRAW, NULL);
 }
-static void onNativeWindowCreated(ANativeActivity *activity, ANativeWindow *window)
-{
+static void onNativeWindowCreated(ANativeActivity *activity, ANativeWindow *window) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_WINDOW_CREATED, (void *)window);
 }
-static void onNativeWindowDestroyed(ANativeActivity *UNUSED_ARG(activity), ANativeWindow *UNUSED_ARG(window))
-{
+static void onNativeWindowDestroyed(ANativeActivity *UNUSED_ARG(activity), ANativeWindow *UNUSED_ARG(window)) {
   android_app_write_cmd(APP_CMD_WINDOW_DESTROYED, NULL);
 }
-static void onInputQueueCreated(ANativeActivity *activity, AInputQueue *queue)
-{
+static void onInputQueueCreated(ANativeActivity *activity, AInputQueue *queue) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_INPUT_CREATED, (void *)queue);
 }
-static void onInputQueueDestroyed(ANativeActivity *activity, AInputQueue *UNUSED_ARG(queue))
-{
+static void onInputQueueDestroyed(ANativeActivity *activity, AInputQueue *UNUSED_ARG(queue)) {
   UNUSED(activity);
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 
-void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize)
-{
+void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
@@ -340,8 +316,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 char error_pack[2048];
 // native MainActivity.java
 
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom)
-{
+JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   android_graphicsManager_resizeInsets(left, top, right, bottom);
 #ifdef NDEBUG
   if (error_pack[0]) {

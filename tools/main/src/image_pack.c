@@ -20,8 +20,7 @@ const char *files[IMAGE_FILES] = {
 const char *android_assets = "../android/src/main/assets/uiskin";
 const char *images_assets = "assets/uiskin/default";
 
-int isPNG9Patch(const char *name)
-{
+int isPNG9Patch(const char *name) {
   static const char *ex = ".9.png";
   static const size_t ex_len = 6;
   size_t name_len = strlen(name);
@@ -29,14 +28,13 @@ int isPNG9Patch(const char *name)
          (memcmp(name + (name_len - ex_len), ex, ex_len) == 0);
 }
 
-int image_pack(void)
-{
+int image_pack(void) {
   // nothing todo
   printf("Image RectPack test\n");
   char buffer[2048];
   int ninepatch;
   int temp[3];
-  int patch[4] = { 0 }, padding[4] = { 0 };
+  int patch[4] = {0}, padding[4] = {0};
 
   struct stbrp_rect *rects = (struct stbrp_rect *)malloc(sizeof(struct stbrp_rect) * IMAGE_FILES);
   if (!rects) {

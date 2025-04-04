@@ -3,8 +3,7 @@
 
 #include <time.h>
 
-struct timing
-{
+struct timing {
   clock_t p;
 };
 

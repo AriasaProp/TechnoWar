@@ -68,28 +68,22 @@ typedef unsigned __int64 size_t;
 //  Constant dan Variabel
 // ================================
 
-struct fcolor
-{
+struct fcolor {
   float r, g, b, a;
 };
-struct icolor
-{
+struct icolor {
   uint8_t r, g, b, a;
 }; // packed color bit
-struct vec2
-{
+struct vec2 {
   float x, y;
 };
-struct vec3
-{
+struct vec3 {
   float x, y, z;
 };
-struct uivec2
-{
+struct uivec2 {
   uint16_t x, y;
 };
-struct vec4
-{
+struct vec4 {
   float x, y, z, w;
 };
 

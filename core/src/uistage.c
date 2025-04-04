@@ -3,16 +3,14 @@
 #include "util.h"
 
 texture texture_pack;
-static struct images
-{
+static struct images {
   int x, y, w, h;
   int *horizontal_patch;
   int *vertical_patch;
   int padding[4];
 } *image_packs = NULL;
 
-void uistage_init()
-{
+void uistage_init() {
   image_packs = (struct images *)malloc(sizeof(struct images) * IMAGE_TYPE_TOTAL);
   /*
   // load uiskin
@@ -32,7 +30,6 @@ void uistage_init()
   }
   */
 }
-void uistage_term()
-{
+void uistage_term() {
   free(image_packs);
 }

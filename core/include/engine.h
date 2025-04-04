@@ -4,8 +4,7 @@
 #include "util.h"
 #define MAX_ASSET_READING 256
 
-enum
-{
+enum {
   GRAPHICS_CLEAR_COLOR = 1,
   GRAPHICS_CLEAR_DEPTH = 2,
   GRAPHICS_CLEAR_STENCIL = 4,
@@ -13,19 +12,16 @@ enum
 
 typedef uint16_t texture; // 16bit uint as texture index
 typedef uint16_t mesh;    // use 16bit uint as mesh index
-struct flat_vertex
-{
+struct flat_vertex {
   struct vec2 pos, uv;
 };
-struct mesh_vertex
-{
+struct mesh_vertex {
   struct vec3 pos;
   struct icolor c;
 };
 typedef uint16_t mesh_index;
 
-struct engine_graphics
-{
+struct engine_graphics {
   struct vec2 (*getScreenSize)();
   void (*toScreenCoordinate)(struct vec2 *);
   // graphics clear window
@@ -42,8 +38,7 @@ struct engine_graphics
   void (*meshRender)(mesh *, const size_t);
   void (*deleteMesh)(const mesh);
 };
-struct engine_asset
-{
+struct engine_asset {
   void *data;
   void (*funct1)();
   int (*assetBuffer)(const char *, const void **, int *);
@@ -52,20 +47,17 @@ struct engine_asset
   size_t (*assetLength)(int);
   void (*assetClose)(int);
 };
-struct engine_input
-{
+struct engine_input {
   void *data;
   struct vec2 (*getTouch)(size_t);
   void (*funct2)();
 };
-struct engine_extras
-{
+struct engine_extras {
   void *data;
   void (*funct2)();
 };
 
-struct engine
-{
+struct engine {
   struct engine_graphics g;
   struct engine_asset a;
   struct engine_input i;

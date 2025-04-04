@@ -6,8 +6,7 @@
 #include <string.h>
 
 // private value
-static struct android_graphicsManager
-{
+static struct android_graphicsManager {
   ANativeWindow *window;
   EGLDisplay display;
   EGLSurface surface;
@@ -17,14 +16,12 @@ static struct android_graphicsManager
 } *g = 0;
 
 // private function
-enum
-{
+enum {
   TERM_EGL_SURFACE = 1,
   TERM_EGL_CONTEXT = 2,
   TERM_EGL_DISPLAY = 4,
 };
-enum
-{
+enum {
   RESIZE_DISPLAY = 2,
   RESIZE_ONLY = 1,
 };
@@ -36,8 +33,7 @@ extern void android_opengles_resizeInsets(float, float, float, float);
 extern void android_opengles_resizeWindow(float, float);
 extern void android_opengles_invalidateResources();
 extern void android_opengles_term();
-static inline void killEGL(const int EGLTermReq)
-{
+static inline void killEGL(const int EGLTermReq) {
   if (!EGLTermReq || !g->display)
     return;
   android_opengles_invalidateResources();
@@ -58,34 +54,27 @@ static inline void killEGL(const int EGLTermReq)
   }
 }
 // android purpose
-void android_graphicsManager_init()
-{
+void android_graphicsManager_init() {
   android_opengles_init();
   g = (struct android_graphicsManager *)calloc(1, sizeof(struct android_graphicsManager));
 }
-void android_graphicsManager_onWindowCreate(void *w)
-{
+void android_graphicsManager_onWindowCreate(void *w) {
   g->window = (ANativeWindow *)w;
 }
-void android_graphicsManager_onWindowDestroy()
-{
+void android_graphicsManager_onWindowDestroy() {
   killEGL(TERM_EGL_SURFACE);
   g->window = NULL;
 }
-void android_graphicsManager_onWindowResizeDisplay()
-{
+void android_graphicsManager_onWindowResizeDisplay() {
   g->flags |= RESIZE_DISPLAY;
 }
-void android_graphicsManager_onWindowResize()
-{
+void android_graphicsManager_onWindowResize() {
   g->flags |= RESIZE_ONLY;
 }
-void android_graphicsManager_resizeInsets(float x, float y, float z, float w)
-{
+void android_graphicsManager_resizeInsets(float x, float y, float z, float w) {
   android_opengles_resizeInsets(x, y, z, w);
 }
-int android_graphicsManager_preRender()
-{
+int android_graphicsManager_preRender() {
   if (!g->window)
     return 0;
   if (!g->display || !g->context || !g->surface) {
@@ -101,8 +90,7 @@ int android_graphicsManager_preRender()
       if (temp < 1 || temp1 < 3) // unsupported egl version lower than 1.3
         return 0;
       const EGLint configAttr[] = {
-        EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_BUFFER_SIZE, 16, EGL_NONE
-      };
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT, EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER, EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, EGL_CONFORMANT, EGL_OPENGL_ES2_BIT, EGL_BUFFER_SIZE, 16, EGL_NONE};
       eglChooseConfig(g->display, configAttr, NULL, 0, &temp);
       if (temp <= 0)
         return 0;
@@ -133,7 +121,7 @@ int android_graphicsManager_preRender()
       free(conf);
     }
     if (!g->context) {
-      const EGLint ctxAttr[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+      const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       g->context = eglCreateContext(g->display, g->eConfig, NULL, ctxAttr);
       if (!g->context)
         return 0;
@@ -164,8 +152,7 @@ int android_graphicsManager_preRender()
   android_opengles_preRender();
   return 1;
 }
-void android_graphicsManager_postRender()
-{
+void android_graphicsManager_postRender() {
   if (!eglSwapBuffers(g->display, g->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
@@ -186,8 +173,7 @@ void android_graphicsManager_postRender()
     }
   }
 }
-void android_graphicsManager_term()
-{
+void android_graphicsManager_term() {
   eglSwapBuffers(g->display, g->surface);
   android_opengles_term();
   if (g->display) {

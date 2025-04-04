@@ -1,5 +1,4 @@
-extern struct core
-{
+extern struct core {
   float x, y;
 } core_cache;
 

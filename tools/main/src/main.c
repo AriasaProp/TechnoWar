@@ -5,8 +5,7 @@
 
 extern int image_pack(void);
 
-int main(int UNUSED_ARG(argv), char **UNUSED_ARG(args))
-{
+int main(int UNUSED_ARG(argv), char **UNUSED_ARG(args)) {
   printf("Start Core Tools\n");
   if (image_pack())
     return 1;

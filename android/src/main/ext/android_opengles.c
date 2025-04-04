@@ -48,26 +48,22 @@ GLenum error;
 #define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
 // mesh flags for uniform update
-enum
-{
+enum {
   MESH_VERTEX_DIRTY = 1,
   MESH_INDEX_DIRTY = 2,
 };
 // flags global 2d/3d uniform update
-enum
-{
+enum {
   UI_UPDATE = 1,
   WORLD_UPDATE = 2,
 };
 
-static struct opengles_texture
-{
+static struct opengles_texture {
   GLuint id;
   struct uivec2 size;
   void *data;
 } *textures;
-static struct opengles_mesh
-{
+static struct opengles_mesh {
   GLuint vao, vbo, ibo;
   int flags;
   size_t vertex_len, index_len;
@@ -75,8 +71,7 @@ static struct opengles_mesh
   mesh_index *indices;
   float trans[16];
 } *meshes;
-static struct opengles_data
-{
+static struct opengles_data {
   int flags;
   struct
   {
@@ -91,28 +86,24 @@ static struct opengles_data
   struct vec2 viewportSize; //
   struct vec2 screenSize;   //
   struct vec4 insets;
-} src = { 0 };
+} src = {0};
 
 // core implementation
 static struct vec2 android_opengles_getScreenSize() { return src.screenSize; }
-static void android_opengles_toScreenCoordinate(struct vec2 *v)
-{
+static void android_opengles_toScreenCoordinate(struct vec2 *v) {
   v->x -= src.insets.x;
   v->y = src.viewportSize.y - v->y - src.insets.w;
 }
-static void android_opengles_clear(const int m)
-{
+static void android_opengles_clear(const int m) {
   check(glClear(
     (((m & GRAPHICS_CLEAR_COLOR) == GRAPHICS_CLEAR_COLOR) * GL_COLOR_BUFFER_BIT) |
     (((m & GRAPHICS_CLEAR_DEPTH) == GRAPHICS_CLEAR_DEPTH) * GL_DEPTH_BUFFER_BIT) |
     (((m & GRAPHICS_CLEAR_STENCIL) == GRAPHICS_CLEAR_STENCIL) * GL_STENCIL_BUFFER_BIT)));
 }
-static void android_opengles_clearColor(const struct fcolor c)
-{
+static void android_opengles_clearColor(const struct fcolor c) {
   check(glClearColor(c.r, c.g, c.b, c.a));
 }
-static texture android_opengles_genTexture(const struct uivec2 size, void *data)
-{
+static texture android_opengles_genTexture(const struct uivec2 size, void *data) {
   texture i = 1;
   while (i < MAX_RESOURCE) {
     if (textures[i].size.x == 0)
@@ -134,22 +125,18 @@ static texture android_opengles_genTexture(const struct uivec2 size, void *data)
   check(glBindTexture(GL_TEXTURE_2D, 0));
   return i;
 }
-static void android_opengles_bindTexture(const texture t)
-{
+static void android_opengles_bindTexture(const texture t) {
   check(glBindTexture(GL_TEXTURE_2D, textures[t].id));
 }
-static void android_opengles_setTextureParam(const int param, const int val)
-{
+static void android_opengles_setTextureParam(const int param, const int val) {
   check(glTexParameteri(GL_TEXTURE_2D, param, val));
 }
-static void android_opengles_deleteTexture(const texture t)
-{
+static void android_opengles_deleteTexture(const texture t) {
   check(glDeleteTextures(1, &textures[t].id));
   free(textures[t].data);
   memset(textures + t, 0, sizeof(struct opengles_texture));
 }
-static void android_opengles_flatRender(const texture t, struct flat_vertex *v, const size_t l)
-{
+static void android_opengles_flatRender(const texture t, struct flat_vertex *v, const size_t l) {
   check(glDisable(GL_DEPTH_TEST));
   check(glUseProgram(src.ui.shader));
   if (src.flags & UI_UPDATE) {
@@ -173,8 +160,7 @@ static void android_opengles_flatRender(const texture t, struct flat_vertex *v, 
   check(glBindTexture(GL_TEXTURE_2D, 0));
   check(glUseProgram(0));
 }
-static mesh android_opengles_genMesh(struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il)
-{
+static mesh android_opengles_genMesh(struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
   while (m < MAX_RESOURCE) {
     if (meshes[m].vertex_len == 0)
@@ -204,12 +190,10 @@ static mesh android_opengles_genMesh(struct mesh_vertex *v, const size_t vl, mes
   meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
   return m;
 }
-static void android_opengles_setMeshTransform(const mesh ms, float *mat)
-{
+static void android_opengles_setMeshTransform(const mesh ms, float *mat) {
   memcpy(meshes[ms].trans, mat, 16 * sizeof(float));
 }
-static void android_opengles_meshRender(mesh *ms, const size_t l)
-{
+static void android_opengles_meshRender(mesh *ms, const size_t l) {
   check(glEnable(GL_DEPTH_TEST));
   check(glUseProgram(src.world.shader));
   if (src.flags & WORLD_UPDATE) {
@@ -240,8 +224,7 @@ static void android_opengles_meshRender(mesh *ms, const size_t l)
   check(glBindVertexArray(0));
   check(glUseProgram(0));
 }
-static void android_opengles_deleteMesh(mesh m)
-{
+static void android_opengles_deleteMesh(mesh m) {
   check(glDeleteVertexArrays(1, &meshes[m].vao));
   check(glDeleteBuffers(2, &meshes[m].vbo));
   free(meshes[m].vertexs);
@@ -249,8 +232,7 @@ static void android_opengles_deleteMesh(mesh m)
   memset(meshes + m, 0, sizeof(struct opengles_mesh));
 }
 
-void android_opengles_validateResources()
-{
+void android_opengles_validateResources() {
   if (textures[0].id != 0)
     return;
   // when validate, projection need to be update
@@ -406,13 +388,11 @@ void android_opengles_validateResources()
   }
   check(glBindVertexArray(0));
 }
-void android_opengles_preRender()
-{
+void android_opengles_preRender() {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 }
 
-void android_opengles_resizeInsets(float x, float y, float z, float w)
-{
+void android_opengles_resizeInsets(float x, float y, float z, float w) {
   src.insets.x = x;
   src.insets.y = y;
   src.insets.z = z;
@@ -421,8 +401,7 @@ void android_opengles_resizeInsets(float x, float y, float z, float w)
   src.screenSize.y = src.viewportSize.y - y - w;
   src.flags |= UI_UPDATE;
 }
-void android_opengles_resizeWindow(float w, float h)
-{
+void android_opengles_resizeWindow(float w, float h) {
   src.viewportSize.x = w;
   src.viewportSize.y = h;
   check(glViewport(0, 0, w, h));
@@ -430,8 +409,7 @@ void android_opengles_resizeWindow(float w, float h)
   src.screenSize.y = h - src.insets.y - src.insets.w;
   src.flags |= WORLD_UPDATE | UI_UPDATE;
 }
-void android_opengles_invalidateResources()
-{
+void android_opengles_invalidateResources() {
   if (textures[0].id == 0)
     return;
   // world draw
@@ -456,8 +434,7 @@ void android_opengles_invalidateResources()
   }
 }
 
-void android_opengles_init()
-{
+void android_opengles_init() {
   get_engine()->g.getScreenSize = android_opengles_getScreenSize;
   get_engine()->g.toScreenCoordinate = android_opengles_toScreenCoordinate;
   get_engine()->g.clear = android_opengles_clear;
@@ -482,8 +459,7 @@ void android_opengles_init()
   }
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
 }
-void android_opengles_term()
-{
+void android_opengles_term() {
   if (textures[0].id != 0) {
     // world draw
     check(glDeleteProgram(src.world.shader));
