@@ -130,8 +130,8 @@ png_parse_end:
 
 //image reader
 static im_image im_image_read(void *c, read_callback rc, seek_callback sc, eof_callback re) {
+	err_clean();
 	im_image out;
-	
 	// try all decode when only decoder before is return 0
 	// when no matching decoder, at least match signature return error
 	if (
