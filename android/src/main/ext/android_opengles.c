@@ -18,7 +18,8 @@ GLenum error;
 
 #define check(X)                 \
   X;                             \
-  while ((error = glGetError())) LOGE("GL Error in %s with (0x%x)\n", #X, error)
+  while ((error = glGetError())) \
+  LOGE("GL Error in %s with (0x%x)\n", #X, error)
 
 #define checkLinkProgram(X)                        \
   glLinkProgram(X);                                \
@@ -459,8 +460,8 @@ void android_opengles_init() {
     textures[0].data = malloc(4);
     memset(textures[0].data, 0xff, 4);
   }
-  meshes = (struct opengles_mesh *) calloc (sizeof(struct opengles_mesh), MAX_RESOURCE);
-  src = (struct opengles_data *) calloc (1, sizeof (struct opengles_data));
+  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
+  src = (struct opengles_data *)calloc(1, sizeof(struct opengles_data));
 }
 void android_opengles_term() {
   if (textures[0].id) {
@@ -488,7 +489,7 @@ void android_opengles_term() {
     }
   }
 
-  free (textures);
-  free (meshes);
-  free (src);
+  free(textures);
+  free(meshes);
+  free(src);
 }

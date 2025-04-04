@@ -103,7 +103,9 @@ int android_graphicsManager_preRender() {
       do {
         l = 0;
 
-#define EGL_CHECK_CONFIG(X) if (eglGetConfigAttrib(g->display, *configs, X, &temp)) l += temp
+#define EGL_CHECK_CONFIG(X)                               \
+  if (eglGetConfigAttrib(g->display, *configs, X, &temp)) \
+  l += temp
 
         EGL_CHECK_CONFIG(EGL_BUFFER_SIZE);
         EGL_CHECK_CONFIG(EGL_DEPTH_SIZE);
