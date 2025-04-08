@@ -55,7 +55,7 @@ static inline void killEGL(const int EGLTermReq) {
 }
 // android purpose
 void android_graphicsManager_init() {
-  g = (struct android_graphicsManager *)calloc(1, sizeof(struct android_graphicsManager));
+  g = (struct android_graphicsManager *) calloc (1, sizeof(struct android_graphicsManager));
   android_opengles_init();
 }
 void android_graphicsManager_onWindowCreate(ANativeWindow *w) {
@@ -102,18 +102,21 @@ int android_graphicsManager_preRender() {
       size_t k = 0, l;
       do {
         l = 0;
-        if (eglGetConfigAttrib(g->display, *configs, EGL_BUFFER_SIZE, &temp))
-          l += temp;
-        if (eglGetConfigAttrib(g->display, *configs, EGL_DEPTH_SIZE, &temp))
-          l += temp;
-        if (eglGetConfigAttrib(g->display, *configs, EGL_STENCIL_SIZE, &temp))
-          l += temp;
+
+#define EGL_CONFIG_EVA(X) if (eglGetConfigAttrib(g->display, *configs, X, &temp)) l += temp
+
+        EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
+        EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
+        EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
+
+#undef EGL_CONFIG_EVA
+
         if (l > k) {
           k = l;
           g->eConfig = *configs;
         }
       } while (++configs < configs_end);
-      free(conf);
+      free (conf);
     }
     if (!g->context) {
       const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
@@ -187,5 +190,5 @@ void android_graphicsManager_term() {
     g->display = EGL_NO_DISPLAY;
   }
   memset(&get_engine()->g, 0, sizeof(struct engine_graphics));
-  free(g);
+  free (g);
 }
