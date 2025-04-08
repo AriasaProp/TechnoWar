@@ -29,12 +29,12 @@ GLenum error;
     LOGE("Shader link: %s", msg);               \
   }
 
-#define checkCompileShader(X)                              \
-  glCompileShader(X);                                      \
-  glGetShaderiv(X, GL_COMPILE_STATUS, &success);           \
-  if (!success) {                                          \
-    glGetShaderInfoLog(X, MAX_MSG, NULL, msg);             \
-    LOGE("Shader compile: %s", msg);											 \
+#define checkCompileShader(X)                    \
+  glCompileShader(X);                            \
+  glGetShaderiv(X, GL_COMPILE_STATUS, &success); \
+  if (!success) {                                \
+    glGetShaderInfoLog(X, MAX_MSG, NULL, msg);   \
+    LOGE("Shader compile: %s", msg);             \
   }
 
 #else
