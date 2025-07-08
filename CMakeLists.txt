@@ -47,8 +47,9 @@ target_link_libraries(tests PRIVATE core)
 
 ## Android Backend
 set(ANDROID_BACKEND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/android/backend")
+file(GLOB_RECURSE ANDROID_BACKEND_SRCS "${ANDROID_BACKEND_PATH}/*.c")
 
-add_library(android_backend SHARED "${ANDROID_BACKEND_PATH}/*.c")
+add_library(android_backend SHARED ${ANDROID_BACKEND_SRCS})
 target_compile_definitions(android_backend PRIVATE 
   ANDROID_STL=c_static
   _IDENTITY_=${BUILD_ID}
