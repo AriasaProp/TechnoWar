@@ -1,7 +1,0 @@
-/storage/emulated/0/prj/TechnoWar/tools/CMakeFiles/rebuild_cache.dir
-/storage/emulated/0/prj/TechnoWar/tools/CMakeFiles/edit_cache.dir
-/storage/emulated/0/prj/TechnoWar/tools/CMakeFiles/tools_test.dir
-/storage/emulated/0/prj/TechnoWar/tools/CMakeFiles/tools.dir
-/storage/emulated/0/prj/TechnoWar/tools/build/core/CMakeFiles/rebuild_cache.dir
-/storage/emulated/0/prj/TechnoWar/tools/build/core/CMakeFiles/edit_cache.dir
-/storage/emulated/0/prj/TechnoWar/tools/build/core/CMakeFiles/core.dir

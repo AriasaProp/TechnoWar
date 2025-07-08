@@ -10,7 +10,7 @@ import android.widget.Toast;
 
 public class MainActivity extends NativeActivity implements View.OnApplyWindowInsetsListener {
   static {
-    System.loadLibrary ("ext");
+    System.loadLibrary ("android_backend");
   }
 
   @Override
