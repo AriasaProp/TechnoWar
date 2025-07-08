@@ -55,7 +55,7 @@ target_compile_definitions(android_backend PRIVATE
   _IDENTITY_=${BUILD_ID}
 )
 target_compile_options(android_backend PRIVATE
-  "-fexceptions -frtti"
+  -fexceptions -frtti
 )
 target_include_directories(android_backend PRIVATE ${ANDROID_BACKEND_PATH} ${CORE_PATH_INCLUDE})
 target_link_libraries(android_backend PRIVATE core GLESv3 android EGL log m)
