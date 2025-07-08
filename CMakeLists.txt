@@ -46,7 +46,7 @@ target_include_directories(tests PRIVATE ${TESTS_PATH_INCLUDE} ${TOOLS_PATH_INCL
 target_link_libraries(tests PRIVATE core)
 
 ## Android Backend
-set(ANDROID_BACKEND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/backend")
+set(ANDROID_BACKEND_PATH "${CMAKE_CURRENT_SOURCE_DIR}/android/backend")
 
 add_library(android_backend SHARED "${ANDROID_BACKEND_PATH}/*.c")
 target_compile_definitions(android_backend PRIVATE 
