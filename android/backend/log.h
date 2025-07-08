@@ -19,4 +19,5 @@ extern char ErrorListed[2048];
 #define LOGE(...) ((void)__android_log_print (ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__))
 #endif // NDEBUG
 
+
 #endif // Included_LOG
