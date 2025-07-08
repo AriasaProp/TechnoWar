@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.42)
+cmake_minimum_required(VERSION 3.22)
 project(
   TechnoWar
   VERSION 0.0.1
