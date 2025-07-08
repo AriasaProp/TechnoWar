@@ -53,14 +53,13 @@ jobs:
       - name: Run Test
         if: steps.changes.outputs.core == 'true'
         run: |
-          cd tools
           cmake -S . -B build
-          cmake --build build
+          cmake --build build -t tests
           if [ $? -ne 0 ]; then
             echo "❌ Build failed!"
             exit 1
           fi
-          ./build/tools_test
+          ./build/tests
           
 #      - name: Upload Artifact
 #        uses: actions/upload-artifact@v4.3.3
