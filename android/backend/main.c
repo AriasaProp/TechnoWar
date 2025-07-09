@@ -142,8 +142,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   return 1;
 }
 
-static void *android_app_entry(void *param) {
-  
+static void *android_app_entry(void *) {
   app->looper = ALooper_prepare(0);
   ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
@@ -308,7 +307,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
     return;
   }
   app->config = AConfiguration_new();
-  ANativeActivity *activity = (ANativeActivity *)param;
   AConfiguration_fromAssetManager(app->config, activity->assetManager);
 
   engine_init();
@@ -319,7 +317,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&app->thread, &attr, android_app_entry, activity);
+  pthread_create(&app->thread, &attr, android_app_entry, NULL);
 }
 
 
@@ -328,20 +326,20 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 void toast_message(const char *msg, ...) {
   if (!app) return;
   JNIEnv *env;
-  if (JNI_OK != AttachCurrentThread(app->activity->vm, reinterpret_cast<void**>(&env), NULL))
+  if (JNI_OK != (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, reinterpret_cast<void**>(&env), NULL))
     return;
   
 	static char tmp[LOGMESSAGE_LEN];
   va_list args;
   va_start(args, msg);
-  vsnprintf(msg, LOGMESSAGE_LEN, msg, args);
+  vsnprintf(tmp, LOGMESSAGE_LEN, msg, args);
   va_end(args);
   jclass cls = (*env)->GetObjectClass(env, app->activity->clazz);
   jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
   jstring jmsg = (*env)->NewStringUTF(env, tmp);
- (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
+  (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
   
-  DetachCurrentThread (app->activity->vm);
+  (*(app->activity->vm))->DetachCurrentThread (app->activity->vm);
 }
 void finish_activity() {
   if (!app) return;
@@ -354,16 +352,16 @@ void insetNative(jint left, jint top, jint right, jint bottom) {
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   JNIEnv* env;
-  if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+  if ((*vm)->GetEnv(vm, reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
     return JNI_ERR;
   }
-  jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
+  jclass c = (*env)->FindClass(env, "com/ariasaproject/technowar/MainActivity");
   if (!c) return JNI_ERR;
   // Register your class' native methods.
   static const JNINativeMethod methods[] = {
     {"insetNative", "(IIII)V", reinterpret_cast<void*>(insetNative)},
   };
-  int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
+  int rc = (*env)->RegisterNatives(env, c, methods, sizeof(methods)/sizeof(JNINativeMethod));
   if (rc != JNI_OK) return rc;
   
   
