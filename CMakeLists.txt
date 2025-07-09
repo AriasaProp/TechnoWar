@@ -23,7 +23,7 @@ execute_process(
     RESULT_VARIABLE GIT_COMMAND_RESULT
 )
 
-if(GIT_COMMAND_RESULT NOTEQUAL 0)
+if(NOT GIT_COMMAND_RESULT EQUAL 0)
     error("Could not determine Git branch. Setting to 'unknown'. Git command result: ${GIT_COMMAND_RESULT}")
     exit()
 endif()
