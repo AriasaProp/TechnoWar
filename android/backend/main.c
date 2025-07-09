@@ -1,6 +1,7 @@
 #include <android/configuration.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
+#include <android/input.h>
 
 #include <errno.h>
 #include <jni.h>
@@ -14,11 +15,17 @@
 #include <unistd.h>
 
 #include "main.h"
-#include "manager.h"
 
 #include "core.h"
 #include "engine.h"
 #include "util.h"
+
+extern void android_inputManager_init(ALooper *);
+extern void android_inputManager_createInputQueue (AInputQueue *);
+extern void android_inputManager_destroyInputQueue ();
+extern void android_inputManager_enableSensor ();
+extern void android_inputManager_disableSensor ();
+extern void android_inputManager_term ();
 
 extern void opengles_init ();
 extern void opengles_onWindowCreate (ANativeWindow *);
