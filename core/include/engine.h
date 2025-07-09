@@ -13,22 +13,22 @@ enum {
 typedef uint16_t texture; // 16bit uint as texture index
 typedef uint16_t mesh;    // use 16bit uint as mesh index
 struct flat_vertex {
-  struct vec2 pos, uv;
+  vec2 pos, uv;
 };
 struct mesh_vertex {
-  struct vec3 pos;
-  struct icolor c;
+  vec3 pos;
+  icolor c;
 };
 typedef uint16_t mesh_index;
 
 struct engine_graphics {
-  struct vec2 (*getScreenSize)();
-  void (*toScreenCoordinate)(struct vec2 *);
+  vec2 (*getScreenSize)();
+  void (*toScreenCoordinate)(vec2 *);
   // graphics clear window
   void (*clear)(const int);
   // set graphics clear color window
-  void (*clearColor)(const struct fcolor);
-  texture (*genTexture)(const struct uivec2, void *);
+  void (*clearColor)(const fcolor);
+  texture (*genTexture)(const uivec2, void *);
   void (*bindTexture)(const texture);
   void (*setTextureParam)(const int, const int);
   void (*deleteTexture)(const texture);
@@ -49,7 +49,7 @@ struct engine_asset {
 };
 struct engine_input {
   void *data;
-  struct vec2 (*getTouch)(size_t);
+  vec2 (*getTouch)(size_t);
   void (*funct2)();
 };
 struct engine_extras {

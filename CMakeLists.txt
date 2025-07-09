@@ -14,6 +14,27 @@ set(CMAKE_C_EXTENSION OFF)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(COMPILE_WARNING_AS_ERROR ON)
 
+# generate variables
+execute_process(
+    COMMAND git rev-parse --abbrev-ref HEAD
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE GIT_COMMAND_RESULT
+)
+
+if(GIT_COMMAND_RESULT NOTEQUAL 0)
+    error("Could not determine Git branch. Setting to 'unknown'. Git command result: ${GIT_COMMAND_RESULT}")
+    exit()
+endif()
+
+# Common variable
+add_compile_definitions(
+    BUILD_BRANCH=${GIT_BRANCH}
+    # send message to log / console
+    $<IF:$<CONFIG:Debug>, _DEBUG,>
+)
+
 ## Core
 set(CORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core")
 set(CORE_PATH_INCLUDE "${CORE_PATH}/include")
@@ -21,12 +42,6 @@ file(GLOB_RECURSE CORE_SRCS "${CORE_PATH}/src/*.c")
 add_library(core STATIC ${CORE_SRCS})
 target_include_directories(core PUBLIC ${CORE_PATH_INCLUDE})
 target_link_libraries(core PUBLIC m)
-execute_process(
-    COMMAND git rev-parse --abbrev-ref HEAD
-    OUTPUT_VARIABLE BUILD_BRANCH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-target_compile_definitions(core PRIVATE BUILD_BRANCH=${BUILD_BRANCH})
 
 ## Tools
 set(TOOLS_PATH "${CMAKE_CURRENT_SOURCE_DIR}/tools")
@@ -51,11 +66,11 @@ file(GLOB_RECURSE ANDROID_BACKEND_SRCS "${ANDROID_BACKEND_PATH}/*.c")
 
 add_library(android_backend SHARED ${ANDROID_BACKEND_SRCS})
 target_compile_definitions(android_backend PRIVATE 
-  ANDROID_STL=c_static
-  _IDENTITY_=${BUILD_ID}
+    ANDROID_STL=c_static
+    _IDENTITY_=${BUILD_ID}
 )
 target_compile_options(android_backend PRIVATE
-  -fexceptions -frtti
+    -fexceptions -frtti
 )
 target_include_directories(android_backend PRIVATE ${ANDROID_BACKEND_PATH} ${CORE_PATH_INCLUDE})
 target_link_libraries(android_backend PRIVATE core GLESv3 android EGL log m)

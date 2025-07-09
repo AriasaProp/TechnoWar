@@ -49,7 +49,7 @@ void matrix4_mul(float *a, float *b) {
   }
   memcpy(a, temp, 16 * sizeof(float));
 }
-void matrix4_rotateDeg(float *m, struct vec3 deg) {
+void matrix4_rotateDeg(float *m, vec3 deg) {
   static float temp[16];
   // yaw
   float yawSin = sin(deg.x / 180.0f * M_PI), yawCos = cos(deg.x / 180.0f * M_PI);

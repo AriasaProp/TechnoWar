@@ -68,24 +68,12 @@ typedef unsigned __int64 size_t;
 //  Constant dan Variabel
 // ================================
 
-struct fcolor {
-  float r, g, b, a;
-};
-struct icolor {
-  uint8_t r, g, b, a;
-}; // packed color bit
-struct vec2 {
-  float x, y;
-};
-struct vec3 {
-  float x, y, z;
-};
-struct uivec2 {
-  uint16_t x, y;
-};
-struct vec4 {
-  float x, y, z, w;
-};
+typedef struct { float r, g, b, a; } fcolor; // hex color
+typedef struct { uint8_t r, g, b, a; } icolor; // packed color bit
+typedef struct { float x, y; } vec2;
+typedef struct { float x, y, z; } vec3;
+typedef struct { float x, y, z, w; } vec4;
+typedef struct { uint16_t x, y; } uivec2;
 
 // ===============================
 //  Function
@@ -101,6 +89,6 @@ extern int convert_wchar_to_utf8(char *, size_t, const wchar_t *);
 extern int lrotl(int, size_t);
 extern int lrotr(int, size_t);
 extern void matrix4_idt(float *);
-extern void matrix4_rotateDeg(float *, struct vec3);
+extern void matrix4_rotateDeg(float *, vec3);
 
 #endif // UTIL_INCLUDED_

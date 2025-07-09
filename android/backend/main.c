@@ -13,11 +13,23 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include "main.h"
+#include "manager.h"
+
 #include "core.h"
 #include "engine.h"
-#include "log.h"
-#include "manager.h"
 #include "util.h"
+
+extern void opengles_init ();
+extern void opengles_onWindowCreate (ANativeWindow *);
+extern void opengles_onWindowDestroy ();
+extern void opengles_onWindowResizeDisplay ();
+extern void opengles_onWindowResize ();
+extern void opengles_resizeInsets (float, float, float, float);
+extern int  opengles_preRender ();
+extern void opengles_postRender ();
+extern void opengles_term ();
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -94,17 +106,17 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     android_inputManager_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    android_graphicsManager_onWindowCreate((ANativeWindow *)rmsg.data);
+    opengles_onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    android_graphicsManager_onWindowResize();
+    opengles_onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    android_graphicsManager_onWindowResizeDisplay();
+    opengles_onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
     android_inputManager_enableSensor();
@@ -124,22 +136,11 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
 }
 
 static void *android_app_entry(void *param) {
-  app->config = AConfiguration_new();
-  ANativeActivity *activity = (ANativeActivity *)param;
-  AConfiguration_fromAssetManager(app->config, activity->assetManager);
-
+  
   app->looper = ALooper_prepare(0);
   ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
-  engine_init();
   android_inputManager_init(app->looper);
-  android_graphicsManager_init();
-
-  pthread_mutex_lock(&app->mutex);
-  app->stateApp |= STATE_APP_INIT;
-  pthread_cond_broadcast(&app->cond);
-  pthread_mutex_unlock(&app->mutex);
-
   while (app->stateApp & STATE_APP_INIT) {
     int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
 
@@ -148,18 +149,18 @@ static void *android_app_entry(void *param) {
     }
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
-        (app->stateApp & STATE_APP_RUNNING) &&
-        android_graphicsManager_preRender()) {
+       (app->stateApp & STATE_APP_RUNNING) &&
+        opengles_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
-          (app->delayed_cmdState == APP_CMD_PAUSE)) {
+         (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      android_graphicsManager_postRender();
+      opengles_postRender();
     }
     switch (app->delayed_cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      android_graphicsManager_onWindowDestroy();
+      opengles_onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -173,7 +174,6 @@ static void *android_app_entry(void *param) {
     }
   }
   Main_term();
-  android_graphicsManager_term();
   android_inputManager_term();
 
   AConfiguration_delete(app->config);
@@ -211,7 +211,8 @@ static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
     pthread_cond_wait(&app->cond, &app->mutex);
   }
   pthread_mutex_unlock(&app->mutex);
-
+  
+  opengles_term();
   close(app->msgread);
   close(app->msgwrite);
   pthread_cond_destroy(&app->cond);
@@ -299,37 +300,70 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
     LOGE("could not create pipe: %s", strerror(errno));
     return;
   }
+  app->config = AConfiguration_new();
+  ANativeActivity *activity = (ANativeActivity *)param;
+  AConfiguration_fromAssetManager(app->config, activity->assetManager);
+
+  engine_init();
+  opengles_init();
+
+  app->stateApp |= STATE_APP_INIT;
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, activity);
-
-  // Wait for thread to start.
-  pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_INIT)) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
-  pthread_mutex_unlock(&app->mutex);
 }
 
-#ifdef NDEBUG
-char ErrorListed[2048];
-#endif
+
+#define LOGMESSAGE_LEN 2048
+// define to send toast text in android
+void toast_message(const char *msg, ...) {
+  if (!app) return;
+  JNIEnv *env;
+  if (JNI_OK != AttachCurrentThread(app->activity->vm, reinterpret_cast<void**>(&env), NULL))
+    return;
+  
+	static char tmp[LOGMESSAGE_LEN];
+  va_list args;
+  va_start(args, msg);
+  vsnprintf(msg, LOGMESSAGE_LEN, msg, args);
+  va_end(args);
+  jclass cls = (*env)->GetObjectClass(env, app->activity->clazz);
+  jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+  jstring jmsg = (*env)->NewStringUTF(env, tmp);
+ (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
+  
+  DetachCurrentThread (app->activity->vm);
+}
+void finish_activity() {
+  if (!app) return;
+  ANativeActivity_finish (app->activity);
+}
 // native MainActivity.java
-
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
-  android_graphicsManager_resizeInsets(left, top, right, bottom);
-#ifdef NDEBUG
-  if (ErrorListed[0]) {
-    jclass cls = (*env)->GetObjectClass(env, o);
-    jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
-    jstring jmsg = (*env)->NewStringUTF(env, ErrorListed);
-    (*env)->CallVoidMethod(env, o, id, jmsg);
-    memset(ErrorListed, 0, 2048);
-  }
-#else
-  ((void)env);
-  ((void)o);
-#endif
+void insetNative(jint left, jint top, jint right, jint bottom) {
+  opengles_resizeInsets(left, top, right, bottom);
 }
+
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+  JNIEnv* env;
+  if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+    return JNI_ERR;
+  }
+  jclass c = env->FindClass("com/ariasaproject/technowar/MainActivity");
+  if (!c) return JNI_ERR;
+  // Register your class' native methods.
+  static const JNINativeMethod methods[] = {
+    {"insetNative", "(IIII)V", reinterpret_cast<void*>(insetNative)},
+  };
+  int rc = env->RegisterNatives(c, methods, sizeof(methods)/sizeof(JNINativeMethod));
+  if (rc != JNI_OK) return rc;
+  
+  
+  
+  
+  
+  
+  return JNI_VERSION_1_6;
+}
+

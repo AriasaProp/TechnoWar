@@ -112,4 +112,5 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
 
   // c implementation
   native void insetNative(int left, int top, int right, int bottom);
+  
 }
