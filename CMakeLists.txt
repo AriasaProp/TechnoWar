@@ -32,7 +32,7 @@ endif()
 add_compile_definitions(
     BUILD_BRANCH=${GIT_BRANCH}
     # send message to log / console
-    $<IF:$<CONFIG:Debug>,_DEBUG>
+    $<IF:$<CONFIG:Debug>,_DEBUG,>
 )
 
 
