@@ -142,7 +142,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   return 1;
 }
 
-static void *android_app_entry(void *) {
+static void *android_app_entry(void *UNUSED_ARG(p)) {
   app->looper = ALooper_prepare(0);
   ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
@@ -326,7 +326,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 void toast_message(const char *msg, ...) {
   if (!app) return;
   JNIEnv *env;
-  if (JNI_OK != (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, reinterpret_cast<void**>(&env), NULL))
+  if (JNI_OK != (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, (void**)&env, NULL))
     return;
   
 	static char tmp[LOGMESSAGE_LEN];
@@ -352,14 +352,14 @@ void insetNative(jint left, jint top, jint right, jint bottom) {
 
 JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   JNIEnv* env;
-  if ((*vm)->GetEnv(vm, reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+  if ((*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6) != JNI_OK) {
     return JNI_ERR;
   }
   jclass c = (*env)->FindClass(env, "com/ariasaproject/technowar/MainActivity");
   if (!c) return JNI_ERR;
   // Register your class' native methods.
   static const JNINativeMethod methods[] = {
-    {"insetNative", "(IIII)V", reinterpret_cast<void*>(insetNative)},
+    {"insetNative", "(IIII)V", (void*)insetNative},
   };
   int rc = (*env)->RegisterNatives(env, c, methods, sizeof(methods)/sizeof(JNINativeMethod));
   if (rc != JNI_OK) return rc;
