@@ -35,7 +35,7 @@ static struct android_inputManager {
     vec2 pos;
   } pointers[MAX_POINTER];
 } *m = NULL;
-
+ 
 // core implementation
 static vec2 getTouch(size_t p) {
   return m->pointers[p].pos;
