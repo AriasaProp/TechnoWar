@@ -17,7 +17,7 @@ static void logGLError(const char *x) {
     LOGE("Err %s 0x%x\n", x, error);
   }
 }
-#define check(X) X, logGLError(#X)
+#define check(X) X; logGLError(#X)
 static void logProgramStatusErr(GLuint x) {
   static GLchar msg[MAX_MSG];
   static GLint success;
