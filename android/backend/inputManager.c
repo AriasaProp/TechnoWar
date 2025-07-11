@@ -32,15 +32,12 @@ static struct android_inputManager {
   } sensor_data[MAX_SENSOR_COUNT];
 
   int flags;
-  struct
-  {
-    struct vec2 pos;
-  } pointers[MAX_POINTER];
+  vec2 pointers[MAX_POINTER];
 } *m = NULL;
 
 // core implementation
-static struct vec2 getTouch(size_t p) {
-  return m->pointers[p].pos;
+static vec2 getTouch(size_t p) {
+  return m->pointers[p];
 }
 
 // processing input
@@ -54,8 +51,8 @@ static int android_inputManager_processInput(int UNUSED_ARG(fd), int UNUSED_ARG(
     return 1;
   int32_t handled = 0;
   if (AInputEvent_getType(outEvent) == AINPUT_EVENT_TYPE_MOTION) {
-    m->pointers[0].pos.x = AMotionEvent_getX(outEvent, 0);
-    m->pointers[0].pos.y = AMotionEvent_getY(outEvent, 0);
+    m->pointers[0].x = AMotionEvent_getX(outEvent, 0);
+    m->pointers[0].y = AMotionEvent_getY(outEvent, 0);
     handled = 1;
   }
   AInputQueue_finishEvent(m->inputQueue, outEvent, handled);
