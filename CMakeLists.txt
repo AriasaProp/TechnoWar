@@ -73,4 +73,4 @@ set_target_properties(android_backend PROPERTIES
     CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
 )
 target_compile_options(android_backend PRIVATE -fexceptions -frtti)
-target_compile_definitions(android_backend PRIVATE ANDROID_STL=c_static)
+target_compile_definitions(android_backend PRIVATE ANDROID_STL=c_static _IDENTITY=${BUILD_ID})
