@@ -38,8 +38,6 @@ android {
 		    signingConfig signingConfigs.mainSign
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-
-        externalNativeBuild.cmake.arguments -DANDROID_STL=c_static, -fexceptions, -frtti
 		}
     externalNativeBuild.cmake.path "../CMakeLists.txt"
 		buildTypes {
