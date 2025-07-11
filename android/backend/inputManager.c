@@ -46,8 +46,7 @@ static int androidInput_processInput(int UNUSED_ARG(fd), int UNUSED_ARG(event), 
   if (
     !m->inputQueue ||
     (AInputQueue_getEvent(m->inputQueue, &outEvent) < 0) ||
-    AInputQueue_preDispatchEvent(m->inputQueue, outEvent)
-  )
+    AInputQueue_preDispatchEvent(m->inputQueue, outEvent))
     return 1;
   int32_t handled = 0;
   if (AInputEvent_getType(outEvent) == AINPUT_EVENT_TYPE_MOTION) {
