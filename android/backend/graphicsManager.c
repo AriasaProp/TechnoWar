@@ -150,6 +150,7 @@ int android_graphicsManager_preRender() {
     g->flags &= ~RESIZE_ONLY;
   }
   android_opengles_preRender();
+  LOGE("Reach preRender");
   return 1;
 }
 void android_graphicsManager_postRender() {
