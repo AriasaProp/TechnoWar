@@ -60,7 +60,7 @@ enum {
 
 static struct opengles_texture {
   GLuint id;
-  struct uivec2 size;
+  uivec2 size;
   void *data;
 } *textures;
 static struct opengles_mesh {
@@ -100,10 +100,10 @@ static void android_opengles_clear(const int m) {
     (((m & GRAPHICS_CLEAR_DEPTH) == GRAPHICS_CLEAR_DEPTH) * GL_DEPTH_BUFFER_BIT) |
     (((m & GRAPHICS_CLEAR_STENCIL) == GRAPHICS_CLEAR_STENCIL) * GL_STENCIL_BUFFER_BIT)));
 }
-static void android_opengles_clearColor(const struct fcolor c) {
+static void android_opengles_clearColor(const fcolor c) {
   check(glClearColor(c.r, c.g, c.b, c.a));
 }
-static texture android_opengles_genTexture(const struct uivec2 size, void *data) {
+static texture android_opengles_genTexture(const uivec2 size, void *data) {
   texture i = 1;
   while (i < MAX_RESOURCE) {
     if (textures[i].size.x == 0)
