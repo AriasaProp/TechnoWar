@@ -1,6 +1,6 @@
 #include "engine.h"
-#include "util.h"
 #include "log.h"
+#include "util.h"
 
 #include <EGL/egl.h>
 #include <android/native_window.h>
