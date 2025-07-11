@@ -39,6 +39,15 @@ android {
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 		}
+    externalNativeBuild {
+        cmake {
+            path "../CMakeLists.txt"
+            arguments
+                "-DANDROID_STL=c_static"
+                "-fexceptions -frtti"
+                "-DANDROID_LDLIBS_PRIVATE=\"-u ANativeActivity_onCreate\""
+        }
+    }
 		buildTypes {
 				debug {
 						minifyEnabled false
@@ -57,9 +66,6 @@ android {
             }
 				}
 		}
-    externalNativeBuild {
-        cmake.path "../CMakeLists.txt"
-    }
     compileOptions {
 				sourceCompatibility JavaVersion.VERSION_17
 				targetCompatibility JavaVersion.VERSION_17
