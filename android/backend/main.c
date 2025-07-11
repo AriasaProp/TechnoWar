@@ -143,10 +143,20 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
 }
 
 static void *android_app_entry(void *UNUSED_ARG(p)) {
+  app->config = AConfiguration_new();
+  AConfiguration_fromAssetManager(app->config, activity->assetManager);
+
   app->looper = ALooper_prepare(0);
   ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
+  engine_init();
+  opengles_init();
   android_inputManager_init(app->looper);
+
+  pthread_mutex_lock(&app->mutex);
+  app->stateApp |= STATE_APP_INIT;
+  pthread_cond_broadcast(&app->cond);
+  pthread_mutex_unlock(&app->mutex);
   while (app->stateApp & STATE_APP_INIT) {
     int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
 
@@ -181,8 +191,10 @@ static void *android_app_entry(void *UNUSED_ARG(p)) {
   }
   Main_term();
   android_inputManager_term();
+  opengles_term();
 
   AConfiguration_delete(app->config);
+  
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_broadcast(&app->cond);
@@ -195,13 +207,11 @@ static struct msg_pipe wmsg;
 static void android_app_write_cmd(int8_t cmd, void *data) {
   wmsg.cmd = cmd;
   wmsg.data = data;
-  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
+  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
-  }
   pthread_mutex_lock(&app->mutex);
-  while (app->cmdState != cmd) {
+  while (app->cmdState != cmd)
     pthread_cond_wait(&app->cond, &app->mutex);
-  }
   pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
 }
@@ -213,12 +223,10 @@ static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   }
   pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_DESTROY)) {
+  while (!(app->stateApp & STATE_APP_DESTROY))
     pthread_cond_wait(&app->cond, &app->mutex);
-  }
   pthread_mutex_unlock(&app->mutex);
   
-  opengles_term();
   close(app->msgread);
   close(app->msgwrite);
   pthread_cond_destroy(&app->cond);
@@ -306,18 +314,18 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
     LOGE("could not create pipe: %s", strerror(errno));
     return;
   }
-  app->config = AConfiguration_new();
-  AConfiguration_fromAssetManager(app->config, activity->assetManager);
-
-  engine_init();
-  opengles_init();
-
-  app->stateApp |= STATE_APP_INIT;
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, NULL);
+  pthread_attr_destroy(&attr);
+  
+  pthread_mutex_lock(&app->mutex);
+  while (!(app->stateApp & STATE_APP_INIT))
+    pthread_cond_wait(&app->cond, &app->mutex);
+  pthread_mutex_unlock(&app->mutex);
+  
 }
 
 
