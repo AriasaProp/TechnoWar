@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <GLES3/gl32.h> //API 24
 #include <EGL/egl.h>
+#include <GLES3/gl32.h> //API 24
 #include <android/native_window.h>
 
 // opengles wrapper
@@ -17,8 +17,10 @@ static GLint success;
 static GLchar msg[MAX_GL_ERR_MSG];
 static GLenum error;
 
-#define check(X) X;                             \
-  while ((error = glGetError())) LOGE("GLErr in %s with (0x%x)\n", #X, error)
+#define check(X)                 \
+  X;                             \
+  while ((error = glGetError())) \
+  LOGE("GLErr in %s with (0x%x)\n", #X, error)
 static void checkLinkProgram(GLint X) {
   glLinkProgram(X);
   glGetProgramiv(X, GL_LINK_STATUS, &success);
@@ -526,7 +528,7 @@ static inline void killEGL(const int EGLTermReq) {
 void androidGraphics_init() {
   android_opengles_init();
   g = (struct android_graphicsManager *)calloc(1, sizeof(struct android_graphicsManager));
-  androidGraphics_resizeInsets (0,0,0,0)
+  androidGraphics_resizeInsets(0, 0, 0, 0)
 }
 void androidGraphics_onWindowCreate(void *w) {
   g->window = (ANativeWindow *)w;
@@ -545,7 +547,8 @@ void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   android_opengles_resizeInsets(x, y, z, w);
 }
 int androidGraphics_preRender() {
-  if (!g->window) return 0;
+  if (!g->window)
+    return 0;
   if (!g->display || !g->context || !g->surface) {
     LOGV("Start preRender resources build");
     if (!g->display) {
@@ -560,7 +563,7 @@ int androidGraphics_preRender() {
 
       EGLint temp, temp1;
       eglInitialize(g->display, &temp, &temp1);
-      if (temp < 1 || temp1 < 3) {// unsupported egl version lower than 1.3
+      if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
         LOGV("Unsupported EGL version");
         return 0;
       }
@@ -580,7 +583,9 @@ int androidGraphics_preRender() {
       do {
         l = 0;
 
-#define EGL_CHECK_CONFIG(X) if (eglGetConfigAttrib(g->display, *configs, X, &temp)) l += temp
+#define EGL_CHECK_CONFIG(X)                               \
+  if (eglGetConfigAttrib(g->display, *configs, X, &temp)) \
+  l += temp
         EGL_CHECK_CONFIG(EGL_BUFFER_SIZE);
         EGL_CHECK_CONFIG(EGL_DEPTH_SIZE);
         EGL_CHECK_CONFIG(EGL_STENCIL_SIZE);
