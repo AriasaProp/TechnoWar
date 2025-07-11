@@ -38,14 +38,15 @@ android {
 		    signingConfig signingConfigs.mainSign
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-		}
-    externalNativeBuild {
-        cmake {
-            path "../CMakeLists.txt"
-            arguments "-DANDROID_STL=c_static -fexceptions -frtti",
-                "-DANDROID_LDLIBS_PRIVATE=\"-u ANativeActivity_onCreate\""
+        
+        externalNativeBuild {
+            cmake {
+                path "../CMakeLists.txt"
+                arguments "-DANDROID_STL=c_static -fexceptions -frtti",
+                    "-DANDROID_LDLIBS_PRIVATE=\"-u ANativeActivity_onCreate\""
+            }
         }
-    }
+		}
 		buildTypes {
 				debug {
 						minifyEnabled false
