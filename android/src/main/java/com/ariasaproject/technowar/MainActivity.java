@@ -5,16 +5,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 import android.view.View;
-import android.view.WindowInsets;
+// import android.view.WindowInsets;
 import android.widget.Toast;
 
-public class MainActivity extends NativeActivity implements View.OnApplyWindowInsetsListener {
+public class MainActivity extends NativeActivity /* implements View.OnApplyWindowInsetsListener */ {
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().getDecorView().setOnApplyWindowInsetsListener(this);
   }
-
+/*
   @Override
   public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
     int insetsL = 0, insetsT = 0, insetsR = 0, insetsB = 0;
@@ -54,7 +54,7 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
     insetNative(insetsL, insetsT, insetsR, insetsB);
     return insets;
   }
-
+*/
   @Override
   public void surfaceCreated(SurfaceHolder holder) {
     super.surfaceCreated(holder);
@@ -107,5 +107,5 @@ public class MainActivity extends NativeActivity implements View.OnApplyWindowIn
   }
 
   // c implementation
-  native void insetNative(int left, int top, int right, int bottom);
+  //native void insetNative(int left, int top, int right, int bottom);
 }
