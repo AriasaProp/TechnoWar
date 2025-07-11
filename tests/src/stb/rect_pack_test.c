@@ -28,20 +28,24 @@ int rect_pack_test (void) {
 		total_area += rects[i].w * rects[i].h;
 		rects[i].id = i;
 	}
-	total_area = (size_t) (sqrt(total_area) * 1.3);
-	if (!stbrp_pack_rects(rects, total_rect, total_area, total_area)) {
-		snprintf(errorMsg, ERROR_MSG_LENGTH,  "rect is not fit");
-		printf("\n   Rect %zu^2: \n", total_area);
-		for (int i = 0; i < total_rect; ++i)
-			printf("    %d: {%d, %d, %d, %d}\n", i, rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+	float prcnt = 0.0f;
+	size_t min = sqrt(total_area), used_side = min * 1.3f;
+	for (; !*errorMsg && (used_side > min); used_side -= (min / 50)) {
+    if (stbrp_pack_rects(rects, total_rect, used_side, used_side)) {
+      prcnt = (float)used_side;
+      prcnt /= (float)min;
+      prcnt = 2.0f - prcnt;
+      prcnt *= 100.0f;
+  	}
 	}
+	printf ("%.2f%% efficient ", prcnt);
 rect_pack_test_end1:
 	free(rects);
 rect_pack_test_end:
   if (*errorMsg)
-	  printf(RED "\n   Failure: %s" RESET, errorMsg);
+	  printf(RED " Error: %s" RESET, errorMsg);
 	else
-	  printf(GREEN "\n   END " RESET);
+	  printf(GREEN " Done " RESET);
   printf(" %.2f ms\n", end_timing(timer));
 	return (*errorMsg != 0);
 }

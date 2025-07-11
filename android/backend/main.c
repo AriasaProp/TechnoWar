@@ -1,7 +1,7 @@
 #include <android/configuration.h>
-#include <android/input.h>
 #include <android/looper.h>
 #include <android/native_activity.h>
+#include <android/input.h>
 
 #include <errno.h>
 #include <jni.h>
@@ -21,21 +21,22 @@
 #include "util.h"
 
 extern void android_inputManager_init(ALooper *);
-extern void android_inputManager_createInputQueue(AInputQueue *);
-extern void android_inputManager_destroyInputQueue();
-extern void android_inputManager_enableSensor();
-extern void android_inputManager_disableSensor();
-extern void android_inputManager_term();
+extern void android_inputManager_createInputQueue (AInputQueue *);
+extern void android_inputManager_destroyInputQueue ();
+extern void android_inputManager_enableSensor ();
+extern void android_inputManager_disableSensor ();
+extern void android_inputManager_term ();
 
-extern void opengles_init();
-extern void opengles_onWindowCreate(ANativeWindow *);
-extern void opengles_onWindowDestroy();
-extern void opengles_onWindowResizeDisplay();
-extern void opengles_onWindowResize();
-extern void opengles_resizeInsets(float, float, float, float);
-extern int opengles_preRender();
-extern void opengles_postRender();
-extern void opengles_term();
+extern void opengles_init ();
+extern void opengles_onWindowCreate (ANativeWindow *);
+extern void opengles_onWindowDestroy ();
+extern void opengles_onWindowResizeDisplay ();
+extern void opengles_onWindowResize ();
+extern void opengles_resizeInsets (float, float, float, float);
+extern int  opengles_preRender ();
+extern void opengles_postRender ();
+extern void opengles_term ();
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -143,7 +144,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
 
 static void *android_app_entry(void *UNUSED_ARG(p)) {
   app->config = AConfiguration_new();
-  AConfiguration_fromAssetManager(app->config, activity->assetManager);
+  AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
 
   app->looper = ALooper_prepare(0);
   ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
@@ -164,11 +165,11 @@ static void *android_app_entry(void *UNUSED_ARG(p)) {
     }
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
-        (app->stateApp & STATE_APP_RUNNING) &&
+       (app->stateApp & STATE_APP_RUNNING) &&
         opengles_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
-          (app->delayed_cmdState == APP_CMD_PAUSE)) {
+         (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
       opengles_postRender();
@@ -193,7 +194,7 @@ static void *android_app_entry(void *UNUSED_ARG(p)) {
   opengles_term();
 
   AConfiguration_delete(app->config);
-
+  
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_broadcast(&app->cond);
@@ -224,7 +225,7 @@ static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   while (!(app->stateApp & STATE_APP_DESTROY))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
-
+  
   close(app->msgread);
   close(app->msgwrite);
   pthread_cond_destroy(&app->cond);
@@ -318,23 +319,23 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, NULL);
   pthread_attr_destroy(&attr);
-
+  
   pthread_mutex_lock(&app->mutex);
   while (!(app->stateApp & STATE_APP_INIT))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 
+
 #define LOGMESSAGE_LEN 2048
 // define to send toast text in android
 void toast_message(const char *msg, ...) {
-  if (!app)
-    return;
+  if (!app) return;
   JNIEnv *env;
-  if (JNI_OK != (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, (void **)&env, NULL))
+  if (JNI_OK != (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, &env, NULL))
     return;
-
-  static char tmp[LOGMESSAGE_LEN];
+  
+	static char tmp[LOGMESSAGE_LEN];
   va_list args;
   va_start(args, msg);
   vsnprintf(tmp, LOGMESSAGE_LEN, msg, args);
@@ -343,34 +344,37 @@ void toast_message(const char *msg, ...) {
   jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
   jstring jmsg = (*env)->NewStringUTF(env, tmp);
   (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
-
-  (*(app->activity->vm))->DetachCurrentThread(app->activity->vm);
+  
+  (*(app->activity->vm))->DetachCurrentThread (app->activity->vm);
 }
 void finish_activity() {
-  if (!app)
-    return;
-  ANativeActivity_finish(app->activity);
+  if (!app) return;
+  ANativeActivity_finish (app->activity);
 }
 // native MainActivity.java
 void insetNative(jint left, jint top, jint right, jint bottom) {
   opengles_resizeInsets(left, top, right, bottom);
 }
 
-JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
-  JNIEnv *env;
-  if ((*vm)->GetEnv(vm, (void **)&env, JNI_VERSION_1_6) != JNI_OK) {
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+  JNIEnv* env;
+  if ((*vm)->GetEnv(vm, (void**)&env, JNI_VERSION_1_6) != JNI_OK) {
     return JNI_ERR;
   }
   jclass c = (*env)->FindClass(env, "com/ariasaproject/technowar/MainActivity");
-  if (!c)
-    return JNI_ERR;
+  if (!c) return JNI_ERR;
   // Register your class' native methods.
   static const JNINativeMethod methods[] = {
-    {"insetNative", "(IIII)V", (void *)insetNative},
+    {"insetNative", "(IIII)V", (void*)insetNative},
   };
-  int rc = (*env)->RegisterNatives(env, c, methods, sizeof(methods) / sizeof(JNINativeMethod));
-  if (rc != JNI_OK)
-    return rc;
-
+  int rc = (*env)->RegisterNatives(env, c, methods, sizeof(methods)/sizeof(JNINativeMethod));
+  if (rc != JNI_OK) return rc;
+  
+  
+  
+  
+  
+  
   return JNI_VERSION_1_6;
 }
+

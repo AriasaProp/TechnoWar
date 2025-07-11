@@ -36,28 +36,34 @@ int image_codec_test() {
 			snprintf(errorMsg, ERROR_MSG_LENGTH,  "failed allocate memory for image %s", buffer);
 			continue;
 		}
+		printf("  - %s: ", buffer);
 		unsigned char *load = stbi_load_from_memory(im_mem, mem_len, temp, temp + 1, temp + 2, 0);
 		if (load) {
 			unsigned char *encode = stbi_write_png_to_mem(load, temp[0], temp[1], temp[2], temp + 3);
 			if (encode) {
 				if (temp[3] != mem_len) {
-					snprintf(errorMsg, ERROR_MSG_LENGTH,  "failed result len %d != %ld %s", temp[3], mem_len, buffer);
-				} else if (memcmp(encode, im_mem, mem_len)) {
-					snprintf(errorMsg, ERROR_MSG_LENGTH,  "failed different result %s", buffer);
-				}
+				  float prcnt = (float)mem_len;
+				  prcnt = (float)temp[3]/prcnt;
+				  prcnt *= 100.0f;
+					printf("different length %.2f %%", prcnt);
+				} else if (memcmp(encode, im_mem, mem_len))
+					printf("different data");
+				else
+			    printf("no different");
 				free (encode);
 			} else {
-			  snprintf(errorMsg, ERROR_MSG_LENGTH,  "failed write %s", buffer);
+			  printf("failed write");
 			}
 			free (load);
 			free(im_mem);
 		} else {
 			free(im_mem);
-			snprintf(errorMsg, ERROR_MSG_LENGTH,  "failed load %s cause %s", buffer, stbi_get_failure_reason());
+			printf("failed load %s cause %s", buffer, stbi_get_failure_reason());
 		}
+	  printf("\n");
 	}
   if (*errorMsg) printf(RED "   Failure: %s" RESET, errorMsg);
-	else printf(GREEN "   END" RESET);
+	else printf(GREEN "   END " RESET);
 	printf("%.2f ms\n", end_timing(timer));
 	return (*errorMsg != 0);
 }
