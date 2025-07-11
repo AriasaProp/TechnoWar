@@ -69,8 +69,5 @@ add_library(android_backend SHARED ${ANDROID_BACKEND_SRCS})
 target_compile_definitions(android_backend PRIVATE _IDENTITY_=${BUILD_ID})
 target_include_directories(android_backend PRIVATE ${ANDROID_BACKEND_PATH} ${CORE_PATH_INCLUDE})
 target_link_libraries(android_backend PRIVATE core GLESv3 android EGL log m)
-set_target_properties(android_backend PROPERTIES
-    CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
-)
 target_compile_options(android_backend PRIVATE -fexceptions -frtti)
 target_compile_definitions(android_backend PRIVATE ANDROID_STL=c_static _IDENTITY=${BUILD_ID})

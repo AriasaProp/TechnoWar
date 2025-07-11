@@ -9,10 +9,6 @@ import android.view.WindowInsets;
 import android.widget.Toast;
 
 public class MainActivity extends NativeActivity implements View.OnApplyWindowInsetsListener {
-  static {
-    System.loadLibrary("android_backend");
-  }
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

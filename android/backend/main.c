@@ -347,7 +347,7 @@ void finishRequest() {
 #endif
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env), UNUSED(o);
   androidGraphics_resizeInsets(left, top, right, bottom);
 }
