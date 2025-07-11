@@ -275,13 +275,13 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
-  
+
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
 
   if (savedState != NULL && savedStateSize == sizeof(struct core))
     memcpy(&core_cache, savedState, sizeof(struct core));
-  
+
   if (pipe(&app->msgread))
     LOGE("could not create pipe: %s", strerror(errno));
 
@@ -290,7 +290,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   pthread_create(&app->thread, &attr, android_app_entry, NULL);
   pthread_attr_destroy(&attr);
-  
+
   pthread_mutex_lock(&app->mutex);
   pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
@@ -298,26 +298,28 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 // used by log.h
 #ifdef _DEBUG
 void toastMessage(const char x, ...) {
-  if (!app) return;
-	static char msg[512];
+  if (!app)
+    return;
+  static char msg[512];
   va_list args;
   va_start(args, x);
   vsnprintf(msg, 512, x, args);
   va_end(args);
-  
+
   JNIEnv *env;
   static jclass cls = 0;
   static jmethodID id = 0;
   if (JNI_OK == (*(app->activity->vm))->AttachCurrentThread(app->activity->vm, &env, NULL)) {
-    if(!cls) cls = (*env)->GetObjectClass(env, app->activity->clazz);
-    if(!id) id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+    if (!cls)
+      cls = (*env)->GetObjectClass(env, app->activity->clazz);
+    if (!id)
+      id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
     jstring jmsg = (*env)->NewStringUTF(env, msg);
     (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
     (*(app->activity->vm))->AttachCurrentThread(app->activity->vm);
   }
 }
 #endif
-
 
 // native MainActivity.java
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
