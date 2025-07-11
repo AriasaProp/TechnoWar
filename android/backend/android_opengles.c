@@ -14,8 +14,10 @@ static GLint success;
 static GLchar msg[MAX_GL_ERR_MSG];
 static GLenum error;
 
-#define check(X) X;                             \
-  while ((error = glGetError())) LOGE("GLErr in %s with (0x%x)\n", #X, error)
+#define check(X)                 \
+  X;                             \
+  while ((error = glGetError())) \
+  LOGE("GLErr in %s with (0x%x)\n", #X, error)
 static void checkLinkProgram(GLint X) {
   glLinkProgram(X);
   glGetProgramiv(X, GL_LINK_STATUS, &success);
