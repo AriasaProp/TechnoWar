@@ -5,6 +5,7 @@ on:
     paths:
       - 'core/**'
       - 'tools/**'
+      - 'tests/**'
       - 'android/**'
       - '.github/workflows/push_update.yml'
 
@@ -26,16 +27,17 @@ jobs:
             core:
               - 'core/**'
               - 'tools/**'
+              - 'tests/**'
             android:
               - 'android/**'
             src:
               - added|modified: 'core/src/*.c'
               - added|modified: 'core/include/*.h'
-              - added|modified: 'tools/main/src/*.c'
-              - added|modified: 'tools/main/include/*.h'
-              - added|modified: 'tools/test/src/*.c'
-              - added|modified: 'tools/test/include/*.h'
-              - added|modified: 'android/src/main/ext/**/*.c'
+              - added|modified: 'tools/src/*.c'
+              - added|modified: 'tools/include/*.h'
+              - added|modified: 'tests/src/*.c'
+              - added|modified: 'tests/include/*.h'
+              - added|modified: 'android/backend/*.c'
               - added|modified: 'android/src/main/java/**/*.java'
 
       - name: Do Changes when needed
@@ -89,7 +91,7 @@ jobs:
       - name: build Android
         run: |
           cd android
-          gradle :build -Prelease
+          gradle :build
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3
