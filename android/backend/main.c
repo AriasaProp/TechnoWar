@@ -19,24 +19,25 @@
 #include "util.h"
 
 extern void androidInput_init(void *);
-extern void androidInput_createInputQueue(void *);
-extern void androidInput_destroyInputQueue();
-extern void androidInput_enableSensor();
-extern void androidInput_disableSensor();
-extern void androidInput_term();
+extern void androidInput_createInputQueue (void *);
+extern void androidInput_destroyInputQueue ();
+extern void androidInput_enableSensor ();
+extern void androidInput_disableSensor ();
+extern void androidInput_term ();
 
 extern void androidGraphics_init();
 extern void androidGraphics_onWindowCreate(void *);
 extern void androidGraphics_onWindowDestroy();
 extern void androidGraphics_onWindowResizeDisplay();
 extern void androidGraphics_onWindowResize();
-extern void androidGraphics_resizeInsets(float, float, float, float);
-extern int androidGraphics_preRender();
-extern void androidGraphics_postRender();
+extern void androidGraphics_resizeInsets (float, float, float, float);
+extern int androidGraphics_preRender ();
+extern void androidGraphics_postRender ();
 extern void androidGraphics_term();
 
-extern void androidAsset_init(void *);
+extern void androidAsset_init(void*);
 extern void androidAsset_term();
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -187,7 +188,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAsset_term();
 
   AConfiguration_delete(app->config);
-
+  
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_broadcast(&app->cond);
@@ -274,7 +275,7 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 
-void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
+JNIEXPORT void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
@@ -291,10 +292,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-  jclass cls = (*(activity->env))->GetObjectClass(activity->env, app->activity->clazz);
-  jmethodID id = (*(activity->env))->GetMethodID(activity->env, cls, "showToast", "(Ljava/lang/String;)V");
-  jstring jmsg = (*(activity->env))->NewStringUTF(activity->env, "OnCreate natives");
-  (*(activity->env))->CallVoidMethod(activity->env, app->activity->clazz, id, jmsg);
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
@@ -322,8 +319,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 #ifdef _DEBUG
 // used by log.h
 void toastMessage(const char x, ...) {
-  if (!app)
-    return;
+  if (!app) return;
   static char msg[512];
   va_list args;
   va_start(args, x);
@@ -344,8 +340,7 @@ void toastMessage(const char x, ...) {
   }
 }
 void finishRequest() {
-  if (!app)
-    return;
+  if (!app) return;
   ANativeActivity_finish(app->activity);
 }
 #endif
