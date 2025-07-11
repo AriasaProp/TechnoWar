@@ -59,5 +59,5 @@ int image_codec_test() {
   if (*errorMsg) printf(RED "   Failure: %s" RESET, errorMsg);
 	else printf(GREEN "   END" RESET);
 	printf("%.2f ms\n", end_timing(timer));
-	return !*errorMsg;
+	return (*errorMsg != 0);
 }
