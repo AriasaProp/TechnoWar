@@ -83,14 +83,14 @@ static struct opengles_data {
     GLint shader, uniform_proj, uniform_transProj;
   } world;
 
-  struct vec2 viewportSize; //
-  struct vec2 screenSize;   //
-  struct vec4 insets;
+  vec2 viewportSize; //
+  vec2 screenSize;   //
+  vec4 insets;
 } src = {0};
 
 // core implementation
-static struct vec2 android_opengles_getScreenSize() { return src.screenSize; }
-static void android_opengles_toScreenCoordinate(struct vec2 *v) {
+static vec2 android_opengles_getScreenSize() { return src.screenSize; }
+static void android_opengles_toScreenCoordinate(vec2 *v) {
   v->x -= src.insets.x;
   v->y = src.viewportSize.y - v->y - src.insets.w;
 }
@@ -183,7 +183,7 @@ static mesh android_opengles_genMesh(struct mesh_vertex *v, const size_t vl, mes
   check(glEnableVertexAttribArray(0));
   check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)0));
   check(glEnableVertexAttribArray(1));
-  check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(struct vec3)));
+  check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(vec3)));
   check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
   check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, il * sizeof(mesh_index), (void *)i, GL_STATIC_DRAW));
   check(glBindVertexArray(0));
@@ -310,7 +310,7 @@ void android_opengles_validateResources() {
     check(glEnableVertexAttribArray(0));
     check(glEnableVertexAttribArray(1));
     check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(struct flat_vertex), (void *)0));
-    check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct flat_vertex), (void *)sizeof(struct vec2)));
+    check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct flat_vertex), (void *)sizeof(vec2)));
   }
   // world draw
   {
@@ -382,7 +382,7 @@ void android_opengles_validateResources() {
     check(glEnableVertexAttribArray(0));
     check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)0));
     check(glEnableVertexAttribArray(1));
-    check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(struct vec3)));
+    check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(vec3)));
     check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
     check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof(mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW));
   }
