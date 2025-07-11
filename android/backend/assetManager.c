@@ -38,7 +38,7 @@ static void assetClose(int a) {
   reading[a] = NULL;
 }
 
-void android_assetManager_init(void *m) {
+void androidAsset_init(void *m) {
   mngr = (AAssetManager *)m;
 
   get_engine()->a.assetBuffer = assetBuffer;
@@ -47,7 +47,7 @@ void android_assetManager_init(void *m) {
   get_engine()->a.assetLength = assetLength;
   get_engine()->a.assetClose = assetClose;
 }
-void android_assetManager_term() {
+void androidAsset_term() {
   mngr = NULL;
 
   get_engine()->a.assetBuffer = NULL;

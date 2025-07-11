@@ -55,27 +55,27 @@ static inline void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-void android_graphicsManager_init() {
+void androidGraphics_init() {
   android_opengles_init();
   g = (struct android_graphicsManager *)calloc(1, sizeof(struct android_graphicsManager));
 }
-void android_graphicsManager_onWindowCreate(void *w) {
+void androidGraphics_onWindowCreate(void *w) {
   g->window = (ANativeWindow *)w;
 }
-void android_graphicsManager_onWindowDestroy() {
+void androidGraphics_onWindowDestroy() {
   killEGL(TERM_EGL_SURFACE);
   g->window = NULL;
 }
-void android_graphicsManager_onWindowResizeDisplay() {
+void androidGraphics_onWindowResizeDisplay() {
   g->flags |= RESIZE_DISPLAY;
 }
-void android_graphicsManager_onWindowResize() {
+void androidGraphics_onWindowResize() {
   g->flags |= RESIZE_ONLY;
 }
-void android_graphicsManager_resizeInsets(float x, float y, float z, float w) {
+void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   android_opengles_resizeInsets(x, y, z, w);
 }
-int android_graphicsManager_preRender() {
+int androidGraphics_preRender() {
   if (!g->window)
     return 0;
   if (!g->display || !g->context || !g->surface) {
@@ -154,7 +154,7 @@ int android_graphicsManager_preRender() {
   LOGE("Reach preRender");
   return 1;
 }
-void android_graphicsManager_postRender() {
+void androidGraphics_postRender() {
   if (!eglSwapBuffers(g->display, g->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
@@ -175,7 +175,7 @@ void android_graphicsManager_postRender() {
     }
   }
 }
-void android_graphicsManager_term() {
+void androidGraphics_term() {
   eglSwapBuffers(g->display, g->surface);
   android_opengles_term();
   if (g->display) {

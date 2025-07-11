@@ -16,8 +16,28 @@
 #include "core.h"
 #include "engine.h"
 #include "log.h"
-#include "manager.h"
 #include "util.h"
+
+extern void androidInput_init(void *);
+extern void androidInput_createInputQueue (void *);
+extern void androidInput_destroyInputQueue ();
+extern void androidInput_enableSensor ();
+extern void androidInput_disableSensor ();
+extern void androidInput_term ();
+
+extern void androidGraphics_init();
+extern void androidGraphics_onWindowCreate(void *);
+extern void androidGraphics_onWindowDestroy();
+extern void androidGraphics_onWindowResizeDisplay();
+extern void androidGraphics_onWindowResize();
+extern void androidGraphics_resizeInsets (float, float, float, float);
+extern int androidGraphics_preRender ();
+extern void androidGraphics_postRender ();
+extern void androidGraphics_term();
+
+extern void androidAsset_init(void*);
+extern void androidAsset_term();
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -82,29 +102,29 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     // nothing important
     break;
   case APP_CMD_INPUT_CREATED:
-    android_inputManager_createInputQueue((AInputQueue *)rmsg.data);
+    androidInput_createInputQueue((AInputQueue *)rmsg.data);
     break;
   case APP_CMD_INPUT_DESTROYED:
-    android_inputManager_destroyInputQueue();
+    androidInput_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    android_graphicsManager_onWindowCreate((ANativeWindow *)rmsg.data);
+    androidGraphics_onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    android_graphicsManager_onWindowResize();
+    androidGraphics_onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    android_graphicsManager_onWindowResizeDisplay();
+    androidGraphics_onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
-    android_inputManager_enableSensor();
+    androidInput_enableSensor();
     break;
   case APP_CMD_LOST_FOCUS:
-    android_inputManager_disableSensor();
+    androidInput_disableSensor();
     break;
   case APP_CMD_CONFIG_CHANGED:
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
@@ -125,9 +145,9 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   ALooper_addFd(looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
   engine_init();
-  android_inputManager_init(looper);
-  android_graphicsManager_init();
-  android_assetManager_init(app->activity->assetManager);
+  androidInput_init(looper);
+  androidGraphics_init();
+  androidAsset_init(app->activity->assetManager);
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -143,17 +163,17 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
-        android_graphicsManager_preRender()) {
+        androidGraphics_preRender()) {
       Main_update();
       if ((app->cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      android_graphicsManager_postRender();
+      androidGraphics_postRender();
     }
     switch (app->cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      android_graphicsManager_onWindowDestroy();
+      androidGraphics_onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -164,9 +184,9 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     pthread_mutex_unlock(&app->mutex);
   }
   Main_term();
-  android_graphicsManager_term();
-  android_inputManager_term();
-  android_assetManager_term();
+  androidGraphics_term();
+  androidInput_term();
+  androidAsset_term();
 
   AConfiguration_delete(app->config);
   pthread_mutex_lock(&app->mutex);
@@ -325,5 +345,5 @@ void toastMessage(const char x, ...) {
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env);
   UNUSED(o);
-  android_graphicsManager_resizeInsets(left, top, right, bottom);
+  androidGraphics_resizeInsets(left, top, right, bottom);
 }

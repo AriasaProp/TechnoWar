@@ -41,13 +41,13 @@ static vec2 getTouch(size_t p) {
 }
 
 // processing input
-static int android_inputManager_processInput(int UNUSED_ARG(fd), int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
-  AInputEvent *outEvent;
-  if (!m->inputQueue)
-    return 1;
-  if (AInputQueue_getEvent(m->inputQueue, &outEvent) < 0)
-    return 1;
-  if (AInputQueue_preDispatchEvent(m->inputQueue, outEvent))
+static int androidInput_processInput(int UNUSED_ARG(fd), int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
+  static AInputEvent *outEvent;
+  if (
+    !m->inputQueue ||
+    (AInputQueue_getEvent(m->inputQueue, &outEvent) < 0) ||
+    AInputQueue_preDispatchEvent(m->inputQueue, outEvent)
+  )
     return 1;
   int32_t handled = 0;
   if (AInputEvent_getType(outEvent) == AINPUT_EVENT_TYPE_MOTION) {
@@ -58,7 +58,7 @@ static int android_inputManager_processInput(int UNUSED_ARG(fd), int UNUSED_ARG(
   AInputQueue_finishEvent(m->inputQueue, outEvent, handled);
   return 1;
 }
-static int android_inputManager_processSensor(int UNUSED_ARG(fd), int UNUSED_ARG(e), void *UNUSED_ARG(data)) {
+static int androidInput_processSensor(int UNUSED_ARG(fd), int UNUSED_ARG(e), void *UNUSED_ARG(data)) {
   ASensorEvent event[MAX_SENSOR_COUNT];
   size_t j;
   while ((j = ASensorEventQueue_getEvents(m->sensorQueue, event, MAX_SENSOR_COUNT)) > 0) {
@@ -87,26 +87,26 @@ static int android_inputManager_processSensor(int UNUSED_ARG(fd), int UNUSED_ARG
   return 1;
 }
 
-void android_inputManager_init(void *looper) {
+void androidInput_init(void *looper) {
   m = (struct android_inputManager *)calloc(1, sizeof(struct android_inputManager));
   m->looper = (ALooper *)looper;
   m->sensorMngr = ASensorManager_getInstance();
   m->sensor_data[SENSOR_ACCELEROMETER].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_ACCELEROMETER);
   m->sensor_data[SENSOR_GYROSCOPE].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_GYROSCOPE);
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
-  m->sensorQueue = ASensorManager_createEventQueue(m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processSensor, m);
+  m->sensorQueue = ASensorManager_createEventQueue(m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, androidInput_processSensor, m);
 
   get_engine()->i.getTouch = getTouch;
 }
-void android_inputManager_createInputQueue(void *queue) {
-  AInputQueue_attachLooper((AInputQueue *)queue, m->looper, ALOOPER_POLL_CALLBACK, android_inputManager_processInput, (void *)m);
+void androidInput_createInputQueue(void *queue) {
+  AInputQueue_attachLooper((AInputQueue *)queue, m->looper, ALOOPER_POLL_CALLBACK, androidInput_processInput, (void *)m);
   m->inputQueue = (AInputQueue *)queue;
 }
-void android_inputManager_destroyInputQueue() {
+void androidInput_destroyInputQueue() {
   AInputQueue_detachLooper(m->inputQueue);
   m->inputQueue = NULL;
 }
-void android_inputManager_enableSensor() {
+void androidInput_enableSensor() {
   if (!(m->flags & INPUT_SENSOR_ENABLED)) {
     // attach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -114,10 +114,10 @@ void android_inputManager_enableSensor() {
       ASensorEventQueue_setEventRate(m->sensorQueue, m->sensor_data[i].sensor, SENSOR_EVENT_RATE);
     }
     m->flags |= INPUT_SENSOR_ENABLED;
-    android_inputManager_processSensor(0, 0, m);
+    androidInput_processSensor(0, 0, m);
   }
 }
-void android_inputManager_disableSensor() {
+void androidInput_disableSensor() {
   if (m->flags & INPUT_SENSOR_ENABLED) {
     // detach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -129,7 +129,7 @@ void android_inputManager_disableSensor() {
     m->flags &= ~INPUT_SENSOR_ENABLED;
   }
 }
-void android_inputManager_term() {
+void androidInput_term() {
   // disable sensor
   for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
     ASensorEventQueue_disableSensor(m->sensorQueue, m->sensor_data[i].sensor);
