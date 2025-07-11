@@ -19,24 +19,25 @@
 #include "util.h"
 
 extern void androidInput_init(void *);
-extern void androidInput_createInputQueue(void *);
-extern void androidInput_destroyInputQueue();
-extern void androidInput_enableSensor();
-extern void androidInput_disableSensor();
-extern void androidInput_term();
+extern void androidInput_createInputQueue (void *);
+extern void androidInput_destroyInputQueue ();
+extern void androidInput_enableSensor ();
+extern void androidInput_disableSensor ();
+extern void androidInput_term ();
 
 extern void androidGraphics_init();
 extern void androidGraphics_onWindowCreate(void *);
 extern void androidGraphics_onWindowDestroy();
 extern void androidGraphics_onWindowResizeDisplay();
 extern void androidGraphics_onWindowResize();
-extern void androidGraphics_resizeInsets(float, float, float, float);
-extern int androidGraphics_preRender();
-extern void androidGraphics_postRender();
+extern void androidGraphics_resizeInsets (float, float, float, float);
+extern int androidGraphics_preRender ();
+extern void androidGraphics_postRender ();
 extern void androidGraphics_term();
 
-extern void androidAsset_init(void *);
+extern void androidAsset_init(void*);
 extern void androidAsset_term();
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -150,7 +151,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
-  pthread_cond_signal(&app->cond);
+  pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
@@ -187,9 +188,10 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAsset_term();
 
   AConfiguration_delete(app->config);
+  
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
-  pthread_cond_signal(&app->cond);
+  pthread_cond_broadcast(&app->cond);
   pthread_mutex_unlock(&app->mutex);
   // Can't touch app object after this.
   return NULL;
@@ -209,7 +211,7 @@ static void android_app_write_cmd(int8_t cmd, void *data) {
 static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   wmsg.cmd = APP_CMD_DESTROY;
   wmsg.data = NULL;
-  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
+  while (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   pthread_mutex_lock(&app->mutex);
   while (!(app->stateApp & STATE_APP_DESTROY))
@@ -290,7 +292,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-
+  LOGV("OnCreate native");
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 
@@ -310,14 +312,14 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_destroy(&attr);
 
   pthread_mutex_lock(&app->mutex);
-  pthread_cond_wait(&app->cond, &app->mutex);
+  while (!(app->stateApp & STATE_APP_INIT))
+    pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 #ifdef _DEBUG
 // used by log.h
 void toastMessage(const char x, ...) {
-  if (!app)
-    return;
+  if (!app) return;
   static char msg[512];
   va_list args;
   va_start(args, x);
@@ -338,15 +340,13 @@ void toastMessage(const char x, ...) {
   }
 }
 void finishRequest() {
-  if (!app)
-    return;
+  if (!app) return;
   ANativeActivity_finish(app->activity);
 }
 #endif
 
 // native MainActivity.java
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
-  UNUSED(env);
-  UNUSED(o);
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+  UNUSED(env), UNUSED(o);
   androidGraphics_resizeInsets(left, top, right, bottom);
 }

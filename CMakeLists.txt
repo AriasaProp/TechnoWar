@@ -75,4 +75,6 @@ target_compile_options(android_backend PRIVATE
 )
 target_include_directories(android_backend PRIVATE ${ANDROID_BACKEND_PATH} ${CORE_PATH_INCLUDE})
 target_link_libraries(android_backend PRIVATE core GLESv3 android EGL log m)
-target_link_options(android_backend PRIVATE -u ANativeActivity_onCreate)
+set_target_properties(android_backend PROPERTIES
+    CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate"
+)
