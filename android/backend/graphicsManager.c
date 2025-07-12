@@ -528,7 +528,7 @@ static inline void killEGL(const int EGLTermReq) {
 void androidGraphics_init() {
   android_opengles_init();
   g = (struct android_graphicsManager *)calloc(1, sizeof(struct android_graphicsManager));
-  androidGraphics_resizeInsets(0, 0, 0, 0);
+  android_opengles_resizeInsets(0, 0, 0, 0);
 }
 void androidGraphics_onWindowCreate(void *w) {
   g->window = (ANativeWindow *)w;
@@ -542,9 +542,6 @@ void androidGraphics_onWindowResizeDisplay() {
 }
 void androidGraphics_onWindowResize() {
   g->flags |= RESIZE_ONLY;
-}
-void androidGraphics_resizeInsets(float x, float y, float z, float w) {
-  android_opengles_resizeInsets(x, y, z, w);
 }
 int androidGraphics_preRender() {
   if (!g->window)
