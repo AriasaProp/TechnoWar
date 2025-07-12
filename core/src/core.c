@@ -6,6 +6,7 @@
 #include "util.h"
 
 struct engine global_engine = {0};
+struct core core_cache = {0};
 
 struct flat_vertex rectangle[] = {
   // Persegi 1
@@ -57,7 +58,6 @@ struct flat_vertex rectangle[] = {
   {(vec2){2200.0f, 600.0f}, (vec2){0.0f, 0.0f}}, // Top-left
 };
 
-struct core core_cache = {0};
 
 enum {
   STATE_SYSTEM_INIT = 1,
@@ -80,7 +80,7 @@ void Main_update() {
   if (!(stateSystem & STATE_SYSTEM_RUNNING))
     Main_resume();
 
-  get_engine()->g.flatRender(0, rectangle, 8);
+  global_engine.g.flatRender(0, rectangle, 8);
 }
 void Main_pause() {
   stateSystem &= ~STATE_SYSTEM_RUNNING;

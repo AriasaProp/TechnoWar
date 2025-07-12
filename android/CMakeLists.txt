@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.22.1)
 
 project(android-native LANGUAGES C)
 
@@ -8,14 +8,19 @@ set(CMAKE_C_EXTENSION OFF)
 set(CMAKE_COMPILE_WARNING_AS_ERROR ON)
 set(COMPILE_WARNING_AS_ERROR ON)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-    -DANDROID_STL=c_static \
-    -D_IDENTITY_=${BUILD_ID} \
-    -fexceptions -frtti"
+add_compile_definitions(
+    ANDROID_STL=c_static
+    _IDENTITY_=${BUILD_ID}
+    $<IF:$<CONFIG:Debug>,_DEBUG,>
 )
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
-  
+add_compile_options(
+    -fexceptions
+    -frtti
+)
+add_link_options(
+    -u ANativeActivity_onCreate
+)
+
 set(CORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../core")
 file(GLOB_RECURSE Src_Files "${CMAKE_CURRENT_SOURCE_DIR}/c/*.c")
 
