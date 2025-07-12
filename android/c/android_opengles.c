@@ -18,7 +18,9 @@ static void getErrorGL(const char *X) {
   while ((error = glGetError()))
     LOGE("Err %s 0x%x\n", X, error);
 }
-#define check(X) X; getErrorGL (#X)
+#define check(X) \
+  X;             \
+  getErrorGL(#X)
 
 static void checkLinkProgram(GLint X) {
   glLinkProgram(X);
