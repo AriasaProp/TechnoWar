@@ -305,22 +305,26 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 }
 
 #ifdef _DEBUG
-void toastMessage (const char *msg, ...) {
-  if (!app) return;
+void toastMessage(const char *msg, ...) {
+  if (!app)
+    return;
   JavaVM *vm = app->activity->vm;
   JavaEnv *env;
   static jclass cls = 0;
   static jmethodID id = 0;
   if ((*vm)->AttachCurrentThread(vm, &env, NULL) != JNI_OK) {
-    if (!cls) cls = (*env)->GetObjectClass(env, o);
-    if (!id) id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+    if (!cls)
+      cls = (*env)->GetObjectClass(env, o);
+    if (!id)
+      id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
     jstring jmsg = (*env)->NewStringUTF(env, ErrorListed);
     (*env)->CallVoidMethod(env, o, id, jmsg);
     (*vm)->DetachCurrentThread(vm);
   }
 }
 void finish() {
-  if (!app) return;
+  if (!app)
+    return;
   ANativeActivity_finish(app->activity);
 }
 #endif // _DEBUG

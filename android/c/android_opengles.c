@@ -18,7 +18,7 @@ static void getErrorGL() {
   while ((error = glGetError()))
     LOGE("Err %s 0x%x\n", #X, error);
 }
-#define check(X) X, getErrorGL ()
+#define check(X) X, getErrorGL()
 
 static void checkLinkProgram(GLint X) {
   glLinkProgram(X);
