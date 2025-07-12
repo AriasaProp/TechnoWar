@@ -13,12 +13,12 @@
 static GLint success;
 static GLchar msg[MAX_MSG];
 
-static void getErrorGL() {
+static void getErrorGL(const char *X) {
   static GLenum error;
   while ((error = glGetError()))
-    LOGE("Err %s 0x%x\n", #X, error);
+    LOGE("Err %s 0x%x\n", X, error);
 }
-#define check(X) X, getErrorGL()
+#define check(X) X; getErrorGL (#X)
 
 static void checkLinkProgram(GLint X) {
   glLinkProgram(X);
