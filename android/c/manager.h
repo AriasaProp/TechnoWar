@@ -1,26 +1,25 @@
 #ifndef MANAGER_
 #define MANAGER_
 
-#include <android/native_window.h>
-#include <android/input.h>
+extern void androidAssetManager_init(void *);
+extern void androidAssetManager_term();
 
+extern void androidInput_init(void *);
+extern void androidInput_createInputQueue (void *);
+extern void androidInput_destroyInputQueue ();
+extern void androidInput_enableSensor ();
+extern void androidInput_disableSensor ();
+extern void androidInput_term ();
 
-extern void android_inputManager_init(ALooper *);
-extern void android_inputManager_createInputQueue (AInputQueue *);
-extern void android_inputManager_destroyInputQueue ();
-extern void android_inputManager_enableSensor ();
-extern void android_inputManager_disableSensor ();
-extern void android_inputManager_term ();
-
-extern void android_graphicsManager_init();
-extern void android_graphicsManager_onWindowCreate(ANativeWindow *);
-extern void android_graphicsManager_onWindowDestroy();
-extern void android_graphicsManager_onWindowResizeDisplay();
-extern void android_graphicsManager_onWindowResize();
-extern void android_graphicsManager_resizeInsets (float, float, float, float);
-extern int android_graphicsManager_preRender ();
-extern void android_graphicsManager_postRender ();
-extern void android_graphicsManager_term();
+extern void androidGraphics_init();
+extern void androidGraphics_onWindowCreate(void *);
+extern void androidGraphics_onWindowDestroy();
+extern void androidGraphics_onWindowResizeDisplay();
+extern void androidGraphics_onWindowResize();
+extern void androidGraphics_resizeInsets (float, float, float, float);
+extern int androidGraphics_preRender ();
+extern void androidGraphics_postRender ();
+extern void androidGraphics_term();
 
 
 #endif // MANAGER_

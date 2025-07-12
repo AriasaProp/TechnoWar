@@ -40,7 +40,6 @@ struct engine_graphics {
 };
 struct engine_asset {
   void *data;
-  void (*funct1)();
   int (*assetBuffer)(const char *, const void **, int *);
   int (*openAsset)(const char *);
   int (*assetRead)(int, void *, size_t);
@@ -64,7 +63,6 @@ struct engine {
   struct engine_extras e;
 };
 
-extern struct engine *engine_init();
-extern struct engine *get_engine();
+extern struct engine global_engine;
 
 #endif // ENGINE_INCLUDED_

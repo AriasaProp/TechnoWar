@@ -1,6 +1,7 @@
+#include <android/asset_manager.h>
+
 #include "engine.h"
 #include "util.h"
-#include <android/asset_manager.h>
 
 static AAssetManager *mngr = NULL;
 
@@ -38,21 +39,21 @@ static void assetClose(int a) {
   reading[a] = NULL;
 }
 
-void android_assetManager_init(void *m) {
+void androidAssetManager_init(void *m) {
   mngr = (AAssetManager *)m;
 
-  get_engine()->a.assetBuffer = assetBuffer;
-  get_engine()->a.openAsset = openAsset;
-  get_engine()->a.assetRead = assetRead;
-  get_engine()->a.assetLength = assetLength;
-  get_engine()->a.assetClose = assetClose;
+  global_engine.a.assetBuffer = assetBuffer;
+  global_engine.a.openAsset = openAsset;
+  global_engine.a.assetRead = assetRead;
+  global_engine.a.assetLength = assetLength;
+  global_engine.a.assetClose = assetClose;
 }
-void android_assetManager_term() {
+void androidAssetManager_term() {
   mngr = NULL;
 
-  get_engine()->a.assetBuffer = NULL;
-  get_engine()->a.openAsset = NULL;
-  get_engine()->a.assetRead = NULL;
-  get_engine()->a.assetLength = NULL;
-  get_engine()->a.assetClose = NULL;
+  global_engine.a.assetBuffer = NULL;
+  global_engine.a.openAsset = NULL;
+  global_engine.a.assetRead = NULL;
+  global_engine.a.assetLength = NULL;
+  global_engine.a.assetClose = NULL;
 }

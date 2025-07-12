@@ -87,29 +87,29 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   case APP_CMD_STOP:
     break;
   case APP_CMD_INPUT_CREATED:
-    android_inputManager_createInputQueue((AInputQueue *)rmsg.data);
+    androidInput_createInputQueue((AInputQueue *)rmsg.data);
     break;
   case APP_CMD_INPUT_DESTROYED:
-    android_inputManager_destroyInputQueue();
+    androidInput_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    android_graphicsManager_onWindowCreate((ANativeWindow *)rmsg.data);
+    androidGraphics_onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    android_graphicsManager_onWindowResize();
+    androidGraphics_onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    android_graphicsManager_onWindowResizeDisplay();
+    androidGraphics_onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
-    android_inputManager_enableSensor();
+    androidInput_enableSensor();
     break;
   case APP_CMD_LOST_FOCUS:
-    android_inputManager_disableSensor();
+    androidInput_disableSensor();
     break;
   case APP_CMD_CONFIG_CHANGED:
     AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
@@ -128,10 +128,10 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   ALooper *looper = ALooper_prepare(0);
   ALooper_addFd(looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
-
-  engine_init();
-  android_inputManager_init(looper);
-  android_graphicsManager_init();
+  
+  androidAssetManager_init(app->activity->assetManager);
+  androidInput_init(looper);
+  androidGraphics_init();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -146,17 +146,17 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
-        android_graphicsManager_preRender()) {
+        androidGraphics_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      android_graphicsManager_postRender();
+      androidGraphics_postRender();
     }
     switch (app->delayed_cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      android_graphicsManager_onWindowDestroy();
+      androidGraphics_onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -170,8 +170,9 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     }
   }
   Main_term();
-  android_graphicsManager_term();
-  android_inputManager_term();
+  androidGraphics_term();
+  androidInput_term();
+  androidAssetManager_term();
 
   AConfiguration_delete(app->config);
 
@@ -261,7 +262,6 @@ static void onInputQueueCreated(ANativeActivity *UNUSED_ARG(activity), AInputQue
 static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQueue *UNUSED_ARG(queue)) {
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
-
 void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
@@ -289,10 +289,8 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (savedState != NULL && savedStateSize == sizeof(struct core)) {
     memcpy(&core_cache, savedState, sizeof(struct core));
   }
-  if (pipe(&app->msgread)) {
-    LOGE("could not create pipe: %s", strerror(errno));
+  if (pipe(&app->msgread))
     return;
-  }
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
@@ -310,6 +308,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 void toastMessage(const char *msg, ...) {
   if (!app)
     return;
+  
   static char temp[512];
   va_list args;
   va_start(args, msg);
@@ -338,7 +337,7 @@ void finish() {
 
 // native MainActivity.java
 
-JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env), UNUSED(o);
-  android_graphicsManager_resizeInsets(left, top, right, bottom);
+  androidGraphics_resizeInsets(left, top, right, bottom);
 }

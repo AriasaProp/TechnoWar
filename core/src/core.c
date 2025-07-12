@@ -1,10 +1,11 @@
-#include "core.h"
+#include <string.h>
 
+#include "core.h"
 #include "engine.h"
 #include "uistage.h"
 #include "util.h"
 
-#include <string.h>
+struct engine global_engine = {0};
 
 struct flat_vertex rectangle[] = {
   // Persegi 1
