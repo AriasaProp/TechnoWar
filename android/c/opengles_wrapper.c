@@ -3,8 +3,8 @@
 #include <android/native_window.h>
 
 #include "engine.h"
-#include "util.h"
 #include "log.h"
+#include "util.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -36,7 +36,9 @@ static void checkCompileShader(GLint X) {
   }
 }
 
-#define check(X) X; getErrorGL (#X)
+#define check(X) \
+  X;             \
+  getErrorGL(#X)
 #define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
 // mesh flags for uniform update
@@ -77,7 +79,7 @@ static struct androidGraphics {
   EGLContext context;
   EGLConfig eConfig;
   int flags;
-  
+
   struct {
     GLint shader, uniform_proj, uniform_tex;
     GLuint vao, vbo, ibo;
@@ -89,7 +91,7 @@ static struct androidGraphics {
   vec2 viewportSize; //
   vec2 screenSize;   //
   vec4 insets;
-  
+
 } *src = NULL;
 
 // core implementation
@@ -237,7 +239,8 @@ static void opengles_deleteMesh(mesh m) {
 }
 
 static void killEGL(const int EGLTermReq) {
-  if (!EGLTermReq || !src->display) return;
+  if (!EGLTermReq || !src->display)
+    return;
   if (textures[0].id) {
     // world draw
     check(glDeleteProgram(src->world.shader));
@@ -305,7 +308,7 @@ void androidGraphics_init() {
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
 }
 void androidGraphics_onWindowCreate(void *w) {
-  src->window = (ANativeWindow*)w;
+  src->window = (ANativeWindow *)w;
 }
 void androidGraphics_onWindowDestroy() {
   killEGL(TERM_EGL_SURFACE);
@@ -327,7 +330,8 @@ void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   src->flags |= UI_UPDATE;
 }
 int androidGraphics_preRender() {
-  if (!src->window) return 0;
+  if (!src->window)
+    return 0;
   if (!src->display || !src->context || !src->surface) {
     if (!src->display) {
       src->context = EGL_NO_CONTEXT;
@@ -349,8 +353,7 @@ int androidGraphics_preRender() {
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
         EGL_BUFFER_SIZE, 16,
-        EGL_NONE
-      };
+        EGL_NONE};
       eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
       if (temp <= 0) {
         LOGW("There is no fit config for minimum EGLConfig attribute");
@@ -361,7 +364,9 @@ int androidGraphics_preRender() {
       size_t i = 0, j = temp, k = 0, l;
       do {
         l = 1;
-#define EGL_CONFIG_EVA(X) if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) l += temp
+#define EGL_CONFIG_EVA(X)                                     \
+  if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
+  l += temp
         EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
         EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
         EGL_CONFIG_EVA(EGL_STENCIL_SIZE);

@@ -128,7 +128,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   ALooper *looper = ALooper_prepare(0);
   ALooper_addFd(looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
-  
+
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
   androidGraphics_init();
@@ -308,7 +308,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 void toastMessage(const char *msg, ...) {
   if (!app)
     return;
-  
+
   static char temp[512];
   va_list args;
   va_start(args, msg);
