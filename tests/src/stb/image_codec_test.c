@@ -17,7 +17,7 @@ int image_codec_test() {
 	int temp[4];
 	for (int i = 0; (i < TEST_COUNT) && (!*errorMsg); ++i) {
 		stbi_clean_failure();
-		sprintf(buffer, "tests/data/%02d.png", i);
+		sprintf(buffer, "data/%02d.png", i);
 		FILE *imf = fopen(buffer, "rb");
 		if (!imf) {
 			snprintf(errorMsg, ERROR_MSG_LENGTH, "failed load I/O file %s", buffer);

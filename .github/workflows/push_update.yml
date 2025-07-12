@@ -56,8 +56,9 @@ jobs:
       - name: Run Test
         if: steps.changes.outputs.core == 'true'
         run: |
+          cd tests
           cmake -S . -B build
-          cmake --build build -t tests
+          cmake --build build
           if [ $? -ne 0 ]; then
             echo "❌ Build failed!"
             exit 1
@@ -99,10 +100,3 @@ jobs:
         with:
           name: Android
           path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4.3.3
-        with:
-          name: Android-Debug
-          path: ${{ github.workspace }}/android/build/outputs/apk/debug/android-debug.apk 
-

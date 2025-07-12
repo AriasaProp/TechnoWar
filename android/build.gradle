@@ -4,7 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.0'
+        classpath 'com.android.tools.build:gradle:8.2.2'
     }
 }
 
@@ -39,21 +39,14 @@ android {
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
 		}
-    externalNativeBuild.cmake.path "../CMakeLists.txt"
 		buildTypes {
-				debug {
-						minifyEnabled false
-            externalNativeBuild {
-                cmake.arguments "-DCMAKE_BUILD_TYPE=Debug"
-            }
-				}
 				release {
 						minifyEnabled true
-            externalNativeBuild {
-                cmake.arguments "-DCMAKE_BUILD_TYPE=Release"
-            }
 				}
 		}
+    externalNativeBuild {
+        cmake.path "CMakeLists.txt"
+    }
     compileOptions {
 				sourceCompatibility JavaVersion.VERSION_17
 				targetCompatibility JavaVersion.VERSION_17
