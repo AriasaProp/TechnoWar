@@ -32,12 +32,12 @@ static struct android_inputManager {
 
   int flags;
   struct {
-    struct vec2 pos;
+    vec2 pos;
   } pointers[MAX_POINTER];
 } *m = NULL;
 
 // core implementation
-static struct vec2 getTouch(size_t p) {
+static vec2 getTouch(size_t p) {
   return m->pointers[p].pos;
 }
 

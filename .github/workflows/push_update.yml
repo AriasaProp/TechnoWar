@@ -7,7 +7,6 @@ on:
       - 'tools/**'
       - 'tests/**'
       - 'android/**'
-      - 'CMakeLists.txt'
       - '.github/workflows/push_update.yml'
 
 jobs:
@@ -38,7 +37,7 @@ jobs:
               - added|modified: 'tools/include/*.h'
               - added|modified: 'tests/src/*.c'
               - added|modified: 'tests/include/*.h'
-              - added|modified: 'android/backend/*.c'
+              - added|modified: 'android/c/*.c'
               - added|modified: 'android/src/main/java/**/*.java'
 
       - name: Do Changes when needed
