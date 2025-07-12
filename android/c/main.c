@@ -318,8 +318,10 @@ void toastMessage(const char *msg, ...) {
   JNIEnv *env;
   static jmethodID id = 0;
   if ((*vm)->AttachCurrentThread(vm, &env, NULL) != JNI_OK) {
-    if (!id)
+    if (!id) {
+      jclass cls = (*env)->GetObjectClass(env, app->activity->clazz);
       id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+    }
     jstring jmsg = (*env)->NewStringUTF(env, temp);
     (*env)->CallVoidMethod(env, app->activity->clazz, id, jmsg);
     (*vm)->DetachCurrentThread(vm);
