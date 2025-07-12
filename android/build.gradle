@@ -42,11 +42,9 @@ android {
 		buildTypes {
 				release {
 						minifyEnabled true
-						externalNativeBuild.cmake.arguments "-config Release"
 				}
 				debug {
 						minifyEnabled false
-						externalNativeBuild.cmake.arguments "-config Debug"
 				}
 		}
     externalNativeBuild {
