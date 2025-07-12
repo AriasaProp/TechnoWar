@@ -174,7 +174,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   android_inputManager_term();
 
   AConfiguration_delete(app->config);
-  
+
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_signal(&app->cond);
@@ -190,7 +190,7 @@ static void android_app_write_cmd(int8_t cmd, void *data) {
   if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   pthread_mutex_lock(&app->mutex);
-  while(app->cmdState != cmd)
+  while (app->cmdState != cmd)
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
@@ -201,7 +201,7 @@ static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   pthread_mutex_lock(&app->mutex);
-  while(!(app->stateApp & STATE_APP_DESTROY))
+  while (!(app->stateApp & STATE_APP_DESTROY))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 
@@ -301,7 +301,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
-  while(!(app->stateApp & STATE_APP_INIT))
+  while (!(app->stateApp & STATE_APP_INIT))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
