@@ -55,7 +55,6 @@ enum {
 struct android_app {
   ANativeActivity *activity;
   AConfiguration *config;
-  ARect contentRect;
 
   int8_t cmdState;
   int msgread, msgwrite;
@@ -150,7 +149,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
-  pthread_cond_broadcast(&app->cond);
+  pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
@@ -190,7 +189,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
-  pthread_cond_broadcast(&app->cond);
+  pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
   // Can't touch app object after this.
   return NULL;
@@ -200,8 +199,7 @@ static struct msg_pipe wmsg;
 static void android_app_write_cmd(int8_t cmd, void *data) {
   wmsg.cmd = cmd;
   wmsg.data = data;
-  while (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
-    LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
+  write(app->msgwrite, &wmsg, sizeof(struct msg_pipe));
   pthread_mutex_lock(&app->mutex);
   pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
@@ -210,11 +208,9 @@ static void android_app_write_cmd(int8_t cmd, void *data) {
 static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   wmsg.cmd = APP_CMD_DESTROY;
   wmsg.data = NULL;
-  while (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
-    LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
+  write(app->msgwrite, &wmsg, sizeof(struct msg_pipe));
   pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_DESTROY))
-    pthread_cond_wait(&app->cond, &app->mutex);
+  pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 
   close(app->msgread);
@@ -274,7 +270,7 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 
-JNIEXPORT void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
+JNIEXPORT void JNICALL ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
@@ -311,8 +307,7 @@ JNIEXPORT void ANativeActivity_onCreate(ANativeActivity *activity, void *savedSt
   pthread_attr_destroy(&attr);
 
   pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_INIT))
-    pthread_cond_wait(&app->cond, &app->mutex);
+  pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 #ifdef _DEBUG
