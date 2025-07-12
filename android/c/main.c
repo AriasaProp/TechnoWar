@@ -113,7 +113,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     android_inputManager_disableSensor();
     break;
   case APP_CMD_CONFIG_CHANGED:
-    AConfiguration_fromAssetManager(app->config, (AAssetManager *)rmsg.data);
+    AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
     break;
   case APP_CMD_DESTROY:
     app->stateApp &= ~STATE_APP_INIT;
@@ -137,7 +137,7 @@ static void *android_app_entry(void *param) {
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
-  pthread_cond_broadcast(&app->cond);
+  pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
@@ -168,7 +168,7 @@ static void *android_app_entry(void *param) {
     if (app->cmdState != app->delayed_cmdState) {
       pthread_mutex_lock(&app->mutex);
       app->cmdState = app->delayed_cmdState;
-      pthread_cond_broadcast(&app->cond);
+      pthread_cond_signal(&app->cond);
       pthread_mutex_unlock(&app->mutex);
     }
   }
@@ -179,7 +179,7 @@ static void *android_app_entry(void *param) {
   AConfiguration_delete(app->config);
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
-  pthread_cond_broadcast(&app->cond);
+  pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
   // Can't touch app object after this.
   return NULL;
@@ -189,27 +189,20 @@ static struct msg_pipe wmsg;
 static void android_app_write_cmd(int8_t cmd, void *data) {
   wmsg.cmd = cmd;
   wmsg.data = data;
-  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
+  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
-  }
   pthread_mutex_lock(&app->mutex);
-  while (app->cmdState != cmd) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
-  pthread_cond_broadcast(&app->cond);
+  pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 
 static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   wmsg.cmd = APP_CMD_DESTROY;
   wmsg.data = NULL;
-  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
+  if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
-  }
   pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_DESTROY)) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
+  pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 
   close(app->msgread);
@@ -238,8 +231,8 @@ static void onPause(ANativeActivity *UNUSED_ARG(activity)) {
 static void onStop(ANativeActivity *UNUSED_ARG(activity)) {
   android_app_write_cmd(APP_CMD_STOP, NULL);
 }
-static void onConfigurationChanged(ANativeActivity *activity) {
-  android_app_write_cmd(APP_CMD_CONFIG_CHANGED, (void *)activity->assetManager);
+static void onConfigurationChanged(ANativeActivity *UNUSED_ARG(activity)) {
+  android_app_write_cmd(APP_CMD_CONFIG_CHANGED, NULL);
 }
 static void onLowMemory(ANativeActivity *UNUSED_ARG(activity)) {
   android_app_write_cmd(APP_CMD_LOW_MEMORY, NULL);
@@ -307,29 +300,34 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
-  while (!(app->stateApp & STATE_APP_INIT)) {
-    pthread_cond_wait(&app->cond, &app->mutex);
-  }
+  pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 
-#ifdef NDEBUG
-char ErrorListed[2048];
-#endif
+#ifdef _DEBUG
+void toastMessage (const char *msg, ...) {
+  if (!app) return;
+  JavaVM *vm = app->activity->vm;
+  JavaEnv *env;
+  static jclass cls = 0;
+  static jmethodID id = 0;
+  if ((*vm)->AttachCurrentThread(vm, &env, NULL) != JNI_OK) {
+    if (!cls) cls = (*env)->GetObjectClass(env, o);
+    if (!id) id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
+    jstring jmsg = (*env)->NewStringUTF(env, ErrorListed);
+    (*env)->CallVoidMethod(env, o, id, jmsg);
+    (*vm)->DetachCurrentThread(vm);
+  }
+}
+void finish() {
+  if (!app) return;
+  ANativeActivity_finish(app->activity);
+}
+#endif // _DEBUG
+
 // native MainActivity.java
 
 JNIEXPORT void Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
+  UNUSED(env), UNUSED(o);
   android_graphicsManager_resizeInsets(left, top, right, bottom);
-#ifdef NDEBUG
-  if (ErrorListed[0]) {
-    jclass cls = (*env)->GetObjectClass(env, o);
-    jmethodID id = (*env)->GetMethodID(env, cls, "showToast", "(Ljava/lang/String;)V");
-    jstring jmsg = (*env)->NewStringUTF(env, ErrorListed);
-    (*env)->CallVoidMethod(env, o, id, jmsg);
-    memset(ErrorListed, 0, 2048);
-  }
-#else
-  ((void)env);
-  ((void)o);
-#endif
 }

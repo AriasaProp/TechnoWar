@@ -13,6 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
     -D_IDENTITY_=${BUILD_ID} \
     -fexceptions -frtti"
 )
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -D_DEBUG")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -u ANativeActivity_onCreate")
   
 set(CORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../core")

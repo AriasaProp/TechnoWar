@@ -9,41 +9,33 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef NDEBUG
 #define MAX_MSG 512
-GLint success;
-GLchar msg[MAX_MSG];
-GLenum error;
+static GLint success;
+static GLchar msg[MAX_MSG];
 
-#define check(X)                      \
-  X;                                  \
-  while ((error = glGetError())) {    \
-    LOGE("Err %s 0x%x\n", #X, error); \
+static void getErrorGL() {
+  static GLenum error;
+  while ((error = glGetError()))
+    LOGE("Err %s 0x%x\n", #X, error);
+}
+#define check(X) X, getErrorGL ()
+
+static void checkLinkProgram(GLint X) {
+  glLinkProgram(X);
+  glGetProgramiv(X, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(X, MAX_MSG, NULL, msg);
+    LOGE("Shader link: %s", msg);
   }
-
-#define checkLinkProgram(X)                     \
-  glLinkProgram(X);                             \
-  glGetProgramiv(X, GL_LINK_STATUS, &success);  \
-  if (!success) {                               \
-    glGetProgramInfoLog(X, MAX_MSG, NULL, msg); \
-    LOGE("Shader link: %s", msg);               \
+}
+static void checkCompileShader(GLint X) {
+  glCompileShader(X);
+  glGetShaderiv(X, GL_COMPILE_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(X, MAX_MSG, NULL, msg);
+    LOGE("Shader compile: %s", msg);
   }
-
-#define checkCompileShader(X)                    \
-  glCompileShader(X);                            \
-  glGetShaderiv(X, GL_COMPILE_STATUS, &success); \
-  if (!success) {                                \
-    glGetShaderInfoLog(X, MAX_MSG, NULL, msg);   \
-    LOGE("Shader compile: %s", msg);             \
-  }
-
-#else
-
-#define check(X)              X
-#define checkCompileShader(X) glCompileShader(X)
-#define checkLinkProgram(X)   glLinkProgram(X)
-
-#endif
+}
 
 #define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
