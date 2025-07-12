@@ -38,7 +38,6 @@ struct android_app {
   ANativeActivity *activity;
   AConfiguration *config;
   struct core *savedState;
-  ALooper *looper;
   ARect contentRect;
 
   int8_t delayed_cmdState;
@@ -123,16 +122,15 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   return 1;
 }
 
-static void *android_app_entry(void *param) {
+static void *android_app_entry(void *UNUSED_ARG(param)) {
   app->config = AConfiguration_new();
-  ANativeActivity *activity = (ANativeActivity *)param;
-  AConfiguration_fromAssetManager(app->config, activity->assetManager);
+  AConfiguration_fromAssetManager(app->config, app->activity->assetManager);
 
-  app->looper = ALooper_prepare(0);
-  ALooper_addFd(app->looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
+  ALooper *looper = ALooper_prepare(0);
+  ALooper_addFd(looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
   engine_init();
-  android_inputManager_init(app->looper);
+  android_inputManager_init(looper);
   android_graphicsManager_init();
 
   pthread_mutex_lock(&app->mutex);
@@ -143,9 +141,8 @@ static void *android_app_entry(void *param) {
   while (app->stateApp & STATE_APP_INIT) {
     int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
 
-    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR) {
+    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGE("ALooper_pollOnce returned an error");
-    }
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
@@ -177,6 +174,7 @@ static void *android_app_entry(void *param) {
   android_inputManager_term();
 
   AConfiguration_delete(app->config);
+  
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_DESTROY;
   pthread_cond_signal(&app->cond);
@@ -192,7 +190,8 @@ static void android_app_write_cmd(int8_t cmd, void *data) {
   if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   pthread_mutex_lock(&app->mutex);
-  pthread_cond_wait(&app->cond, &app->mutex);
+  while(app->cmdState != cmd)
+    pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 
@@ -202,7 +201,8 @@ static void onDestroy(ANativeActivity *UNUSED_ARG(activity)) {
   if (write(app->msgwrite, &wmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe))
     LOGE("Failure writing android_app cmd: %s\n", strerror(errno));
   pthread_mutex_lock(&app->mutex);
-  pthread_cond_wait(&app->cond, &app->mutex);
+  while(!(app->stateApp & STATE_APP_DESTROY))
+    pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 
   close(app->msgread);
@@ -281,6 +281,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
+  app->activity = activity;
 
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
@@ -296,11 +297,12 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&app->thread, &attr, android_app_entry, activity);
+  pthread_create(&app->thread, &attr, android_app_entry, NULL);
 
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
-  pthread_cond_wait(&app->cond, &app->mutex);
+  while(!(app->stateApp & STATE_APP_INIT))
+    pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
 }
 
