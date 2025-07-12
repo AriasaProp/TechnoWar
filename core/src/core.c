@@ -58,7 +58,6 @@ struct flat_vertex rectangle[] = {
   {(vec2){2200.0f, 600.0f}, (vec2){0.0f, 0.0f}}, // Top-left
 };
 
-
 enum {
   STATE_SYSTEM_INIT = 1,
   STATE_SYSTEM_RUNNING = 2,
