@@ -1,6 +1,12 @@
 #ifndef __glad_h_
 #define __glad_h_
 
+if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#define APIENTRY __stdcall
+#else
+#define APIENTRY
+#endif
+
 #include "khrplatform.h"
 
 extern void gladLoadGLES(void*(*)(const char*));
@@ -86,6 +92,11 @@ typedef khronos_int64_t GLint64EXT;
 typedef khronos_uint64_t GLuint64;
 typedef khronos_uint64_t GLuint64EXT;
 typedef struct __GLsync *GLsync;;
+
+typedef void (APIENTRY *GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
+typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severity,GLsizei length,const GLchar *message,void *userParam);
+
 #define GL_DEPTH_BUFFER_BIT 0x00000100
 #define GL_STENCIL_BUFFER_BIT 0x00000400
 #define GL_COLOR_BUFFER_BIT 0x00004000
@@ -1150,18 +1161,18 @@ extern void (*glTexBufferRange)(GLenum target, GLenum internalformat, GLuint buf
 extern void (*glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
 
 // --- GL ES 3.2 Core Functions ---
-extern void (*glBlendBarrierKHR)(void);
-extern void (*glDebugMessageControlKHR)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
-extern void (*glDebugMessageInsertKHR)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
-extern void (*glDebugMessageCallbackKHR)(GLDEBUGPROCKHR callback, const void *userParam);
-extern GLuint (*glGetDebugMessageLogKHR)(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
-extern void (*glPushDebugGroupKHR)(GLenum source, GLuint id, GLsizei length, const GLchar *buf);
-extern void (*glPopDebugGroupKHR)(void);
-extern void (*glObjectLabelKHR)(GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
-extern void (*glGetObjectLabelKHR)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
-extern void (*glObjectPtrLabelKHR)(const void *ptr, GLsizei length, const GLchar *label);
-extern void (*glGetObjectPtrLabelKHR)(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
-extern void (*glGetPointervKHR)(GLenum pname, void **params);
+extern void (*glBlendBarrier)(void);
+extern void (*glDebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
+extern void (*glDebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf);
+extern void (*glDebugMessageCallback)(GLDEBUGPROC callback, const void *userParam);
+extern GLuint (*glGetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog);
+extern void (*glPushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar *buf);
+extern void (*glPopDebugGroup)(void);
+extern void (*glObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar *label);
+extern void (*glGetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void (*glObjectPtrLabel)(const void *ptr, GLsizei length, const GLchar *label);
+extern void (*glGetObjectPtrLabel)(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label);
+extern void (*glGetPointerv)(GLenum pname, void **params);
 extern void (*glEnable)(GLenum cap); // Re-declaration (already in ES 2.0)
 extern void (*glDisable)(GLenum cap); // Re-declaration (already in ES 2.0)
 extern void (*glPrimitiveBoundingBoxEXT)(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW);
