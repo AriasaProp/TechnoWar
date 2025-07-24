@@ -10,6 +10,6 @@ typedef struct {
   uint32_t width, height;
 } image_info;
 // read image by filename
-extern void *image_read(char const*, image_info*);
+extern void *image_read(char const *, image_info *);
 
 #endif // CODEC_INCLUDED_

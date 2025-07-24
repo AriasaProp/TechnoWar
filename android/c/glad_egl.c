@@ -184,13 +184,13 @@
         Too many extensions
 */
 
+#include "glad_egl.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "glad_egl.h"
 
 int gladLoadEGL(void) {
-    return gladLoadEGLLoader((GLADloadproc)eglGetProcAddress);
+  return gladLoadEGLLoader((GLADloadproc)eglGetProcAddress);
 }
 
 PFNEGLSETBLOBCACHEFUNCSANDROIDPROC glad_eglSetBlobCacheFuncsANDROID = NULL;
@@ -308,317 +308,317 @@ PFNEGLUNBINDWAYLANDDISPLAYWLPROC glad_eglUnbindWaylandDisplayWL = NULL;
 PFNEGLQUERYWAYLANDBUFFERWLPROC glad_eglQueryWaylandBufferWL = NULL;
 PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWLPROC glad_eglCreateWaylandBufferFromImageWL = NULL;
 static void load_EGL_ANDROID_blob_cache(GLADloadproc load) {
-	glad_eglSetBlobCacheFuncsANDROID = (PFNEGLSETBLOBCACHEFUNCSANDROIDPROC)load("eglSetBlobCacheFuncsANDROID");
+  glad_eglSetBlobCacheFuncsANDROID = (PFNEGLSETBLOBCACHEFUNCSANDROIDPROC)load("eglSetBlobCacheFuncsANDROID");
 }
 static void load_EGL_ANDROID_create_native_client_buffer(GLADloadproc load) {
-	glad_eglCreateNativeClientBufferANDROID = (PFNEGLCREATENATIVECLIENTBUFFERANDROIDPROC)load("eglCreateNativeClientBufferANDROID");
+  glad_eglCreateNativeClientBufferANDROID = (PFNEGLCREATENATIVECLIENTBUFFERANDROIDPROC)load("eglCreateNativeClientBufferANDROID");
 }
 static void load_EGL_ANDROID_get_frame_timestamps(GLADloadproc load) {
-	glad_eglGetCompositorTimingSupportedANDROID = (PFNEGLGETCOMPOSITORTIMINGSUPPORTEDANDROIDPROC)load("eglGetCompositorTimingSupportedANDROID");
-	glad_eglGetCompositorTimingANDROID = (PFNEGLGETCOMPOSITORTIMINGANDROIDPROC)load("eglGetCompositorTimingANDROID");
-	glad_eglGetNextFrameIdANDROID = (PFNEGLGETNEXTFRAMEIDANDROIDPROC)load("eglGetNextFrameIdANDROID");
-	glad_eglGetFrameTimestampSupportedANDROID = (PFNEGLGETFRAMETIMESTAMPSUPPORTEDANDROIDPROC)load("eglGetFrameTimestampSupportedANDROID");
-	glad_eglGetFrameTimestampsANDROID = (PFNEGLGETFRAMETIMESTAMPSANDROIDPROC)load("eglGetFrameTimestampsANDROID");
+  glad_eglGetCompositorTimingSupportedANDROID = (PFNEGLGETCOMPOSITORTIMINGSUPPORTEDANDROIDPROC)load("eglGetCompositorTimingSupportedANDROID");
+  glad_eglGetCompositorTimingANDROID = (PFNEGLGETCOMPOSITORTIMINGANDROIDPROC)load("eglGetCompositorTimingANDROID");
+  glad_eglGetNextFrameIdANDROID = (PFNEGLGETNEXTFRAMEIDANDROIDPROC)load("eglGetNextFrameIdANDROID");
+  glad_eglGetFrameTimestampSupportedANDROID = (PFNEGLGETFRAMETIMESTAMPSUPPORTEDANDROIDPROC)load("eglGetFrameTimestampSupportedANDROID");
+  glad_eglGetFrameTimestampsANDROID = (PFNEGLGETFRAMETIMESTAMPSANDROIDPROC)load("eglGetFrameTimestampsANDROID");
 }
 static void load_EGL_ANDROID_get_native_client_buffer(GLADloadproc load) {
-	glad_eglGetNativeClientBufferANDROID = (PFNEGLGETNATIVECLIENTBUFFERANDROIDPROC)load("eglGetNativeClientBufferANDROID");
+  glad_eglGetNativeClientBufferANDROID = (PFNEGLGETNATIVECLIENTBUFFERANDROIDPROC)load("eglGetNativeClientBufferANDROID");
 }
 static void load_EGL_ANDROID_native_fence_sync(GLADloadproc load) {
-	glad_eglDupNativeFenceFDANDROID = (PFNEGLDUPNATIVEFENCEFDANDROIDPROC)load("eglDupNativeFenceFDANDROID");
+  glad_eglDupNativeFenceFDANDROID = (PFNEGLDUPNATIVEFENCEFDANDROIDPROC)load("eglDupNativeFenceFDANDROID");
 }
 static void load_EGL_ANDROID_presentation_time(GLADloadproc load) {
-	glad_eglPresentationTimeANDROID = (PFNEGLPRESENTATIONTIMEANDROIDPROC)load("eglPresentationTimeANDROID");
+  glad_eglPresentationTimeANDROID = (PFNEGLPRESENTATIONTIMEANDROIDPROC)load("eglPresentationTimeANDROID");
 }
 static void load_EGL_ANGLE_query_surface_pointer(GLADloadproc load) {
-	glad_eglQuerySurfacePointerANGLE = (PFNEGLQUERYSURFACEPOINTERANGLEPROC)load("eglQuerySurfacePointerANGLE");
+  glad_eglQuerySurfacePointerANGLE = (PFNEGLQUERYSURFACEPOINTERANGLEPROC)load("eglQuerySurfacePointerANGLE");
 }
 static void load_EGL_ANGLE_sync_control_rate(GLADloadproc load) {
-	glad_eglGetMscRateANGLE = (PFNEGLGETMSCRATEANGLEPROC)load("eglGetMscRateANGLE");
+  glad_eglGetMscRateANGLE = (PFNEGLGETMSCRATEANGLEPROC)load("eglGetMscRateANGLE");
 }
 static void load_EGL_EXT_client_sync(GLADloadproc load) {
-	glad_eglClientSignalSyncEXT = (PFNEGLCLIENTSIGNALSYNCEXTPROC)load("eglClientSignalSyncEXT");
+  glad_eglClientSignalSyncEXT = (PFNEGLCLIENTSIGNALSYNCEXTPROC)load("eglClientSignalSyncEXT");
 }
 static void load_EGL_EXT_compositor(GLADloadproc load) {
-	glad_eglCompositorSetContextListEXT = (PFNEGLCOMPOSITORSETCONTEXTLISTEXTPROC)load("eglCompositorSetContextListEXT");
-	glad_eglCompositorSetContextAttributesEXT = (PFNEGLCOMPOSITORSETCONTEXTATTRIBUTESEXTPROC)load("eglCompositorSetContextAttributesEXT");
-	glad_eglCompositorSetWindowListEXT = (PFNEGLCOMPOSITORSETWINDOWLISTEXTPROC)load("eglCompositorSetWindowListEXT");
-	glad_eglCompositorSetWindowAttributesEXT = (PFNEGLCOMPOSITORSETWINDOWATTRIBUTESEXTPROC)load("eglCompositorSetWindowAttributesEXT");
-	glad_eglCompositorBindTexWindowEXT = (PFNEGLCOMPOSITORBINDTEXWINDOWEXTPROC)load("eglCompositorBindTexWindowEXT");
-	glad_eglCompositorSetSizeEXT = (PFNEGLCOMPOSITORSETSIZEEXTPROC)load("eglCompositorSetSizeEXT");
-	glad_eglCompositorSwapPolicyEXT = (PFNEGLCOMPOSITORSWAPPOLICYEXTPROC)load("eglCompositorSwapPolicyEXT");
+  glad_eglCompositorSetContextListEXT = (PFNEGLCOMPOSITORSETCONTEXTLISTEXTPROC)load("eglCompositorSetContextListEXT");
+  glad_eglCompositorSetContextAttributesEXT = (PFNEGLCOMPOSITORSETCONTEXTATTRIBUTESEXTPROC)load("eglCompositorSetContextAttributesEXT");
+  glad_eglCompositorSetWindowListEXT = (PFNEGLCOMPOSITORSETWINDOWLISTEXTPROC)load("eglCompositorSetWindowListEXT");
+  glad_eglCompositorSetWindowAttributesEXT = (PFNEGLCOMPOSITORSETWINDOWATTRIBUTESEXTPROC)load("eglCompositorSetWindowAttributesEXT");
+  glad_eglCompositorBindTexWindowEXT = (PFNEGLCOMPOSITORBINDTEXWINDOWEXTPROC)load("eglCompositorBindTexWindowEXT");
+  glad_eglCompositorSetSizeEXT = (PFNEGLCOMPOSITORSETSIZEEXTPROC)load("eglCompositorSetSizeEXT");
+  glad_eglCompositorSwapPolicyEXT = (PFNEGLCOMPOSITORSWAPPOLICYEXTPROC)load("eglCompositorSwapPolicyEXT");
 }
 static void load_EGL_EXT_device_base(GLADloadproc load) {
-	glad_eglQueryDeviceAttribEXT = (PFNEGLQUERYDEVICEATTRIBEXTPROC)load("eglQueryDeviceAttribEXT");
-	glad_eglQueryDeviceStringEXT = (PFNEGLQUERYDEVICESTRINGEXTPROC)load("eglQueryDeviceStringEXT");
-	glad_eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)load("eglQueryDevicesEXT");
-	glad_eglQueryDisplayAttribEXT = (PFNEGLQUERYDISPLAYATTRIBEXTPROC)load("eglQueryDisplayAttribEXT");
+  glad_eglQueryDeviceAttribEXT = (PFNEGLQUERYDEVICEATTRIBEXTPROC)load("eglQueryDeviceAttribEXT");
+  glad_eglQueryDeviceStringEXT = (PFNEGLQUERYDEVICESTRINGEXTPROC)load("eglQueryDeviceStringEXT");
+  glad_eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)load("eglQueryDevicesEXT");
+  glad_eglQueryDisplayAttribEXT = (PFNEGLQUERYDISPLAYATTRIBEXTPROC)load("eglQueryDisplayAttribEXT");
 }
 static void load_EGL_EXT_device_enumeration(GLADloadproc load) {
-	glad_eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)load("eglQueryDevicesEXT");
+  glad_eglQueryDevicesEXT = (PFNEGLQUERYDEVICESEXTPROC)load("eglQueryDevicesEXT");
 }
 static void load_EGL_EXT_device_persistent_id(GLADloadproc load) {
-	glad_eglQueryDeviceBinaryEXT = (PFNEGLQUERYDEVICEBINARYEXTPROC)load("eglQueryDeviceBinaryEXT");
+  glad_eglQueryDeviceBinaryEXT = (PFNEGLQUERYDEVICEBINARYEXTPROC)load("eglQueryDeviceBinaryEXT");
 }
 static void load_EGL_EXT_device_query(GLADloadproc load) {
-	glad_eglQueryDeviceAttribEXT = (PFNEGLQUERYDEVICEATTRIBEXTPROC)load("eglQueryDeviceAttribEXT");
-	glad_eglQueryDeviceStringEXT = (PFNEGLQUERYDEVICESTRINGEXTPROC)load("eglQueryDeviceStringEXT");
-	glad_eglQueryDisplayAttribEXT = (PFNEGLQUERYDISPLAYATTRIBEXTPROC)load("eglQueryDisplayAttribEXT");
+  glad_eglQueryDeviceAttribEXT = (PFNEGLQUERYDEVICEATTRIBEXTPROC)load("eglQueryDeviceAttribEXT");
+  glad_eglQueryDeviceStringEXT = (PFNEGLQUERYDEVICESTRINGEXTPROC)load("eglQueryDeviceStringEXT");
+  glad_eglQueryDisplayAttribEXT = (PFNEGLQUERYDISPLAYATTRIBEXTPROC)load("eglQueryDisplayAttribEXT");
 }
 static void load_EGL_EXT_display_alloc(GLADloadproc load) {
-	glad_eglDestroyDisplayEXT = (PFNEGLDESTROYDISPLAYEXTPROC)load("eglDestroyDisplayEXT");
+  glad_eglDestroyDisplayEXT = (PFNEGLDESTROYDISPLAYEXTPROC)load("eglDestroyDisplayEXT");
 }
 static void load_EGL_EXT_image_dma_buf_import_modifiers(GLADloadproc load) {
-	glad_eglQueryDmaBufFormatsEXT = (PFNEGLQUERYDMABUFFORMATSEXTPROC)load("eglQueryDmaBufFormatsEXT");
-	glad_eglQueryDmaBufModifiersEXT = (PFNEGLQUERYDMABUFMODIFIERSEXTPROC)load("eglQueryDmaBufModifiersEXT");
+  glad_eglQueryDmaBufFormatsEXT = (PFNEGLQUERYDMABUFFORMATSEXTPROC)load("eglQueryDmaBufFormatsEXT");
+  glad_eglQueryDmaBufModifiersEXT = (PFNEGLQUERYDMABUFMODIFIERSEXTPROC)load("eglQueryDmaBufModifiersEXT");
 }
 static void load_EGL_EXT_output_base(GLADloadproc load) {
-	glad_eglGetOutputLayersEXT = (PFNEGLGETOUTPUTLAYERSEXTPROC)load("eglGetOutputLayersEXT");
-	glad_eglGetOutputPortsEXT = (PFNEGLGETOUTPUTPORTSEXTPROC)load("eglGetOutputPortsEXT");
-	glad_eglOutputLayerAttribEXT = (PFNEGLOUTPUTLAYERATTRIBEXTPROC)load("eglOutputLayerAttribEXT");
-	glad_eglQueryOutputLayerAttribEXT = (PFNEGLQUERYOUTPUTLAYERATTRIBEXTPROC)load("eglQueryOutputLayerAttribEXT");
-	glad_eglQueryOutputLayerStringEXT = (PFNEGLQUERYOUTPUTLAYERSTRINGEXTPROC)load("eglQueryOutputLayerStringEXT");
-	glad_eglOutputPortAttribEXT = (PFNEGLOUTPUTPORTATTRIBEXTPROC)load("eglOutputPortAttribEXT");
-	glad_eglQueryOutputPortAttribEXT = (PFNEGLQUERYOUTPUTPORTATTRIBEXTPROC)load("eglQueryOutputPortAttribEXT");
-	glad_eglQueryOutputPortStringEXT = (PFNEGLQUERYOUTPUTPORTSTRINGEXTPROC)load("eglQueryOutputPortStringEXT");
+  glad_eglGetOutputLayersEXT = (PFNEGLGETOUTPUTLAYERSEXTPROC)load("eglGetOutputLayersEXT");
+  glad_eglGetOutputPortsEXT = (PFNEGLGETOUTPUTPORTSEXTPROC)load("eglGetOutputPortsEXT");
+  glad_eglOutputLayerAttribEXT = (PFNEGLOUTPUTLAYERATTRIBEXTPROC)load("eglOutputLayerAttribEXT");
+  glad_eglQueryOutputLayerAttribEXT = (PFNEGLQUERYOUTPUTLAYERATTRIBEXTPROC)load("eglQueryOutputLayerAttribEXT");
+  glad_eglQueryOutputLayerStringEXT = (PFNEGLQUERYOUTPUTLAYERSTRINGEXTPROC)load("eglQueryOutputLayerStringEXT");
+  glad_eglOutputPortAttribEXT = (PFNEGLOUTPUTPORTATTRIBEXTPROC)load("eglOutputPortAttribEXT");
+  glad_eglQueryOutputPortAttribEXT = (PFNEGLQUERYOUTPUTPORTATTRIBEXTPROC)load("eglQueryOutputPortAttribEXT");
+  glad_eglQueryOutputPortStringEXT = (PFNEGLQUERYOUTPUTPORTSTRINGEXTPROC)load("eglQueryOutputPortStringEXT");
 }
 static void load_EGL_EXT_platform_base(GLADloadproc load) {
-	glad_eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC)load("eglGetPlatformDisplayEXT");
-	glad_eglCreatePlatformWindowSurfaceEXT = (PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC)load("eglCreatePlatformWindowSurfaceEXT");
-	glad_eglCreatePlatformPixmapSurfaceEXT = (PFNEGLCREATEPLATFORMPIXMAPSURFACEEXTPROC)load("eglCreatePlatformPixmapSurfaceEXT");
+  glad_eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC)load("eglGetPlatformDisplayEXT");
+  glad_eglCreatePlatformWindowSurfaceEXT = (PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC)load("eglCreatePlatformWindowSurfaceEXT");
+  glad_eglCreatePlatformPixmapSurfaceEXT = (PFNEGLCREATEPLATFORMPIXMAPSURFACEEXTPROC)load("eglCreatePlatformPixmapSurfaceEXT");
 }
 static void load_EGL_EXT_stream_consumer_egloutput(GLADloadproc load) {
-	glad_eglStreamConsumerOutputEXT = (PFNEGLSTREAMCONSUMEROUTPUTEXTPROC)load("eglStreamConsumerOutputEXT");
+  glad_eglStreamConsumerOutputEXT = (PFNEGLSTREAMCONSUMEROUTPUTEXTPROC)load("eglStreamConsumerOutputEXT");
 }
 static void load_EGL_EXT_surface_compression(GLADloadproc load) {
-	glad_eglQuerySupportedCompressionRatesEXT = (PFNEGLQUERYSUPPORTEDCOMPRESSIONRATESEXTPROC)load("eglQuerySupportedCompressionRatesEXT");
+  glad_eglQuerySupportedCompressionRatesEXT = (PFNEGLQUERYSUPPORTEDCOMPRESSIONRATESEXTPROC)load("eglQuerySupportedCompressionRatesEXT");
 }
 static void load_EGL_EXT_swap_buffers_with_damage(GLADloadproc load) {
-	glad_eglSwapBuffersWithDamageEXT = (PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC)load("eglSwapBuffersWithDamageEXT");
+  glad_eglSwapBuffersWithDamageEXT = (PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC)load("eglSwapBuffersWithDamageEXT");
 }
 static void load_EGL_EXT_sync_reuse(GLADloadproc load) {
-	glad_eglUnsignalSyncEXT = (PFNEGLUNSIGNALSYNCEXTPROC)load("eglUnsignalSyncEXT");
+  glad_eglUnsignalSyncEXT = (PFNEGLUNSIGNALSYNCEXTPROC)load("eglUnsignalSyncEXT");
 }
 static void load_EGL_HI_clientpixmap(GLADloadproc load) {
-	glad_eglCreatePixmapSurfaceHI = (PFNEGLCREATEPIXMAPSURFACEHIPROC)load("eglCreatePixmapSurfaceHI");
+  glad_eglCreatePixmapSurfaceHI = (PFNEGLCREATEPIXMAPSURFACEHIPROC)load("eglCreatePixmapSurfaceHI");
 }
 static void load_EGL_KHR_cl_event2(GLADloadproc load) {
-	glad_eglCreateSync64KHR = (PFNEGLCREATESYNC64KHRPROC)load("eglCreateSync64KHR");
+  glad_eglCreateSync64KHR = (PFNEGLCREATESYNC64KHRPROC)load("eglCreateSync64KHR");
 }
 static void load_EGL_KHR_debug(GLADloadproc load) {
-	glad_eglDebugMessageControlKHR = (PFNEGLDEBUGMESSAGECONTROLKHRPROC)load("eglDebugMessageControlKHR");
-	glad_eglQueryDebugKHR = (PFNEGLQUERYDEBUGKHRPROC)load("eglQueryDebugKHR");
-	glad_eglLabelObjectKHR = (PFNEGLLABELOBJECTKHRPROC)load("eglLabelObjectKHR");
+  glad_eglDebugMessageControlKHR = (PFNEGLDEBUGMESSAGECONTROLKHRPROC)load("eglDebugMessageControlKHR");
+  glad_eglQueryDebugKHR = (PFNEGLQUERYDEBUGKHRPROC)load("eglQueryDebugKHR");
+  glad_eglLabelObjectKHR = (PFNEGLLABELOBJECTKHRPROC)load("eglLabelObjectKHR");
 }
 static void load_EGL_KHR_display_reference(GLADloadproc load) {
-	glad_eglQueryDisplayAttribKHR = (PFNEGLQUERYDISPLAYATTRIBKHRPROC)load("eglQueryDisplayAttribKHR");
+  glad_eglQueryDisplayAttribKHR = (PFNEGLQUERYDISPLAYATTRIBKHRPROC)load("eglQueryDisplayAttribKHR");
 }
 static void load_EGL_KHR_fence_sync(GLADloadproc load) {
-	glad_eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)load("eglCreateSyncKHR");
-	glad_eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)load("eglDestroySyncKHR");
-	glad_eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)load("eglClientWaitSyncKHR");
-	glad_eglGetSyncAttribKHR = (PFNEGLGETSYNCATTRIBKHRPROC)load("eglGetSyncAttribKHR");
+  glad_eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)load("eglCreateSyncKHR");
+  glad_eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)load("eglDestroySyncKHR");
+  glad_eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)load("eglClientWaitSyncKHR");
+  glad_eglGetSyncAttribKHR = (PFNEGLGETSYNCATTRIBKHRPROC)load("eglGetSyncAttribKHR");
 }
 static void load_EGL_KHR_image(GLADloadproc load) {
-	glad_eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)load("eglCreateImageKHR");
-	glad_eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)load("eglDestroyImageKHR");
+  glad_eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)load("eglCreateImageKHR");
+  glad_eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)load("eglDestroyImageKHR");
 }
 static void load_EGL_KHR_image_base(GLADloadproc load) {
-	glad_eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)load("eglCreateImageKHR");
-	glad_eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)load("eglDestroyImageKHR");
+  glad_eglCreateImageKHR = (PFNEGLCREATEIMAGEKHRPROC)load("eglCreateImageKHR");
+  glad_eglDestroyImageKHR = (PFNEGLDESTROYIMAGEKHRPROC)load("eglDestroyImageKHR");
 }
 static void load_EGL_KHR_lock_surface(GLADloadproc load) {
-	glad_eglLockSurfaceKHR = (PFNEGLLOCKSURFACEKHRPROC)load("eglLockSurfaceKHR");
-	glad_eglUnlockSurfaceKHR = (PFNEGLUNLOCKSURFACEKHRPROC)load("eglUnlockSurfaceKHR");
+  glad_eglLockSurfaceKHR = (PFNEGLLOCKSURFACEKHRPROC)load("eglLockSurfaceKHR");
+  glad_eglUnlockSurfaceKHR = (PFNEGLUNLOCKSURFACEKHRPROC)load("eglUnlockSurfaceKHR");
 }
 static void load_EGL_KHR_lock_surface3(GLADloadproc load) {
-	glad_eglLockSurfaceKHR = (PFNEGLLOCKSURFACEKHRPROC)load("eglLockSurfaceKHR");
-	glad_eglUnlockSurfaceKHR = (PFNEGLUNLOCKSURFACEKHRPROC)load("eglUnlockSurfaceKHR");
-	glad_eglQuerySurface64KHR = (PFNEGLQUERYSURFACE64KHRPROC)load("eglQuerySurface64KHR");
+  glad_eglLockSurfaceKHR = (PFNEGLLOCKSURFACEKHRPROC)load("eglLockSurfaceKHR");
+  glad_eglUnlockSurfaceKHR = (PFNEGLUNLOCKSURFACEKHRPROC)load("eglUnlockSurfaceKHR");
+  glad_eglQuerySurface64KHR = (PFNEGLQUERYSURFACE64KHRPROC)load("eglQuerySurface64KHR");
 }
 static void load_EGL_KHR_partial_update(GLADloadproc load) {
-	glad_eglSetDamageRegionKHR = (PFNEGLSETDAMAGEREGIONKHRPROC)load("eglSetDamageRegionKHR");
+  glad_eglSetDamageRegionKHR = (PFNEGLSETDAMAGEREGIONKHRPROC)load("eglSetDamageRegionKHR");
 }
 static void load_EGL_KHR_reusable_sync(GLADloadproc load) {
-	glad_eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)load("eglCreateSyncKHR");
-	glad_eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)load("eglDestroySyncKHR");
-	glad_eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)load("eglClientWaitSyncKHR");
-	glad_eglSignalSyncKHR = (PFNEGLSIGNALSYNCKHRPROC)load("eglSignalSyncKHR");
-	glad_eglGetSyncAttribKHR = (PFNEGLGETSYNCATTRIBKHRPROC)load("eglGetSyncAttribKHR");
+  glad_eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)load("eglCreateSyncKHR");
+  glad_eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)load("eglDestroySyncKHR");
+  glad_eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)load("eglClientWaitSyncKHR");
+  glad_eglSignalSyncKHR = (PFNEGLSIGNALSYNCKHRPROC)load("eglSignalSyncKHR");
+  glad_eglGetSyncAttribKHR = (PFNEGLGETSYNCATTRIBKHRPROC)load("eglGetSyncAttribKHR");
 }
 static void load_EGL_KHR_stream(GLADloadproc load) {
-	glad_eglCreateStreamKHR = (PFNEGLCREATESTREAMKHRPROC)load("eglCreateStreamKHR");
-	glad_eglDestroyStreamKHR = (PFNEGLDESTROYSTREAMKHRPROC)load("eglDestroyStreamKHR");
-	glad_eglStreamAttribKHR = (PFNEGLSTREAMATTRIBKHRPROC)load("eglStreamAttribKHR");
-	glad_eglQueryStreamKHR = (PFNEGLQUERYSTREAMKHRPROC)load("eglQueryStreamKHR");
-	glad_eglQueryStreamu64KHR = (PFNEGLQUERYSTREAMU64KHRPROC)load("eglQueryStreamu64KHR");
+  glad_eglCreateStreamKHR = (PFNEGLCREATESTREAMKHRPROC)load("eglCreateStreamKHR");
+  glad_eglDestroyStreamKHR = (PFNEGLDESTROYSTREAMKHRPROC)load("eglDestroyStreamKHR");
+  glad_eglStreamAttribKHR = (PFNEGLSTREAMATTRIBKHRPROC)load("eglStreamAttribKHR");
+  glad_eglQueryStreamKHR = (PFNEGLQUERYSTREAMKHRPROC)load("eglQueryStreamKHR");
+  glad_eglQueryStreamu64KHR = (PFNEGLQUERYSTREAMU64KHRPROC)load("eglQueryStreamu64KHR");
 }
 static void load_EGL_KHR_stream_attrib(GLADloadproc load) {
-	glad_eglCreateStreamAttribKHR = (PFNEGLCREATESTREAMATTRIBKHRPROC)load("eglCreateStreamAttribKHR");
-	glad_eglSetStreamAttribKHR = (PFNEGLSETSTREAMATTRIBKHRPROC)load("eglSetStreamAttribKHR");
-	glad_eglQueryStreamAttribKHR = (PFNEGLQUERYSTREAMATTRIBKHRPROC)load("eglQueryStreamAttribKHR");
-	glad_eglStreamConsumerAcquireAttribKHR = (PFNEGLSTREAMCONSUMERACQUIREATTRIBKHRPROC)load("eglStreamConsumerAcquireAttribKHR");
-	glad_eglStreamConsumerReleaseAttribKHR = (PFNEGLSTREAMCONSUMERRELEASEATTRIBKHRPROC)load("eglStreamConsumerReleaseAttribKHR");
+  glad_eglCreateStreamAttribKHR = (PFNEGLCREATESTREAMATTRIBKHRPROC)load("eglCreateStreamAttribKHR");
+  glad_eglSetStreamAttribKHR = (PFNEGLSETSTREAMATTRIBKHRPROC)load("eglSetStreamAttribKHR");
+  glad_eglQueryStreamAttribKHR = (PFNEGLQUERYSTREAMATTRIBKHRPROC)load("eglQueryStreamAttribKHR");
+  glad_eglStreamConsumerAcquireAttribKHR = (PFNEGLSTREAMCONSUMERACQUIREATTRIBKHRPROC)load("eglStreamConsumerAcquireAttribKHR");
+  glad_eglStreamConsumerReleaseAttribKHR = (PFNEGLSTREAMCONSUMERRELEASEATTRIBKHRPROC)load("eglStreamConsumerReleaseAttribKHR");
 }
 static void load_EGL_KHR_stream_consumer_gltexture(GLADloadproc load) {
-	glad_eglStreamConsumerGLTextureExternalKHR = (PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALKHRPROC)load("eglStreamConsumerGLTextureExternalKHR");
-	glad_eglStreamConsumerAcquireKHR = (PFNEGLSTREAMCONSUMERACQUIREKHRPROC)load("eglStreamConsumerAcquireKHR");
-	glad_eglStreamConsumerReleaseKHR = (PFNEGLSTREAMCONSUMERRELEASEKHRPROC)load("eglStreamConsumerReleaseKHR");
+  glad_eglStreamConsumerGLTextureExternalKHR = (PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALKHRPROC)load("eglStreamConsumerGLTextureExternalKHR");
+  glad_eglStreamConsumerAcquireKHR = (PFNEGLSTREAMCONSUMERACQUIREKHRPROC)load("eglStreamConsumerAcquireKHR");
+  glad_eglStreamConsumerReleaseKHR = (PFNEGLSTREAMCONSUMERRELEASEKHRPROC)load("eglStreamConsumerReleaseKHR");
 }
 static void load_EGL_KHR_stream_cross_process_fd(GLADloadproc load) {
-	glad_eglGetStreamFileDescriptorKHR = (PFNEGLGETSTREAMFILEDESCRIPTORKHRPROC)load("eglGetStreamFileDescriptorKHR");
-	glad_eglCreateStreamFromFileDescriptorKHR = (PFNEGLCREATESTREAMFROMFILEDESCRIPTORKHRPROC)load("eglCreateStreamFromFileDescriptorKHR");
+  glad_eglGetStreamFileDescriptorKHR = (PFNEGLGETSTREAMFILEDESCRIPTORKHRPROC)load("eglGetStreamFileDescriptorKHR");
+  glad_eglCreateStreamFromFileDescriptorKHR = (PFNEGLCREATESTREAMFROMFILEDESCRIPTORKHRPROC)load("eglCreateStreamFromFileDescriptorKHR");
 }
 static void load_EGL_KHR_stream_fifo(GLADloadproc load) {
-	glad_eglQueryStreamTimeKHR = (PFNEGLQUERYSTREAMTIMEKHRPROC)load("eglQueryStreamTimeKHR");
+  glad_eglQueryStreamTimeKHR = (PFNEGLQUERYSTREAMTIMEKHRPROC)load("eglQueryStreamTimeKHR");
 }
 static void load_EGL_KHR_stream_producer_eglsurface(GLADloadproc load) {
-	glad_eglCreateStreamProducerSurfaceKHR = (PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC)load("eglCreateStreamProducerSurfaceKHR");
+  glad_eglCreateStreamProducerSurfaceKHR = (PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC)load("eglCreateStreamProducerSurfaceKHR");
 }
 static void load_EGL_KHR_swap_buffers_with_damage(GLADloadproc load) {
-	glad_eglSwapBuffersWithDamageKHR = (PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC)load("eglSwapBuffersWithDamageKHR");
+  glad_eglSwapBuffersWithDamageKHR = (PFNEGLSWAPBUFFERSWITHDAMAGEKHRPROC)load("eglSwapBuffersWithDamageKHR");
 }
 static void load_EGL_KHR_wait_sync(GLADloadproc load) {
-	glad_eglWaitSyncKHR = (PFNEGLWAITSYNCKHRPROC)load("eglWaitSyncKHR");
+  glad_eglWaitSyncKHR = (PFNEGLWAITSYNCKHRPROC)load("eglWaitSyncKHR");
 }
 static void load_EGL_MESA_drm_image(GLADloadproc load) {
-	glad_eglCreateDRMImageMESA = (PFNEGLCREATEDRMIMAGEMESAPROC)load("eglCreateDRMImageMESA");
-	glad_eglExportDRMImageMESA = (PFNEGLEXPORTDRMIMAGEMESAPROC)load("eglExportDRMImageMESA");
+  glad_eglCreateDRMImageMESA = (PFNEGLCREATEDRMIMAGEMESAPROC)load("eglCreateDRMImageMESA");
+  glad_eglExportDRMImageMESA = (PFNEGLEXPORTDRMIMAGEMESAPROC)load("eglExportDRMImageMESA");
 }
 static void load_EGL_MESA_image_dma_buf_export(GLADloadproc load) {
-	glad_eglExportDMABUFImageQueryMESA = (PFNEGLEXPORTDMABUFIMAGEQUERYMESAPROC)load("eglExportDMABUFImageQueryMESA");
-	glad_eglExportDMABUFImageMESA = (PFNEGLEXPORTDMABUFIMAGEMESAPROC)load("eglExportDMABUFImageMESA");
+  glad_eglExportDMABUFImageQueryMESA = (PFNEGLEXPORTDMABUFIMAGEQUERYMESAPROC)load("eglExportDMABUFImageQueryMESA");
+  glad_eglExportDMABUFImageMESA = (PFNEGLEXPORTDMABUFIMAGEMESAPROC)load("eglExportDMABUFImageMESA");
 }
 static void load_EGL_MESA_query_driver(GLADloadproc load) {
-	glad_eglGetDisplayDriverConfig = (PFNEGLGETDISPLAYDRIVERCONFIGPROC)load("eglGetDisplayDriverConfig");
-	glad_eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC)load("eglGetDisplayDriverName");
+  glad_eglGetDisplayDriverConfig = (PFNEGLGETDISPLAYDRIVERCONFIGPROC)load("eglGetDisplayDriverConfig");
+  glad_eglGetDisplayDriverName = (PFNEGLGETDISPLAYDRIVERNAMEPROC)load("eglGetDisplayDriverName");
 }
 static void load_EGL_NOK_swap_region(GLADloadproc load) {
-	glad_eglSwapBuffersRegionNOK = (PFNEGLSWAPBUFFERSREGIONNOKPROC)load("eglSwapBuffersRegionNOK");
+  glad_eglSwapBuffersRegionNOK = (PFNEGLSWAPBUFFERSREGIONNOKPROC)load("eglSwapBuffersRegionNOK");
 }
 static void load_EGL_NOK_swap_region2(GLADloadproc load) {
-	glad_eglSwapBuffersRegion2NOK = (PFNEGLSWAPBUFFERSREGION2NOKPROC)load("eglSwapBuffersRegion2NOK");
+  glad_eglSwapBuffersRegion2NOK = (PFNEGLSWAPBUFFERSREGION2NOKPROC)load("eglSwapBuffersRegion2NOK");
 }
 static void load_EGL_NV_native_query(GLADloadproc load) {
-	glad_eglQueryNativeDisplayNV = (PFNEGLQUERYNATIVEDISPLAYNVPROC)load("eglQueryNativeDisplayNV");
-	glad_eglQueryNativeWindowNV = (PFNEGLQUERYNATIVEWINDOWNVPROC)load("eglQueryNativeWindowNV");
-	glad_eglQueryNativePixmapNV = (PFNEGLQUERYNATIVEPIXMAPNVPROC)load("eglQueryNativePixmapNV");
+  glad_eglQueryNativeDisplayNV = (PFNEGLQUERYNATIVEDISPLAYNVPROC)load("eglQueryNativeDisplayNV");
+  glad_eglQueryNativeWindowNV = (PFNEGLQUERYNATIVEWINDOWNVPROC)load("eglQueryNativeWindowNV");
+  glad_eglQueryNativePixmapNV = (PFNEGLQUERYNATIVEPIXMAPNVPROC)load("eglQueryNativePixmapNV");
 }
 static void load_EGL_NV_post_sub_buffer(GLADloadproc load) {
-	glad_eglPostSubBufferNV = (PFNEGLPOSTSUBBUFFERNVPROC)load("eglPostSubBufferNV");
+  glad_eglPostSubBufferNV = (PFNEGLPOSTSUBBUFFERNVPROC)load("eglPostSubBufferNV");
 }
 static void load_EGL_NV_stream_consumer_eglimage(GLADloadproc load) {
-	glad_eglStreamImageConsumerConnectNV = (PFNEGLSTREAMIMAGECONSUMERCONNECTNVPROC)load("eglStreamImageConsumerConnectNV");
-	glad_eglQueryStreamConsumerEventNV = (PFNEGLQUERYSTREAMCONSUMEREVENTNVPROC)load("eglQueryStreamConsumerEventNV");
-	glad_eglStreamAcquireImageNV = (PFNEGLSTREAMACQUIREIMAGENVPROC)load("eglStreamAcquireImageNV");
-	glad_eglStreamReleaseImageNV = (PFNEGLSTREAMRELEASEIMAGENVPROC)load("eglStreamReleaseImageNV");
+  glad_eglStreamImageConsumerConnectNV = (PFNEGLSTREAMIMAGECONSUMERCONNECTNVPROC)load("eglStreamImageConsumerConnectNV");
+  glad_eglQueryStreamConsumerEventNV = (PFNEGLQUERYSTREAMCONSUMEREVENTNVPROC)load("eglQueryStreamConsumerEventNV");
+  glad_eglStreamAcquireImageNV = (PFNEGLSTREAMACQUIREIMAGENVPROC)load("eglStreamAcquireImageNV");
+  glad_eglStreamReleaseImageNV = (PFNEGLSTREAMRELEASEIMAGENVPROC)load("eglStreamReleaseImageNV");
 }
 static void load_EGL_NV_stream_consumer_gltexture_yuv(GLADloadproc load) {
-	glad_eglStreamConsumerGLTextureExternalAttribsNV = (PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALATTRIBSNVPROC)load("eglStreamConsumerGLTextureExternalAttribsNV");
+  glad_eglStreamConsumerGLTextureExternalAttribsNV = (PFNEGLSTREAMCONSUMERGLTEXTUREEXTERNALATTRIBSNVPROC)load("eglStreamConsumerGLTextureExternalAttribsNV");
 }
 static void load_EGL_NV_stream_flush(GLADloadproc load) {
-	glad_eglStreamFlushNV = (PFNEGLSTREAMFLUSHNVPROC)load("eglStreamFlushNV");
+  glad_eglStreamFlushNV = (PFNEGLSTREAMFLUSHNVPROC)load("eglStreamFlushNV");
 }
 static void load_EGL_NV_stream_metadata(GLADloadproc load) {
-	glad_eglQueryDisplayAttribNV = (PFNEGLQUERYDISPLAYATTRIBNVPROC)load("eglQueryDisplayAttribNV");
-	glad_eglSetStreamMetadataNV = (PFNEGLSETSTREAMMETADATANVPROC)load("eglSetStreamMetadataNV");
-	glad_eglQueryStreamMetadataNV = (PFNEGLQUERYSTREAMMETADATANVPROC)load("eglQueryStreamMetadataNV");
+  glad_eglQueryDisplayAttribNV = (PFNEGLQUERYDISPLAYATTRIBNVPROC)load("eglQueryDisplayAttribNV");
+  glad_eglSetStreamMetadataNV = (PFNEGLSETSTREAMMETADATANVPROC)load("eglSetStreamMetadataNV");
+  glad_eglQueryStreamMetadataNV = (PFNEGLQUERYSTREAMMETADATANVPROC)load("eglQueryStreamMetadataNV");
 }
 static void load_EGL_NV_stream_reset(GLADloadproc load) {
-	glad_eglResetStreamNV = (PFNEGLRESETSTREAMNVPROC)load("eglResetStreamNV");
+  glad_eglResetStreamNV = (PFNEGLRESETSTREAMNVPROC)load("eglResetStreamNV");
 }
 static void load_EGL_NV_stream_sync(GLADloadproc load) {
-	glad_eglCreateStreamSyncNV = (PFNEGLCREATESTREAMSYNCNVPROC)load("eglCreateStreamSyncNV");
+  glad_eglCreateStreamSyncNV = (PFNEGLCREATESTREAMSYNCNVPROC)load("eglCreateStreamSyncNV");
 }
 static void load_EGL_NV_sync(GLADloadproc load) {
-	glad_eglCreateFenceSyncNV = (PFNEGLCREATEFENCESYNCNVPROC)load("eglCreateFenceSyncNV");
-	glad_eglDestroySyncNV = (PFNEGLDESTROYSYNCNVPROC)load("eglDestroySyncNV");
-	glad_eglFenceNV = (PFNEGLFENCENVPROC)load("eglFenceNV");
-	glad_eglClientWaitSyncNV = (PFNEGLCLIENTWAITSYNCNVPROC)load("eglClientWaitSyncNV");
-	glad_eglSignalSyncNV = (PFNEGLSIGNALSYNCNVPROC)load("eglSignalSyncNV");
-	glad_eglGetSyncAttribNV = (PFNEGLGETSYNCATTRIBNVPROC)load("eglGetSyncAttribNV");
+  glad_eglCreateFenceSyncNV = (PFNEGLCREATEFENCESYNCNVPROC)load("eglCreateFenceSyncNV");
+  glad_eglDestroySyncNV = (PFNEGLDESTROYSYNCNVPROC)load("eglDestroySyncNV");
+  glad_eglFenceNV = (PFNEGLFENCENVPROC)load("eglFenceNV");
+  glad_eglClientWaitSyncNV = (PFNEGLCLIENTWAITSYNCNVPROC)load("eglClientWaitSyncNV");
+  glad_eglSignalSyncNV = (PFNEGLSIGNALSYNCNVPROC)load("eglSignalSyncNV");
+  glad_eglGetSyncAttribNV = (PFNEGLGETSYNCATTRIBNVPROC)load("eglGetSyncAttribNV");
 }
 static void load_EGL_NV_system_time(GLADloadproc load) {
-	glad_eglGetSystemTimeFrequencyNV = (PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)load("eglGetSystemTimeFrequencyNV");
-	glad_eglGetSystemTimeNV = (PFNEGLGETSYSTEMTIMENVPROC)load("eglGetSystemTimeNV");
+  glad_eglGetSystemTimeFrequencyNV = (PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)load("eglGetSystemTimeFrequencyNV");
+  glad_eglGetSystemTimeNV = (PFNEGLGETSYSTEMTIMENVPROC)load("eglGetSystemTimeNV");
 }
 static void load_EGL_WL_bind_wayland_display(GLADloadproc load) {
-	glad_eglBindWaylandDisplayWL = (PFNEGLBINDWAYLANDDISPLAYWLPROC)load("eglBindWaylandDisplayWL");
-	glad_eglUnbindWaylandDisplayWL = (PFNEGLUNBINDWAYLANDDISPLAYWLPROC)load("eglUnbindWaylandDisplayWL");
-	glad_eglQueryWaylandBufferWL = (PFNEGLQUERYWAYLANDBUFFERWLPROC)load("eglQueryWaylandBufferWL");
+  glad_eglBindWaylandDisplayWL = (PFNEGLBINDWAYLANDDISPLAYWLPROC)load("eglBindWaylandDisplayWL");
+  glad_eglUnbindWaylandDisplayWL = (PFNEGLUNBINDWAYLANDDISPLAYWLPROC)load("eglUnbindWaylandDisplayWL");
+  glad_eglQueryWaylandBufferWL = (PFNEGLQUERYWAYLANDBUFFERWLPROC)load("eglQueryWaylandBufferWL");
 }
 static void load_EGL_WL_create_wayland_buffer_from_image(GLADloadproc load) {
-	glad_eglCreateWaylandBufferFromImageWL = (PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWLPROC)load("eglCreateWaylandBufferFromImageWL");
+  glad_eglCreateWaylandBufferFromImageWL = (PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWLPROC)load("eglCreateWaylandBufferFromImageWL");
 }
 static int find_extensionsEGL(void) {
-	return 1;
+  return 1;
 }
 
 static void find_coreEGL(void) {
 }
 
 int gladLoadEGLLoader(GLADloadproc load) {
-	(void) load;
-	find_coreEGL();
+  (void)load;
+  find_coreEGL();
 
-	if (!find_extensionsEGL()) return 0;
-	load_EGL_ANDROID_blob_cache(load);
-	load_EGL_ANDROID_create_native_client_buffer(load);
-	load_EGL_ANDROID_get_frame_timestamps(load);
-	load_EGL_ANDROID_get_native_client_buffer(load);
-	load_EGL_ANDROID_native_fence_sync(load);
-	load_EGL_ANDROID_presentation_time(load);
-	load_EGL_ANGLE_query_surface_pointer(load);
-	load_EGL_ANGLE_sync_control_rate(load);
-	load_EGL_EXT_client_sync(load);
-	load_EGL_EXT_compositor(load);
-	load_EGL_EXT_device_base(load);
-	load_EGL_EXT_device_enumeration(load);
-	load_EGL_EXT_device_persistent_id(load);
-	load_EGL_EXT_device_query(load);
-	load_EGL_EXT_display_alloc(load);
-	load_EGL_EXT_image_dma_buf_import_modifiers(load);
-	load_EGL_EXT_output_base(load);
-	load_EGL_EXT_platform_base(load);
-	load_EGL_EXT_stream_consumer_egloutput(load);
-	load_EGL_EXT_surface_compression(load);
-	load_EGL_EXT_swap_buffers_with_damage(load);
-	load_EGL_EXT_sync_reuse(load);
-	load_EGL_HI_clientpixmap(load);
-	load_EGL_KHR_cl_event2(load);
-	load_EGL_KHR_debug(load);
-	load_EGL_KHR_display_reference(load);
-	load_EGL_KHR_fence_sync(load);
-	load_EGL_KHR_image(load);
-	load_EGL_KHR_image_base(load);
-	load_EGL_KHR_lock_surface(load);
-	load_EGL_KHR_lock_surface3(load);
-	load_EGL_KHR_partial_update(load);
-	load_EGL_KHR_reusable_sync(load);
-	load_EGL_KHR_stream(load);
-	load_EGL_KHR_stream_attrib(load);
-	load_EGL_KHR_stream_consumer_gltexture(load);
-	load_EGL_KHR_stream_cross_process_fd(load);
-	load_EGL_KHR_stream_fifo(load);
-	load_EGL_KHR_stream_producer_eglsurface(load);
-	load_EGL_KHR_swap_buffers_with_damage(load);
-	load_EGL_KHR_wait_sync(load);
-	load_EGL_MESA_drm_image(load);
-	load_EGL_MESA_image_dma_buf_export(load);
-	load_EGL_MESA_query_driver(load);
-	load_EGL_NOK_swap_region(load);
-	load_EGL_NOK_swap_region2(load);
-	load_EGL_NV_native_query(load);
-	load_EGL_NV_post_sub_buffer(load);
-	load_EGL_NV_stream_consumer_eglimage(load);
-	load_EGL_NV_stream_consumer_gltexture_yuv(load);
-	load_EGL_NV_stream_flush(load);
-	load_EGL_NV_stream_metadata(load);
-	load_EGL_NV_stream_reset(load);
-	load_EGL_NV_stream_sync(load);
-	load_EGL_NV_sync(load);
-	load_EGL_NV_system_time(load);
-	load_EGL_WL_bind_wayland_display(load);
-	load_EGL_WL_create_wayland_buffer_from_image(load);
-	return 1;
+  if (!find_extensionsEGL())
+    return 0;
+  load_EGL_ANDROID_blob_cache(load);
+  load_EGL_ANDROID_create_native_client_buffer(load);
+  load_EGL_ANDROID_get_frame_timestamps(load);
+  load_EGL_ANDROID_get_native_client_buffer(load);
+  load_EGL_ANDROID_native_fence_sync(load);
+  load_EGL_ANDROID_presentation_time(load);
+  load_EGL_ANGLE_query_surface_pointer(load);
+  load_EGL_ANGLE_sync_control_rate(load);
+  load_EGL_EXT_client_sync(load);
+  load_EGL_EXT_compositor(load);
+  load_EGL_EXT_device_base(load);
+  load_EGL_EXT_device_enumeration(load);
+  load_EGL_EXT_device_persistent_id(load);
+  load_EGL_EXT_device_query(load);
+  load_EGL_EXT_display_alloc(load);
+  load_EGL_EXT_image_dma_buf_import_modifiers(load);
+  load_EGL_EXT_output_base(load);
+  load_EGL_EXT_platform_base(load);
+  load_EGL_EXT_stream_consumer_egloutput(load);
+  load_EGL_EXT_surface_compression(load);
+  load_EGL_EXT_swap_buffers_with_damage(load);
+  load_EGL_EXT_sync_reuse(load);
+  load_EGL_HI_clientpixmap(load);
+  load_EGL_KHR_cl_event2(load);
+  load_EGL_KHR_debug(load);
+  load_EGL_KHR_display_reference(load);
+  load_EGL_KHR_fence_sync(load);
+  load_EGL_KHR_image(load);
+  load_EGL_KHR_image_base(load);
+  load_EGL_KHR_lock_surface(load);
+  load_EGL_KHR_lock_surface3(load);
+  load_EGL_KHR_partial_update(load);
+  load_EGL_KHR_reusable_sync(load);
+  load_EGL_KHR_stream(load);
+  load_EGL_KHR_stream_attrib(load);
+  load_EGL_KHR_stream_consumer_gltexture(load);
+  load_EGL_KHR_stream_cross_process_fd(load);
+  load_EGL_KHR_stream_fifo(load);
+  load_EGL_KHR_stream_producer_eglsurface(load);
+  load_EGL_KHR_swap_buffers_with_damage(load);
+  load_EGL_KHR_wait_sync(load);
+  load_EGL_MESA_drm_image(load);
+  load_EGL_MESA_image_dma_buf_export(load);
+  load_EGL_MESA_query_driver(load);
+  load_EGL_NOK_swap_region(load);
+  load_EGL_NOK_swap_region2(load);
+  load_EGL_NV_native_query(load);
+  load_EGL_NV_post_sub_buffer(load);
+  load_EGL_NV_stream_consumer_eglimage(load);
+  load_EGL_NV_stream_consumer_gltexture_yuv(load);
+  load_EGL_NV_stream_flush(load);
+  load_EGL_NV_stream_metadata(load);
+  load_EGL_NV_stream_reset(load);
+  load_EGL_NV_stream_sync(load);
+  load_EGL_NV_sync(load);
+  load_EGL_NV_system_time(load);
+  load_EGL_WL_bind_wayland_display(load);
+  load_EGL_WL_create_wayland_buffer_from_image(load);
+  return 1;
 }
-

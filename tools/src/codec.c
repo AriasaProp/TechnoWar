@@ -1,8 +1,7 @@
 #include "codec.h"
 
 // **
-// defined for 
-
+// defined for
 
 // ***/
 #define CODEC_ERROR_MSG_LEN 512
