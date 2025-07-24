@@ -1,10 +1,10 @@
-#include <EGL/egl.h>
-#include <GLES3/gl32.h> //API 24
 #include <android/native_window.h>
 
 #include "engine.h"
 #include "log.h"
 #include "util.h"
+#include "glad.h"
+#include "glad_egl.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -281,6 +281,8 @@ static void killEGL(const int EGLTermReq) {
 }
 // android purpose
 void androidGraphics_init() {
+  if (gladLoadEGL() && gladLoadGLES2Loader((GLADloadproc)eglGetProcAddress))
+    LOGE("opengles error");
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
 
   global_engine.g.getScreenSize = opengles_getScreenSize;

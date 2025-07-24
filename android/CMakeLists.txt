@@ -31,4 +31,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/c
     ${CORE_SRC}/include
 )
-target_link_libraries(${PROJECT_NAME} core GLESv3 android EGL log m)
+target_link_libraries(${PROJECT_NAME} core android log m)

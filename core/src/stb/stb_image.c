@@ -589,20 +589,7 @@ static void stbi__float_postprocess(float *result, int *x, int *y, int *comp, in
 #endif
 
 
-#if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
-#endif
-
-#if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
-int stbi_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input)
-{
-	return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
-}
-#endif
-
-static FILE *stbi__fopen(char const *filename, char const *mode)
-{
+static FILE *stbi__fopen(char const *filename, char const *mode) {
    FILE *f;
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
    wchar_t wMode[64];
