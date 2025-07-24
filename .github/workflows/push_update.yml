@@ -73,24 +73,21 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: 'gradle'
 
       - name: Setup gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
 
       - name: build Android
-        run: |
-          cd android
-          gradle :build
+        run: cd android && gradle :build
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: Android
-          path: ${{ github.workspace }}/android/build/outputs/apk/release/android-release.apk 
+          compression-level: 9
+          if-no-files-found: error
+          overwrite: true
+          path: ${{ github.workspace }}/android/build/outputs/apk/**/android-**.apk
 
-      - name: Upload Debug Artifact
-        uses: actions/upload-artifact@v4.3.3
-        with:
-          name: Android-Debug
-          path: ${{ github.workspace }}/android/build/outputs/apk/debug/android-debug.apk 
