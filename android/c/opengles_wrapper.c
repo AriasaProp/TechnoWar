@@ -1,10 +1,10 @@
 #include <android/native_window.h>
 
 #include "engine.h"
-#include "glad.h"
-#include "glad_egl.h"
 #include "log.h"
 #include "util.h"
+#include "glad.h"
+#include "glad_egl.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -91,7 +91,7 @@ static struct androidGraphics {
   vec2 viewportSize; //
   vec2 screenSize;   //
   vec4 insets;
-
+  
   void *egllib, *gleslib;
 
 } *src = NULL;
@@ -282,24 +282,20 @@ static void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-#include <fcntl.h>
+#include <dlfcnt.h>
 static void *lpegl(const char *name) {
+  return dlsym(src->egllib, name);
 }
 static void *lpgles(const char *name) {
+  return dlsym(src->gleslib, name);
 }
 
 void androidGraphics_init() {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  src.egllib = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
-  if (gladLoadEGL(lpegl)) {
-    LOGE("egl error");
-    return;
-  }
-  src.gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
-  if (gladLoadGLES2Loader(lpgles)) {
-    LOGE("opengles error");
-    return;
-  }
+  src->egllib = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
+  src->gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+  gladLoadEGL(lpegl);
+  gladLoadGLES(lpgles);
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
@@ -664,7 +660,7 @@ void androidGraphics_term() {
     eglTerminate(src->display);
     src->display = EGL_NO_DISPLAY;
   }
-  dlclose(src.egllib);
-  dlclose(src.eglgles);
+  dlclose(src->egllib);
+  dlclose(src->eglgles);
   free(src);
 }
