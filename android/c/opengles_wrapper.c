@@ -1,10 +1,10 @@
 #include <android/native_window.h>
 
 #include "engine.h"
-#include "log.h"
-#include "util.h"
 #include "glad.h"
 #include "glad_egl.h"
+#include "log.h"
+#include "util.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -91,7 +91,7 @@ static struct androidGraphics {
   vec2 viewportSize; //
   vec2 screenSize;   //
   vec4 insets;
-  
+
   void *egllib, *gleslib;
 
 } *src = NULL;
@@ -284,10 +284,8 @@ static void killEGL(const int EGLTermReq) {
 // android purpose
 #include <fcntl.h>
 static void *lpegl(const char *name) {
-  
 }
 static void *lpgles(const char *name) {
-  
 }
 
 void androidGraphics_init() {

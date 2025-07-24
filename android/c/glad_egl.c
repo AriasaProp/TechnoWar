@@ -6,13 +6,13 @@
 
 // EGL Core Functions
 EGLBoolean (*eglChooseConfig)(EGLDisplay, const EGLint *attrib_list, EGLConfig *configs, EGLint config_size, EGLint *num_config) = NULL;
-EGLBoolean (*eglCopyBuffers)(EGLDisplay,EGLSurface, EGLNativePixmapType target) = NULL;
+EGLBoolean (*eglCopyBuffers)(EGLDisplay, EGLSurface, EGLNativePixmapType target) = NULL;
 EGLContext (*eglCreateContext)(EGLDisplay, EGLConfig config, EGLContext share_context, const EGLint *attrib_list) = NULL;
 EGLSurface (*eglCreatePbufferSurface)(EGLDisplay, EGLConfig config, const EGLint *attrib_list) = NULL;
 EGLSurface (*eglCreatePixmapSurface)(EGLDisplay, EGLConfig config, EGLNativePixmapType pixmap, const EGLint *attrib_list) = NULL;
 EGLSurface (*eglCreateWindowSurface)(EGLDisplay, EGLConfig config, EGLNativeWindowType win, const EGLint *attrib_list) = NULL;
 EGLBoolean (*eglDestroyContext)(EGLDisplay, EGLContext) = NULL;
-EGLBoolean (*eglDestroySurface)(EGLDisplay,EGLSurface) = NULL;
+EGLBoolean (*eglDestroySurface)(EGLDisplay, EGLSurface) = NULL;
 EGLBoolean (*eglGetConfigAttrib)(EGLDisplay, EGLConfig config, EGLint attribute, EGLint *value) = NULL;
 EGLBoolean (*eglGetConfigs)(EGLDisplay, EGLConfig *configs, EGLint config_size, EGLint *num_config) = NULL;
 EGLDisplay (*eglGetCurrentDisplay)(void) = NULL;
@@ -23,16 +23,16 @@ EGLBoolean (*eglInitialize)(EGLDisplay, EGLint *major, EGLint *minor) = NULL;
 EGLBoolean (*eglMakeCurrent)(EGLDisplay, EGLSurface draw, EGLSurface read, EGLContext) = NULL;
 EGLBoolean (*eglQueryContext)(EGLDisplay, EGLContext, EGLint attribute, EGLint *value) = NULL;
 const char *(*eglQueryString)(EGLDisplay, EGLint name) = NULL;
-EGLBoolean (*eglQuerySurface)(EGLDisplay,EGLSurface, EGLint attribute, EGLint *value) = NULL;
-EGLBoolean (*eglSwapBuffers)(EGLDisplay,EGLSurface) = NULL;
+EGLBoolean (*eglQuerySurface)(EGLDisplay, EGLSurface, EGLint attribute, EGLint *value) = NULL;
+EGLBoolean (*eglSwapBuffers)(EGLDisplay, EGLSurface) = NULL;
 EGLBoolean (*eglTerminate)(EGLDisplay) = NULL;
 EGLBoolean (*eglWaitGL)(void) = NULL;
 EGLBoolean (*eglWaitNative)(EGLint engine) = NULL;
 
 // EGL 1.1 Functions
-EGLBoolean (*eglBindTexImage)(EGLDisplay,EGLSurface, EGLint buffer) = NULL;
-EGLBoolean (*eglReleaseTexImage)(EGLDisplay,EGLSurface, EGLint buffer) = NULL;
-EGLBoolean (*eglSurfaceAttrib)(EGLDisplay,EGLSurface, EGLint attribute, EGLint value) = NULL;
+EGLBoolean (*eglBindTexImage)(EGLDisplay, EGLSurface, EGLint buffer) = NULL;
+EGLBoolean (*eglReleaseTexImage)(EGLDisplay, EGLSurface, EGLint buffer) = NULL;
+EGLBoolean (*eglSurfaceAttrib)(EGLDisplay, EGLSurface, EGLint attribute, EGLint value) = NULL;
 EGLBoolean (*eglSwapInterval)(EGLDisplay, EGLint interval) = NULL;
 
 // EGL 1.2 Functions
@@ -408,45 +408,45 @@ static int find_extensionsEGL(void) {
 void gladLoadEGL(GLADloadproc loader) {
 
   // EGL Core Functions
-  eglChooseConfig = (EGLBoolean (*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))loader("eglChooseConfig");
-  eglCopyBuffers = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLNativePixmapType))loader("eglCopyBuffers");
-  eglCreateContext = (EGLContext (*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))loader("eglCreateContext");
-  eglCreatePbufferSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, const EGLint *))loader("eglCreatePbufferSurface");
-  eglCreatePixmapSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))loader("eglCreatePixmapSurface");
-  eglCreateWindowSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))loader("eglCreateWindowSurface");
-  eglDestroyContext = (EGLBoolean (*)(EGLDisplay, EGLContext))loader("eglDestroyContext");
-  eglDestroySurface = (EGLBoolean (*)(EGLDisplay, EGLSurface))loader("eglDestroySurface");
-  eglGetConfigAttrib = (EGLBoolean (*)(EGLDisplay, EGLConfig, EGLint, EGLint *))loader("eglGetConfigAttrib");
-  eglGetConfigs = (EGLBoolean (*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))loader("eglGetConfigs");
-  eglGetCurrentDisplay = (EGLDisplay (*)(void))loader("eglGetCurrentDisplay");
-  eglGetCurrentSurface = (EGLSurface (*)(EGLint))loader("eglGetCurrentSurface");
-  eglGetDisplay = (EGLDisplay (*)(EGLNativeDisplayType))loader("eglGetDisplay");
-  eglGetError = (EGLint (*)(void))loader("eglGetError");
-  eglInitialize = (EGLBoolean (*)(EGLDisplay, EGLint *, EGLint *))loader("eglInitialize");
-  eglMakeCurrent = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))loader("eglMakeCurrent");
-  eglQueryContext = (EGLBoolean (*)(EGLDisplay, EGLContext, EGLint, EGLint *))loader("eglQueryContext");
+  eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))loader("eglChooseConfig");
+  eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))loader("eglCopyBuffers");
+  eglCreateContext = (EGLContext(*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))loader("eglCreateContext");
+  eglCreatePbufferSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, const EGLint *))loader("eglCreatePbufferSurface");
+  eglCreatePixmapSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))loader("eglCreatePixmapSurface");
+  eglCreateWindowSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))loader("eglCreateWindowSurface");
+  eglDestroyContext = (EGLBoolean(*)(EGLDisplay, EGLContext))loader("eglDestroyContext");
+  eglDestroySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface))loader("eglDestroySurface");
+  eglGetConfigAttrib = (EGLBoolean(*)(EGLDisplay, EGLConfig, EGLint, EGLint *))loader("eglGetConfigAttrib");
+  eglGetConfigs = (EGLBoolean(*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))loader("eglGetConfigs");
+  eglGetCurrentDisplay = (EGLDisplay(*)(void))loader("eglGetCurrentDisplay");
+  eglGetCurrentSurface = (EGLSurface(*)(EGLint))loader("eglGetCurrentSurface");
+  eglGetDisplay = (EGLDisplay(*)(EGLNativeDisplayType))loader("eglGetDisplay");
+  eglGetError = (EGLint(*)(void))loader("eglGetError");
+  eglInitialize = (EGLBoolean(*)(EGLDisplay, EGLint *, EGLint *))loader("eglInitialize");
+  eglMakeCurrent = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))loader("eglMakeCurrent");
+  eglQueryContext = (EGLBoolean(*)(EGLDisplay, EGLContext, EGLint, EGLint *))loader("eglQueryContext");
   eglQueryString = (const char *(*)(EGLDisplay, EGLint))loader("eglQueryString");
-  eglQuerySurface = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint *))loader("eglQuerySurface");
-  eglSwapBuffers = (EGLBoolean (*)(EGLDisplay, EGLSurface))loader("eglSwapBuffers");
-  eglTerminate = (EGLBoolean (*)(EGLDisplay))loader("eglTerminate");
-  eglWaitGL = (EGLBoolean (*)(void))loader("eglWaitGL");
-  eglWaitNative = (EGLBoolean (*)(EGLint))loader("eglWaitNative");
+  eglQuerySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint *))loader("eglQuerySurface");
+  eglSwapBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface))loader("eglSwapBuffers");
+  eglTerminate = (EGLBoolean(*)(EGLDisplay))loader("eglTerminate");
+  eglWaitGL = (EGLBoolean(*)(void))loader("eglWaitGL");
+  eglWaitNative = (EGLBoolean(*)(EGLint))loader("eglWaitNative");
 
   // EGL 1.1 Functions
-  eglBindTexImage = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint))loader("eglBindTexImage");
-  eglReleaseTexImage = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint))loader("eglReleaseTexImage");
-  eglSurfaceAttrib = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint))loader("eglSurfaceAttrib");
-  eglSwapInterval = (EGLBoolean (*)(EGLDisplay, EGLint))loader("eglSwapInterval");
+  eglBindTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))loader("eglBindTexImage");
+  eglReleaseTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))loader("eglReleaseTexImage");
+  eglSurfaceAttrib = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint))loader("eglSurfaceAttrib");
+  eglSwapInterval = (EGLBoolean(*)(EGLDisplay, EGLint))loader("eglSwapInterval");
 
   // EGL 1.2 Functions
-  eglBindAPI = (EGLBoolean (*)(EGLenum))loader("eglBindAPI");
-  eglQueryAPI = (EGLenum (*)(void))loader("eglQueryAPI");
-  eglCreatePbufferFromClientBuffer = (EGLSurface (*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))loader("eglCreatePbufferFromClientBuffer");
-  eglReleaseThread = (EGLBoolean (*)(void))loader("eglReleaseThread");
-  eglWaitClient = (EGLBoolean (*)(void))loader("eglWaitClient");
+  eglBindAPI = (EGLBoolean(*)(EGLenum))loader("eglBindAPI");
+  eglQueryAPI = (EGLenum(*)(void))loader("eglQueryAPI");
+  eglCreatePbufferFromClientBuffer = (EGLSurface(*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))loader("eglCreatePbufferFromClientBuffer");
+  eglReleaseThread = (EGLBoolean(*)(void))loader("eglReleaseThread");
+  eglWaitClient = (EGLBoolean(*)(void))loader("eglWaitClient");
 
   // EGL 1.4 Functions
-  eglGetCurrentContext = (EGLContext (*)(void))loader("eglGetCurrentContext");
+  eglGetCurrentContext = (EGLContext(*)(void))loader("eglGetCurrentContext");
   /*
 {
   if (!find_extensionsEGL())

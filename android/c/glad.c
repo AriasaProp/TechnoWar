@@ -1,9 +1,9 @@
-i#include "glad.h"
+i #include "glad.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct gladGLversionStruct GLVersion = {0, 0};
+  struct gladGLversionStruct GLVersion = {0, 0};
 
 #if defined(GL_ES_VERSION_3_0) || defined(GL_VERSION_3_0)
 #define _GLAD_IS_SOME_NEW_VERSION 1
