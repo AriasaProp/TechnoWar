@@ -1497,7 +1497,7 @@ static void (*glPrimitiveBoundingBox)(GLfloat minX, GLfloat minY, GLfloat minZ, 
 static void (*glPatchParameteri)(GLenum pname, GLint value) = NULL;                                                                                           // Core in GLES 3.2
 
 static void *loadGLES(void) {
-  void gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+  void *gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
   if (!gleslib)
     goto load_gles_err_e;
   void *temp;
@@ -2425,7 +2425,7 @@ void androidGraphics_term() {
     eglTerminate(src->display);
     src->display = EGL_NO_DISPLAY;
   }
-  dlclose(egllib);
-  dlclose(gleslib);
+  dlclose(src->egllib);
+  dlclose(src->gleslib);
   free(src);
 }
