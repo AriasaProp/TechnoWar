@@ -1,7 +1,7 @@
 #ifndef __glad_h_
 #define __glad_h_
 
-if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
+#if defined(_WIN32) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 #define APIENTRY __stdcall
 #else
 #define APIENTRY
