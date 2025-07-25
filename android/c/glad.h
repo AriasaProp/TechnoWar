@@ -993,7 +993,7 @@ extern void (*glShaderSource)(GLuint shader, GLsizei count, const GLchar *const*
 extern void (*glStencilFunc)(GLenum func, GLint ref, GLuint mask);
 extern void (*glStencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask);
 extern void (*glStencilMask)(GLuint mask);
-API void (*glStencilMaskSeparate)(GLenum face, GLuint mask);
+extern void (*glStencilMaskSeparate)(GLenum face, GLuint mask);
 extern void (*glStencilOp)(GLenum fail, GLenum zfail, GLenum zpass);
 extern void (*glStencilOpSeparate)(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
 extern void (*glTexImage2D)(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void *pixels);
@@ -1033,6 +1033,9 @@ extern void (*glVertexAttrib4f)(GLuint index, GLfloat x, GLfloat y, GLfloat z, G
 extern void (*glVertexAttrib4fv)(GLuint index, const GLfloat *v);
 extern void (*glVertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
 extern void (*glViewport)(GLint x, GLint y, GLsizei width, GLsizei height);
+extern void (*glBufferData)(GLenum target,GLsizeiptr, const void *,GLenum);
+extern void (*glBufferSubData)(GLenum,GLintptr,GLsizeiptr, const void *);
+
 
 // --- GL ES 3.0 Core Functions ---
 extern void (*glReadBuffer)(GLenum src);
@@ -1075,7 +1078,7 @@ extern void (*glTransformFeedbackVaryings)(GLuint program, GLsizei count, const 
 extern void (*glGetTransformFeedbackVarying)(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name);
 extern void (*glBindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
 extern void (*glBindBufferBase)(GLenum target, GLuint index, GLuint buffer);
-API void (*glGetActiveUniformBlockName)(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
+extern void (*glGetActiveUniformBlockName)(GLuint program, GLuint uniformBlockIndex, GLsizei bufSize, GLsizei *length, GLchar *uniformBlockName);
 extern void (*glGetActiveUniformBlockiv)(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params);
 extern void (*glGetUniformBlockIndex)(GLuint program, const GLchar *uniformBlockName);
 extern void (*glUniformBlockBinding)(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding);
@@ -1138,12 +1141,15 @@ extern void (*glVertexAttribI4uiv)(GLuint index, const GLuint *v);
 extern void (*glVertexAttribIPointer)(GLuint index, GLint size, GLenum type, GLsizei stride, const void *pointer);
 extern void (*glGetVertexAttribIiv)(GLuint index, GLenum pname, GLint *params);
 extern void (*glGetVertexAttribIuiv)(GLuint index, GLenum pname, GLuint *params);
-extern void (*glGetFragDataLocation)(GLuint program, const GLchar *name);
 extern GLint (*glGetFragDataLocation)(GLuint program, const GLchar *name);
 extern void (*glSamplerParameterf)(GLuint sampler, GLenum pname, GLfloat param); // Re-declaration
 extern void (*glSamplerParameterfv)(GLuint sampler, GLenum pname, const GLfloat *params); // Re-declaration
 extern void (*glSamplerParameteri)(GLuint sampler, GLenum pname, GLint param); // Re-declaration
 extern void (*glSamplerParameteriv)(GLuint sampler, GLenum pname, const GLint *params); // Re-declaration
+extern void (*glGenVertexArrays)(GLsizei,GLuint *);
+extern void (*glBindVertexArray)(GLuint);
+extern void (*glDeleteVertexArrays)(GLsizei,const GLuint *);
+ 
 
 // --- GL ES 3.1 Core Functions ---
 extern void (*glDispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z);
