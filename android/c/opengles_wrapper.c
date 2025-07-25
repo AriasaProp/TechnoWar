@@ -60,7 +60,7 @@ typedef enum {
 } khronos_boolean_enum_t;
 
 // IMPLEMENTS EGL
-
+#define EGL_CAST(X, Y) ((X)Y)
 struct egl_native_pixmap_t;
 
 typedef void *EGLNativeDisplayType;
