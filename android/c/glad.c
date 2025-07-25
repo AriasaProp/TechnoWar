@@ -100,7 +100,7 @@ void (*glRenderbufferStorage)(GLenum target, GLenum internalformat, GLsizei widt
 void (*glSampleCoverage)(GLfloat value, GLboolean invert) = NULL;
 void (*glScissor)(GLint x, GLint y, GLsizei width, GLsizei height) = NULL;
 void (*glShaderBinary)(GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length) = NULL;
-void (*glShaderSource)(GLuint shader, GLsizei count, const GLchar *const*string, const GLint *length) = NULL;
+void (*glShaderSource)(GLuint shader, GLsizei count, const GLchar *const *string, const GLint *length) = NULL;
 void (*glStencilFunc)(GLenum func, GLint ref, GLuint mask) = NULL;
 void (*glStencilFuncSeparate)(GLenum face, GLenum func, GLint ref, GLuint mask) = NULL;
 void (*glStencilMask)(GLuint mask) = NULL;
@@ -144,9 +144,8 @@ void (*glVertexAttrib4f)(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat 
 void (*glVertexAttrib4fv)(GLuint index, const GLfloat *v) = NULL;
 void (*glVertexAttribPointer)(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer) = NULL;
 void (*glViewport)(GLint x, GLint y, GLsizei width, GLsizei height) = NULL;
-void (*glBufferData)(GLenum,GLsizeiptr, const void *,GLenum) = NULL;
-void (*glBufferSubData)(GLenum,GLintptr,GLsizeiptr, const void *) = NULL;
-
+void (*glBufferData)(GLenum, GLsizeiptr, const void *, GLenum) = NULL;
+void (*glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void *) = NULL;
 
 // --- GL ES 3.0 Core Functions ---
 void (*glReadBuffer)(GLenum src) = NULL;
@@ -185,7 +184,7 @@ void (*glPauseTransformFeedback)(void) = NULL;
 void (*glResumeTransformFeedback)(void) = NULL;
 void (*glBeginTransformFeedback)(GLenum primitiveMode) = NULL;
 void (*glEndTransformFeedback)(void) = NULL;
-void (*glTransformFeedbackVaryings)(GLuint program, GLsizei count, const GLchar *const*varyings, GLenum bufferMode) = NULL;
+void (*glTransformFeedbackVaryings)(GLuint program, GLsizei count, const GLchar *const *varyings, GLenum bufferMode) = NULL;
 void (*glGetTransformFeedbackVarying)(GLuint program, GLuint index, GLsizei bufSize, GLsizei *length, GLsizei *size, GLenum *type, GLchar *name) = NULL;
 void (*glBindBufferRange)(GLenum target, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size) = NULL;
 void (*glBindBufferBase)(GLenum target, GLuint index, GLuint buffer) = NULL;
@@ -193,7 +192,7 @@ void (*glGetActiveUniformBlockName)(GLuint program, GLuint uniformBlockIndex, GL
 void (*glGetActiveUniformBlockiv)(GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params) = NULL;
 void (*glGetUniformBlockIndex)(GLuint program, const GLchar *uniformBlockName) = NULL;
 void (*glUniformBlockBinding)(GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding) = NULL;
-void (*glGetUniformIndices)(GLuint program, GLsizei uniformCount, const GLchar *const*uniformNames, GLuint *uniformIndices) = NULL;
+void (*glGetUniformIndices)(GLuint program, GLsizei uniformCount, const GLchar *const *uniformNames, GLuint *uniformIndices) = NULL;
 void (*glGetActiveUniformsiv)(GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params) = NULL;
 GLsync (*glFenceSync)(GLenum condition, GLbitfield flags) = NULL;
 GLboolean (*glIsSync)(GLsync sync) = NULL;
@@ -231,8 +230,8 @@ void (*glGetVertexAttribIiv)(GLuint index, GLenum pname, GLint *params) = NULL;
 void (*glGetVertexAttribIuiv)(GLuint index, GLenum pname, GLuint *params) = NULL;
 GLint (*glGetFragDataLocation)(GLuint program, const GLchar *name) = NULL;
 void (*glBindVertexArray)(GLuint) = NULL;
-void (*glGenVertexArrays)(GLsizei,GLuint *) = NULL;
-void (*glDeleteVertexArrays)(GLsizei,const GLuint *) = NULL;
+void (*glGenVertexArrays)(GLsizei, GLuint *) = NULL;
+void (*glDeleteVertexArrays)(GLsizei, const GLuint *) = NULL;
 
 // --- GL ES 3.1 Core Functions ---
 void (*glDispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) = NULL;
@@ -269,7 +268,7 @@ void (*glDrawRangeElementsBaseVertex)(GLenum mode, GLuint start, GLuint end, GLs
 void (*glDrawElementsInstancedBaseVertex)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex) = NULL;
 void (*glDrawElementsInstancedBaseInstanceEXT)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance) = NULL;
 void (*glPrimitiveBoundingBox)(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW) = NULL; // Core in GLES 3.2
-void (*glPatchParameteri)(GLenum pname, GLint value) = NULL; // Core in GLES 3.2
+void (*glPatchParameteri)(GLenum pname, GLint value) = NULL;                                                                                           // Core in GLES 3.2
 
 void gladLoadGLES(void *(*load)(const char *)) {
   // --- GL ES 2.0 Core Functions ---
@@ -295,8 +294,8 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glCompressedTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLsizei, const void *))load("glCompressedTexSubImage2D");
   glCopyTexImage2D = (void (*)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))load("glCopyTexImage2D");
   glCopyTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))load("glCopyTexSubImage2D");
-  glCreateProgram = (GLuint (*)(void))load("glCreateProgram");
-  glCreateShader = (GLuint (*)(GLenum))load("glCreateShader");
+  glCreateProgram = (GLuint(*)(void))load("glCreateProgram");
+  glCreateShader = (GLuint(*)(GLenum))load("glCreateShader");
   glCullFace = (void (*)(GLenum))load("glCullFace");
   glDeleteBuffers = (void (*)(GLsizei, const GLuint *))load("glDeleteBuffers");
   glDeleteFramebuffers = (void (*)(GLsizei, const GLuint *))load("glDeleteFramebuffers");
@@ -327,10 +326,10 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glGetActiveAttrib = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))load("glGetActiveAttrib");
   glGetActiveUniform = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))load("glGetActiveUniform");
   glGetAttachedShaders = (void (*)(GLuint, GLsizei, GLsizei *, GLuint *))load("glGetAttachedShaders");
-  glGetAttribLocation = (GLint (*)(GLuint, const GLchar *))load("glGetAttribLocation");
+  glGetAttribLocation = (GLint(*)(GLuint, const GLchar *))load("glGetAttribLocation");
   glGetBooleanv = (void (*)(GLenum, GLboolean *))load("glGetBooleanv");
   glGetBufferParameteriv = (void (*)(GLenum, GLenum, GLint *))load("glGetBufferParameteriv");
-  glGetError = (GLenum (*)(void))load("glGetError");
+  glGetError = (GLenum(*)(void))load("glGetError");
   glGetFloatv = (void (*)(GLenum, GLfloat *))load("glGetFloatv");
   glGetFramebufferAttachmentParameteriv = (void (*)(GLenum, GLenum, GLenum, GLint *))load("glGetFramebufferAttachmentParameteriv");
   glGetIntegerv = (void (*)(GLenum, GLint *))load("glGetIntegerv");
@@ -344,20 +343,20 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glGetString = (const GLubyte *(*)(GLenum))load("glGetString");
   glGetTexParameterfv = (void (*)(GLenum, GLenum, GLfloat *))load("glGetTexParameterfv");
   glGetTexParameteriv = (void (*)(GLenum, GLenum, GLint *))load("glGetTexParameteriv");
-  glGetUniformLocation = (GLint (*)(GLuint, const GLchar *))load("glGetUniformLocation");
+  glGetUniformLocation = (GLint(*)(GLuint, const GLchar *))load("glGetUniformLocation");
   glGetUniformfv = (void (*)(GLuint, GLint, GLfloat *))load("glGetUniformfv");
   glGetUniformiv = (void (*)(GLuint, GLint, GLint *))load("glGetUniformiv");
   glGetVertexAttribfv = (void (*)(GLuint, GLenum, GLfloat *))load("glGetVertexAttribfv");
   glGetVertexAttribiv = (void (*)(GLuint, GLenum, GLint *))load("glGetVertexAttribiv");
   glGetVertexAttribPointerv = (void (*)(GLuint, GLenum, void **))load("glGetVertexAttribPointerv");
   glHint = (void (*)(GLenum, GLenum))load("glHint");
-  glIsBuffer = (GLboolean (*)(GLuint))load("glIsBuffer");
-  glIsEnabled = (GLboolean (*)(GLenum))load("glIsEnabled");
-  glIsFramebuffer = (GLboolean (*)(GLuint))load("glIsFramebuffer");
-  glIsProgram = (GLboolean (*)(GLuint))load("glIsProgram");
-  glIsRenderbuffer = (GLboolean (*)(GLuint))load("glIsRenderbuffer");
-  glIsShader = (GLboolean (*)(GLuint))load("glIsShader");
-  glIsTexture = (GLboolean (*)(GLuint))load("glIsTexture");
+  glIsBuffer = (GLboolean(*)(GLuint))load("glIsBuffer");
+  glIsEnabled = (GLboolean(*)(GLenum))load("glIsEnabled");
+  glIsFramebuffer = (GLboolean(*)(GLuint))load("glIsFramebuffer");
+  glIsProgram = (GLboolean(*)(GLuint))load("glIsProgram");
+  glIsRenderbuffer = (GLboolean(*)(GLuint))load("glIsRenderbuffer");
+  glIsShader = (GLboolean(*)(GLuint))load("glIsShader");
+  glIsTexture = (GLboolean(*)(GLuint))load("glIsTexture");
   glLineWidth = (void (*)(GLfloat))load("glLineWidth");
   glLinkProgram = (void (*)(GLuint))load("glLinkProgram");
   glPixelStorei = (void (*)(GLenum, GLint))load("glPixelStorei");
@@ -368,7 +367,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glSampleCoverage = (void (*)(GLfloat, GLboolean))load("glSampleCoverage");
   glScissor = (void (*)(GLint, GLint, GLsizei, GLsizei))load("glScissor");
   glShaderBinary = (void (*)(GLsizei, const GLuint *, GLenum, const void *, GLsizei))load("glShaderBinary");
-  glShaderSource = (void (*)(GLuint, GLsizei, const GLchar *const*, const GLint *))load("glShaderSource");
+  glShaderSource = (void (*)(GLuint, GLsizei, const GLchar *const *, const GLint *))load("glShaderSource");
   glStencilFunc = (void (*)(GLenum, GLint, GLuint))load("glStencilFunc");
   glStencilFuncSeparate = (void (*)(GLenum, GLenum, GLint, GLuint))load("glStencilFuncSeparate");
   glStencilMask = (void (*)(GLuint))load("glStencilMask");
@@ -412,9 +411,8 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glVertexAttrib4fv = (void (*)(GLuint, const GLfloat *))load("glVertexAttrib4fv");
   glVertexAttribPointer = (void (*)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *))load("glVertexAttribPointer");
   glViewport = (void (*)(GLint, GLint, GLsizei, GLsizei))load("glViewport");
-  glBufferData = (void (*)(GLenum,GLsizeiptr, const void *,GLenum))load("glBufferData");
-  glBufferSubData = (void (*)(GLenum,GLintptr,GLsizeiptr, const void *))load("glBufferSubData");
-
+  glBufferData = (void (*)(GLenum, GLsizeiptr, const void *, GLenum))load("glBufferData");
+  glBufferSubData = (void (*)(GLenum, GLintptr, GLsizeiptr, const void *))load("glBufferSubData");
 
   // --- GL ES 3.0 Core Functions ---
   glReadBuffer = (void (*)(GLenum))load("glReadBuffer");
@@ -426,7 +424,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glCompressedTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLsizei, const void *))load("glCompressedTexSubImage3D");
   glGenQueries = (void (*)(GLsizei, GLuint *))load("glGenQueries");
   glDeleteQueries = (void (*)(GLsizei, const GLuint *))load("glDeleteQueries");
-  glIsQuery = (GLboolean (*)(GLuint))load("glIsQuery");
+  glIsQuery = (GLboolean(*)(GLuint))load("glIsQuery");
   glBeginQuery = (void (*)(GLenum, GLuint))load("glBeginQuery");
   glEndQuery = (void (*)(GLenum))load("glEndQuery");
   glGetQueryiv = (void (*)(GLenum, GLenum, GLint *))load("glGetQueryiv");
@@ -436,7 +434,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glFlushMappedBufferRange = (void (*)(GLenum, GLintptr, GLsizeiptr))load("glFlushMappedBufferRange");
   glGenSamplers = (void (*)(GLsizei, GLuint *))load("glGenSamplers");
   glDeleteSamplers = (void (*)(GLsizei, const GLuint *))load("glDeleteSamplers");
-  glIsSampler = (GLboolean (*)(GLuint))load("glIsSampler");
+  glIsSampler = (GLboolean(*)(GLuint))load("glIsSampler");
   glBindSampler = (void (*)(GLuint, GLuint))load("glBindSampler");
   glSamplerParameterf = (void (*)(GLuint, GLenum, GLfloat))load("glSamplerParameterf");
   glSamplerParameterfv = (void (*)(GLuint, GLenum, const GLfloat *))load("glSamplerParameterfv");
@@ -447,13 +445,13 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glVertexAttribDivisor = (void (*)(GLuint, GLuint))load("glVertexAttribDivisor");
   glBindTransformFeedback = (void (*)(GLenum, GLuint))load("glBindTransformFeedback");
   glDeleteTransformFeedbacks = (void (*)(GLsizei, const GLuint *))load("glDeleteTransformFeedbacks");
-  glIsTransformFeedback = (GLboolean (*)(GLuint))load("glIsTransformFeedback");
+  glIsTransformFeedback = (GLboolean(*)(GLuint))load("glIsTransformFeedback");
   glGenTransformFeedbacks = (void (*)(GLsizei, GLuint *))load("glGenTransformFeedbacks");
   glPauseTransformFeedback = (void (*)(void))load("glPauseTransformFeedback");
   glResumeTransformFeedback = (void (*)(void))load("glResumeTransformFeedback");
   glBeginTransformFeedback = (void (*)(GLenum))load("glBeginTransformFeedback");
   glEndTransformFeedback = (void (*)(void))load("glEndTransformFeedback");
-  glTransformFeedbackVaryings = (void (*)(GLuint, GLsizei, const GLchar *const*, GLenum))load("glTransformFeedbackVaryings");
+  glTransformFeedbackVaryings = (void (*)(GLuint, GLsizei, const GLchar *const *, GLenum))load("glTransformFeedbackVaryings");
   glGetTransformFeedbackVarying = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLsizei *, GLenum *, GLchar *))load("glGetTransformFeedbackVarying");
   glBindBufferRange = (void (*)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr))load("glBindBufferRange");
   glBindBufferBase = (void (*)(GLenum, GLuint, GLuint))load("glBindBufferBase");
@@ -461,19 +459,19 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glGetActiveUniformBlockiv = (void (*)(GLuint, GLuint, GLenum, GLint *))load("glGetActiveUniformBlockiv");
   glGetUniformBlockIndex = (void (*)(GLuint, const GLchar *))load("glGetUniformBlockIndex");
   glUniformBlockBinding = (void (*)(GLuint, GLuint, GLuint))load("glUniformBlockBinding");
-  glGetUniformIndices = (void (*)(GLuint, GLsizei, const GLchar *const*, GLuint *))load("glGetUniformIndices");
+  glGetUniformIndices = (void (*)(GLuint, GLsizei, const GLchar *const *, GLuint *))load("glGetUniformIndices");
   glGetActiveUniformsiv = (void (*)(GLuint, GLsizei, const GLuint *, GLenum, GLint *))load("glGetActiveUniformsiv");
-  glFenceSync = (GLsync (*)(GLenum, GLbitfield))load("glFenceSync");
-  glIsSync = (GLboolean (*)(GLsync))load("glIsSync");
+  glFenceSync = (GLsync(*)(GLenum, GLbitfield))load("glFenceSync");
+  glIsSync = (GLboolean(*)(GLsync))load("glIsSync");
   glDeleteSync = (void (*)(GLsync))load("glDeleteSync");
-  glClientWaitSync = (GLenum (*)(GLsync, GLbitfield, GLuint64))load("glClientWaitSync");
+  glClientWaitSync = (GLenum(*)(GLsync, GLbitfield, GLuint64))load("glClientWaitSync");
   glWaitSync = (void (*)(GLsync, GLbitfield, GLuint64))load("glWaitSync");
   glGetInteger64v = (void (*)(GLenum, GLint64 *))load("glGetInteger64v");
   glGetSynciv = (void (*)(GLsync, GLenum, GLsizei, GLsizei *, GLint *))load("glGetSynciv");
   glCopyBufferSubData = (void (*)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr))load("glCopyBufferSubData");
   glGetBufferParameteri64v = (void (*)(GLenum, GLenum, GLint64 *))load("glGetBufferParameteri64v");
   glBlitFramebuffer = (void (*)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))load("glBlitFramebuffer");
-  glCheckFramebufferStatus = (GLenum (*)(GLenum))load("glCheckFramebufferStatus");
+  glCheckFramebufferStatus = (GLenum(*)(GLenum))load("glCheckFramebufferStatus");
   glDrawArraysInstanced = (void (*)(GLenum, GLint, GLsizei, GLsizei))load("glDrawArraysInstanced");
   glDrawElementsInstanced = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei))load("glDrawElementsInstanced");
   glFramebufferTextureLayer = (void (*)(GLenum, GLenum, GLuint, GLint, GLint))load("glFramebufferTextureLayer");
@@ -497,10 +495,10 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glVertexAttribIPointer = (void (*)(GLuint, GLint, GLenum, GLsizei, const void *))load("glVertexAttribIPointer");
   glGetVertexAttribIiv = (void (*)(GLuint, GLenum, GLint *))load("glGetVertexAttribIiv");
   glGetVertexAttribIuiv = (void (*)(GLuint, GLenum, GLuint *))load("glGetVertexAttribIuiv");
-  glGetFragDataLocation = (GLint (*)(GLuint, const GLchar *))load("glGetFragDataLocation");
+  glGetFragDataLocation = (GLint(*)(GLuint, const GLchar *))load("glGetFragDataLocation");
   glGenVertexArrays = (void (*)(GLsizei, GLuint *))load("glGenVertexArrays");
   glBindVertexArray = (void (*)(GLuint))load("glBindVertexArray");
-  glDeleteVertexArrays = (void(*)(GLsizei,const GLuint *))load("glDeleteVertexArrays");
+  glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))load("glDeleteVertexArrays");
 
   // --- GL ES 3.1 Core Functions ---
   glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))load("glDispatchCompute");
@@ -511,7 +509,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glGetProgramResourceIndex = (void (*)(GLuint, GLenum, const GLchar *))load("glGetProgramResourceIndex");
   glGetProgramResourceName = (void (*)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *))load("glGetProgramResourceName");
   glGetProgramResourceiv = (void (*)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *))load("glGetProgramResourceiv");
-  glGetProgramResourceLocation = (GLint (*)(GLuint, GLenum, const GLchar *))load("glGetProgramResourceLocation");
+  glGetProgramResourceLocation = (GLint(*)(GLuint, GLenum, const GLchar *))load("glGetProgramResourceLocation");
   glShaderStorageBlockBinding = (void (*)(GLuint, GLuint, GLuint))load("glShaderStorageBlockBinding");
   glTexBuffer = (void (*)(GLenum, GLenum, GLuint))load("glTexBuffer");
   glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))load("glTexBufferRange");
@@ -522,7 +520,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glDebugMessageControl = (void (*)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean))load("glDebugMessageControl");
   glDebugMessageInsert = (void (*)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *))load("glDebugMessageInsert");
   glDebugMessageCallback = (void (*)(GLDEBUGPROC, const void *))load("glDebugMessageCallback");
-  glGetDebugMessageLog = (GLuint (*)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *))load("glGetDebugMessageLog");
+  glGetDebugMessageLog = (GLuint(*)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *))load("glGetDebugMessageLog");
   glPushDebugGroup = (void (*)(GLenum, GLuint, GLsizei, const GLchar *))load("glPushDebugGroup");
   glPopDebugGroup = (void (*)(void))load("glPopDebugGroup");
   glObjectLabel = (void (*)(GLenum, GLuint, GLsizei, const GLchar *))load("glObjectLabel");
@@ -531,7 +529,7 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glGetObjectPtrLabel = (void (*)(const void *, GLsizei, GLsizei *, GLchar *))load("glGetObjectPtrLabel");
   glGetPointerv = (void (*)(GLenum, void **))load("glGetPointerv");
   glPrimitiveBoundingBoxEXT = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat))load("glPrimitiveBoundingBoxEXT"); // Also core in 3.2
-  glPatchParameteriEXT = (void (*)(GLenum, GLint))load("glPatchParameteriEXT"); // Also core in 3.2
+  glPatchParameteriEXT = (void (*)(GLenum, GLint))load("glPatchParameteriEXT");                                                                    // Also core in 3.2
   glDrawElementsBaseVertex = (void (*)(GLenum, GLsizei, GLenum, const void *, GLint))load("glDrawElementsBaseVertex");
   glDrawRangeElementsBaseVertex = (void (*)(GLenum, GLuint, GLuint, GLsizei, GLenum, const void *, GLint))load("glDrawRangeElementsBaseVertex");
   glDrawElementsInstancedBaseVertex = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei, GLint))load("glDrawElementsInstancedBaseVertex");
@@ -539,4 +537,3 @@ void gladLoadGLES(void *(*load)(const char *)) {
   glPrimitiveBoundingBox = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat))load("glPrimitiveBoundingBox");
   glPatchParameteri = (void (*)(GLenum, GLint))load("glPatchParameteri");
 }
-
