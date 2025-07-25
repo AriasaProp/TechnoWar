@@ -290,9 +290,13 @@ static EGLContext (*eglGetCurrentContext)(void) = NULL;
 
 static void *loadEGL(void) {
   void *egllib = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
-  if (!egllib) goto load_egl_err_e;
+  if (!egllib)
+    goto load_egl_err_e;
   void *temp;
-#define LOADFUNCT(X) (temp = dlsym(egllib, X)); if (!temp) goto load_egl_err
+#define LOADFUNCT(X)         \
+  (temp = dlsym(egllib, X)); \
+  if (!temp)                 \
+  goto load_egl_err
   // EGL Core Functions
   eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))LOADFUNCT("eglChooseConfig");
   eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))LOADFUNCT("eglCopyBuffers");
@@ -1494,9 +1498,13 @@ static void (*glPatchParameteri)(GLenum pname, GLint value) = NULL;             
 
 static void *loadGLES(void) {
   void gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
-  if (!gleslib) goto load_gles_err_e;
+  if (!gleslib)
+    goto load_gles_err_e;
   void *temp;
-#define LOADFUNCT(X) (temp = dlsym(gleslib, X)); if (!temp) goto load_gles_err;
+#define LOADFUNCT(X)          \
+  (temp = dlsym(gleslib, X)); \
+  if (!temp)                  \
+    goto load_gles_err;
   // --- GL ES 2.0 Core Functions ---
   glActiveTexture = (void (*)(GLenum))LOADFUNCT("glActiveTexture");
   glAttachShader = (void (*)(GLuint, GLuint))LOADFUNCT("glAttachShader");
@@ -1762,7 +1770,7 @@ static void *loadGLES(void) {
   glDrawElementsInstancedBaseInstanceEXT = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei, GLuint))LOADFUNCT("glDrawElementsInstancedBaseInstanceEXT");
   glPrimitiveBoundingBox = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glPrimitiveBoundingBox");
   glPatchParameteri = (void (*)(GLenum, GLint))LOADFUNCT("glPatchParameteri");
-  
+
   return gleslib;
 load_gles_err:
   dlclose(gleslib);
@@ -2048,9 +2056,11 @@ static void killEGL(const int EGLTermReq) {
 void androidGraphics_init() {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
   src->egllib = loadEGL();
-  if (!src->egllib) LOGE("EGL library error");
+  if (!src->egllib)
+    LOGE("EGL library error");
   src->gleslib = loadGLES();
-  if (!src->gleslib) LOGE("GLES library error");
+  if (!src->gleslib)
+    LOGE("GLES library error");
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
