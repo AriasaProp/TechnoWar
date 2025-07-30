@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "engine.h"
+#include "manager.h"
 #include "log.h"
 #include "util.h"
 
