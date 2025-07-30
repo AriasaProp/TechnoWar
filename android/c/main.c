@@ -19,15 +19,14 @@
 #include "manager.h"
 #include "util.h"
 
-void (*graphics_onWindowCreate) (void *) = NULL;
-void (*graphics_onWindowDestroy) (void) = NULL;
-void (*graphics_onWindowResizeDisplay) (void) = NULL;
-void (*graphics_onWindowResize) (void) = NULL;
-void (*graphics_resizeInsets)  (float, float, float, float) = NULL;
-int (*graphics_preRender)  (void) = NULL;
-void (*graphics_postRender)  (void) = NULL;
-void (*graphics_term) (void) = NULL;
-
+void (*graphics_onWindowCreate)(void *) = NULL;
+void (*graphics_onWindowDestroy)(void) = NULL;
+void (*graphics_onWindowResizeDisplay)(void) = NULL;
+void (*graphics_onWindowResize)(void) = NULL;
+void (*graphics_resizeInsets)(float, float, float, float) = NULL;
+int (*graphics_preRender)(void) = NULL;
+void (*graphics_postRender)(void) = NULL;
+void (*graphics_term)(void) = NULL;
 
 struct msg_pipe {
   int8_t cmd;
@@ -143,7 +142,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidInput_init(looper);
   if (op)
 
-  pthread_mutex_lock(&app->mutex);
+    pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
   pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
@@ -294,7 +293,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
     ANativeActivity_finish(activity);
     return;
   }
-  
+
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 
@@ -306,7 +305,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   }
   if (pipe(&app->msgread)) {
     ANativeActivity_finish(activity);
-    free (app);
+    free(app);
     return;
   }
 
