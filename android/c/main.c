@@ -136,7 +136,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   app->stateApp |= STATE_APP_INIT;
   pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
-  
+
   while (app->stateApp & STATE_APP_INIT) {
     if (ALooper_pollOnce(!(app->stateApp & (STATE_APP_WINDOW | STATE_APP_RUNNING)) * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGW("ALooper_pollOnce returned an error");
@@ -263,8 +263,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (graphics_init())
     ANativeActivity_finish(activity);
 
-  
-  
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;

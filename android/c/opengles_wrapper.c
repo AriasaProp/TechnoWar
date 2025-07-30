@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "manager.h"
 #include "log.h"
+#include "manager.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
