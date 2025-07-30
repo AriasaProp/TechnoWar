@@ -1828,7 +1828,8 @@ enum {
 // private function
 enum {
   TERM_EGL_SURFACE = 1,
-  TERM_EGL_CONTEXT = 2
+  TERM_EGL_CONTEXT = 2,
+  TERM_EGL_DISPLAY = 4
 };
 static struct opengles_texture {
   GLuint id;
@@ -2011,7 +2012,7 @@ static void opengles_deleteMesh(mesh m) {
   memset(meshes + m, 0, sizeof(struct opengles_mesh));
 }
 
-static void killEGL(const int EGLTermReq) {
+static inline void killEGL(const int EGLTermReq) {
   if (!EGLTermReq)
     return;
   if (textures[0].id) {
@@ -2047,6 +2048,10 @@ static void killEGL(const int EGLTermReq) {
     eglDestroyContext(src->display, src->context);
     src->context = EGL_NO_CONTEXT;
   }
+  if (src->display && (EGLTermReq & 4)) {
+    eglTerminate(src->display);
+    src->display = EGL_NO_DISPLAY;
+  }
 }
 // android purpose
 static void onWindowCreate(void *w) {
@@ -2074,12 +2079,56 @@ static void resizeInsets(float x, float y, float z, float w) {
 static int preRender() {
   if (!src->window)
     return 0;
-  if (!src->context || !src->surface) {
+  if (!src->display || !src->context || !src->surface) {
+    if (!src->display) {
+      // define EGL Display + config first
+      if (!(src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY))) {
+        LOGE("EGL can't get Display");
+        return 0;
+      }
+      EGLint temp, temp1;
+      eglInitialize(src->display, &temp, &temp1);
+      if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
+        LOGE("EGL version is below 1.3");
+        return 0;
+      }
+      static const EGLint configAttr[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
+        EGL_BUFFER_SIZE, 16,
+        EGL_NONE};
+      eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
+      if (temp <= 0) {
+        LOGE("There is no fit config for minimum EGLConfig attribute");
+        return 0;
+      }
+      EGLConfig *configs = (EGLConfig *)malloc(temp * sizeof(EGLConfig));
+      eglChooseConfig(src->display, configAttr, configs, temp, &temp);
+      size_t i = 0, j = temp, k = 0, l;
+      do {
+        l = 1;
+  #define EGL_CONFIG_EVA(X)                                     \
+    if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
+    l += temp
+        EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
+        EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
+        EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
+        // TODO: and more attributes
+  #undef EGL_CONFIG_EVA
+        if (l > k) {
+          k = l;
+          src->eConfig = configs[i];
+        }
+      } while ((++i) < j);
+      free(configs);
+    }
     if (!src->context) {
-      const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+      static const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       src->context = eglCreateContext(src->display, src->eConfig, NULL, ctxAttr);
       if (!src->context) {
-        LOGW("Failed to create EGLContext");
+        LOGE("Failed to create EGLContext");
         return 0;
       }
     }
@@ -2290,6 +2339,10 @@ static void postRender() {
     case EGL_CONTEXT_LOST:
       EGLTermReq |= TERM_EGL_CONTEXT;
       break;
+    case EGL_BAD_DISPLAY:
+    case EGL_NOT_INITIALIZE:
+      EGLTermReq |= TERM_EGL_DISPLAY;
+      break;
     default:
       break;
     }
@@ -2324,71 +2377,26 @@ static void term() {
   free(textures);
   free(meshes);
 
-  eglSwapBuffers(src->display, src->surface);
-  eglMakeCurrent(src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-  if (src->surface)
-    eglDestroySurface(src->display, src->surface);
-  if (src->context)
-    eglDestroyContext(src->display, src->context);
-  eglTerminate(src->display);
+  if (src->display) {
+    eglSwapBuffers(src->display, src->surface);
+    eglMakeCurrent(src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (src->surface)
+      eglDestroySurface(src->display, src->surface);
+    if (src->context)
+      eglDestroyContext(src->display, src->context);
+    eglTerminate(src->display);
+  }
   dlclose(src->egllib);
   dlclose(src->gleslib);
   free(src);
 }
 int opengles_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  {
-    // define egl + opengles library
-    if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
-      LOGW("Vailed load library opengles");
-      free(src);
-      return 0;
-    }
-    // define EGL Display + config first
-    if (!(src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY))) {
-      LOGW("EGL can't get Display");
-      free(src);
-      return 0;
-    }
-    EGLint temp, temp1;
-    eglInitialize(src->display, &temp, &temp1);
-    if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
-      LOGW("EGL version is below 1.3");
-      free(src);
-      return 0;
-    }
-    static const EGLint configAttr[] = {
-      EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-      EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
-      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
-      EGL_CONFORMANT, EGL_OPENGL_ES2_BIT,
-      EGL_BUFFER_SIZE, 16,
-      EGL_NONE};
-    eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
-    if (temp <= 0) {
-      LOGW("There is no fit config for minimum EGLConfig attribute");
-      free(src);
-      return 0;
-    }
-    EGLConfig *configs = (EGLConfig *)malloc(temp * sizeof(EGLConfig));
-    eglChooseConfig(src->display, configAttr, configs, temp, &temp);
-    size_t i = 0, j = temp, k = 0, l;
-    do {
-      l = 1;
-#define EGL_CONFIG_EVA(X)                                     \
-  if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
-  l += temp
-      EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
-      EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
-      EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
-      // TODO: and more attributes
-#undef EGL_CONFIG_EVA
-      if (l > k) {
-        k = l;
-        src->eConfig = configs[i];
-      }
-    } while ((++i) < j);
-    free(configs);
+  // define egl + opengles library
+  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
+    LOGW("Vailed load library opengles");
+    free(src);
+    return 0;
   }
 
   androidGraphics_onWindowCreate = onWindowCreate;
