@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "log.h"
 #include "manager.h"
+#include "log.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -2054,20 +2054,20 @@ static void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-static void opengles_onWindowCreate(void *w) {
+void graphics_onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-static void opengles_onWindowDestroy(void) {
+void graphics_onWindowDestroy(void) {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-static void opengles_onWindowResizeDisplay(void) {
+void graphics_onWindowResizeDisplay(void) {
   src->flags |= RESIZE_DISPLAY;
 }
-static void opengles_onWindowResize(void) {
+void graphics_onWindowResize(void) {
   src->flags |= RESIZE_ONLY;
 }
-static void opengles_resizeInsets(float x, float y, float z, float w) {
+void graphics_resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2076,7 +2076,7 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-static int opengles_preRender(void) {
+int graphics_preRender(void) {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
@@ -2328,7 +2328,7 @@ static int opengles_preRender(void) {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-static void opengles_postRender(void) {
+void graphics_postRender(void) {
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
@@ -2350,55 +2350,33 @@ static void opengles_postRender(void) {
     }
   }
 }
-static void opengles_term(void) {
-  if (textures[0].id) {
-    // world draw
-    check(glDeleteProgram(src->world.shader));
-    // flat draw
-    check(glDeleteProgram(src->ui.shader));
-    check(glDeleteVertexArrays(1, &src->ui.vao));
-    check(glDeleteBuffers(2, &src->ui.vbo));
-    // texture
-    for (texture i = 0; i < MAX_RESOURCE; ++i) {
-      if (textures[i].size.x == 0)
-        continue;
-      check(glDeleteTextures(1, &textures[i].id));
-      free(textures[i].data);
-    }
-    // mesh
-    for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-      if (meshes[i].vertex_len == 0)
-        continue;
-      check(glDeleteVertexArrays(1, &meshes[i].vao));
-      check(glDeleteBuffers(2, &meshes[i].vbo));
-      free(meshes[i].vertexs);
-      free(meshes[i].indices);
-    }
-  }
-  free(textures);
-  free(meshes);
-
+void graphics_term(void) {
   killEGL(TERM_EGL_DISPLAY);
   dlclose(src->egllib);
   dlclose(src->gleslib);
+  // texture memory
+  for (texture i = 0; i < MAX_RESOURCE; ++i) {
+    if (textures[i].size.x == 0)
+      continue;
+    free(textures[i].data);
+  }
+  // mesh memory
+  for (mesh i = 0; i < MAX_RESOURCE; ++i) {
+    if (meshes[i].vertex_len == 0)
+      continue;
+    free(meshes[i].vertexs);
+    free(meshes[i].indices);
+  }
+  free(textures);
+  free(meshes);
   free(src);
 }
-
-int opengles_init(void) {
+int graphics_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
     LOGW("opengles library error");
     return 1;
   }
-
-  graphics_onWindowCreate = opengles_onWindowCreate;
-  graphics_onWindowDestroy = opengles_onWindowDestroy;
-  graphics_onWindowResizeDisplay = opengles_onWindowResizeDisplay;
-  graphics_onWindowResize = opengles_onWindowResize;
-  graphics_resizeInsets = opengles_resizeInsets;
-  graphics_preRender = opengles_preRender;
-  graphics_postRender = opengles_postRender;
-  graphics_term = opengles_term;
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
