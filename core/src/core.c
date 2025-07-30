@@ -35,8 +35,8 @@ void Main_update() {
   if (!(stateSystem & STATE_SYSTEM_RUNNING))
     Main_resume();
   unsigned int lb;
-  struct flat_vertex *v = game_update(&lb)
-                            global_engine.g.flatRender(0, v, lb);
+  struct flat_vertex *v = game_update(&lb);
+  global_engine.g.flatRender(0, v, lb);
 }
 void Main_pause() {
   stateSystem &= ~STATE_SYSTEM_RUNNING;
