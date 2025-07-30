@@ -19,7 +19,15 @@
 #include "manager.h"
 #include "util.h"
 
-AndroidGraphicsAPI gapi = {0};
+void (*graphics_onWindowCreate) (void *) = NULL;
+void (*graphics_onWindowDestroy) (void) = NULL;
+void (*graphics_onWindowResizeDisplay) (void) = NULL;
+void (*graphics_onWindowResize) (void) = NULL;
+void (*graphics_resizeInsets)  (float, float, float, float) = NULL;
+int (*graphics_preRender)  (void) = NULL;
+void (*graphics_postRender)  (void) = NULL;
+void (*graphics_term) (void) = NULL;
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -95,17 +103,17 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     androidInput_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    gapi.onWindowCreate((ANativeWindow *)rmsg.data);
+    graphics_onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    gapi.onWindowResize();
+    graphics_onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    gapi.onWindowResizeDisplay();
+    graphics_onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
     androidInput_enableSensor();
@@ -133,6 +141,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
+  if (op)
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -147,17 +156,17 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
-        gapi.preRender()) {
+        graphics_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      gapi.postRender();
+      graphics_postRender();
     }
     switch (app->delayed_cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      gapi.onWindowDestroy();
+      graphics_onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -171,7 +180,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     }
   }
   Main_term();
-  gapi.term();
+  graphics_term();
   androidInput_term();
   androidAssetManager_term();
 
@@ -282,9 +291,10 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
   if (opengles_init()) {
+    ANativeActivity_finish(activity);
     return;
   }
-
+  
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 
@@ -294,8 +304,11 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (savedState != NULL && savedStateSize == sizeof(struct core)) {
     memcpy(&core_cache, savedState, sizeof(struct core));
   }
-  if (pipe(&app->msgread))
+  if (pipe(&app->msgread)) {
+    ANativeActivity_finish(activity);
+    free (app);
     return;
+  }
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
@@ -333,7 +346,7 @@ void toastMessage(const char *msg, ...) {
     (*vm)->DetachCurrentThread(vm);
   }
 }
-void finish() {
+void finish(void) {
   if (!app)
     return;
   ANativeActivity_finish(app->activity);
@@ -344,5 +357,5 @@ void finish() {
 
 JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env), UNUSED(o);
-  gapi.resizeInsets(left, top, right, bottom);
+  graphics_resizeInsets(left, top, right, bottom);
 }

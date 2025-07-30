@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "log.h"
 #include "manager.h"
+#include "log.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -2329,27 +2329,26 @@ static int opengles_preRender(void) {
   return 1;
 }
 static void opengles_postRender(void) {
-  int EGLTermReq = 0;
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
     case EGL_BAD_NATIVE_WINDOW:
     case EGL_BAD_CURRENT_SURFACE:
-      EGLTermReq |= TERM_EGL_SURFACE;
+      killEGL(TERM_EGL_SURFACE);
       break;
     case EGL_BAD_CONTEXT:
     case EGL_CONTEXT_LOST:
-      EGLTermReq |= TERM_EGL_CONTEXT;
+      killEGL(TERM_EGL_CONTEXT);
       break;
     case EGL_NOT_INITIALIZED:
     case EGL_BAD_DISPLAY:
-      EGLTermReq |= TERM_EGL_DISPLAY;
+      killEGL(TERM_EGL_DISPLAY);
       break;
     default:
+      LOGE("EGL error on postRender");
       break;
     }
   }
-  killEGL(EGLTermReq);
 }
 static void opengles_term(void) {
   if (textures[0].id) {
@@ -2392,14 +2391,14 @@ int opengles_init(void) {
     return 1;
   }
 
-  gapi.onWindowCreate = opengles_onWindowCreate;
-  gapi.onWindowDestroy = opengles_onWindowDestroy;
-  gapi.onWindowResizeDisplay = opengles_onWindowResizeDisplay;
-  gapi.onWindowResize = opengles_onWindowResize;
-  gapi.resizeInsets = opengles_resizeInsets;
-  gapi.preRender = opengles_preRender;
-  gapi.postRender = opengles_postRender;
-  gapi.term = opengles_term;
+  graphics_onWindowCreate = opengles_onWindowCreate;
+  graphics_onWindowDestroy = opengles_onWindowDestroy;
+  graphics_onWindowResizeDisplay = opengles_onWindowResizeDisplay;
+  graphics_onWindowResize = opengles_onWindowResize;
+  graphics_resizeInsets = opengles_resizeInsets;
+  graphics_preRender = opengles_preRender;
+  graphics_postRender = opengles_postRender;
+  graphics_term = opengles_term;
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;

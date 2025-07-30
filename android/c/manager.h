@@ -11,17 +11,14 @@ extern void androidInput_enableSensor ();
 extern void androidInput_disableSensor ();
 extern void androidInput_term ();
 
-typedef struct {
-  void (*onWindowCreate) (void *);
-  void (*onWindowDestroy) (void);
-  void (*onWindowResizeDisplay) (void);
-  void (*onWindowResize) (void);
-  void (*resizeInsets)  (float, float, float, float);
-  int (*preRender)  (void);
-  void (*postRender)  (void);
-  void (*term) (void);
-}  AndroidGraphicsAPI;
-extern AndroidGraphicsAPI gapi;
+extern void (*graphics_onWindowCreate) (void *);
+extern void (*graphics_onWindowDestroy) (void);
+extern void (*graphics_onWindowResizeDisplay) (void);
+extern void (*graphics_onWindowResize) (void);
+extern void (*graphics_resizeInsets)  (float, float, float, float);
+extern int (*graphics_preRender)  (void);
+extern void (*graphics_postRender)  (void);
+extern void (*graphics_term) (void);
 
 extern int opengles_init(void);
 
