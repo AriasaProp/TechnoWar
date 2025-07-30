@@ -20,10 +20,10 @@ void game_init() {
     vel[i].x = (2.f * rands()) - 1.f;
     vel[i].y = (2.f * rands()) - 1.f;
     float x = 2800.f * rands(), y = 720.f * rands();
-    rects[i * 4 + 0] = (vec2){x + 25.f, y + 25.f}; // Bottom-right
-    rects[i * 4 + 1] = (vec2){x + 25.f, y - 25.f}; // Top-right
-    rects[i * 4 + 2] = (vec2){x - 25.f, y + 25.f}; // Bottom-left
-    rects[i * 4 + 3] = (vec2){x - 25.f, y - 25.f}; // Top-left
+    rects[i * 4 + 0].pos = (vec2){x + 25.f, y + 25.f}; // Bottom-right
+    rects[i * 4 + 1].pos = (vec2){x + 25.f, y - 25.f}; // Top-right
+    rects[i * 4 + 2].pos = (vec2){x - 25.f, y + 25.f}; // Bottom-left
+    rects[i * 4 + 3].pos = (vec2){x - 25.f, y - 25.f}; // Top-left
   }
 }
 struct flat_vertex *game_update(unsigned int *l) {
