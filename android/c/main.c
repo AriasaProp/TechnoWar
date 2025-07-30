@@ -131,12 +131,15 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
+  if (graphics_init())
+    LOGE("graphics init");
+
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
   pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
-
+  
   while (app->stateApp & STATE_APP_INIT) {
     if (ALooper_pollOnce(!(app->stateApp & (STATE_APP_WINDOW | STATE_APP_RUNNING)) * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGW("ALooper_pollOnce returned an error");
@@ -260,9 +263,6 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-  if (graphics_init())
-    ANativeActivity_finish(activity);
-
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;

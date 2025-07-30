@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "log.h"
 #include "manager.h"
+#include "log.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -2373,7 +2373,11 @@ void graphics_term(void) {
 }
 int graphics_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
+  if (!(src->egllib = loadEGL())) {
+    LOGW("egl library error");
+    return 1;
+  }
+  if (!(src->gleslib = loadGLES())) {
     LOGW("opengles library error");
     return 1;
   }
