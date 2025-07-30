@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "manager.h"
 #include "log.h"
+#include "manager.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -2341,20 +2341,20 @@ int opengles_init(void) {
     // define egl + opengles library
     if ((!(src->egllib = loadEGL())) || (!(src->gleslib = loadGLES()))) {
       LOGW("Vailed load library opengles");
-      free (src);
+      free(src);
       return 0;
     }
     // define EGL Display + config first
     if (!(src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY))) {
       LOGW("EGL can't get Display");
-      free (src);
+      free(src);
       return 0;
     }
     EGLint temp, temp1;
     eglInitialize(src->display, &temp, &temp1);
     if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
       LOGW("EGL version is below 1.3");
-      free (src);
+      free(src);
       return 0;
     }
     static const EGLint configAttr[] = {
@@ -2367,7 +2367,7 @@ int opengles_init(void) {
     eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
     if (temp <= 0) {
       LOGW("There is no fit config for minimum EGLConfig attribute");
-      free (src);
+      free(src);
       return 0;
     }
     EGLConfig *configs = (EGLConfig *)malloc(temp * sizeof(EGLConfig));
@@ -2376,8 +2376,8 @@ int opengles_init(void) {
     do {
       l = 1;
 #define EGL_CONFIG_EVA(X)                                     \
-if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
-l += temp
+  if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
+  l += temp
       EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
       EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
       EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
@@ -2390,14 +2390,14 @@ l += temp
     } while ((++i) < j);
     free(configs);
   }
-  
-  androidGraphics_onWindowCreate = onWindowCreate; 
-  androidGraphics_onWindowDestroy = onWindowDestroy; 
-  androidGraphics_onWindowResizeDisplay = onWindowResizeDisplay; 
-  androidGraphics_onWindowResize = onWindowResize; 
-  androidGraphics_resizeInsets = resizeInsets; 
-  androidGraphics_postRender = postRender; 
-  androidGraphics_term = term; 
+
+  androidGraphics_onWindowCreate = onWindowCreate;
+  androidGraphics_onWindowDestroy = onWindowDestroy;
+  androidGraphics_onWindowResizeDisplay = onWindowResizeDisplay;
+  androidGraphics_onWindowResize = onWindowResize;
+  androidGraphics_resizeInsets = resizeInsets;
+  androidGraphics_postRender = postRender;
+  androidGraphics_term = term;
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
