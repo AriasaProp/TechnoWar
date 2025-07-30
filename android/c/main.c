@@ -19,15 +19,6 @@
 #include "manager.h"
 #include "util.h"
 
-void (*androidGraphics_onWindowCreate)(void *);
-void (*androidGraphics_onWindowDestroy)(void);
-void (*androidGraphics_onWindowResizeDisplay)(void);
-void (*androidGraphics_onWindowResize)(void);
-void (*androidGraphics_resizeInsets)(float, float, float, float);
-int (*androidGraphics_preRender)(void);
-void (*androidGraphics_postRender)(void);
-void (*androidGraphics_term)(void);
-
 struct msg_pipe {
   int8_t cmd;
   void *data;
@@ -140,6 +131,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
+  androidGraphics_init();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -271,28 +263,6 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-  if (!(vulkan_init() || opengles_init()))
-    goto onCreate_err;
-
-  app = (struct android_app *)calloc(1, sizeof(struct android_app));
-  app->activity = activity;
-
-  pthread_mutex_init(&app->mutex, NULL);
-  pthread_cond_init(&app->cond, NULL);
-
-  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
-    memcpy(&core_cache, savedState, sizeof(struct core));
-  }
-  if (pipe(&app->msgread))
-    goto onCreate_err;
-
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  if (pthread_create(&app->thread, &attr, android_app_entry, NULL))
-    goto onCreate_err;
-
-  // define lifecycle when everythings set
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
@@ -310,14 +280,28 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
+  app = (struct android_app *)calloc(1, sizeof(struct android_app));
+  app->activity = activity;
+
+  pthread_mutex_init(&app->mutex, NULL);
+  pthread_cond_init(&app->cond, NULL);
+
+  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
+    memcpy(&core_cache, savedState, sizeof(struct core));
+  }
+  if (pipe(&app->msgread))
+    return;
+
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  pthread_create(&app->thread, &attr, android_app_entry, NULL);
+
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
   while (!(app->stateApp & STATE_APP_INIT))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
-  return;
-onCreate_err:
-  ANativeActivity_finish(activity);
 }
 
 #ifdef _DEBUG
@@ -344,7 +328,7 @@ void toastMessage(const char *msg, ...) {
     (*vm)->DetachCurrentThread(vm);
   }
 }
-void finish(void) {
+void finish() {
   if (!app)
     return;
   ANativeActivity_finish(app->activity);
