@@ -2339,7 +2339,7 @@ int opengles_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
   {
     // define egl + opengles library
-    if ((!(src->egllib = loadEGL())) || (!(src->gleslib = loadGLES()))) {
+    if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
       LOGW("Vailed load library opengles");
       free(src);
       return 0;
