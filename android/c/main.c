@@ -21,7 +21,6 @@
 
 AndroidGraphicsAPI gapi = {0};
 
-
 struct msg_pipe {
   int8_t cmd;
   void *data;
@@ -285,7 +284,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (opengles_init()) {
     return;
   }
-  
+
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 

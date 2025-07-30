@@ -2390,7 +2390,7 @@ int opengles_init(void) {
     LOGW("opengles library error");
     return 1;
   }
-  
+
   gapi.onWindowCreate = opengles_onWindowCreate;
   gapi.onWindowDestroy = opengles_onWindowDestroy;
   gapi.onWindowResizeDisplay = opengles_onWindowResizeDisplay;
@@ -2423,6 +2423,6 @@ int opengles_init(void) {
     memset(textures[0].data, 0xff, 4);
   }
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
-  
+
   return 0;
 }
