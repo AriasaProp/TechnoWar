@@ -77,7 +77,7 @@ enum {
 static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   static struct msg_pipe rmsg;
   if (read(fd, &rmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
-    LOGE("No data on command pipe!");
+    LOGW("No data on command pipe!");
     return 0;
   }
   switch (rmsg.cmd) {
@@ -142,7 +142,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
 
     if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
-      LOGE("ALooper_pollOnce returned an error");
+      LOGW("ALooper_pollOnce returned an error");
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&

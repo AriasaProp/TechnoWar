@@ -2055,12 +2055,8 @@ static void killEGL(const int EGLTermReq) {
 // android purpose
 void androidGraphics_init() {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  src->egllib = loadEGL();
-  if (!src->egllib)
-    LOGE("EGL library error");
-  src->gleslib = loadGLES();
-  if (!src->gleslib)
-    LOGE("GLES library error");
+  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
+    LOGW("opengles library error");
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
