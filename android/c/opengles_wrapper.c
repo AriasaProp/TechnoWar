@@ -2396,7 +2396,7 @@ int opengles_init(void) {
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
     LOGW("Vailed load library opengles");
     free(src);
-    return 0;
+    return 1;
   }
 
   androidGraphics_onWindowCreate = onWindowCreate;
@@ -2430,5 +2430,5 @@ int opengles_init(void) {
     memset(textures[0].data, 0xff, 4);
   }
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
-  return 1;
+  return 0;
 }

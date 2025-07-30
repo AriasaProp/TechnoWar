@@ -19,14 +19,15 @@
 #include "manager.h"
 #include "util.h"
 
-void (*androidGraphics_onWindowCreate)(void *);
-void (*androidGraphics_onWindowDestroy)(void);
-void (*androidGraphics_onWindowResizeDisplay)(void);
-void (*androidGraphics_onWindowResize)(void);
-void (*androidGraphics_resizeInsets)(float, float, float, float);
-int (*androidGraphics_preRender)(void);
-void (*androidGraphics_postRender)(void);
-void (*androidGraphics_term)(void);
+void (*androidGraphics_onWindowCreate) (void *);
+void (*androidGraphics_onWindowDestroy) (void);
+void (*androidGraphics_onWindowResizeDisplay) (void);
+void (*androidGraphics_onWindowResize) (void);
+void (*androidGraphics_resizeInsets)  (float, float, float, float);
+int (*androidGraphics_preRender)  (void);
+void (*androidGraphics_postRender)  (void);
+void (*androidGraphics_term) (void);
+
 
 struct msg_pipe {
   int8_t cmd;
@@ -271,7 +272,7 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
-  if (!(vulkan_init() || opengles_init()))
+  if (opengles_init())
     goto onCreate_err;
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
@@ -291,6 +292,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   if (pthread_create(&app->thread, &attr, android_app_entry, NULL))
     goto onCreate_err;
+
 
   // define lifecycle when everythings set
   activity->callbacks->onDestroy = onDestroy;
@@ -317,7 +319,8 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_mutex_unlock(&app->mutex);
   return;
 onCreate_err:
-  ANativeActivity_finish(activity);
+  free (app);
+  ANativeActivity_finish (activity);
 }
 
 #ifdef _DEBUG
@@ -345,8 +348,7 @@ void toastMessage(const char *msg, ...) {
   }
 }
 void finish(void) {
-  if (!app)
-    return;
+  if (!app) return;
   ANativeActivity_finish(app->activity);
 }
 #endif // _DEBUG
