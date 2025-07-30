@@ -19,15 +19,14 @@
 #include "manager.h"
 #include "util.h"
 
-void (*androidGraphics_onWindowCreate) (void *);
-void (*androidGraphics_onWindowDestroy) (void);
-void (*androidGraphics_onWindowResizeDisplay) (void);
-void (*androidGraphics_onWindowResize) (void);
-void (*androidGraphics_resizeInsets)  (float, float, float, float);
-int (*androidGraphics_preRender)  (void);
-void (*androidGraphics_postRender)  (void);
-void (*androidGraphics_term) (void);
-
+void (*androidGraphics_onWindowCreate)(void *);
+void (*androidGraphics_onWindowDestroy)(void);
+void (*androidGraphics_onWindowResizeDisplay)(void);
+void (*androidGraphics_onWindowResize)(void);
+void (*androidGraphics_resizeInsets)(float, float, float, float);
+int (*androidGraphics_preRender)(void);
+void (*androidGraphics_postRender)(void);
+void (*androidGraphics_term)(void);
 
 struct msg_pipe {
   int8_t cmd;
@@ -293,7 +292,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (pthread_create(&app->thread, &attr, android_app_entry, NULL))
     goto onCreate_err;
 
-
   // define lifecycle when everythings set
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
@@ -319,7 +317,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_mutex_unlock(&app->mutex);
   return;
 onCreate_err:
-  ANativeActivity_finish (activity);
+  ANativeActivity_finish(activity);
 }
 
 #ifdef _DEBUG
@@ -347,7 +345,8 @@ void toastMessage(const char *msg, ...) {
   }
 }
 void finish(void) {
-  if (!app) return;
+  if (!app)
+    return;
   ANativeActivity_finish(app->activity);
 }
 #endif // _DEBUG

@@ -2109,14 +2109,14 @@ static int preRender() {
       size_t i = 0, j = temp, k = 0, l;
       do {
         l = 1;
-  #define EGL_CONFIG_EVA(X)                                     \
-    if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
-    l += temp
+#define EGL_CONFIG_EVA(X)                                     \
+  if (eglGetConfigAttrib(src->display, configs[i], X, &temp)) \
+  l += temp
         EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
         EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
         EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
         // TODO: and more attributes
-  #undef EGL_CONFIG_EVA
+#undef EGL_CONFIG_EVA
         if (l > k) {
           k = l;
           src->eConfig = configs[i];
