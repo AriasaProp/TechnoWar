@@ -11,15 +11,18 @@ extern void androidInput_enableSensor ();
 extern void androidInput_disableSensor ();
 extern void androidInput_term ();
 
-extern void androidGraphics_init();
-extern void androidGraphics_onWindowCreate(void *);
-extern void androidGraphics_onWindowDestroy();
-extern void androidGraphics_onWindowResizeDisplay();
-extern void androidGraphics_onWindowResize();
-extern void androidGraphics_resizeInsets (float, float, float, float);
-extern int androidGraphics_preRender ();
-extern void androidGraphics_postRender ();
-extern void androidGraphics_term();
+typedef struct {
+  void (*onWindowCreate) (void *);
+  void (*onWindowDestroy) (void);
+  void (*onWindowResizeDisplay) (void);
+  void (*onWindowResize) (void);
+  void (*resizeInsets)  (float, float, float, float);
+  int (*preRender)  (void);
+  void (*postRender)  (void);
+  void (*term) (void);
+}  AndroidGraphicsAPI;
+extern AndroidGraphicsAPI gapi;
 
+extern int opengles_init(void);
 
 #endif // MANAGER_

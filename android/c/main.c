@@ -19,6 +19,9 @@
 #include "manager.h"
 #include "util.h"
 
+AndroidGraphicsAPI gapi = {0};
+
+
 struct msg_pipe {
   int8_t cmd;
   void *data;
@@ -93,17 +96,17 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     androidInput_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    androidGraphics_onWindowCreate((ANativeWindow *)rmsg.data);
+    gapi.onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    androidGraphics_onWindowResize();
+    gapi.onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    androidGraphics_onWindowResizeDisplay();
+    gapi.onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
     androidInput_enableSensor();
@@ -131,7 +134,6 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
-  androidGraphics_init();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -146,17 +148,17 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
-        androidGraphics_preRender()) {
+        gapi.preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      androidGraphics_postRender();
+      gapi.postRender();
     }
     switch (app->delayed_cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      androidGraphics_onWindowDestroy();
+      gapi.onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -170,7 +172,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     }
   }
   Main_term();
-  androidGraphics_term();
+  gapi.term();
   androidInput_term();
   androidAssetManager_term();
 
@@ -280,6 +282,10 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
 
+  if (opengles_init()) {
+    return;
+  }
+  
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 
@@ -339,5 +345,5 @@ void finish() {
 
 JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env), UNUSED(o);
-  androidGraphics_resizeInsets(left, top, right, bottom);
+  gapi.resizeInsets(left, top, right, bottom);
 }

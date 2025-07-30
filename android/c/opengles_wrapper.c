@@ -2053,49 +2053,20 @@ static void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-void androidGraphics_init() {
-  src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
-    LOGW("opengles library error");
-
-  global_engine.g.getScreenSize = opengles_getScreenSize;
-  global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
-  global_engine.g.clear = opengles_clear;
-  global_engine.g.clearColor = opengles_clearColor;
-  global_engine.g.genTexture = opengles_genTexture;
-  global_engine.g.bindTexture = opengles_bindTexture;
-  global_engine.g.setTextureParam = opengles_setTextureParam;
-  global_engine.g.deleteTexture = opengles_deleteTexture;
-  global_engine.g.flatRender = opengles_flatRender;
-  global_engine.g.genMesh = opengles_genMesh;
-  global_engine.g.setMeshTransform = opengles_setMeshTransform;
-  global_engine.g.meshRender = opengles_meshRender;
-  global_engine.g.deleteMesh = opengles_deleteMesh;
-
-  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
-  {
-    // add default texture
-    textures[0].size.x = 1;
-    textures[0].size.y = 1;
-    textures[0].data = malloc(4);
-    memset(textures[0].data, 0xff, 4);
-  }
-  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
-}
-void androidGraphics_onWindowCreate(void *w) {
+static void opengles_onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-void androidGraphics_onWindowDestroy() {
+static void opengles_onWindowDestroy(void) {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-void androidGraphics_onWindowResizeDisplay() {
+static void opengles_onWindowResizeDisplay(void) {
   src->flags |= RESIZE_DISPLAY;
 }
-void androidGraphics_onWindowResize() {
+static void opengles_onWindowResize(void) {
   src->flags |= RESIZE_ONLY;
 }
-void androidGraphics_resizeInsets(float x, float y, float z, float w) {
+static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2104,7 +2075,7 @@ void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-int androidGraphics_preRender() {
+static int opengles_preRender(void) {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
@@ -2356,7 +2327,7 @@ int androidGraphics_preRender() {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-void androidGraphics_postRender() {
+static void opengles_postRender(void) {
   int EGLTermReq = 0;
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
@@ -2379,7 +2350,7 @@ void androidGraphics_postRender() {
   }
   killEGL(EGLTermReq);
 }
-void androidGraphics_term() {
+static void opengles_term(void) {
   if (textures[0].id) {
     // world draw
     check(glDeleteProgram(src->world.shader));
@@ -2411,4 +2382,47 @@ void androidGraphics_term() {
   dlclose(src->egllib);
   dlclose(src->gleslib);
   free(src);
+}
+
+int opengles_init(void) {
+  src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
+  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
+    LOGW("opengles library error");
+    return 1;
+  }
+  
+  gapi.onWindowCreate = opengles_onWindowCreate;
+  gapi.onWindowDestroy = opengles_onWindowDestroy;
+  gapi.onWindowResizeDisplay = opengles_onWindowResizeDisplay;
+  gapi.onWindowResize = opengles_onWindowResize;
+  gapi.resizeInsets = opengles_resizeInsets;
+  gapi.preRender = opengles_preRender;
+  gapi.postRender = opengles_postRender;
+  gapi.term = opengles_term;
+
+  global_engine.g.getScreenSize = opengles_getScreenSize;
+  global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
+  global_engine.g.clear = opengles_clear;
+  global_engine.g.clearColor = opengles_clearColor;
+  global_engine.g.genTexture = opengles_genTexture;
+  global_engine.g.bindTexture = opengles_bindTexture;
+  global_engine.g.setTextureParam = opengles_setTextureParam;
+  global_engine.g.deleteTexture = opengles_deleteTexture;
+  global_engine.g.flatRender = opengles_flatRender;
+  global_engine.g.genMesh = opengles_genMesh;
+  global_engine.g.setMeshTransform = opengles_setMeshTransform;
+  global_engine.g.meshRender = opengles_meshRender;
+  global_engine.g.deleteMesh = opengles_deleteMesh;
+
+  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
+  {
+    // add default texture
+    textures[0].size.x = 1;
+    textures[0].size.y = 1;
+    textures[0].data = malloc(4);
+    memset(textures[0].data, 0xff, 4);
+  }
+  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
+  
+  return 0;
 }
