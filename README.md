@@ -2,24 +2,22 @@
 
 ![Ariasa Project](logo.png)
 
-Game Application for cross platform with independent window management and API initialization. Mainly writen as c/c++.
+Game Application with independent window management and API initialization. Mainly writen as c.
 
 ## Table of Contents
-
 1. [Core](#core)
-2. [Platforms](#platforms)
+2. [Backends](#backends)
    - [Android](#android)
    - [Other](#other)
 3. [Dependencies](#dependencies)
 3. [License](#license)
 
 ## Core
-
 The main logic of game.
 
-## Platforms
-
+## Backends
 ### Android
+[Android Backend](android/android.md)
 
 Currently support Android API 34 (min. 24).
 Graphics API usage: OpenGLES 3.2
@@ -29,15 +27,11 @@ Asset reader: Android Asset Manager.
 Internet implementation: not yet.
 
 ### Other
-
 Not yet.
 
-
 ## Dependencies
-Thanks for
-- @nothings for stb/stb_image as png image decompressor
-- @dharani811 for bmfont/bmfont as .fnt parser
+- @nothings for stb/stb_image
+- @dharani811 for bmfont/bmfont
 
 ## License
-
 This project has maded by myself.
