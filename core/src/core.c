@@ -6,9 +6,9 @@
 #include "util.h"
 
 // for sample
-extern void game_init ();
-extern struct flat_vertex *game_update (unsigned int*);
-extern void game_clean ();
+extern void game_init();
+extern struct flat_vertex *game_update(unsigned int *);
+extern void game_clean();
 
 struct engine global_engine = {0};
 struct core core_cache = {0};
@@ -36,7 +36,7 @@ void Main_update() {
     Main_resume();
   unsigned int lb;
   struct flat_vertex *v = game_update(&lb)
-  global_engine.g.flatRender(0, v, lb);
+                            global_engine.g.flatRender(0, v, lb);
 }
 void Main_pause() {
   stateSystem &= ~STATE_SYSTEM_RUNNING;
