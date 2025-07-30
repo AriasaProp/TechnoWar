@@ -2340,7 +2340,7 @@ static void postRender() {
       EGLTermReq |= TERM_EGL_CONTEXT;
       break;
     case EGL_BAD_DISPLAY:
-    case EGL_NOT_INITIALIZE:
+    case EGL_NOT_INITIALIZED:
       EGLTermReq |= TERM_EGL_DISPLAY;
       break;
     default:
