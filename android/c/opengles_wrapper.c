@@ -8,7 +8,6 @@
 
 #include "engine.h"
 #include "log.h"
-#include "manager.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -1829,7 +1828,7 @@ enum {
 enum {
   TERM_EGL_SURFACE = 1,
   TERM_EGL_CONTEXT = 2,
-  TERM_EGL_DISPLAY = 4
+  TERM_EGL_DISPLAY = 4,
 };
 static struct opengles_texture {
   GLuint id;
@@ -2012,8 +2011,8 @@ static void opengles_deleteMesh(mesh m) {
   memset(meshes + m, 0, sizeof(struct opengles_mesh));
 }
 
-static inline void killEGL(const int EGLTermReq) {
-  if (!EGLTermReq)
+static void killEGL(const int EGLTermReq) {
+  if (!EGLTermReq || !src->display)
     return;
   if (textures[0].id) {
     // world draw
@@ -2048,26 +2047,59 @@ static inline void killEGL(const int EGLTermReq) {
     eglDestroyContext(src->display, src->context);
     src->context = EGL_NO_CONTEXT;
   }
-  if (src->display && (EGLTermReq & 4)) {
+  if (EGLTermReq & 4) {
     eglTerminate(src->display);
     src->display = EGL_NO_DISPLAY;
   }
 }
 // android purpose
-static void onWindowCreate(void *w) {
+void androidGraphics_init() {
+  src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
+  src->egllib = loadEGL();
+  if (!src->egllib)
+    LOGE("EGL library error");
+  src->gleslib = loadGLES();
+  if (!src->gleslib)
+    LOGE("GLES library error");
+
+  global_engine.g.getScreenSize = opengles_getScreenSize;
+  global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
+  global_engine.g.clear = opengles_clear;
+  global_engine.g.clearColor = opengles_clearColor;
+  global_engine.g.genTexture = opengles_genTexture;
+  global_engine.g.bindTexture = opengles_bindTexture;
+  global_engine.g.setTextureParam = opengles_setTextureParam;
+  global_engine.g.deleteTexture = opengles_deleteTexture;
+  global_engine.g.flatRender = opengles_flatRender;
+  global_engine.g.genMesh = opengles_genMesh;
+  global_engine.g.setMeshTransform = opengles_setMeshTransform;
+  global_engine.g.meshRender = opengles_meshRender;
+  global_engine.g.deleteMesh = opengles_deleteMesh;
+
+  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
+  {
+    // add default texture
+    textures[0].size.x = 1;
+    textures[0].size.y = 1;
+    textures[0].data = malloc(4);
+    memset(textures[0].data, 0xff, 4);
+  }
+  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
+}
+void androidGraphics_onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-static void onWindowDestroy() {
+void androidGraphics_onWindowDestroy() {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-static void onWindowResizeDisplay() {
+void androidGraphics_onWindowResizeDisplay() {
   src->flags |= RESIZE_DISPLAY;
 }
-static void onWindowResize() {
+void androidGraphics_onWindowResize() {
   src->flags |= RESIZE_ONLY;
 }
-static void resizeInsets(float x, float y, float z, float w) {
+void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2076,23 +2108,25 @@ static void resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-static int preRender() {
+int androidGraphics_preRender() {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
     if (!src->display) {
-      // define EGL Display + config first
-      if (!(src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY))) {
-        LOGE("EGL can't get Display");
+      src->context = EGL_NO_CONTEXT;
+      src->surface = EGL_NO_SURFACE;
+      src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+      if (!src->display) {
+        LOGW("Failed to get EGLDisplay");
         return 0;
       }
       EGLint temp, temp1;
       eglInitialize(src->display, &temp, &temp1);
       if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
-        LOGE("EGL version is below 1.3");
+        LOGW("EGL version is below 1.3");
         return 0;
       }
-      static const EGLint configAttr[] = {
+      const EGLint configAttr[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
@@ -2101,7 +2135,7 @@ static int preRender() {
         EGL_NONE};
       eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
       if (temp <= 0) {
-        LOGE("There is no fit config for minimum EGLConfig attribute");
+        LOGW("There is no fit config for minimum EGLConfig attribute");
         return 0;
       }
       EGLConfig *configs = (EGLConfig *)malloc(temp * sizeof(EGLConfig));
@@ -2125,10 +2159,10 @@ static int preRender() {
       free(configs);
     }
     if (!src->context) {
-      static const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+      const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       src->context = eglCreateContext(src->display, src->eConfig, NULL, ctxAttr);
       if (!src->context) {
-        LOGE("Failed to create EGLContext");
+        LOGW("Failed to create EGLContext");
         return 0;
       }
     }
@@ -2326,7 +2360,7 @@ static int preRender() {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-static void postRender() {
+void androidGraphics_postRender() {
   int EGLTermReq = 0;
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
@@ -2339,8 +2373,8 @@ static void postRender() {
     case EGL_CONTEXT_LOST:
       EGLTermReq |= TERM_EGL_CONTEXT;
       break;
-    case EGL_BAD_DISPLAY:
     case EGL_NOT_INITIALIZED:
+    case EGL_BAD_DISPLAY:
       EGLTermReq |= TERM_EGL_DISPLAY;
       break;
     default:
@@ -2349,7 +2383,7 @@ static void postRender() {
   }
   killEGL(EGLTermReq);
 }
-static void term() {
+void androidGraphics_term() {
   if (textures[0].id) {
     // world draw
     check(glDeleteProgram(src->world.shader));
@@ -2377,58 +2411,8 @@ static void term() {
   free(textures);
   free(meshes);
 
-  if (src->display) {
-    eglSwapBuffers(src->display, src->surface);
-    eglMakeCurrent(src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (src->surface)
-      eglDestroySurface(src->display, src->surface);
-    if (src->context)
-      eglDestroyContext(src->display, src->context);
-    eglTerminate(src->display);
-  }
+  killEGL(TERM_EGL_DISPLAY);
   dlclose(src->egllib);
   dlclose(src->gleslib);
   free(src);
-}
-int opengles_init(void) {
-  src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  // define egl + opengles library
-  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
-    LOGW("Vailed load library opengles");
-    free(src);
-    return 1;
-  }
-
-  androidGraphics_onWindowCreate = onWindowCreate;
-  androidGraphics_onWindowDestroy = onWindowDestroy;
-  androidGraphics_onWindowResizeDisplay = onWindowResizeDisplay;
-  androidGraphics_onWindowResize = onWindowResize;
-  androidGraphics_resizeInsets = resizeInsets;
-  androidGraphics_postRender = postRender;
-  androidGraphics_term = term;
-
-  global_engine.g.getScreenSize = opengles_getScreenSize;
-  global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
-  global_engine.g.clear = opengles_clear;
-  global_engine.g.clearColor = opengles_clearColor;
-  global_engine.g.genTexture = opengles_genTexture;
-  global_engine.g.bindTexture = opengles_bindTexture;
-  global_engine.g.setTextureParam = opengles_setTextureParam;
-  global_engine.g.deleteTexture = opengles_deleteTexture;
-  global_engine.g.flatRender = opengles_flatRender;
-  global_engine.g.genMesh = opengles_genMesh;
-  global_engine.g.setMeshTransform = opengles_setMeshTransform;
-  global_engine.g.meshRender = opengles_meshRender;
-  global_engine.g.deleteMesh = opengles_deleteMesh;
-
-  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
-  {
-    // add default texture
-    textures[0].size.x = 1;
-    textures[0].size.y = 1;
-    textures[0].data = malloc(4);
-    memset(textures[0].data, 0xff, 4);
-  }
-  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
-  return 0;
 }
