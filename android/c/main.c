@@ -19,6 +19,15 @@
 #include "manager.h"
 #include "util.h"
 
+void (*androidGraphics_onWindowCreate)(void *);
+void (*androidGraphics_onWindowDestroy)(void);
+void (*androidGraphics_onWindowResizeDisplay)(void);
+void (*androidGraphics_onWindowResize)(void);
+void (*androidGraphics_resizeInsets)(float, float, float, float);
+int (*androidGraphics_preRender)(void);
+void (*androidGraphics_postRender)(void);
+void (*androidGraphics_term)(void);
+
 struct msg_pipe {
   int8_t cmd;
   void *data;
@@ -77,7 +86,7 @@ enum {
 static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
   static struct msg_pipe rmsg;
   if (read(fd, &rmsg, sizeof(struct msg_pipe)) != sizeof(struct msg_pipe)) {
-    LOGW("No data on command pipe!");
+    LOGE("No data on command pipe!");
     return 0;
   }
   switch (rmsg.cmd) {
@@ -93,17 +102,17 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     androidInput_destroyInputQueue();
     break;
   case APP_CMD_WINDOW_CREATED:
-    graphics_onWindowCreate((ANativeWindow *)rmsg.data);
+    androidGraphics_onWindowCreate((ANativeWindow *)rmsg.data);
     app->stateApp |= STATE_APP_WINDOW;
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
-    graphics_onWindowResize();
+    androidGraphics_onWindowResize();
     break;
   case APP_CMD_WINDOW_RESIZE:
-    graphics_onWindowResizeDisplay();
+    androidGraphics_onWindowResizeDisplay();
     break;
   case APP_CMD_GAINED_FOCUS:
     androidInput_enableSensor();
@@ -131,8 +140,6 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
-  if (graphics_init())
-    LOGE("graphics init");
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -140,22 +147,24 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   pthread_mutex_unlock(&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
-    if (ALooper_pollOnce(!(app->stateApp & (STATE_APP_WINDOW | STATE_APP_RUNNING)) * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
-      LOGW("ALooper_pollOnce returned an error");
+    int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
+
+    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
+      LOGE("ALooper_pollOnce returned an error");
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
         (app->stateApp & STATE_APP_RUNNING) &&
-        graphics_preRender()) {
+        androidGraphics_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
-      graphics_postRender();
+      androidGraphics_postRender();
     }
     switch (app->delayed_cmdState) {
     case APP_CMD_WINDOW_DESTROYED:
-      graphics_onWindowDestroy();
+      androidGraphics_onWindowDestroy();
       app->stateApp &= ~STATE_APP_WINDOW;
       break;
     case APP_CMD_PAUSE:
@@ -169,7 +178,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     }
   }
   Main_term();
-  graphics_term();
+  androidGraphics_term();
   androidInput_term();
   androidAssetManager_term();
 
@@ -262,6 +271,28 @@ static void onInputQueueDestroyed(ANativeActivity *UNUSED_ARG(activity), AInputQ
   android_app_write_cmd(APP_CMD_INPUT_DESTROYED, NULL);
 }
 void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_t savedStateSize) {
+  if (!(vulkan_init() || opengles_init()))
+    goto onCreate_err;
+
+  app = (struct android_app *)calloc(1, sizeof(struct android_app));
+  app->activity = activity;
+
+  pthread_mutex_init(&app->mutex, NULL);
+  pthread_cond_init(&app->cond, NULL);
+
+  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
+    memcpy(&core_cache, savedState, sizeof(struct core));
+  }
+  if (pipe(&app->msgread))
+    goto onCreate_err;
+
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+  if (pthread_create(&app->thread, &attr, android_app_entry, NULL))
+    goto onCreate_err;
+
+  // define lifecycle when everythings set
   activity->callbacks->onDestroy = onDestroy;
   activity->callbacks->onStart = onStart;
   activity->callbacks->onResume = onResume;
@@ -278,31 +309,15 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-  app = (struct android_app *)calloc(1, sizeof(struct android_app));
-  app->activity = activity;
-
-  pthread_mutex_init(&app->mutex, NULL);
-  pthread_cond_init(&app->cond, NULL);
-
-  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
-    memcpy(&core_cache, savedState, sizeof(struct core));
-  }
-  if (pipe(&app->msgread)) {
-    ANativeActivity_finish(activity);
-    free(app);
-    return;
-  }
-
-  pthread_attr_t attr;
-  pthread_attr_init(&attr);
-  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&app->thread, &attr, android_app_entry, NULL);
 
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
   while (!(app->stateApp & STATE_APP_INIT))
     pthread_cond_wait(&app->cond, &app->mutex);
   pthread_mutex_unlock(&app->mutex);
+  return;
+onCreate_err:
+  ANativeActivity_finish(activity);
 }
 
 #ifdef _DEBUG
@@ -340,5 +355,5 @@ void finish(void) {
 
 JNIEXPORT void JNICALL Java_com_ariasaproject_technowar_MainActivity_insetNative(JNIEnv *env, jobject o, jint left, jint top, jint right, jint bottom) {
   UNUSED(env), UNUSED(o);
-  graphics_resizeInsets(left, top, right, bottom);
+  androidGraphics_resizeInsets(left, top, right, bottom);
 }

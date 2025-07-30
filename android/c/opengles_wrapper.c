@@ -1829,7 +1829,7 @@ enum {
 enum {
   TERM_EGL_SURFACE = 1,
   TERM_EGL_CONTEXT = 2,
-  TERM_EGL_DISPLAY = 4,
+  TERM_EGL_DISPLAY = 4
 };
 static struct opengles_texture {
   GLuint id;
@@ -2012,8 +2012,8 @@ static void opengles_deleteMesh(mesh m) {
   memset(meshes + m, 0, sizeof(struct opengles_mesh));
 }
 
-static void killEGL(const int EGLTermReq) {
-  if (!EGLTermReq || !src->display)
+static inline void killEGL(const int EGLTermReq) {
+  if (!EGLTermReq)
     return;
   if (textures[0].id) {
     // world draw
@@ -2048,26 +2048,26 @@ static void killEGL(const int EGLTermReq) {
     eglDestroyContext(src->display, src->context);
     src->context = EGL_NO_CONTEXT;
   }
-  if (EGLTermReq & 4) {
+  if (src->display && (EGLTermReq & 4)) {
     eglTerminate(src->display);
     src->display = EGL_NO_DISPLAY;
   }
 }
 // android purpose
-void graphics_onWindowCreate(void *w) {
+static void onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-void graphics_onWindowDestroy(void) {
+static void onWindowDestroy() {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-void graphics_onWindowResizeDisplay(void) {
+static void onWindowResizeDisplay() {
   src->flags |= RESIZE_DISPLAY;
 }
-void graphics_onWindowResize(void) {
+static void onWindowResize() {
   src->flags |= RESIZE_ONLY;
 }
-void graphics_resizeInsets(float x, float y, float z, float w) {
+static void resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2076,25 +2076,23 @@ void graphics_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-int graphics_preRender(void) {
+static int preRender() {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
     if (!src->display) {
-      src->context = EGL_NO_CONTEXT;
-      src->surface = EGL_NO_SURFACE;
-      src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-      if (!src->display) {
-        LOGW("Failed to get EGLDisplay");
+      // define EGL Display + config first
+      if (!(src->display = eglGetDisplay(EGL_DEFAULT_DISPLAY))) {
+        LOGE("EGL can't get Display");
         return 0;
       }
       EGLint temp, temp1;
       eglInitialize(src->display, &temp, &temp1);
       if (temp < 1 || temp1 < 3) { // unsupported egl version lower than 1.3
-        LOGW("EGL version is below 1.3");
+        LOGE("EGL version is below 1.3");
         return 0;
       }
-      const EGLint configAttr[] = {
+      static const EGLint configAttr[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
         EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
@@ -2103,7 +2101,7 @@ int graphics_preRender(void) {
         EGL_NONE};
       eglChooseConfig(src->display, configAttr, NULL, 0, &temp);
       if (temp <= 0) {
-        LOGW("There is no fit config for minimum EGLConfig attribute");
+        LOGE("There is no fit config for minimum EGLConfig attribute");
         return 0;
       }
       EGLConfig *configs = (EGLConfig *)malloc(temp * sizeof(EGLConfig));
@@ -2127,10 +2125,10 @@ int graphics_preRender(void) {
       free(configs);
     }
     if (!src->context) {
-      const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
+      static const EGLint ctxAttr[] = {EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE};
       src->context = eglCreateContext(src->display, src->eConfig, NULL, ctxAttr);
       if (!src->context) {
-        LOGW("Failed to create EGLContext");
+        LOGE("Failed to create EGLContext");
         return 0;
       }
     }
@@ -2328,59 +2326,86 @@ int graphics_preRender(void) {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-void graphics_postRender(void) {
+static void postRender() {
+  int EGLTermReq = 0;
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
     case EGL_BAD_NATIVE_WINDOW:
     case EGL_BAD_CURRENT_SURFACE:
-      killEGL(TERM_EGL_SURFACE);
+      EGLTermReq |= TERM_EGL_SURFACE;
       break;
     case EGL_BAD_CONTEXT:
     case EGL_CONTEXT_LOST:
-      killEGL(TERM_EGL_CONTEXT);
+      EGLTermReq |= TERM_EGL_CONTEXT;
       break;
-    case EGL_NOT_INITIALIZED:
     case EGL_BAD_DISPLAY:
-      killEGL(TERM_EGL_DISPLAY);
+    case EGL_NOT_INITIALIZED:
+      EGLTermReq |= TERM_EGL_DISPLAY;
       break;
     default:
-      LOGE("EGL error on postRender");
       break;
     }
   }
+  killEGL(EGLTermReq);
 }
-void graphics_term(void) {
-  killEGL(TERM_EGL_DISPLAY);
-  dlclose(src->egllib);
-  dlclose(src->gleslib);
-  // texture memory
-  for (texture i = 0; i < MAX_RESOURCE; ++i) {
-    if (textures[i].size.x == 0)
-      continue;
-    free(textures[i].data);
-  }
-  // mesh memory
-  for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-    if (meshes[i].vertex_len == 0)
-      continue;
-    free(meshes[i].vertexs);
-    free(meshes[i].indices);
+static void term() {
+  if (textures[0].id) {
+    // world draw
+    check(glDeleteProgram(src->world.shader));
+    // flat draw
+    check(glDeleteProgram(src->ui.shader));
+    check(glDeleteVertexArrays(1, &src->ui.vao));
+    check(glDeleteBuffers(2, &src->ui.vbo));
+    // texture
+    for (texture i = 0; i < MAX_RESOURCE; ++i) {
+      if (textures[i].size.x == 0)
+        continue;
+      check(glDeleteTextures(1, &textures[i].id));
+      free(textures[i].data);
+    }
+    // mesh
+    for (mesh i = 0; i < MAX_RESOURCE; ++i) {
+      if (meshes[i].vertex_len == 0)
+        continue;
+      check(glDeleteVertexArrays(1, &meshes[i].vao));
+      check(glDeleteBuffers(2, &meshes[i].vbo));
+      free(meshes[i].vertexs);
+      free(meshes[i].indices);
+    }
   }
   free(textures);
   free(meshes);
+
+  if (src->display) {
+    eglSwapBuffers(src->display, src->surface);
+    eglMakeCurrent(src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (src->surface)
+      eglDestroySurface(src->display, src->surface);
+    if (src->context)
+      eglDestroyContext(src->display, src->context);
+    eglTerminate(src->display);
+  }
+  dlclose(src->egllib);
+  dlclose(src->gleslib);
   free(src);
 }
-int graphics_init(void) {
+int opengles_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  if (!(src->egllib = loadEGL())) {
-    LOGW("egl library error");
-    return 1;
+  // define egl + opengles library
+  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES())) {
+    LOGW("Vailed load library opengles");
+    free(src);
+    return 0;
   }
-  if (!(src->gleslib = loadGLES())) {
-    LOGW("opengles library error");
-    return 1;
-  }
+
+  androidGraphics_onWindowCreate = onWindowCreate;
+  androidGraphics_onWindowDestroy = onWindowDestroy;
+  androidGraphics_onWindowResizeDisplay = onWindowResizeDisplay;
+  androidGraphics_onWindowResize = onWindowResize;
+  androidGraphics_resizeInsets = resizeInsets;
+  androidGraphics_postRender = postRender;
+  androidGraphics_term = term;
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
@@ -2405,6 +2430,5 @@ int graphics_init(void) {
     memset(textures[0].data, 0xff, 4);
   }
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
-
-  return 0;
+  return 1;
 }
