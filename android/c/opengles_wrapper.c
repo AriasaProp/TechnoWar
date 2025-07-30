@@ -2055,12 +2055,8 @@ static void killEGL(const int EGLTermReq) {
 // android purpose
 void androidGraphics_init() {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
-  src->egllib = loadEGL();
-  if (!src->egllib)
-    LOGE("EGL library error");
-  src->gleslib = loadGLES();
-  if (!src->gleslib)
-    LOGE("GLES library error");
+  if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
+    LOGE("openGLES library error");
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
@@ -2174,7 +2170,7 @@ int androidGraphics_preRender() {
       }
     }
     eglMakeCurrent(src->display, src->surface, src->surface, src->context);
-    if (textures[0].id == 0) {
+    if (!textures[0].id) {
       // when validate, projection need to be update
       src->flags |= WORLD_UPDATE | UI_UPDATE;
       // set clear
@@ -2361,58 +2357,45 @@ int androidGraphics_preRender() {
   return 1;
 }
 void androidGraphics_postRender() {
-  int EGLTermReq = 0;
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
     case EGL_BAD_NATIVE_WINDOW:
     case EGL_BAD_CURRENT_SURFACE:
-      EGLTermReq |= TERM_EGL_SURFACE;
+      killEGL(TERM_EGL_SURFACE);
       break;
     case EGL_BAD_CONTEXT:
     case EGL_CONTEXT_LOST:
-      EGLTermReq |= TERM_EGL_CONTEXT;
+      killEGL(TERM_EGL_CONTEXT);
       break;
     case EGL_NOT_INITIALIZED:
     case EGL_BAD_DISPLAY:
-      EGLTermReq |= TERM_EGL_DISPLAY;
+      killEGL(TERM_EGL_DISPLAY);
       break;
     default:
+      LOGE("EGL error swapbuffers");
       break;
     }
   }
-  killEGL(EGLTermReq);
 }
 void androidGraphics_term() {
-  if (textures[0].id) {
-    // world draw
-    check(glDeleteProgram(src->world.shader));
-    // flat draw
-    check(glDeleteProgram(src->ui.shader));
-    check(glDeleteVertexArrays(1, &src->ui.vao));
-    check(glDeleteBuffers(2, &src->ui.vbo));
-    // texture
-    for (texture i = 0; i < MAX_RESOURCE; ++i) {
-      if (textures[i].size.x == 0)
-        continue;
-      check(glDeleteTextures(1, &textures[i].id));
-      free(textures[i].data);
-    }
-    // mesh
-    for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-      if (meshes[i].vertex_len == 0)
-        continue;
-      check(glDeleteVertexArrays(1, &meshes[i].vao));
-      check(glDeleteBuffers(2, &meshes[i].vbo));
-      free(meshes[i].vertexs);
-      free(meshes[i].indices);
-    }
-  }
-  free(textures);
-  free(meshes);
-
   killEGL(TERM_EGL_DISPLAY);
   dlclose(src->egllib);
   dlclose(src->gleslib);
+  // texture
+  for (texture i = 0; i < MAX_RESOURCE; ++i) {
+    if (textures[i].size.x == 0)
+      continue;
+    free(textures[i].data);
+  }
+  // mesh
+  for (mesh i = 0; i < MAX_RESOURCE; ++i) {
+    if (meshes[i].vertex_len == 0)
+      continue;
+    free(meshes[i].vertexs);
+    free(meshes[i].indices);
+  }
+  free(textures);
+  free(meshes);
   free(src);
 }

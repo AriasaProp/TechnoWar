@@ -139,14 +139,10 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   pthread_mutex_unlock(&app->mutex);
 
   while (app->stateApp & STATE_APP_INIT) {
-    int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
-
-    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
+    int ready = app->stateApp & (STATE_APP_WINDOW | STATE_APP_RUNNING);
+    if (ALooper_pollOnce(!ready * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGE("ALooper_pollOnce returned an error");
-
-    if ((app->stateApp & STATE_APP_WINDOW) &&
-        (app->stateApp & STATE_APP_RUNNING) &&
-        androidGraphics_preRender()) {
+    if (ready && androidGraphics_preRender()) {
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
@@ -289,13 +285,18 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   if (savedState != NULL && savedStateSize == sizeof(struct core)) {
     memcpy(&core_cache, savedState, sizeof(struct core));
   }
-  if (pipe(&app->msgread))
+  if (pipe(&app->msgread)) {
+    ANativeActivity_finish(activity);
     return;
+  }
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-  pthread_create(&app->thread, &attr, android_app_entry, NULL);
+  if (pthread_create(&app->thread, &attr, android_app_entry, NULL)) {
+    ANativeActivity_finish(activity);
+    return;
+  }
 
   // Wait for thread to start.
   pthread_mutex_lock(&app->mutex);
