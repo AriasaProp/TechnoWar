@@ -140,17 +140,16 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
-  if (op)
+  if (opengles_init())
+    LOGE("library graphics failure");
 
     pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
   pthread_cond_signal(&app->cond);
   pthread_mutex_unlock(&app->mutex);
-
+  
   while (app->stateApp & STATE_APP_INIT) {
-    int block = (!(app->stateApp & STATE_APP_WINDOW) || !(app->stateApp & STATE_APP_RUNNING));
-
-    if (ALooper_pollOnce(block * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
+    if (ALooper_pollOnce(!(app->stateApp & (STATE_APP_WINDOW | STATE_APP_RUNNING)) * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGW("ALooper_pollOnce returned an error");
 
     if ((app->stateApp & STATE_APP_WINDOW) &&
@@ -288,12 +287,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   activity->callbacks->onNativeWindowDestroyed = onNativeWindowDestroyed;
   activity->callbacks->onInputQueueCreated = onInputQueueCreated;
   activity->callbacks->onInputQueueDestroyed = onInputQueueDestroyed;
-
-  if (opengles_init()) {
-    ANativeActivity_finish(activity);
-    return;
-  }
-
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
 
