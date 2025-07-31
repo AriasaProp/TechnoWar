@@ -20,6 +20,6 @@ extern int (*androidGraphics_preRender) (void);
 extern void (*androidGraphics_postRender) (void);
 extern void (*androidGraphics_term) (void);
 
-extern void opengles_init(void);
+extern int opengles_init(void);
 
 #endif // MANAGER_
