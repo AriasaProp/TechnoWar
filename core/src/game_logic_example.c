@@ -9,8 +9,7 @@ struct box {
   vec2 pos, vel;
   float size;
 } *boxs = NULL;
-vec2 *delayVel = NULL
-struct flat_vertex *rects = NULL;
+vec2 *delayVel = NULL struct flat_vertex *rects = NULL;
 unsigned int max_box;
 
 void game_init() {
@@ -62,7 +61,7 @@ struct flat_vertex *game_update(unsigned int *l) {
         delayVel[i].x /= mtotal;
       }
     }
-    
+
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
