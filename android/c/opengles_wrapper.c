@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "manager.h"
 #include "log.h"
+#include "manager.h"
 #include "util.h"
 
 typedef int32_t khronos_int32_t;
@@ -1707,22 +1707,22 @@ static void *loadGLES(void) {
   glGenVertexArrays = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenVertexArrays");
   glBindVertexArray = (void (*)(GLuint))LOADFUNCT("glBindVertexArray");
   glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteVertexArrays");
-/*
-  // --- GL ES 3.1 Core Functions ---
-  glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glDispatchCompute");
-  glDispatchComputeIndirect = (void (*)(GLintptr))LOADFUNCT("glDispatchComputeIndirect");
-  glDrawArraysIndirect = (void (*)(GLenum, const void *))LOADFUNCT("glDrawArraysIndirect");
-  glDrawElementsIndirect = (void (*)(GLenum, GLenum, const void *))LOADFUNCT("glDrawElementsIndirect");
-  glFramebufferTexture = (void (*)(GLenum, GLenum, GLuint, GLint))LOADFUNCT("glFramebufferTexture");
-  glGetProgramResourceIndex = (void (*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceIndex");
-  glGetProgramResourceName = (void (*)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetProgramResourceName");
-  glGetProgramResourceiv = (void (*)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *))LOADFUNCT("glGetProgramResourceiv");
-  glGetProgramResourceLocation = (GLint(*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceLocation");
-  glShaderStorageBlockBinding = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glShaderStorageBlockBinding");
-  glTexBuffer = (void (*)(GLenum, GLenum, GLuint))LOADFUNCT("glTexBuffer");
-  glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))LOADFUNCT("glTexBufferRange");
-  glTexImage2DMultisample = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))LOADFUNCT("glTexImage2DMultisample");
-*/
+  /*
+    // --- GL ES 3.1 Core Functions ---
+    glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glDispatchCompute");
+    glDispatchComputeIndirect = (void (*)(GLintptr))LOADFUNCT("glDispatchComputeIndirect");
+    glDrawArraysIndirect = (void (*)(GLenum, const void *))LOADFUNCT("glDrawArraysIndirect");
+    glDrawElementsIndirect = (void (*)(GLenum, GLenum, const void *))LOADFUNCT("glDrawElementsIndirect");
+    glFramebufferTexture = (void (*)(GLenum, GLenum, GLuint, GLint))LOADFUNCT("glFramebufferTexture");
+    glGetProgramResourceIndex = (void (*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceIndex");
+    glGetProgramResourceName = (void (*)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetProgramResourceName");
+    glGetProgramResourceiv = (void (*)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *))LOADFUNCT("glGetProgramResourceiv");
+    glGetProgramResourceLocation = (GLint(*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceLocation");
+    glShaderStorageBlockBinding = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glShaderStorageBlockBinding");
+    glTexBuffer = (void (*)(GLenum, GLenum, GLuint))LOADFUNCT("glTexBuffer");
+    glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))LOADFUNCT("glTexBufferRange");
+    glTexImage2DMultisample = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))LOADFUNCT("glTexImage2DMultisample");
+  */
   return gleslib;
 load_gles_err:
   dlclose(gleslib);
@@ -2336,7 +2336,6 @@ int opengles_init(void) {
   androidGraphics_preRender = opengles_preRender;
   androidGraphics_postRender = opengles_postRender;
   androidGraphics_term = opengles_term;
-
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
