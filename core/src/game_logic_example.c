@@ -25,8 +25,10 @@ void game_init() {
     // size around 135 to 75 (square)
     boxs[i].size = 75.0f + (60.f * rand());
     // position around inside screen - size
-    boxs[i].pos.x = CLAMP(boxs[i].size, rand() * sZ.x, sZ.x - boxs[i].size);
-    boxs[i].pos.y = CLAMP(boxs[i].size, rand() * sZ.y, sZ.y - boxs[i].size);
+    boxs[i].pos.x = rand() * sZ.x;
+    boxs[i].pos.x = CLAMP(boxs[i].size, boxs[i].pos.x, sZ.x - boxs[i].size);
+    boxs[i].pos.y = rand() * sZ.x;
+    boxs[i].pos.y = CLAMP(boxs[i].size, boxs[i].pos.y, sZ.y - boxs[i].size);
   }
 }
 struct flat_vertex *game_update(unsigned int *l) {
