@@ -9,6 +9,7 @@ struct box {
   vec2 pos, vel;
   float size;
 } *boxs = NULL;
+vec2 *delayVel = NULL
 struct flat_vertex *rects = NULL;
 unsigned int max_box;
 
@@ -16,6 +17,7 @@ void game_init() {
   srand(time(0));
   max_box = 5 + (rand() % 10);
   boxs = (struct box *)malloc(sizeof(struct box) * max_box);
+  delayVel = (vec2 *)malloc(sizeof(vec2) * max_box);
   rects = (struct flat_vertex *)calloc(sizeof(struct flat_vertex), max_box * 4);
   vec2 sZ = global_engine.g.getScreenSize();
   for (int i = 0; i < max_box; ++i) {
@@ -41,9 +43,11 @@ struct flat_vertex *game_update(unsigned int *l) {
     // update motion
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
+  }
+  for (i = 0; i < max_box; ++i) {
+    delayVel[i] = boxs[i].vec;
     // collision detection + velocity update
     bis2 = boxs[i].size * 0.5f;
-    ;
     // detect with other box
     for (j = 0; j < max_box; ++j) {
       if (i == j)
@@ -51,23 +55,30 @@ struct flat_vertex *game_update(unsigned int *l) {
       distx = boxs[i].pos.x - boxs[j].pos.x;
       disty = boxs[i].pos.y - boxs[j].pos.y;
       mindist = bis2 + boxs[j].size * 0.5f;
-      ;
       if (distx <= mindist && disty <= mindist) {
-        boxs[i].vel.x *= 0.5f;
-        boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size * 0.5f;
-        boxs[i].vel.y *= 0.5f;
-        boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size * 0.5f;
+        float mtotal = boxs[i].size + boxs[j].size;
+        delayVel[i].x *= boxs[i].size - boxs[j].size;
+        delayVel[i].x += boxs[j].vel.x * 2 * boxs[j].size;
+        delayVel[i].x /= mtotal;
       }
     }
+    
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
-      boxs[i].vel.x *= -1.0f;
+      delayVel[i].x *= -1.0f;
     }
     if ((boxs[i].pos.y <= bis2) ||
         (boxs[i].pos.y + bis2 >= sZ.y)) {
-      boxs[i].vel.y *= -1.0f;
+      delayVel[i].y *= -1.0f;
     }
+  }
+  // apply velocity
+  for (i = 0; i < max_box; ++i) {
+    boxs[i].vel = delayVel[i];
+  }
+  for (i = 0; i < max_box; ++i) {
+    bis2 = boxs[i].size * 0.5f;
     // draw
     rects[i * 4 + 0].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y + bis2}; // Bottom-right
     rects[i * 4 + 1].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y - bis2}; // Top-right
@@ -79,5 +90,6 @@ struct flat_vertex *game_update(unsigned int *l) {
 void game_clean() {
   (void)0;
   free(boxs);
+  free(delayVel);
   free(rects);
 }
