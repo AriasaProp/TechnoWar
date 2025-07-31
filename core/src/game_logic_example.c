@@ -22,12 +22,12 @@ void game_init() {
     // velocity around 5 to -5
     boxs[i].vel.x = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
     boxs[i].vel.y = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
-    // size around 135 to 75 (square)
-    boxs[i].size = 75.0f + (60.f * rand());
+    // size 50 (square)
+    boxs[i].size = 50.f;
     // position around inside screen - size
-    boxs[i].pos.x = rand() * sZ.x;
+    boxs[i].pos.x = (float)rand() / (float)RAND_MAX * sZ.x;
     boxs[i].pos.x = CLAMP(boxs[i].size, boxs[i].pos.x, sZ.x - boxs[i].size);
-    boxs[i].pos.y = rand() * sZ.x;
+    boxs[i].pos.y = (float)rand() / (float)RAND_MAX * sZ.y;
     boxs[i].pos.y = CLAMP(boxs[i].size, boxs[i].pos.y, sZ.y - boxs[i].size);
   }
 }
@@ -38,11 +38,14 @@ struct flat_vertex *game_update(unsigned int *l) {
   float bis2, distx, disty, mindist;
   float bottom, top, left, right;
   for (i = 0; i < max_box; ++i) {
+    /*
     // update motion
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
     // collision detection + velocity update
+    */
     bis2 = boxs[i].size / 2;
+    /*
     // detect with other box
     for (j = 0; j < max_box; ++j) {
       if (i == j)
@@ -64,6 +67,7 @@ struct flat_vertex *game_update(unsigned int *l) {
         (boxs[i].pos.y + bis2 >= sZ.y)) {
       boxs[i].vel.y *= -1.0f;
     }
+    */
     // draw
     rects[i * 4 + 0].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y + bis2}; // Bottom-right
     rects[i * 4 + 1].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y - bis2}; // Top-right
