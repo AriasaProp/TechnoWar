@@ -16,7 +16,7 @@ void game_init() {
   srand(time(0));
   max_box = 5 + (rand() % 10);
   boxs = (struct box *)malloc(sizeof(struct box) * max_box);
-  rects = (struct flat_vertex *)malloc(sizeof(struct flat_vertex) * max_box * 4);
+  rects = (struct flat_vertex *)calloc(sizeof(struct flat_vertex), max_box * 4);
   vec2 sZ = global_engine.g.getScreenSize();
   for (int i = 0; i < max_box; ++i) {
     // velocity around 5 to -5
