@@ -14,16 +14,16 @@ unsigned int max_box;
 
 void game_init() {
   srand(time(0));
-  max_box = 5 + (rand() % 15);
+  max_box = 5 + (rand() % 10);
   boxs = (struct box *)malloc(sizeof(struct box) * max_box);
   rects = (struct flat_vertex *)malloc(sizeof(struct flat_vertex) * max_box * 4);
   vec2 sZ = global_engine.g.getScreenSize();
   for (int i = 0; i < max_box; ++i) {
     // velocity around 5 to -5
-    boxs[i].vel.x = (10.f * (float)rand() / (float)RAND_MAX) - 5.f;
-    boxs[i].vel.y = (10.f * (float)rand() / (float)RAND_MAX) - 5.f;
-    // size around 180 to 50 (square)
-    boxs[i].size = 50.0f + (130.f * rand());
+    boxs[i].vel.x = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
+    boxs[i].vel.y = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
+    // size around 135 to 75 (square)
+    boxs[i].size = 75.0f + (60.f * rand());
     // position around inside screen - size
     boxs[i].pos.x = CLAMP(boxs[i].size, rand() * sZ.x, sZ.x - boxs[i].size);
     boxs[i].pos.y = CLAMP(boxs[i].size, rand() * sZ.y, sZ.y - boxs[i].size);
