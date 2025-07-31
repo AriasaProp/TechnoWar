@@ -56,6 +56,7 @@ struct flat_vertex *game_update(unsigned int *l) {
         boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
       }
     }
+    */
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
@@ -65,7 +66,6 @@ struct flat_vertex *game_update(unsigned int *l) {
         (boxs[i].pos.y + bis2 >= sZ.y)) {
       boxs[i].vel.y *= -1.0f;
     }
-    */
     // draw
     rects[i * 4 + 0].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y + bis2}; // Bottom-right
     rects[i * 4 + 1].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y - bis2}; // Top-right
