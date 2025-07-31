@@ -52,8 +52,8 @@ struct flat_vertex *game_update(unsigned int *l) {
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
-      distx = boxs[i].pos.x - boxs[j].pos.x;
-      disty = boxs[i].pos.y - boxs[j].pos.y;
+      distx = fabs(boxs[i].pos.x - boxs[j].pos.x);
+      disty = fabs(boxs[i].pos.y - boxs[j].pos.y);
       mindist = bis2 + boxs[j].size * 0.5f;
       if (distx <= mindist && disty <= mindist) {
         float mtotal = boxs[i].size + boxs[j].size;
