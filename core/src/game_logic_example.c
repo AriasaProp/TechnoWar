@@ -38,12 +38,10 @@ struct flat_vertex *game_update(unsigned int *l) {
   float bis2, distx, disty, mindist;
   float bottom, top, left, right;
   for (i = 0; i < max_box; ++i) {
-    /*
     // update motion
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
     // collision detection + velocity update
-    */
     bis2 = boxs[i].size / 2;
     /*
     // detect with other box
