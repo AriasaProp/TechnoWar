@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "engine.h"
+#include "manager.h"
 #include "log.h"
 #include "util.h"
 
@@ -285,8 +286,6 @@ static EGLenum (*eglQueryAPI)(void) = NULL;
 static EGLSurface (*eglCreatePbufferFromClientBuffer)(EGLDisplay, EGLenum buftype, EGLClientBuffer buffer, EGLConfig config, const EGLint *attrib_list) = NULL;
 static EGLBoolean (*eglReleaseThread)(void) = NULL;
 static EGLBoolean (*eglWaitClient)(void) = NULL;
-// EGL 1.4 Functions
-static EGLContext (*eglGetCurrentContext)(void) = NULL;
 
 static void *loadEGL(void) {
   void *egllib = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
@@ -334,9 +333,6 @@ static void *loadEGL(void) {
   eglCreatePbufferFromClientBuffer = (EGLSurface(*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))LOADFUNCT("eglCreatePbufferFromClientBuffer");
   eglReleaseThread = (EGLBoolean(*)(void))LOADFUNCT("eglReleaseThread");
   eglWaitClient = (EGLBoolean(*)(void))LOADFUNCT("eglWaitClient");
-
-  // EGL 1.4 Functions
-  eglGetCurrentContext = (EGLContext(*)(void))LOADFUNCT("eglGetCurrentContext");
   return egllib;
 load_egl_err:
   dlclose(egllib);
@@ -1458,8 +1454,8 @@ static GLint (*glGetFragDataLocation)(GLuint program, const GLchar *name) = NULL
 static void (*glBindVertexArray)(GLuint) = NULL;
 static void (*glGenVertexArrays)(GLsizei, GLuint *) = NULL;
 static void (*glDeleteVertexArrays)(GLsizei, const GLuint *) = NULL;
-
 // --- GL ES 3.1 Core Functions ---
+/*
 static void (*glDispatchCompute)(GLuint num_groups_x, GLuint num_groups_y, GLuint num_groups_z) = NULL;
 static void (*glDispatchComputeIndirect)(GLintptr indirect) = NULL;
 static void (*glDrawArraysIndirect)(GLenum mode, const void *indirect) = NULL;
@@ -1473,29 +1469,7 @@ static void (*glShaderStorageBlockBinding)(GLuint program, GLuint storageBlockIn
 static void (*glTexBuffer)(GLenum target, GLenum internalformat, GLuint buffer) = NULL;
 static void (*glTexBufferRange)(GLenum target, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size) = NULL;
 static void (*glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) = NULL;
-
-// --- GL ES 3.2 Core Functions ---
-static void (*glBlendBarrier)(void) = NULL;
-static void (*glDebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled) = NULL;
-static void (*glDebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *buf) = NULL;
-static void (*glDebugMessageCallback)(GLDEBUGPROC callback, const void *userParam) = NULL;
-static GLuint (*glGetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids, GLenum *severities, GLsizei *lengths, GLchar *messageLog) = NULL;
-static void (*glPushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar *buf) = NULL;
-static void (*glPopDebugGroup)(void) = NULL;
-static void (*glObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar *label) = NULL;
-static void (*glGetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei *length, GLchar *label) = NULL;
-static void (*glObjectPtrLabel)(const void *ptr, GLsizei length, const GLchar *label) = NULL;
-static void (*glGetObjectPtrLabel)(const void *ptr, GLsizei bufSize, GLsizei *length, GLchar *label) = NULL;
-static void (*glGetPointerv)(GLenum pname, void **params) = NULL;
-static void (*glPrimitiveBoundingBoxEXT)(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW) = NULL;
-static void (*glPatchParameteriEXT)(GLenum pname, GLint value) = NULL;
-static void (*glDrawElementsBaseVertex)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex) = NULL;
-static void (*glDrawRangeElementsBaseVertex)(GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex) = NULL;
-static void (*glDrawElementsInstancedBaseVertex)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex) = NULL;
-static void (*glDrawElementsInstancedBaseInstanceEXT)(GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance) = NULL;
-static void (*glPrimitiveBoundingBox)(GLfloat minX, GLfloat minY, GLfloat minZ, GLfloat minW, GLfloat maxX, GLfloat maxY, GLfloat maxZ, GLfloat maxW) = NULL; // Core in GLES 3.2
-static void (*glPatchParameteri)(GLenum pname, GLint value) = NULL;                                                                                           // Core in GLES 3.2
-
+*/
 static void *loadGLES(void) {
   void *gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
   if (!gleslib)
@@ -1733,7 +1707,7 @@ static void *loadGLES(void) {
   glGenVertexArrays = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenVertexArrays");
   glBindVertexArray = (void (*)(GLuint))LOADFUNCT("glBindVertexArray");
   glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteVertexArrays");
-
+/*
   // --- GL ES 3.1 Core Functions ---
   glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glDispatchCompute");
   glDispatchComputeIndirect = (void (*)(GLintptr))LOADFUNCT("glDispatchComputeIndirect");
@@ -1748,29 +1722,7 @@ static void *loadGLES(void) {
   glTexBuffer = (void (*)(GLenum, GLenum, GLuint))LOADFUNCT("glTexBuffer");
   glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))LOADFUNCT("glTexBufferRange");
   glTexImage2DMultisample = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))LOADFUNCT("glTexImage2DMultisample");
-
-  // --- GL ES 3.2 Core Functions ---
-  glBlendBarrier = (void (*)(void))LOADFUNCT("glBlendBarrier"); // Also an extension
-  glDebugMessageControl = (void (*)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean))LOADFUNCT("glDebugMessageControl");
-  glDebugMessageInsert = (void (*)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *))LOADFUNCT("glDebugMessageInsert");
-  glDebugMessageCallback = (void (*)(GLDEBUGPROC, const void *))LOADFUNCT("glDebugMessageCallback");
-  glGetDebugMessageLog = (GLuint(*)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *))LOADFUNCT("glGetDebugMessageLog");
-  glPushDebugGroup = (void (*)(GLenum, GLuint, GLsizei, const GLchar *))LOADFUNCT("glPushDebugGroup");
-  glPopDebugGroup = (void (*)(void))LOADFUNCT("glPopDebugGroup");
-  glObjectLabel = (void (*)(GLenum, GLuint, GLsizei, const GLchar *))LOADFUNCT("glObjectLabel");
-  glGetObjectLabel = (void (*)(GLenum, GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetObjectLabel");
-  glObjectPtrLabel = (void (*)(const void *, GLsizei, const GLchar *))LOADFUNCT("glObjectPtrLabel");
-  glGetObjectPtrLabel = (void (*)(const void *, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetObjectPtrLabel");
-  glGetPointerv = (void (*)(GLenum, void **))LOADFUNCT("glGetPointerv");
-  glPrimitiveBoundingBoxEXT = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glPrimitiveBoundingBoxEXT"); // Also core in 3.2
-  glPatchParameteriEXT = (void (*)(GLenum, GLint))LOADFUNCT("glPatchParameteriEXT");                                                                    // Also core in 3.2
-  glDrawElementsBaseVertex = (void (*)(GLenum, GLsizei, GLenum, const void *, GLint))LOADFUNCT("glDrawElementsBaseVertex");
-  glDrawRangeElementsBaseVertex = (void (*)(GLenum, GLuint, GLuint, GLsizei, GLenum, const void *, GLint))LOADFUNCT("glDrawRangeElementsBaseVertex");
-  glDrawElementsInstancedBaseVertex = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei, GLint))LOADFUNCT("glDrawElementsInstancedBaseVertex");
-  glDrawElementsInstancedBaseInstanceEXT = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei, GLuint))LOADFUNCT("glDrawElementsInstancedBaseInstanceEXT");
-  glPrimitiveBoundingBox = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glPrimitiveBoundingBox");
-  glPatchParameteri = (void (*)(GLenum, GLint))LOADFUNCT("glPatchParameteri");
-
+*/
   return gleslib;
 load_gles_err:
   dlclose(gleslib);
@@ -2053,20 +2005,20 @@ static void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-void androidGraphics_onWindowCreate(void *w) {
+static void opengles_onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-void androidGraphics_onWindowDestroy(void) {
+static void opengles_onWindowDestroy(void) {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-void androidGraphics_onWindowResizeDisplay(void) {
+static void opengles_onWindowResizeDisplay(void) {
   src->flags |= RESIZE_DISPLAY;
 }
-void androidGraphics_onWindowResize(void) {
+static void opengles_onWindowResize(void) {
   src->flags |= RESIZE_ONLY;
 }
-void androidGraphics_resizeInsets(float x, float y, float z, float w) {
+static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2075,7 +2027,7 @@ void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-int androidGraphics_preRender(void) {
+static int opengles_preRender(void) {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
@@ -2327,7 +2279,7 @@ int androidGraphics_preRender(void) {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-void androidGraphics_postRender(void) {
+static void opengles_postRender(void) {
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
@@ -2349,7 +2301,7 @@ void androidGraphics_postRender(void) {
     }
   }
 }
-void androidGraphics_term(void) {
+static void opengles_term(void) {
   killEGL(TERM_EGL_DISPLAY);
   dlclose(src->egllib);
   dlclose(src->gleslib);
@@ -2371,10 +2323,20 @@ void androidGraphics_term(void) {
   free(src);
 }
 
-void androidGraphics_init(void) {
+int opengles_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
+  // support EGL 1.3 , OpenGLES 3.0
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
     LOGE("openGLES library error");
+  androidGraphics_onWindowCreate = opengles_onWindowCreate;
+  androidGraphics_onWindowDestroy = opengles_onWindowDestroy;
+  androidGraphics_onWindowResizeDisplay = opengles_onWindowResizeDisplay;
+  androidGraphics_onWindowResize = opengles_onWindowResize;
+  androidGraphics_resizeInsets = opengles_resizeInsets;
+  androidGraphics_preRender = opengles_preRender;
+  androidGraphics_postRender = opengles_postRender;
+  androidGraphics_term = opengles_term;
+
 
   global_engine.g.getScreenSize = opengles_getScreenSize;
   global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
@@ -2399,4 +2361,5 @@ void androidGraphics_init(void) {
     memset(textures[0].data, 0xff, 4);
   }
   meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
+  return 1;
 }

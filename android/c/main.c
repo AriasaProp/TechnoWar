@@ -19,6 +19,16 @@
 #include "manager.h"
 #include "util.h"
 
+void (*androidGraphics_onWindowCreate) (void*) = NULL;
+void (*androidGraphics_onWindowDestroy) (void) = NULL;
+void (*androidGraphics_onWindowResizeDisplay) (void) = NULL;
+void (*androidGraphics_onWindowResize) (void) = NULL;
+void (*androidGraphics_resizeInsets) (float, float, float, float) = NULL;
+int (*androidGraphics_preRender) (void) = NULL;
+void (*androidGraphics_postRender) (void) = NULL;
+void (*androidGraphics_term) (void) = NULL;
+
+
 struct msg_pipe {
   int8_t cmd;
   void *data;
@@ -129,7 +139,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
 
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
-  androidGraphics_init();
+  opengles_init();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
