@@ -12,10 +12,6 @@ struct box {
 struct flat_vertex *rects = NULL;
 unsigned int max_box;
 
-static float rands(void) {
-  return;
-}
-
 void game_init() {
   srand(time(0));
   max_box = 5 + (rand() % 15);
@@ -39,49 +35,44 @@ struct flat_vertex *game_update(unsigned int *l) {
   // update motion
   size_t i, j;
   for (i = 0; i < max_box; ++i) {
-    struct box &b = boxs[i];
-    b.pos.x += b.vel.x;
-    b.pos.y += b.vel.y;
+    boxs[i].pos.x += b.vel.x;
+    boxs[i].pos.y += b.vel.y;
   }
   // collision detection + velocity update
   for (i = 0; i < max_box; ++i) {
-    struct box &bi = boxs[i];
-    float bis2 = bi.size / 2;
+    float bis2 = boxs[i].size / 2;
     // detect with other box
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
-      struct box &bj = boxs[j];
-      float distx = bi.pos.x - bj.pos.x;
-      float disty = bi.pos.y - bj.pos.y;
+      float distx = boxs[i].pos.x - boxs[j].pos.x;
+      float disty = boxs[i].pos.y - boxs[j].pos.y;
       float mindist = bis2 + bj.size / 2;
       if (distx <= mindist && disty <= mindist) {
-        bi.vel.x += bj.vel.x * bj.size / bi.size;
-        bi.vel.y += bj.vel.y * bj.size / bi.size;
+        boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size;
+        boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
       }
     }
     // detect with walls
-    if ((bi.pos.x <= bis2) ||
-        (bi.pos.x + bis2 >= sZ.x)) {
-      bi.vel.x *= -1
+    if ((boxs[i].pos.x <= bis2) ||
+        (boxs[i].pos.x + bis2 >= sZ.x)) {
+      boxs[i].vel.x *= -1.0f;
     }
-    if ((bi.pos.y <= bis2) ||
-        (bi.pos.y + bis2 >= sZ.y)) {
-      bi.vel.y *= -1
+    if ((boxs[i].pos.y <= bis2) ||
+        (boxs[i].pos.y + bis2 >= sZ.y)) {
+      boxs[i].vel.y *= -1.0f;
     }
   }
   for (i = 0; i < max_box; ++i) {
-    struct box &bx = boxs[i];
+    float bottom = boxs[i].pos.y + (boxs[i].size / 2);
+    float right = boxs[i].pos.x + (boxs[i].size / 2);
+    float top = boxs[i].pos.y - (boxs[i].size / 2);
+    float left = boxs[i].pos.x - (boxs[i].size / 2);
 
-    float bottom = bx.pos.y + (bx.size / 2);
-    float right = bx.pos.x + (bx.size / 2);
-    float top = bx.pos.y - (bx.size / 2);
-    float left = bx.pos.x - (bx.size / 2);
-
-    rects[i * 4 + 0] = (vec2){right, bottom}; // Bottom-right
-    rects[i * 4 + 1] = (vec2){right, top};    // Top-right
-    rects[i * 4 + 2] = (vec2){left, bottom};  // Bottom-left
-    rects[i * 4 + 3] = (vec2){left, top};     // Top-left
+    rects[i * 4 + 0].pos = (vec2){right, bottom}; // Bottom-right
+    rects[i * 4 + 1].pos = (vec2){right, top};    // Top-right
+    rects[i * 4 + 2].pos = (vec2){left, bottom};  // Bottom-left
+    rects[i * 4 + 3].pos = (vec2){left, top};     // Top-left
   }
   return rects;
 }
