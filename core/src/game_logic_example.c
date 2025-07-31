@@ -32,27 +32,29 @@ void game_init() {
 struct flat_vertex *game_update(unsigned int *l) {
   *l = max_box;
   vec2 sZ = global_engine.g.getScreenSize();
-  // update motion
   size_t i, j;
+  float bis2, distx, disty, mindist;
+  float bottom, top, left, right;
   for (i = 0; i < max_box; ++i) {
+    // update motion
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
-  }
-  // collision detection + velocity update
-  for (i = 0; i < max_box; ++i) {
-    float bis2 = boxs[i].size / 2;
+    // collision detection + velocity update
+    bis2 = boxs[i].size / 2;
     // detect with other box
+    /*
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
-      float distx = boxs[i].pos.x - boxs[j].pos.x;
-      float disty = boxs[i].pos.y - boxs[j].pos.y;
-      float mindist = bis2 + boxs[j].size / 2;
+      distx = boxs[i].pos.x - boxs[j].pos.x;
+      disty = boxs[i].pos.y - boxs[j].pos.y;
+      mindist = bis2 + boxs[j].size / 2;
       if (distx <= mindist && disty <= mindist) {
         boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size;
         boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
       }
     }
+    */
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
@@ -62,12 +64,11 @@ struct flat_vertex *game_update(unsigned int *l) {
         (boxs[i].pos.y + bis2 >= sZ.y)) {
       boxs[i].vel.y *= -1.0f;
     }
-  }
-  for (i = 0; i < max_box; ++i) {
-    float bottom = boxs[i].pos.y + (boxs[i].size / 2);
-    float right = boxs[i].pos.x + (boxs[i].size / 2);
-    float top = boxs[i].pos.y - (boxs[i].size / 2);
-    float left = boxs[i].pos.x - (boxs[i].size / 2);
+    // draw
+    bottom = boxs[i].pos.y + bis2;
+    right = boxs[i].pos.x + bis2;
+    top = boxs[i].pos.y - bis2;
+    left = boxs[i].pos.x - bis2;
 
     rects[i * 4 + 0].pos = (vec2){right, bottom}; // Bottom-right
     rects[i * 4 + 1].pos = (vec2){right, top};    // Top-right
