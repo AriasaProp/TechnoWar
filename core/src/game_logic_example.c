@@ -42,7 +42,6 @@ struct flat_vertex *game_update(unsigned int *l) {
     // collision detection + velocity update
     bis2 = boxs[i].size / 2;
     // detect with other box
-    /*
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
@@ -54,7 +53,6 @@ struct flat_vertex *game_update(unsigned int *l) {
         boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
       }
     }
-    */
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
