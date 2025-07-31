@@ -63,10 +63,10 @@ struct flat_vertex *game_update(unsigned int *l) {
       boxs[i].vel.y *= -1.0f;
     }
     // draw
-    bottom = boxs[i].pos.y + bis2;
     right = boxs[i].pos.x + bis2;
-    top = boxs[i].pos.y - bis2;
+    top = boxs[i].pos.y + bis2;
     left = boxs[i].pos.x - bis2;
+    bottom = boxs[i].pos.y - bis2;
 
     rects[i * 4 + 0].pos = (vec2){right, bottom}; // Bottom-right
     rects[i * 4 + 1].pos = (vec2){right, top};    // Top-right
