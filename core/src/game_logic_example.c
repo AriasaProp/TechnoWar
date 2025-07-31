@@ -22,8 +22,8 @@ void game_init() {
     // velocity around 5 to -5
     boxs[i].vel.x = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
     boxs[i].vel.y = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
-    // size 50 (square)
-    boxs[i].size = 50.f;
+    // size 50 - 200 (square)
+    boxs[i].size = 50.f + (150.f * (float)rand() / (float)RAND_MAX);
     // position around inside screen - size
     boxs[i].pos.x = (float)rand() / (float)RAND_MAX * sZ.x;
     boxs[i].pos.x = CLAMP(boxs[i].size, boxs[i].pos.x, sZ.x - boxs[i].size);
@@ -42,21 +42,21 @@ struct flat_vertex *game_update(unsigned int *l) {
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
     // collision detection + velocity update
-    bis2 = boxs[i].size / 2;
-    /*
+    bis2 = boxs[i].size * 0.5f;;
     // detect with other box
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
       distx = boxs[i].pos.x - boxs[j].pos.x;
       disty = boxs[i].pos.y - boxs[j].pos.y;
-      mindist = bis2 + boxs[j].size / 2;
+      mindist = bis2 + boxs[j].size * 0.5f;;
       if (distx <= mindist && disty <= mindist) {
-        boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size;
-        boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
+        boxs[i].vel.x *= 0.5f;
+        boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size * 0.5f;
+        boxs[i].vel.y *= 0.5f;
+        boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size * 0.5f;
       }
     }
-    */
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
