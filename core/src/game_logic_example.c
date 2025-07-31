@@ -42,14 +42,16 @@ struct flat_vertex *game_update(unsigned int *l) {
     boxs[i].pos.x += boxs[i].vel.x;
     boxs[i].pos.y += boxs[i].vel.y;
     // collision detection + velocity update
-    bis2 = boxs[i].size * 0.5f;;
+    bis2 = boxs[i].size * 0.5f;
+    ;
     // detect with other box
     for (j = 0; j < max_box; ++j) {
       if (i == j)
         continue;
       distx = boxs[i].pos.x - boxs[j].pos.x;
       disty = boxs[i].pos.y - boxs[j].pos.y;
-      mindist = bis2 + boxs[j].size * 0.5f;;
+      mindist = bis2 + boxs[j].size * 0.5f;
+      ;
       if (distx <= mindist && disty <= mindist) {
         boxs[i].vel.x *= 0.5f;
         boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size * 0.5f;
