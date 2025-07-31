@@ -9,7 +9,8 @@ struct box {
   vec2 pos, vel;
   float size;
 } *boxs = NULL;
-vec2 *delayVel = NULL struct flat_vertex *rects = NULL;
+vec2 *delayVel = NULL;
+struct flat_vertex *rects = NULL;
 unsigned int max_box;
 
 void game_init() {
@@ -44,7 +45,7 @@ struct flat_vertex *game_update(unsigned int *l) {
     boxs[i].pos.y += boxs[i].vel.y;
   }
   for (i = 0; i < max_box; ++i) {
-    delayVel[i] = boxs[i].vec;
+    delayVel[i] = boxs[i].vel;
     // collision detection + velocity update
     bis2 = boxs[i].size * 0.5f;
     // detect with other box
