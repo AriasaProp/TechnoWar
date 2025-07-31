@@ -35,8 +35,8 @@ struct flat_vertex *game_update(unsigned int *l) {
   // update motion
   size_t i, j;
   for (i = 0; i < max_box; ++i) {
-    boxs[i].pos.x += b.vel.x;
-    boxs[i].pos.y += b.vel.y;
+    boxs[i].pos.x += boxs[i].vel.x;
+    boxs[i].pos.y += boxs[i].vel.y;
   }
   // collision detection + velocity update
   for (i = 0; i < max_box; ++i) {
@@ -47,7 +47,7 @@ struct flat_vertex *game_update(unsigned int *l) {
         continue;
       float distx = boxs[i].pos.x - boxs[j].pos.x;
       float disty = boxs[i].pos.y - boxs[j].pos.y;
-      float mindist = bis2 + bj.size / 2;
+      float mindist = bis2 + boxs[j].size / 2;
       if (distx <= mindist && disty <= mindist) {
         boxs[i].vel.x += boxs[j].vel.x * boxs[j].size / boxs[i].size;
         boxs[i].vel.y += boxs[j].vel.y * boxs[j].size / boxs[i].size;
