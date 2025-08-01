@@ -55,7 +55,7 @@ struct engine_extras {
   void *data;
   void (*funct2)();
   void *(*time_start_sec)();
-  float (*time_end_sec)(void*);
+  float (*time_end_sec)(void *);
 };
 
 struct engine {

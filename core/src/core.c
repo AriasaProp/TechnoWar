@@ -1,9 +1,9 @@
 #include <string.h>
 
+#include "common.h"
 #include "core.h"
 #include "engine.h"
 #include "uistage.h"
-#include "common.h"
 
 // for sample
 extern void game_init();
@@ -20,13 +20,12 @@ void *core_stateSaved(void) {
   memcpy(ret, &state, sizeof(state));
   return ret;
 }
-unsigned int core_stateLength (void) {
+unsigned int core_stateLength(void) {
   return sizeof(state);
 }
 void core_stateLoad(void *data) {
   memcpy(&state, data, sizeof(state));
 }
-
 
 enum {
   STATE_SYSTEM_INIT = 1,
@@ -54,7 +53,7 @@ void Main_update() {
     Main_resume();
   float deltaTime = global_engine.e.time_end_sec(timer);
   timer = global_engine.e.time_start_sec();
-  
+
   unsigned int lb;
   struct flat_vertex *v = game_update(&lb, deltaTime);
   global_engine.g.flatRender(0, v, lb);

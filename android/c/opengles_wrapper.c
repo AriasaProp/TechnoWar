@@ -6,10 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "common.h"
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
-#include "common.h"
 
 typedef int32_t khronos_int32_t;
 typedef uint32_t khronos_uint32_t;

@@ -13,11 +13,11 @@
 #include <sys/resource.h>
 #include <unistd.h>
 
+#include "common.h"
 #include "core.h"
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
-#include "common.h"
 /*
 void (*androidGraphics_onWindowCreate)(void *) = NULL;
 void (*androidGraphics_onWindowDestroy)(void) = NULL;
@@ -139,7 +139,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
   androidGraphics_init();
-  androidExtras_init ();
+  androidExtras_init();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;

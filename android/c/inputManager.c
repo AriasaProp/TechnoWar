@@ -2,8 +2,8 @@
 #include <android/looper.h>
 #include <android/sensor.h>
 
-#include "engine.h"
 #include "common.h"
+#include "engine.h"
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
 
