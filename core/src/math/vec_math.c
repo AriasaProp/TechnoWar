@@ -61,7 +61,7 @@ vec2 vec2_norm(vec2 a) {
   i = 0x5f3759df - (i >> 1);
   float w = *(float *)&i;
   w *= 1.5f - 0.5f * v * w * w;
-  return vec2_mul(a, w);
+  return vec2_mulf(a, w);
 }
 float vec2_rad(vec2 a, vec2 b) {
   // inverse sqrt by quake III
