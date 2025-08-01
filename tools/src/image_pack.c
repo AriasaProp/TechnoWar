@@ -1,8 +1,8 @@
+#include "common.h"
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
 #include "stb/stb_rect_pack.h"
 #include "uistage.h"
-#include "common.h"
 
 #include <stdio.h>
 #include <string.h>
