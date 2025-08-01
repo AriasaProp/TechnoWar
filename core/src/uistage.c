@@ -1,6 +1,6 @@
 #include "uistage.h"
 #include "engine.h"
-#include "util.h"
+#include "common.h"
 
 texture texture_pack;
 static struct images {
