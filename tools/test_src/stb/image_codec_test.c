@@ -6,7 +6,7 @@
  */
 #include "stb/stb_image.h"
 #include "stb/stb_image_write.h"
-#include "console_util.h"
+#include "console_common.h"
 
 #include <string.h>
 #include <stdio.h>

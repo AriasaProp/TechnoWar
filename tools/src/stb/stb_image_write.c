@@ -1,6 +1,6 @@
 #include "stb/stb_local.h"
 #include "stb/stb_image_write.h"
-#include "util.h" // this using temporary 
+#include "common.h" // this using temporary 
 
 #include <stdio.h>
 #include <stdarg.h>
