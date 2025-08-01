@@ -1,6 +1,6 @@
 #include "stb/stb_rect_pack.h"
 #include "common.h"
-#include "console_common.h"
+#include "console_util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
