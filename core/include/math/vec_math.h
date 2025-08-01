@@ -23,7 +23,7 @@ extern float vec2_dot(vec2, vec2);
 extern float vec2_crs(vec2, vec2);
 extern float vec2_dist(vec2, vec2);
 extern float vec2_len(vec2);
-extern vec2 vec2_norm(vec2, float);
+extern vec2 vec2_norm(vec2);
 extern float vec2_rad(vec2, vec2);
 
 
