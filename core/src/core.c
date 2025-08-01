@@ -65,5 +65,5 @@ void Main_pause() {
 void Main_term() {
   uistage_term();
   stateSystem = 0;
-  memset(&core_cache, 0, sizeof(struct core));
+  memset(&state, 0, sizeof(state));
 }
