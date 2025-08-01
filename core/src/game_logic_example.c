@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "engine.h"
 #include "common.h"
+#include "engine.h"
 #include "math/vec_math.h"
 
 struct box {
