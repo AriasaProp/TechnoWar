@@ -1,7 +1,7 @@
 #ifndef CODEC_INCLUDED_
 #define CODEC_INCLUDED_
 
-#include "util.h"
+#include "common.h"
 
 extern const char *codec_get_error(void);
 
