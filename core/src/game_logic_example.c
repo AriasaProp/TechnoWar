@@ -4,8 +4,8 @@
 #include <time.h>
 
 #include "engine.h"
+#include "common.h"
 #include "math/vec_math.h"
-#include "util.h"
 
 struct box {
   vec2 pos, vel;
