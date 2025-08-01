@@ -5,12 +5,13 @@
 
 #include "engine.h"
 #include "util.h"
+#include "math/vec_math.h"
 
 struct box {
   vec2 pos, vel;
   float size;
 } *boxs = NULL;
-vec2 *delayVel = NULL;
+
 struct flat_vertex *rects = NULL;
 unsigned int max_box;
 
@@ -18,65 +19,67 @@ void game_init() {
   srand(time(0));
   max_box = 5 + (rand() % 10);
   boxs = (struct box *)malloc(sizeof(struct box) * max_box);
-  delayVel = (vec2 *)malloc(sizeof(vec2) * max_box);
   rects = (struct flat_vertex *)calloc(sizeof(struct flat_vertex), max_box * 4);
   vec2 sZ = global_engine.g.getScreenSize();
   for (int i = 0; i < max_box; ++i) {
+    // random 1 to 0 float
+    boxs[i].vel = (vec2){(float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX};
+    boxs[i].pos = (vec2){(float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX};
     // velocity around 5 to -5
-    boxs[i].vel.x = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
-    boxs[i].vel.y = (4.f * (float)rand() / (float)RAND_MAX) - 2.f;
+    vec2_sclf(&boxs[i].vel, 10);
+    vec2_trnf(&boxs[i].vel, -5);
     // size 50 - 200 (square)
     boxs[i].size = 50.f + (150.f * (float)rand() / (float)RAND_MAX);
-    // position around inside screen - size
-    boxs[i].pos.x = (float)rand() / (float)RAND_MAX * sZ.x;
-    boxs[i].pos.x = CLAMP(boxs[i].size, boxs[i].pos.x, sZ.x - boxs[i].size);
-    boxs[i].pos.y = (float)rand() / (float)RAND_MAX * sZ.y;
-    boxs[i].pos.y = CLAMP(boxs[i].size, boxs[i].pos.y, sZ.y - boxs[i].size);
+    // position around inside screen - 2*size
+    vec2_scl(&boxs[i].pos, vec2_addf(sZ, -boxs[i].size * 2));
+    vec2_trnf(&boxs[i].pos, boxs[i].size);
   }
 }
-struct flat_vertex *game_update(unsigned int *l) {
+struct flat_vertex *game_update(unsigned int *l, float dt) {
   *l = max_box;
   vec2 sZ = global_engine.g.getScreenSize();
   size_t i, j;
-  float bis2, distx, disty, mindist;
+  vec2 mdist;
+  float bis2, mindist;
   float bottom, top, left, right;
+  // update motion by velocity / sec
   for (i = 0; i < max_box; ++i) {
-    // update motion
-    boxs[i].pos.x += boxs[i].vel.x;
-    boxs[i].pos.y += boxs[i].vel.y;
+    vec2_trn(&boxs[i].pos, vec2_mulf(boxs[i].vel, dt));
   }
   for (i = 0; i < max_box; ++i) {
-    delayVel[i] = boxs[i].vel;
     // collision detection + velocity update
     bis2 = boxs[i].size * 0.5f;
     // detect with other box
-    for (j = 0; j < max_box; ++j) {
-      if (i == j)
-        continue;
-      distx = fabs(boxs[i].pos.x - boxs[j].pos.x);
-      disty = fabs(boxs[i].pos.y - boxs[j].pos.y);
+    for (j = i + 1; j < max_box; ++j) {
+      mdist = vec2_sub(boxs[j].pos, boxs[i].pos);
       mindist = bis2 + boxs[j].size * 0.5f;
-      if (distx <= mindist && disty <= mindist) {
-        float mtotal = boxs[i].size + boxs[j].size;
-        delayVel[i].x *= boxs[i].size - boxs[j].size;
-        delayVel[i].x += boxs[j].vel.x * 2 * boxs[j].size;
-        delayVel[i].x /= mtotal;
+      if (fabs(mdist.x) <= mindist && fabs(mdist.y) <= mindist) {
+        // size as mass
+        float inv_mtotal = 0.5f / mindist;
+        float mdif = boxs[i].size - boxs[j].size;
+        // vel A
+        vec2_sclf(&boxs[i].vel, mdif);
+        vec2_trn(&boxs[i].vel, vec2_mulf(boxs[j].vel, 2.0f * boxs[j].size));
+        vec2_sclf(&boxs[i].vel, inv_mtotal);
+        // vel B
+        vec2_sclf(&boxs[j].vel, -mdif);
+        vec2_trn(&boxs[j].vel, vec2_mulf(boxs[i].vel, 2.0f * boxs[i].size));
+        vec2_sclf(&boxs[j].vel, inv_mtotal);
+        // fix distance that avoid overlap make multiple collision detection
+        boxs[i].pos = vec2_add(boxs[i].pos, mdist);
+        boxs[j].pos = vec2_sub(boxs[j].pos, mdist);
       }
     }
 
     // detect with walls
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
-      delayVel[i].x *= -1.0f;
+      boxs[i].vel.x *= -1.0f;
     }
     if ((boxs[i].pos.y <= bis2) ||
         (boxs[i].pos.y + bis2 >= sZ.y)) {
-      delayVel[i].y *= -1.0f;
+      boxs[i].vel.y *= -1.0f;
     }
-  }
-  // apply velocity
-  for (i = 0; i < max_box; ++i) {
-    boxs[i].vel = delayVel[i];
   }
   for (i = 0; i < max_box; ++i) {
     bis2 = boxs[i].size * 0.5f;
@@ -91,6 +94,5 @@ struct flat_vertex *game_update(unsigned int *l) {
 void game_clean() {
   (void)0;
   free(boxs);
-  free(delayVel);
   free(rects);
 }

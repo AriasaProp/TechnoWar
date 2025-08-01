@@ -3,7 +3,7 @@
 */
 #include "stb/stb_local.h"
 #include "stb/stb_image.h"
-#include "util.h"
+#include "common.h"
 
 #include <stdio.h>
 #include <stdarg.h>

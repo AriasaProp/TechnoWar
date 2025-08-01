@@ -17,7 +17,7 @@
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
-#include "util.h"
+#include "common.h"
 /*
 void (*androidGraphics_onWindowCreate)(void *) = NULL;
 void (*androidGraphics_onWindowDestroy)(void) = NULL;
@@ -139,6 +139,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
   androidGraphics_init();
+  androidExtras_init ();
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -176,6 +177,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidGraphics_term();
   androidInput_term();
   androidAssetManager_term();
+  androidExtras_term();
 
   AConfiguration_delete(app->config);
 
@@ -223,9 +225,8 @@ static void onResume(ANativeActivity *UNUSED_ARG(activity)) {
   android_app_write_cmd(APP_CMD_RESUME, NULL);
 }
 static void *onSaveInstanceState(ANativeActivity *UNUSED_ARG(activity), size_t *outLen) {
-  *outLen = sizeof(struct core);
-  void *savedState = malloc(*outLen);
-  memcpy(savedState, &core_cache, *outLen);
+  *outLen = core_stateLength();
+  void *savedState = core_stateSave();
   android_app_write_cmd(APP_CMD_SAVE_STATE, NULL);
   return savedState;
 }
@@ -289,8 +290,8 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
 
-  if (savedState != NULL && savedStateSize == sizeof(struct core)) {
-    memcpy(&core_cache, savedState, sizeof(struct core));
+  if (savedState != NULL && savedStateSize == core_stateLength()) {
+    core_stateLoad(savedState);
   }
   if (pipe(&app->msgread)) {
     ANativeActivity_finish(activity);

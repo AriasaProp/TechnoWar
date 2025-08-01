@@ -1,7 +1,7 @@
 #include <android/asset_manager.h>
 
 #include "engine.h"
-#include "util.h"
+#include "common.h"
 
 static AAssetManager *mngr = NULL;
 

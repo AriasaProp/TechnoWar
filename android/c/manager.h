@@ -1,6 +1,9 @@
 #ifndef MANAGER_
 #define MANAGER_
 
+extern void androidExtras_init(void);
+extern void androidExtras_term(void);
+
 extern void androidAssetManager_init(void *);
 extern void androidAssetManager_term();
 

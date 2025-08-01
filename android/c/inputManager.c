@@ -3,7 +3,7 @@
 #include <android/sensor.h>
 
 #include "engine.h"
-#include "util.h"
+#include "common.h"
 // ~60 Hz
 #define SENSOR_EVENT_RATE 1667
 

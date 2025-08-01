@@ -1,7 +1,7 @@
 #ifndef ENGINE_INCLUDED_
 #define ENGINE_INCLUDED_
 
-#include "util.h"
+#include "common.h"
 #define MAX_ASSET_READING 256
 
 enum {
@@ -54,6 +54,8 @@ struct engine_input {
 struct engine_extras {
   void *data;
   void (*funct2)();
+  void *(*time_start_sec)();
+  float (*time_end_sec)(void*);
 };
 
 struct engine {

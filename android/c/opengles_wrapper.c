@@ -9,7 +9,7 @@
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
-#include "util.h"
+#include "common.h"
 
 typedef int32_t khronos_int32_t;
 typedef uint32_t khronos_uint32_t;
