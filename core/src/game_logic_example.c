@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "engine.h"
 #include "common.h"
+#include "engine.h"
 #include "math/vec_math.h"
 
 struct box {
@@ -57,19 +57,19 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
         // size as mass
         mindist = 0.5f / mindist;
         float mdif = boxs[i].size - boxs[j].size;
-    
+
         vec2 velA = vec2_mulf(boxs[j].vel, 2 * boxs[j].size);
         vec2 velB = vec2_mulf(boxs[i].vel, 2 * boxs[i].size);
-        
+
         vec2_sclf(&boxs[i].vel, mdif);
         vec2_sclf(&boxs[j].vel, -mdif);
-        
+
         vec2_trn(&boxs[i].vel, velA);
         vec2_trn(&boxs[j].vel, velB);
-        
+
         vec2_sclf(&boxs[i].vel, mindist);
         vec2_sclf(&boxs[j].vel, mindist);
-        
+
         // fix distance that avoid overlap make multiple collision detection
         /*
         boxs[i].pos = vec2_add(boxs[i].pos, mdist);
