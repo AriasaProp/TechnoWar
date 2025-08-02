@@ -71,9 +71,10 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
         vec2_sclf(&boxs[j].vel, mindist);
 
         // fix distance that avoid overlap make multiple collision detection
-        vec2_sclf(mdist, 0.5f);
+        vec2_sclf(&mdist, 0.5f);
         boxs[i].pos = vec2_add(boxs[i].pos, mdist);
         boxs[j].pos = vec2_sub(boxs[j].pos, mdist);
+        
       }
     }
 
