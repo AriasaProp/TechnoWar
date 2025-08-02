@@ -44,7 +44,7 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
   float bottom, top, left, right;
   // update motion by velocity / sec
   for (i = 0; i < max_box; ++i) {
-    vec2_trn(&boxs[i].pos, vec2_mulf(boxs[i].vel, dt));
+    vec2_trn(&boxs[i].pos, boxs[i].vel);
   }
   for (i = 0; i < max_box; ++i) {
     // collision detection + velocity update
