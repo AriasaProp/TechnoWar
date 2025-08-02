@@ -12,12 +12,13 @@
 #include <string.h>
 #include <sys/resource.h>
 #include <unistd.h>
+#include <time.h>
 
-#include "common.h"
 #include "core.h"
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
+#include "common.h"
 /*
 void (*androidGraphics_onWindowCreate)(void *) = NULL;
 void (*androidGraphics_onWindowDestroy)(void) = NULL;
@@ -58,7 +59,15 @@ struct android_app {
   pthread_t thread;
 
   int stateApp;
+  // deltaTime game
+  clock_t currentTime;
 } *app = NULL;
+// deltaTime game
+static float android_deltaTime (void) {
+  clock_t old = app->currentTime;
+  app->currentTime = clock();
+  return (float)(app->currentTime - old) / CLOCKS_PER_SEC;
+}
 
 enum {
   APP_CMD_NONE,
@@ -105,6 +114,7 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
+    app->currentTime = clock();
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
     androidGraphics_onWindowResize();
@@ -139,7 +149,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
   androidGraphics_init();
-  androidExtras_init();
+  global_engine.g.deltaTime = android_deltaTime;
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -177,7 +187,6 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidGraphics_term();
   androidInput_term();
   androidAssetManager_term();
-  androidExtras_term();
 
   AConfiguration_delete(app->config);
 
@@ -286,6 +295,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
+  app->currentTime = clock();
 
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);

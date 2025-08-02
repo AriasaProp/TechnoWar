@@ -32,18 +32,15 @@ enum {
   STATE_SYSTEM_RUNNING = 2,
 };
 static int stateSystem = 0;
-static void *timer = NULL;
 // only called in Main_update when stateSystem not init
 static void Main_init() {
   stateSystem |= STATE_SYSTEM_INIT;
   uistage_init();
   game_init();
-  timer = global_engine.e.time_start_sec();
 }
 // only called in Main_update when stateSystem not running
 static void Main_resume() {
   stateSystem |= STATE_SYSTEM_RUNNING;
-  timer = global_engine.e.time_start_sec();
 }
 
 void Main_update() {
@@ -51,11 +48,9 @@ void Main_update() {
     Main_init();
   if (!(stateSystem & STATE_SYSTEM_RUNNING))
     Main_resume();
-  float deltaTime = global_engine.e.time_end_sec(timer);
-  timer = global_engine.e.time_start_sec();
 
   unsigned int lb;
-  struct flat_vertex *v = game_update(&lb, deltaTime);
+  struct flat_vertex *v = game_update(&lb, global_engine.g.deltaTime());
   global_engine.g.flatRender(0, v, lb);
 }
 void Main_pause() {

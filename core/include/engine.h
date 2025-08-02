@@ -37,6 +37,8 @@ struct engine_graphics {
   void (*setMeshTransform)(const mesh, float *);
   void (*meshRender)(mesh *, const size_t);
   void (*deleteMesh)(const mesh);
+  // not related with graphics but run at same condition
+  float (*deltaTime)(void);
 };
 struct engine_asset {
   void *data;
@@ -51,18 +53,11 @@ struct engine_input {
   vec2 (*getTouch)(size_t);
   void (*funct2)();
 };
-struct engine_extras {
-  void *data;
-  void (*funct2)();
-  void *(*time_start_sec)();
-  float (*time_end_sec)(void *);
-};
 
 struct engine {
   struct engine_graphics g;
   struct engine_asset a;
   struct engine_input i;
-  struct engine_extras e;
 };
 
 extern struct engine global_engine;

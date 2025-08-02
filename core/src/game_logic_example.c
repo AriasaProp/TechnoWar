@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#include "common.h"
 #include "engine.h"
+#include "common.h"
 #include "math/vec_math.h"
 
 struct box {
@@ -55,19 +55,26 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
       mindist = bis2 + boxs[j].size * 0.5f;
       if (fabs(mdist.x) <= mindist && fabs(mdist.y) <= mindist) {
         // size as mass
-        float inv_mtotal = 0.5f / mindist;
-        float mdif = boxs[i].size - boxs[j].size;
-        // vel A
-        vec2_sclf(&boxs[i].vel, mdif);
-        vec2_trn(&boxs[i].vel, vec2_mulf(boxs[j].vel, 2.0f * boxs[j].size));
-        vec2_sclf(&boxs[i].vel, inv_mtotal);
-        // vel B
-        vec2_sclf(&boxs[j].vel, -mdif);
-        vec2_trn(&boxs[j].vel, vec2_mulf(boxs[i].vel, 2.0f * boxs[i].size));
-        vec2_sclf(&boxs[j].vel, inv_mtotal);
+        mindist = 0.5f / mindist;
+        mdist = boxs[i].size - boxs[j].size;
+    
+        vec2 velA = vec2_mulf(boxs[j].vel, 2 * boxs[j].size);
+        vec2 velB = vec2_mulf(boxs[i].vel, 2 * boxs[i].size);
+        
+        vec2_sclf(&boxs[i].vel, mdist);
+        vec2_sclf(&boxs[j].vel, -mdist);
+        
+        vec2_trn(&boxs[i].vel, velA);
+        vec2_trn(&boxs[j].vel, velB);
+        
+        vec2_sclf(&boxs[i].vel, mindist);
+        vec2_sclf(&boxs[j].vel, mindist);
+        
         // fix distance that avoid overlap make multiple collision detection
+        /*
         boxs[i].pos = vec2_add(boxs[i].pos, mdist);
         boxs[j].pos = vec2_sub(boxs[j].pos, mdist);
+        */
       }
     }
 
