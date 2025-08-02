@@ -72,8 +72,8 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
 
         // fix distance that avoid overlap make multiple collision detection
         vec2_sclf(&mdist, 0.5f);
-        boxs[i].pos = vec2_add(boxs[i].pos, mdist);
-        boxs[j].pos = vec2_sub(boxs[j].pos, mdist);
+        boxs[i].pos = vec2_sub(boxs[i].pos, mdist);
+        boxs[j].pos = vec2_add(boxs[j].pos, mdist);
       }
     }
 
@@ -81,10 +81,12 @@ struct flat_vertex *game_update(unsigned int *l, float dt) {
     if ((boxs[i].pos.x <= bis2) ||
         (boxs[i].pos.x + bis2 >= sZ.x)) {
       boxs[i].vel.x *= -1.0f;
+      boxs[i].pos.x = CLAMP(bis2, boxs[i].pos.x, sZ.x - bis2);
     }
     if ((boxs[i].pos.y <= bis2) ||
         (boxs[i].pos.y + bis2 >= sZ.y)) {
       boxs[i].vel.y *= -1.0f;
+      boxs[i].pos.y = CLAMP(bis2, boxs[i].pos.y, sZ.x - bis2);
     }
   }
   for (i = 0; i < max_box; ++i) {
