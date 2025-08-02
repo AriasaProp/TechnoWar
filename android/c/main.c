@@ -11,14 +11,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/resource.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
+#include "common.h"
 #include "core.h"
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
-#include "common.h"
 /*
 void (*androidGraphics_onWindowCreate)(void *) = NULL;
 void (*androidGraphics_onWindowDestroy)(void) = NULL;
@@ -63,7 +63,7 @@ struct android_app {
   clock_t currentTime;
 } *app = NULL;
 // deltaTime game
-static float android_deltaTime (void) {
+static float android_deltaTime(void) {
   clock_t old = app->currentTime;
   app->currentTime = clock();
   return (float)(app->currentTime - old) / CLOCKS_PER_SEC;
