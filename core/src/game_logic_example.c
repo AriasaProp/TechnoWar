@@ -7,100 +7,108 @@
 #include "engine.h"
 #include "math/vec_math.h"
 
-struct box {
-  vec2 pos, vel;
-  float size;
-} *boxs = NULL;
+// at least 4
+#define CIRCLE_PRECISION 20
 
-struct flat_vertex *rects = NULL;
-unsigned int max_box;
+static struct particle {
+  vec2 pos,
+  vel;
+  float r;
+} *particles = NULL;
+static mesh *particle_meshes = NULL;
+static unsigned int max_particle = 0;
 
 void game_init() {
   srand(time(0));
-  max_box = 5 + (rand() % 10);
-  boxs = (struct box *)malloc(sizeof(struct box) * max_box);
-  rects = (struct flat_vertex *)calloc(sizeof(struct flat_vertex), max_box * 4);
-  vec2 sZ = global_engine.g.getScreenSize();
-  for (int i = 0; i < max_box; ++i) {
-    // random 1 to 0 float
-    boxs[i].vel = (vec2){(float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX};
-    boxs[i].pos = (vec2){(float)rand() / (float)RAND_MAX, (float)rand() / (float)RAND_MAX};
-    // velocity around 5 to -5
-    vec2_sclf(&boxs[i].vel, 10);
-    vec2_trnf(&boxs[i].vel, -5);
-    // size 50 - 200 (square)
-    boxs[i].size = 50.f + (150.f * (float)rand() / (float)RAND_MAX);
-    // position around inside screen - 2*size
-    vec2_scl(&boxs[i].pos, vec2_addf(sZ, -boxs[i].size * 2));
-    vec2_trnf(&boxs[i].pos, boxs[i].size);
+  max_particle = 5 + (rand() % 10);
+  particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
+
+  vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
+  // duplicate common use
+  size_t vertex_len = CIRCLE_PRECISION * 2;
+  size_t index_len = vertex_len * 3;
+  mesh_index *is = (mesh_index*) malloc(sizeof(mesh_index) * index_len);
+  for (mesh_index i = 0, a = 0; i < CIRCLE_PRECISION; ++i) {
+    mesh_index j = i + 1, k = vertex_len - 1;
+    is[a++] = j;
+    is[a++] = i;
+    is[a++] = k;
+    is[a++] = j;
+    is[a++] = k;
+    is[a++] = k - 1;
   }
+  for (size_t i = 0; i < max_particle; ++i) {
+    // random 1 to 0 float
+    particles[i].vel = (vec2) {
+      (float)rand() / (float)RAND_MAX,
+      (float)rand() / (float)RAND_MAX
+    };
+    particles[i].pos = (vec2) {
+      2.0f * (float)rand() / (float)RAND_MAX - 1.0f,
+      2.0f * (float)rand() / (float)RAND_MAX - 1.0f
+    };
+    // velocity around 25 to -25
+    vec2_sclf(&particles[i].vel, 50);
+    vec2_trnf(&particles[i].vel, -25);
+    // size 50 - 200 (square)
+    particles[i].r = 50.f + (150.f * (float)rand() / (float)RAND_MAX);
+    // position around inside screen - 2*size
+    vec2_scl(&particles[i].pos, vec2_addf(sZ, -particles[i].r));
+    // generate mesh
+    mesh_vertex *vs = (mesh_vertex*) malloc(sizeof(mesh_vertex) * vertex_len);
+    for (size_t j = 0; j < vertex_len; ++j) {
+      float rad = j * M_PI / CIRCLE_PRECISION;
+      vs[j] = (mesh_vertex) {
+        .pos = (vec3) {
+          particles[i].r * cosf(rad),
+          particles[i].r * sinf(rad),
+          0.f
+        },
+        .c.u32 = 0xffffffff
+      };
+    }
+    mesh_index *iss = (mesh_index*)malloc(sizeof(mesh_index)*index_len);
+    memcpy(iss, is, sizeof(mesh_index) * index_len);
+    global_engine.g.genMesh(vs, vertex_len, iss, index_len);
+  }
+  free (is);
 }
-struct flat_vertex *game_update(unsigned int *l, float dt) {
-  *l = max_box;
+mesh *game_update(unsigned int *l, float dt) {
+  *l = max_particle;
   vec2 sZ = global_engine.g.getScreenSize();
   size_t i, j;
-  vec2 mdist;
-  float bis2, mindist;
-  float bottom, top, left, right;
-  // update motion by velocity / sec
-  for (i = 0; i < max_box; ++i) {
-    vec2_trn(&boxs[i].pos, boxs[i].vel);
-  }
-  for (i = 0; i < max_box; ++i) {
-    // collision detection + velocity update
-    bis2 = boxs[i].size * 0.5f;
-    // detect with other box
-    for (j = i + 1; j < max_box; ++j) {
-      mdist = vec2_sub(boxs[j].pos, boxs[i].pos);
-      mindist = bis2 + boxs[j].size * 0.5f;
-      if (fabs(mdist.x) <= mindist && fabs(mdist.y) <= mindist) {
-        // size as mass
-        mindist = 0.5f / mindist;
-        float mdif = boxs[i].size - boxs[j].size;
-
-        vec2 velA = vec2_mulf(boxs[j].vel, 2 * boxs[j].size);
-        vec2 velB = vec2_mulf(boxs[i].vel, 2 * boxs[i].size);
-
-        vec2_sclf(&boxs[i].vel, mdif);
-        vec2_sclf(&boxs[j].vel, -mdif);
-
-        vec2_trn(&boxs[i].vel, velA);
-        vec2_trn(&boxs[j].vel, velB);
-
-        vec2_sclf(&boxs[i].vel, mindist);
-        vec2_sclf(&boxs[j].vel, mindist);
-
-        // fix distance that avoid overlap make multiple collision detection
-        vec2_sclf(&mdist, 0.5f);
-        boxs[i].pos = vec2_sub(boxs[i].pos, mdist);
-        boxs[j].pos = vec2_add(boxs[j].pos, mdist);
-      }
-    }
-
+  for (i = 0; i < max_particle; ++i) {
+    // update motion by velocity / sec
+    vec2_trn(&particles[i].pos, vec2_mulf(particles[i].vel, dt));
     // detect with walls
-    if ((boxs[i].pos.x <= bis2) ||
-        (boxs[i].pos.x + bis2 >= sZ.x)) {
-      boxs[i].vel.x *= -1.0f;
-      boxs[i].pos.x = CLAMP(bis2, boxs[i].pos.x, sZ.x - bis2);
+    if ((particles[i].pos.x <= particles[i].r) ||
+      (particles[i].pos.x + particles[i].r >= sZ.x)) {
+      particles[i].vel.x *= -1.0f;
+      particles[i].pos.x = CLAMP(particles[i].r + 7e-12, particles[i].pos.x, sZ.x - particles[i].r - 7e-12);
     }
-    if ((boxs[i].pos.y <= bis2) ||
-        (boxs[i].pos.y + bis2 >= sZ.y)) {
-      boxs[i].vel.y *= -1.0f;
-      boxs[i].pos.y = CLAMP(bis2, boxs[i].pos.y, sZ.x - bis2);
+    if ((particles[i].pos.y <= particles[i].r) ||
+      (particles[i].pos.y + particles[i].r >= sZ.y)) {
+      particles[i].vel.y *= -1.0f;
+      particles[i].pos.y = CLAMP(particles[i].r + 7e-12, particles[i].pos.y, sZ.x - particles[i].r - 7e-12);
     }
   }
-  for (i = 0; i < max_box; ++i) {
-    bis2 = boxs[i].size * 0.5f;
-    // draw
-    rects[i * 4 + 0].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y + bis2}; // Bottom-right
-    rects[i * 4 + 1].pos = (vec2){boxs[i].pos.x + bis2, boxs[i].pos.y - bis2}; // Top-right
-    rects[i * 4 + 2].pos = (vec2){boxs[i].pos.x - bis2, boxs[i].pos.y + bis2}; // Bottom-left
-    rects[i * 4 + 3].pos = (vec2){boxs[i].pos.x - bis2, boxs[i].pos.y - bis2}; // Top-left
+  for (i = 0; i < max_particle; ++i) {
+    // set mesh position
+    global_engine.g.setMeshTransform (particle_meshes[i], (float[]) {
+      1.f, 0.f, 0.f, 0.f,
+      0.f, 1.f, 0.f, 0.f,
+      0.f, 0.f, 1.f, 0.f,
+      particles[i].pos.x, particles[i].pos.y, 0.f, 1.f
+    });
+
   }
-  return rects;
+  return particle_meshes;
 }
 void game_clean() {
   (void)0;
-  free(boxs);
-  free(rects);
+  free(particles);
+  for (size_t i = 0; i < max_particle; ++i) {
+    global_engine.g.deleteMesh(particles_meshes[i]);
+  }
+  free (particle_meshes);
 }

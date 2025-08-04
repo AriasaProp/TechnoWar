@@ -12,13 +12,13 @@ enum {
 
 typedef uint16_t texture; // 16bit uint as texture index
 typedef uint16_t mesh;    // use 16bit uint as mesh index
-struct flat_vertex {
+typedef struct {
   vec2 pos, uv;
-};
-struct mesh_vertex {
+} flat_vertex;
+typedef struct {
   vec3 pos;
   icolor c;
-};
+} mesh_vertex;
 typedef uint16_t mesh_index;
 
 struct engine_graphics {
@@ -32,8 +32,8 @@ struct engine_graphics {
   void (*bindTexture)(const texture);
   void (*setTextureParam)(const int, const int);
   void (*deleteTexture)(const texture);
-  void (*flatRender)(const texture, struct flat_vertex *, const size_t);
-  mesh (*genMesh)(struct mesh_vertex *, const size_t, mesh_index *, const size_t);
+  void (*flatRender)(const texture, flat_vertex *, const size_t);
+  mesh (*genMesh)(mesh_vertex *, const size_t, mesh_index *, const size_t);
   void (*setMeshTransform)(const mesh, float *);
   void (*meshRender)(mesh *, const size_t);
   void (*deleteMesh)(const mesh);

@@ -71,8 +71,9 @@ typedef unsigned __int64 size_t;
 typedef struct {
   float r, g, b, a;
 } fcolor; // hex color
-typedef struct {
-  uint8_t r, g, b, a;
+typedef union {
+  struct { uint8_t r, g, b, a } u8;
+  uint32_t u32;
 } icolor; // packed color bit
 typedef struct {
   float x, y;

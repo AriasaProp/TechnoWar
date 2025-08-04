@@ -1791,7 +1791,7 @@ static struct opengles_mesh {
   GLuint vao, vbo, ibo;
   int flags;
   size_t vertex_len, index_len;
-  struct mesh_vertex *vertexs;
+  mesh_vertex *vertexs;
   mesh_index *indices;
   float trans[16];
 } *meshes;
@@ -1867,7 +1867,7 @@ static void opengles_deleteTexture(const texture t) {
   free(textures[t].data);
   memset((void *)(textures + t), 0, sizeof(struct opengles_texture));
 }
-static void opengles_flatRender(const texture t, struct flat_vertex *v, const size_t l) {
+static void opengles_flatRender(const texture t, flat_vertex *v, const size_t l) {
   check(glDisable(GL_DEPTH_TEST));
   check(glUseProgram(src->ui.shader));
   if (src->flags & UI_UPDATE) {
@@ -1885,13 +1885,13 @@ static void opengles_flatRender(const texture t, struct flat_vertex *v, const si
   check(glUniform1i(src->ui.uniform_tex, 0));
   check(glBindVertexArray(src->ui.vao));
   check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
-  check(glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * l * sizeof(struct flat_vertex), (void *)v));
+  check(glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * l * sizeof(flat_vertex), (void *)v));
   check(glDrawElements(GL_TRIANGLES, 6 * l, GL_UNSIGNED_SHORT, NULL));
   check(glBindVertexArray(0));
   check(glBindTexture(GL_TEXTURE_2D, 0));
   check(glUseProgram(0));
 }
-static mesh opengles_genMesh(struct mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
+static mesh opengles_genMesh(mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
   while (m < MAX_RESOURCE) {
     if (meshes[m].vertex_len == 0)
@@ -1910,11 +1910,11 @@ static mesh opengles_genMesh(struct mesh_vertex *v, const size_t vl, mesh_index 
   check(glGenBuffers(2, &meshes[m].vbo));
   check(glBindVertexArray(meshes[m].vao));
   check(glBindBuffer(GL_ARRAY_BUFFER, meshes[m].vbo));
-  check(glBufferData(GL_ARRAY_BUFFER, vl * sizeof(struct mesh_vertex), (void *)v, GL_STATIC_DRAW));
+  check(glBufferData(GL_ARRAY_BUFFER, vl * sizeof(mesh_vertex), (void *)v, GL_STATIC_DRAW));
   check(glEnableVertexAttribArray(0));
-  check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)0));
+  check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void *)0));
   check(glEnableVertexAttribArray(1));
-  check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(vec3)));
+  check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(mesh_vertex), (void *)sizeof(vec3)));
   check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
   check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, il * sizeof(mesh_index), (void *)i, GL_STATIC_DRAW));
   check(glBindVertexArray(0));
@@ -1941,7 +1941,7 @@ static void opengles_meshRender(mesh *ms, const size_t l) {
     check(glBindVertexArray(m.vao));
     if (m.flags & MESH_VERTEX_DIRTY) {
       check(glBindBuffer(GL_ARRAY_BUFFER, m.vbo));
-      check(glBufferSubData(GL_ARRAY_BUFFER, 0, m.vertex_len * sizeof(struct mesh_vertex), (void *)m.vertexs));
+      check(glBufferSubData(GL_ARRAY_BUFFER, 0, m.vertex_len * sizeof(mesh_vertex), (void *)m.vertexs));
       m.flags &= ~MESH_VERTEX_DIRTY;
     }
     if (m.flags & MESH_INDEX_DIRTY) {
@@ -2169,11 +2169,11 @@ int androidGraphics_preRender(void) {
         check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
         check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void *)indexs, GL_STATIC_DRAW));
         check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
-        check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(struct flat_vertex), NULL, GL_DYNAMIC_DRAW));
+        check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
         check(glEnableVertexAttribArray(0));
         check(glEnableVertexAttribArray(1));
-        check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(struct flat_vertex), (void *)0));
-        check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(struct flat_vertex), (void *)sizeof(vec2)));
+        check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)0));
+        check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)sizeof(vec2)));
       }
       // world draw
       {
@@ -2246,11 +2246,11 @@ int androidGraphics_preRender(void) {
         check(glGenBuffers(2, &meshes[m].vbo));
         check(glBindVertexArray(meshes[m].vao));
         check(glBindBuffer(GL_ARRAY_BUFFER, meshes[m].vbo));
-        check(glBufferData(GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof(struct mesh_vertex), (void *)meshes[m].vertexs, GL_STATIC_DRAW));
+        check(glBufferData(GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof(mesh_vertex), (void *)meshes[m].vertexs, GL_STATIC_DRAW));
         check(glEnableVertexAttribArray(0));
-        check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(struct mesh_vertex), (void *)0));
+        check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void *)0));
         check(glEnableVertexAttribArray(1));
-        check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct mesh_vertex), (void *)sizeof(vec3)));
+        check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(mesh_vertex), (void *)sizeof(vec3)));
         check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
         check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof(mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW));
       }

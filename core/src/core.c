@@ -50,8 +50,8 @@ void Main_update() {
     Main_resume();
 
   unsigned int lb;
-  struct flat_vertex *v = game_update(&lb, global_engine.g.deltaTime());
-  global_engine.g.flatRender(0, v, lb);
+  mesh *v = game_update(&lb, global_engine.g.deltaTime());
+  global_engine.g.meshRender(v, lb);
 }
 void Main_pause() {
   stateSystem &= ~STATE_SYSTEM_RUNNING;
