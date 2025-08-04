@@ -73,7 +73,7 @@ typedef struct {
 } fcolor; // hex color
 typedef union {
   struct {
-    uint8_t r, g, b, a
+    uint8_t r, g, b, a;
   } u8;
   uint32_t u32;
 } icolor; // packed color bit
