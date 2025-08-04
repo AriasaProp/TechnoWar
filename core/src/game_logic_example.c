@@ -29,7 +29,7 @@ void game_init() {
   size_t index_len = vertex_len * 3;
   mesh_index *is = (mesh_index *)malloc(sizeof(mesh_index) * index_len);
   for (mesh_index i = 0, a = 0; i < CIRCLE_PRECISION; ++i) {
-    mesh_index j = i + 1, k = vertex_len - 1;
+    mesh_index j = i + 1, k = vertex_len - i - 1;
     is[a++] = j;
     is[a++] = i;
     is[a++] = k;
