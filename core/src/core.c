@@ -7,7 +7,7 @@
 
 // for sample
 extern void game_init();
-extern struct flat_vertex *game_update(unsigned int *, float);
+extern mesh *game_update(unsigned int *, float);
 extern void game_clean();
 
 struct engine global_engine = {0};
