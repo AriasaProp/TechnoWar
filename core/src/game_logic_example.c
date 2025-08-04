@@ -95,7 +95,7 @@ mesh *game_update(unsigned int *l, float dt) {
                                                            1.f, 0.f, 0.f, 0.f,
                                                            0.f, 1.f, 0.f, 0.f,
                                                            0.f, 0.f, 1.f, 0.f,
-                                                           particles[i].pos.x, particles[i].pos.y, particles[i].z ,1.f});
+                                                           particles[i].pos.x, particles[i].pos.y, particles[i].z, 1.f});
   }
   return particle_meshes;
 }
