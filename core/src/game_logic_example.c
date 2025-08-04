@@ -14,6 +14,7 @@ static struct particle {
   vec2 pos,
     vel;
   float r;
+  float z;
 } *particles = NULL;
 static mesh *particle_meshes = NULL;
 static unsigned int max_particle = 0;
@@ -28,16 +29,16 @@ void game_init() {
   size_t vertex_len = CIRCLE_PRECISION * 2;
   size_t index_len = vertex_len * 3;
   mesh_index *is = (mesh_index *)malloc(sizeof(mesh_index) * index_len);
-  for (mesh_index i = 0, a = 0; i < CIRCLE_PRECISION; ++i) {
-    mesh_index j = i + 1, k = vertex_len - i - 1;
-    is[a++] = j;
-    is[a++] = i;
-    is[a++] = k;
-    is[a++] = j;
-    is[a++] = k;
-    is[a++] = k - 1;
+  for (mesh_index i = 0; i < CIRCLE_PRECISION; ++i) {
+    is[i * 6 + 0] = i + 1;
+    is[i * 6 + 1] = i;
+    is[i * 6 + 2] = vertex_len - i - 1;
+    is[i * 6 + 3] = i + 1;
+    is[i * 6 + 4] = vertex_len - i - 1;
+    is[i * 6 + 5] = vertex_len - i - 2;
   }
-  for (size_t i = 0; i < max_particle; ++i) {
+  for (size_t i = 0, j; i < max_particle; ++i) {
+    particles[i].z = 5.f * (float)rand() / (float)RAND_MAX - 2.5f;
     // random 1 to 0 float
     particles[i].vel = (vec2){
       (float)rand() / (float)RAND_MAX,
@@ -48,13 +49,13 @@ void game_init() {
     // velocity around 25 to -25
     vec2_sclf(&particles[i].vel, 50);
     vec2_trnf(&particles[i].vel, -25);
-    // size 50 - 200 (square)
-    particles[i].r = 50.f + (150.f * (float)rand() / (float)RAND_MAX);
+    // size 25 - 125
+    particles[i].r = 25.f + (100.f * (float)rand() / (float)RAND_MAX);
     // position around inside screen - 2*size
     vec2_scl(&particles[i].pos, vec2_addf(sZ, -particles[i].r));
     // generate mesh
     mesh_vertex *vs = (mesh_vertex *)malloc(sizeof(mesh_vertex) * vertex_len);
-    for (size_t j = 0; j < vertex_len; ++j) {
+    for (j = 0; j < vertex_len; ++j) {
       float rad = j * M_PI / CIRCLE_PRECISION;
       vs[j] = (mesh_vertex){
         .pos = (vec3){
@@ -94,7 +95,7 @@ mesh *game_update(unsigned int *l, float dt) {
                                                            1.f, 0.f, 0.f, 0.f,
                                                            0.f, 1.f, 0.f, 0.f,
                                                            0.f, 0.f, 1.f, 0.f,
-                                                           particles[i].pos.x, particles[i].pos.y, 0.f, 1.f});
+                                                           particles[i].pos.x, particles[i].pos.y, particles[i].z ,1.f});
   }
   return particle_meshes;
 }
