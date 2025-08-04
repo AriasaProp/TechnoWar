@@ -21,7 +21,7 @@ static unsigned int max_particle = 0;
 
 void game_init() {
   srand(time(0));
-  max_particle = 1; //5 + (rand() % 10);
+  max_particle = 1; // 5 + (rand() % 10);
   particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
   particle_meshes = (mesh *)malloc(sizeof(mesh) * max_particle);
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
