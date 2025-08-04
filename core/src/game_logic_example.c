@@ -22,7 +22,7 @@ void game_init() {
   srand(time(0));
   max_particle = 5 + (rand() % 10);
   particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
-  particle_meshes = (mesh*) malloc(sizeof(mesh)*max_particle);
+  particle_meshes = (mesh *)malloc(sizeof(mesh) * max_particle);
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
   // duplicate common use
   size_t vertex_len = CIRCLE_PRECISION * 2;
