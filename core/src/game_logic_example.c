@@ -22,7 +22,7 @@ void game_init() {
   srand(time(0));
   max_particle = 5 + (rand() % 10);
   particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
-
+  particle_meshes = (mesh*) malloc(sizeof(mesh)*max_particle);
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
   // duplicate common use
   size_t vertex_len = CIRCLE_PRECISION * 2;
@@ -65,7 +65,7 @@ void game_init() {
     }
     mesh_index *iss = (mesh_index *)malloc(sizeof(mesh_index) * index_len);
     memcpy(iss, is, sizeof(mesh_index) * index_len);
-    global_engine.g.genMesh(vs, vertex_len, iss, index_len);
+    particle_meshes[i] = global_engine.g.genMesh(vs, vertex_len, iss, index_len);
   }
   free(is);
 }
