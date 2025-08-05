@@ -26,10 +26,10 @@ void game_init() {
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
   // duplicate common use
   size_t
-    vertex_len = CIRCLE_PRECISION * 2;
-  ,
+    vertex_len = CIRCLE_PRECISION * 2,
     vertex_len_byte = vertex_len * sizeof(mesh_vertex),
-    index_len = vertex_len * 3 index_len_byte = index_len * sizeof(mesh_index);
+    index_len = vertex_len * 3,
+    index_len_byte = index_len * sizeof(mesh_index);
   mesh_index *is = (mesh_index *)malloc(index_len_byte);
   for (mesh_index i = 0; i < CIRCLE_PRECISION; ++i) {
     is[i * 6 + 0] = i + 1;
