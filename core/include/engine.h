@@ -38,10 +38,10 @@ struct engine {
   void (*setMeshTransform)(const mesh, float *);
   void (*meshRender)(mesh *, const size_t);
   void (*deleteMesh)(const mesh);
-  
+
   // time function
   float (*deltaTime)(void);
-  
+
   // asset function
   void *data;
   int (*assetBuffer)(const char *, const void **, int *);
@@ -49,7 +49,7 @@ struct engine {
   int (*assetRead)(int, void *, size_t);
   size_t (*assetLength)(int);
   void (*assetClose)(int);
-  
+
   // input function
   vec2 (*getTouch)(size_t);
   void (*funct2)();

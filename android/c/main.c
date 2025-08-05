@@ -188,7 +188,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidGraphics_term();
   androidInput_term();
   androidAssetManager_term();
-  
+
   memset(&global_engine, 0, sizeof(struct engine));
 
   AConfiguration_delete(app->config);

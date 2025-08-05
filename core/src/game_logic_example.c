@@ -89,10 +89,10 @@ mesh *game_update(unsigned int *l, float dt) {
   for (i = 0; i < max_particle; ++i) {
     // set mesh position
     global_engine.setMeshTransform(particle_meshes[i], (float[]){
-                                                           1.f, 0.f, 0.f, 0.f,
-                                                           0.f, 1.f, 0.f, 0.f,
-                                                           0.f, 0.f, 1.f, 0.f,
-                                                           particles[i].pos.x, particles[i].pos.y, 0.f ,1.f});
+                                                         1.f, 0.f, 0.f, 0.f,
+                                                         0.f, 1.f, 0.f, 0.f,
+                                                         0.f, 0.f, 1.f, 0.f,
+                                                         particles[i].pos.x, particles[i].pos.y, 0.f, 1.f});
   }
   return particle_meshes;
 }
