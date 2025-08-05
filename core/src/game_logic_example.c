@@ -14,7 +14,6 @@ static struct particle {
   vec2 pos,
     vel;
   float r;
-  float z;
 } *particles = NULL;
 static mesh *particle_meshes = NULL;
 static unsigned int max_particle = 0;
@@ -26,9 +25,12 @@ void game_init() {
   particle_meshes = (mesh *)malloc(sizeof(mesh) * max_particle);
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
   // duplicate common use
-  size_t vertex_len = CIRCLE_PRECISION * 2;
-  size_t index_len = vertex_len * 3;
-  mesh_index *is = (mesh_index *)malloc(sizeof(mesh_index) * index_len);
+  size_t
+    vertex_len = CIRCLE_PRECISION * 2;,
+    vertex_len_byte = vertex_len * sizeof(mesh_vertex),
+    index_len = vertex_len * 3
+    index_len_byte = index_len * sizeof(mesh_index);
+  mesh_index *is = (mesh_index *)malloc(index_len_byte);
   for (mesh_index i = 0; i < CIRCLE_PRECISION; ++i) {
     is[i * 6 + 0] = i + 1;
     is[i * 6 + 1] = i;
@@ -38,7 +40,6 @@ void game_init() {
     is[i * 6 + 5] = vertex_len - i - 2;
   }
   for (size_t i = 0, j; i < max_particle; ++i) {
-    particles[i].z = 5.f * (float)rand() / (float)RAND_MAX - 2.5f;
     // random 1 to 0 float
     particles[i].vel = (vec2){
       (float)rand() / (float)RAND_MAX,
@@ -50,22 +51,18 @@ void game_init() {
     vec2_sclf(&particles[i].vel, 50);
     vec2_trnf(&particles[i].vel, -25);
     // size 25 - 125
-    particles[i].r = 25.f + (100.f * (float)rand() / (float)RAND_MAX);
+    particles[i].r = 50.f + (100.f * (float)rand() / (float)RAND_MAX);
     // position around inside screen - 2*size
     vec2_scl(&particles[i].pos, vec2_addf(sZ, -particles[i].r));
     // generate mesh
     mesh_vertex *vs = (mesh_vertex *)malloc(sizeof(mesh_vertex) * vertex_len);
     for (j = 0; j < vertex_len; ++j) {
-      float rad = (float)j * M_PI / CIRCLE_PRECISION;
-      vs[j] = (mesh_vertex){
-        .pos = (vec3){
-          particles[i].r * cosf(rad),
-          particles[i].r * sinf(rad),
-          0.f},
-        .c.u32 = 0xffffffff};
+      float rad = (float)j * M_PI / (float)CIRCLE_PRECISION;
+      vs[j].pos = (vec3){particles[i].r * cosf(rad), particles[i].r * sinf(rad), 0.f};
+      vs[j].c.u32 = 0xffffffff;
     }
-    mesh_index *iss = (mesh_index *)malloc(sizeof(mesh_index) * index_len);
-    memcpy(iss, is, sizeof(mesh_index) * index_len);
+    mesh_index *iss = (mesh_index *)malloc(index_len_byte);
+    memcpy(iss, is, index_len_byte);
     particle_meshes[i] = global_engine.g.genMesh(vs, vertex_len, iss, index_len);
   }
   free(is);
