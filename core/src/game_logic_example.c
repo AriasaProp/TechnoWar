@@ -20,7 +20,7 @@ static unsigned int max_particle = 0;
 
 void game_init() {
   srand(time(0));
-  max_particle = 1; // 5 + (rand() % 10);
+  max_particle = 5 + (rand() % 10);
   particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
   particle_meshes = (mesh *)malloc(sizeof(mesh) * max_particle);
   vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
@@ -86,15 +86,14 @@ mesh *game_update(unsigned int *l, float dt) {
       particles[i].pos.y = CLAMP(particles[i].r + 7e-12, particles[i].pos.y, sZ.x - particles[i].r - 7e-12);
     }
   }
-  /*
   for (i = 0; i < max_particle; ++i) {
     // set mesh position
     global_engine.g.setMeshTransform(particle_meshes[i], (float[]){
                                                            1.f, 0.f, 0.f, 0.f,
                                                            0.f, 1.f, 0.f, 0.f,
                                                            0.f, 0.f, 1.f, 0.f,
-                                                           particles[i].pos.x, particles[i].pos.y, particles[i].z ,1.f});
-  }*/
+                                                           particles[i].pos.x, particles[i].pos.y, 0.f ,1.f});
+  }
   return particle_meshes;
 }
 void game_clean() {
