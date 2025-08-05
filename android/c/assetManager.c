@@ -42,18 +42,12 @@ static void assetClose(int a) {
 void androidAssetManager_init(void *m) {
   mngr = (AAssetManager *)m;
 
-  global_engine.a.assetBuffer = assetBuffer;
-  global_engine.a.openAsset = openAsset;
-  global_engine.a.assetRead = assetRead;
-  global_engine.a.assetLength = assetLength;
-  global_engine.a.assetClose = assetClose;
+  global_engine.assetBuffer = assetBuffer;
+  global_engine.openAsset = openAsset;
+  global_engine.assetRead = assetRead;
+  global_engine.assetLength = assetLength;
+  global_engine.assetClose = assetClose;
 }
 void androidAssetManager_term() {
   mngr = NULL;
-
-  global_engine.a.assetBuffer = NULL;
-  global_engine.a.openAsset = NULL;
-  global_engine.a.assetRead = NULL;
-  global_engine.a.assetLength = NULL;
-  global_engine.a.assetClose = NULL;
 }

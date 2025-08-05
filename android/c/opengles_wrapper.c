@@ -2329,19 +2329,19 @@ int androidGraphics_init(void) {
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
     LOGE("openGLES library error");
 
-  global_engine.g.getScreenSize = opengles_getScreenSize;
-  global_engine.g.toScreenCoordinate = opengles_toScreenCoordinate;
-  global_engine.g.clear = opengles_clear;
-  global_engine.g.clearColor = opengles_clearColor;
-  global_engine.g.genTexture = opengles_genTexture;
-  global_engine.g.bindTexture = opengles_bindTexture;
-  global_engine.g.setTextureParam = opengles_setTextureParam;
-  global_engine.g.deleteTexture = opengles_deleteTexture;
-  global_engine.g.flatRender = opengles_flatRender;
-  global_engine.g.genMesh = opengles_genMesh;
-  global_engine.g.setMeshTransform = opengles_setMeshTransform;
-  global_engine.g.meshRender = opengles_meshRender;
-  global_engine.g.deleteMesh = opengles_deleteMesh;
+  global_engine.getScreenSize = opengles_getScreenSize;
+  global_engine.toScreenCoordinate = opengles_toScreenCoordinate;
+  global_engine.clear = opengles_clear;
+  global_engine.clearColor = opengles_clearColor;
+  global_engine.genTexture = opengles_genTexture;
+  global_engine.bindTexture = opengles_bindTexture;
+  global_engine.setTextureParam = opengles_setTextureParam;
+  global_engine.deleteTexture = opengles_deleteTexture;
+  global_engine.flatRender = opengles_flatRender;
+  global_engine.genMesh = opengles_genMesh;
+  global_engine.setMeshTransform = opengles_setMeshTransform;
+  global_engine.meshRender = opengles_meshRender;
+  global_engine.deleteMesh = opengles_deleteMesh;
 
   textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
   {

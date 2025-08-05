@@ -94,7 +94,7 @@ void androidInput_init(void *looper) {
   m->sensor_data[SENSOR_MAGNETIC_FIELD].sensor = ASensorManager_getDefaultSensor(m->sensorMngr, ASENSOR_TYPE_MAGNETIC_FIELD);
   m->sensorQueue = ASensorManager_createEventQueue(m->sensorMngr, m->looper, ALOOPER_POLL_CALLBACK, androidInput_processSensor, m);
 
-  global_engine.i.getTouch = getTouch;
+  global_engine.getTouch = getTouch;
 }
 void androidInput_createInputQueue(void *queue) {
   AInputQueue_attachLooper(queue, m->looper, ALOOPER_POLL_CALLBACK, androidInput_processInput, (void *)m);

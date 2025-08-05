@@ -23,7 +23,7 @@ void game_init() {
   max_particle = 5 + (rand() % 10);
   particles = (struct particle *)malloc(sizeof(struct particle) * max_particle);
   particle_meshes = (mesh *)malloc(sizeof(mesh) * max_particle);
-  vec2 sZ = vec2_mulf(global_engine.g.getScreenSize(), 0.5f);
+  vec2 sZ = vec2_mulf(global_engine.getScreenSize(), 0.5f);
   // duplicate common use
   size_t
     vertex_len = CIRCLE_PRECISION * 2,
@@ -63,13 +63,13 @@ void game_init() {
     }
     mesh_index *iss = (mesh_index *)malloc(index_len_byte);
     memcpy(iss, is, index_len_byte);
-    particle_meshes[i] = global_engine.g.genMesh(vs, vertex_len, iss, index_len);
+    particle_meshes[i] = global_engine.genMesh(vs, vertex_len, iss, index_len);
   }
   free(is);
 }
 mesh *game_update(unsigned int *l, float dt) {
   *l = max_particle;
-  vec2 sZ = global_engine.g.getScreenSize();
+  vec2 sZ = global_engine.getScreenSize();
   size_t i, j;
   for (i = 0; i < max_particle; ++i) {
     // update motion by velocity / sec
@@ -88,11 +88,11 @@ mesh *game_update(unsigned int *l, float dt) {
   }
   for (i = 0; i < max_particle; ++i) {
     // set mesh position
-    global_engine.g.setMeshTransform(particle_meshes[i], (float[]){
+    global_engine.setMeshTransform(particle_meshes[i], (float[]){
                                                            1.f, 0.f, 0.f, 0.f,
                                                            0.f, 1.f, 0.f, 0.f,
                                                            0.f, 0.f, 1.f, 0.f,
-                                                           particles[i].pos.x, particles[i].pos.y, 0.f, 1.f});
+                                                           particles[i].pos.x, particles[i].pos.y, 0.f ,1.f});
   }
   return particle_meshes;
 }
@@ -100,7 +100,7 @@ void game_clean() {
   (void)0;
   free(particles);
   for (size_t i = 0; i < max_particle; ++i) {
-    global_engine.g.deleteMesh(particle_meshes[i]);
+    global_engine.deleteMesh(particle_meshes[i]);
   }
   free(particle_meshes);
 }

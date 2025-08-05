@@ -21,7 +21,8 @@ typedef struct {
 } mesh_vertex;
 typedef uint16_t mesh_index;
 
-struct engine_graphics {
+struct engine {
+  // graphics function
   vec2 (*getScreenSize)();
   void (*toScreenCoordinate)(vec2 *);
   // graphics clear window
@@ -37,27 +38,21 @@ struct engine_graphics {
   void (*setMeshTransform)(const mesh, float *);
   void (*meshRender)(mesh *, const size_t);
   void (*deleteMesh)(const mesh);
-  // not related with graphics but run at same condition
+  
+  // time function
   float (*deltaTime)(void);
-};
-struct engine_asset {
+  
+  // asset function
   void *data;
   int (*assetBuffer)(const char *, const void **, int *);
   int (*openAsset)(const char *);
   int (*assetRead)(int, void *, size_t);
   size_t (*assetLength)(int);
   void (*assetClose)(int);
-};
-struct engine_input {
-  void *data;
+  
+  // input function
   vec2 (*getTouch)(size_t);
   void (*funct2)();
-};
-
-struct engine {
-  struct engine_graphics g;
-  struct engine_asset a;
-  struct engine_input i;
 };
 
 extern struct engine global_engine;

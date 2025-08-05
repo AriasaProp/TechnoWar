@@ -61,12 +61,11 @@ struct android_app {
   int stateApp;
   // deltaTime game
   clock_t currentTime;
+  float deltaTime;
 } *app = NULL;
 // deltaTime game
 static float android_deltaTime(void) {
-  clock_t old = app->currentTime;
-  app->currentTime = clock();
-  return (float)(app->currentTime - old) / CLOCKS_PER_SEC;
+  return app->deltaTime;
 }
 
 enum {
@@ -149,7 +148,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidAssetManager_init(app->activity->assetManager);
   androidInput_init(looper);
   androidGraphics_init();
-  global_engine.g.deltaTime = android_deltaTime;
+  global_engine.deltaTime = android_deltaTime;
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -161,6 +160,8 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     if (ALooper_pollOnce(!ready * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGE("ALooper_pollOnce returned an error");
     if (ready && androidGraphics_preRender()) {
+      clock_t old = app->currentTime;
+      app->deltaTime = (float)((app->currentTime = clock()) - old) / (float)CLOCKS_PER_SEC;
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
@@ -187,6 +188,8 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   androidGraphics_term();
   androidInput_term();
   androidAssetManager_term();
+  
+  memset(&global_engine, 0, sizeof(struct engine));
 
   AConfiguration_delete(app->config);
 
