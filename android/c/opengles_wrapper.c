@@ -1902,7 +1902,7 @@ static mesh opengles_genMesh(mesh_vertex *v, const size_t vl, mesh_index *i, con
     return -1; // reach limit mesh total so return invalid number
   meshes[m].vertex_len = vl;
   meshes[m].vertexs = v;
-  meshes[m].index_len = vl;
+  meshes[m].index_len = il;
   meshes[m].indices = i;
   matrix4_idt(meshes[m].trans);
 

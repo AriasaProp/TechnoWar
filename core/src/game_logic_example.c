@@ -55,7 +55,7 @@ void game_init() {
     // position around inside screen - 2*size
     vec2_scl(&particles[i].pos, vec2_addf(sZ, -particles[i].r));
     // generate mesh
-    mesh_vertex *vs = (mesh_vertex *)malloc(sizeof(mesh_vertex) * vertex_len);
+    mesh_vertex *vs = (mesh_vertex *)malloc(vertex_len_byte);
     for (j = 0; j < vertex_len; ++j) {
       float rad = (float)j * M_PI / (float)CIRCLE_PRECISION;
       vs[j].pos = (vec3){particles[i].r * cosf(rad), particles[i].r * sinf(rad), 0.f};
