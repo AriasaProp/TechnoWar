@@ -41,15 +41,12 @@ void game_init() {
   }
   for (size_t i = 0, j; i < max_particle; ++i) {
     // random 1 to 0 float
-    particles[i].vel = (vec2){
-      (float)rand() / (float)RAND_MAX,
-      (float)rand() / (float)RAND_MAX};
+    particles[i].vel = vec2_fromRad(2.f * M_PI * (float)rand() / (float)RAND_MAX);
     particles[i].pos = (vec2){
       2.0f * (float)rand() / (float)RAND_MAX - 1.0f,
       2.0f * (float)rand() / (float)RAND_MAX - 1.0f};
     // velocity around 25 to -25
     vec2_sclf(&particles[i].vel, 50);
-    vec2_trnf(&particles[i].vel, -25);
     // size 25 - 125
     particles[i].r = 50.f + (100.f * (float)rand() / (float)RAND_MAX);
     // position around inside screen - 2*size

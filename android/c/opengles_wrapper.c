@@ -2005,20 +2005,20 @@ static void killEGL(const int EGLTermReq) {
   }
 }
 // android purpose
-void androidGraphics_onWindowCreate(void *w) {
+static void opengles_onWindowCreate(void *w) {
   src->window = (ANativeWindow *)w;
 }
-void androidGraphics_onWindowDestroy(void) {
+static void opengles_onWindowDestroy(void) {
   killEGL(TERM_EGL_SURFACE);
   src->window = NULL;
 }
-void androidGraphics_onWindowResizeDisplay(void) {
+static void opengles_onWindowResizeDisplay(void) {
   src->flags |= RESIZE_DISPLAY;
 }
-void androidGraphics_onWindowResize(void) {
+static void opengles_onWindowResize(void) {
   src->flags |= RESIZE_ONLY;
 }
-void androidGraphics_resizeInsets(float x, float y, float z, float w) {
+static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->insets.x = x;
   src->insets.y = y;
   src->insets.z = z;
@@ -2027,7 +2027,7 @@ void androidGraphics_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-int androidGraphics_preRender(void) {
+static int opengles_preRender(void) {
   if (!src->window)
     return 0;
   if (!src->display || !src->context || !src->surface) {
@@ -2279,7 +2279,7 @@ int androidGraphics_preRender(void) {
   check(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
   return 1;
 }
-void androidGraphics_postRender(void) {
+static void opengles_postRender(void) {
   if (!eglSwapBuffers(src->display, src->surface)) {
     switch (eglGetError()) {
     case EGL_BAD_SURFACE:
@@ -2301,7 +2301,7 @@ void androidGraphics_postRender(void) {
     }
   }
 }
-void androidGraphics_term(void) {
+static void opengles_term(void) {
   killEGL(TERM_EGL_DISPLAY);
   dlclose(src->egllib);
   dlclose(src->gleslib);
@@ -2323,12 +2323,23 @@ void androidGraphics_term(void) {
   free(src);
 }
 
-int androidGraphics_init(void) {
+int opengles_init(void) {
   src = (struct androidGraphics *)calloc(1, sizeof(struct androidGraphics));
   // support EGL 1.3 , OpenGLES 3.0
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
     LOGE("openGLES library error");
+  
+  androidGraphics_onWindowCreate = opengles_onWindowCreate;
+  androidGraphics_onWindowDestroy = opengles_onWindowDestroy;
+  androidGraphics_onWindowResizeDisplay = opengles_onWindowResizeDisplay;
+  androidGraphics_onWindowResize = opengles_onWindowResize;
+  androidGraphics_resizeInsets = opengles_resizeInsets;
+  androidGraphics_preRender = opengles_preRender;
+  androidGraphics_postRender = opengles_postRender;
+  androidGraphics_term = opengles_term;
+ 
 
+ 
   global_engine.getScreenSize = opengles_getScreenSize;
   global_engine.toScreenCoordinate = opengles_toScreenCoordinate;
   global_engine.clear = opengles_clear;

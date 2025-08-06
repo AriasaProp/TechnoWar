@@ -26,5 +26,7 @@ extern float vec2_len(vec2);
 extern vec2 vec2_norm(vec2);
 extern float vec2_rad(vec2, vec2);
 
+// radian
+extern vec2 vec2_fromRad(float);
 
 #endif // VEC_MATH
