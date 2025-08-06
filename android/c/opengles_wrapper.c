@@ -2328,7 +2328,7 @@ int opengles_init(void) {
   // support EGL 1.3 , OpenGLES 3.0
   if (!(src->egllib = loadEGL()) || !(src->gleslib = loadGLES()))
     LOGE("openGLES library error");
-  
+
   androidGraphics_onWindowCreate = opengles_onWindowCreate;
   androidGraphics_onWindowDestroy = opengles_onWindowDestroy;
   androidGraphics_onWindowResizeDisplay = opengles_onWindowResizeDisplay;
@@ -2337,9 +2337,7 @@ int opengles_init(void) {
   androidGraphics_preRender = opengles_preRender;
   androidGraphics_postRender = opengles_postRender;
   androidGraphics_term = opengles_term;
- 
 
- 
   global_engine.getScreenSize = opengles_getScreenSize;
   global_engine.toScreenCoordinate = opengles_toScreenCoordinate;
   global_engine.clear = opengles_clear;

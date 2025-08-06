@@ -29,7 +29,6 @@ int (*androidGraphics_preRender)(void) = NULL;
 void (*androidGraphics_postRender)(void) = NULL;
 void (*androidGraphics_term)(void) = NULL;
 
-
 struct msg_pipe {
   int8_t cmd;
   void *data;
