@@ -289,7 +289,8 @@ static EGLBoolean (*eglWaitClient)(void) = NULL;
 
 static void *loadEGL(void) {
   void *v = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
-  if (!v) return NULL;
+  if (!v)
+    return NULL;
   // EGL Core Functions
   eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglChooseConfig");
   eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))dlsym(v, "eglCopyBuffers");
@@ -1215,7 +1216,7 @@ typedef void (*GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsi
 #define GL_MAX_VERTEX_ATTRIB_BINDINGS                    0x82DA
 #define GL_MAX_VERTEX_ATTRIB_STRIDE                      0x82E5
 // extension gl core
-#define GL_SHADER_BINARY_FORMAT_SPIR_V                   0x9551
+#define GL_SHADER_BINARY_FORMAT_SPIR_V 0x9551
 
 // --- GL ES 2.0 Core Functions ---
 static void (*glActiveTexture)(GLenum texture) = NULL;
@@ -1463,7 +1464,8 @@ static void (*glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum in
 */
 static void *loadGLES(void) {
   void *v = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
-  if (!v) return NULL;
+  if (!v)
+    return NULL;
 
   // --- GL ES 2.0 Core Functions ---
   glActiveTexture = (void (*)(GLenum))dlsym(v, "glActiveTexture");
@@ -1740,9 +1742,9 @@ static void checkCompileShader(GLint X) {
   }
 }
 
-#define check(X) \
-  do {\
-    X;             \
+#define check(X)    \
+  do {              \
+    X;              \
     getErrorGL(#X); \
   } while (0)
 #define MAX_UI_DRAW  200
@@ -2011,7 +2013,7 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-extern void assetBuffer (const char*,void*,int*);
+extern void assetBuffer(const char *, void *, int *);
 static int opengles_preRender(void) {
   if (!src->window)
     return 0;
@@ -2083,7 +2085,8 @@ static int opengles_preRender(void) {
       // TODO: more extension support
       glGetIntegerv(GL_NUM_EXTENSIONS, &tempi);
       for (i = 0; i < tempi; ++i) {
-        if (!strcmp(glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv")) break;
+        if (!strcmp(glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv"))
+          break;
       }
       if (i == tempi) {
         LOGE("Opengles doesn't support SPIR-V shader binary format.");
@@ -2091,12 +2094,13 @@ static int opengles_preRender(void) {
       }
       // shader binary formats
       glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &tempi);
-      GLint *shaderFormat = (GLint*)malloc(sizeof(GLint) * tempi);
+      GLint *shaderFormat = (GLint *)malloc(sizeof(GLint) * tempi);
       glGetIntegerv(GL_SHADER_BINARY_FORMATS, shaderFormat);
       for (i = 0; i < tempi; ++i) {
-        if (shaderFormat[i] == GL_SHADER_BINARY_FORMAT_SPIR_V) break;
+        if (shaderFormat[i] == GL_SHADER_BINARY_FORMAT_SPIR_V)
+          break;
       }
-      free (shaderFormat);
+      free(shaderFormat);
       if (i == tempi) {
         LOGE("Opengles doesn't support SPIR-V shader binary format.");
         return 0;
@@ -2180,7 +2184,7 @@ static int opengles_preRender(void) {
           check(src->world.uniform_proj = glGetUniformLocation(src->world.shader, "worldview_proj"));
           check(src->world.uniform_transProj = glGetUniformLocation(src->world.shader, "trans_proj"));
         }
-        free (temp_buf);
+        free(temp_buf);
       }
       // texture
       // start from 0 to validate default texture

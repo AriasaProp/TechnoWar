@@ -8,7 +8,8 @@ static AAssetManager *mngr = NULL;
 static AAsset *reading[MAX_ASSET_READING] = {0};
 
 void assetBuffer(const char *filename, void *buf, int *len) {
-  if (!mngr) return;
+  if (!mngr)
+    return;
   AAsset *reading = AAssetManager_open(mngr, filename, AASSET_MODE_BUFFER);
   *len = AAsset_getLength(reading);
   memcpy(buf, AAsset_getBuffer(reading), *len);
