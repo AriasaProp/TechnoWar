@@ -32,11 +32,12 @@ case "$1" in
             echo "This is currently not git repository. Return now"
             exit 1
         fi
-        # default commit message
-        commit_message="Update repository at $(date '+%x %R')"
         # if there is a second arguments
-        if [ -n $2 ]; then
+        if [ -z $2 ]; then
             commit_message=$2
+        else
+            # default commit message
+            commit_message="Update repository at $(date '+%x %R')"
         fi
         git add .
         git commit -m "$commit_message"

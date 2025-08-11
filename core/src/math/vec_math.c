@@ -10,7 +10,7 @@ static inline float inv_sqrt(float v) {
   w.f = v;
   w.i = 0x5f3759df - (w.i >> 1);
   w.f *= 1.5f - 0.5f * v * w.f * w.f;
-  return w->f;
+  return w.f;
 }
 
 // vec2 math
