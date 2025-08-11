@@ -44,7 +44,7 @@ struct engine {
 
   // asset function
   void *data;
-  int (*assetBuffer)(const char *, const void **, int *);
+  void (*assetBuffer)(const char *, void *, int *);
   int (*openAsset)(const char *);
   int (*assetRead)(int, void *, size_t);
   size_t (*assetLength)(int);

@@ -3,11 +3,14 @@
 
 static inline float inv_sqrt(float v) {
   // inverse sqrt by quake III
-  int i = *(int *) &v;
-  i = 0x5f3759df - (i >> 1);
-  float w = *(float *)&i;
-  w *= 1.5f - 0.5f * v * w * w;
-  return w;
+  union {
+    float f;
+    int i;
+  } w;
+  w.f = v;
+  w.i = 0x5f3759df - (w.i >> 1);
+  w.f *= 1.5f - 0.5f * v * w.f * w.f;
+  return w->f;
 }
 
 // vec2 math

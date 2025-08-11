@@ -7,16 +7,12 @@ static AAssetManager *mngr = NULL;
 
 static AAsset *reading[MAX_ASSET_READING] = {0};
 
-static int assetBuffer(const char *filename, const void **buf, int *len) {
-  for (size_t i = 0; i < MAX_ASSET_READING; ++i) {
-    if (!reading[i]) {
-      reading[i] = AAssetManager_open(mngr, filename, AASSET_MODE_BUFFER);
-      *len = AAsset_getLength(reading[i]);
-      *buf = AAsset_getBuffer(reading[i]);
-      return i;
-    }
-  }
-  return -1;
+void assetBuffer(const char *filename, void *buf, int *len) {
+  if (!mngr) return;
+  AAsset *reading = AAssetManager_open(mngr, filename, AASSET_MODE_BUFFER);
+  *len = AAsset_getLength(reading);
+  memcpy(buf, AAsset_getBuffer(reading), *len);
+  AAsset_close(reading);
 }
 
 static int openAsset(const char *filename) {

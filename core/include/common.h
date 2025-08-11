@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef UTIL_INCLUDED_
-#define UTIL_INCLUDED_
+#ifndef COMMON_INCLUDED_
+#define COMMON_INCLUDED_
 
 #include <stddef.h>
 #include <stdlib.h>
@@ -106,4 +106,4 @@ extern int lrotr(int, size_t);
 extern void matrix4_idt(float *);
 extern void matrix4_rotateDeg(float *, vec3);
 
-#endif // UTIL_INCLUDED_
+#endif // COMMON_INCLUDED_

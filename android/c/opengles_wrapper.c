@@ -288,57 +288,46 @@ static EGLBoolean (*eglReleaseThread)(void) = NULL;
 static EGLBoolean (*eglWaitClient)(void) = NULL;
 
 static void *loadEGL(void) {
-  void *egllib = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
-  if (!egllib)
-    goto load_egl_err_e;
-  void *temp;
-#define LOADFUNCT(X)         \
-  (temp = dlsym(egllib, X)); \
-  if (!temp)                 \
-  goto load_egl_err
+  void *v = dlopen("libEGL.so", RTLD_NOW | RTLD_LOCAL);
+  if (!v) return NULL;
   // EGL Core Functions
-  eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))LOADFUNCT("eglChooseConfig");
-  eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))LOADFUNCT("eglCopyBuffers");
-  eglCreateContext = (EGLContext(*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))LOADFUNCT("eglCreateContext");
-  eglCreatePbufferSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, const EGLint *))LOADFUNCT("eglCreatePbufferSurface");
-  eglCreatePixmapSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))LOADFUNCT("eglCreatePixmapSurface");
-  eglCreateWindowSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))LOADFUNCT("eglCreateWindowSurface");
-  eglDestroyContext = (EGLBoolean(*)(EGLDisplay, EGLContext))LOADFUNCT("eglDestroyContext");
-  eglDestroySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface))LOADFUNCT("eglDestroySurface");
-  eglGetConfigAttrib = (EGLBoolean(*)(EGLDisplay, EGLConfig, EGLint, EGLint *))LOADFUNCT("eglGetConfigAttrib");
-  eglGetConfigs = (EGLBoolean(*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))LOADFUNCT("eglGetConfigs");
-  eglGetCurrentDisplay = (EGLDisplay(*)(void))LOADFUNCT("eglGetCurrentDisplay");
-  eglGetCurrentSurface = (EGLSurface(*)(EGLint))LOADFUNCT("eglGetCurrentSurface");
-  eglGetDisplay = (EGLDisplay(*)(EGLNativeDisplayType))LOADFUNCT("eglGetDisplay");
-  eglGetError = (EGLint(*)(void))LOADFUNCT("eglGetError");
-  eglInitialize = (EGLBoolean(*)(EGLDisplay, EGLint *, EGLint *))LOADFUNCT("eglInitialize");
-  eglMakeCurrent = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))LOADFUNCT("eglMakeCurrent");
-  eglQueryContext = (EGLBoolean(*)(EGLDisplay, EGLContext, EGLint, EGLint *))LOADFUNCT("eglQueryContext");
-  eglQueryString = (const char *(*)(EGLDisplay, EGLint))LOADFUNCT("eglQueryString");
-  eglQuerySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint *))LOADFUNCT("eglQuerySurface");
-  eglSwapBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface))LOADFUNCT("eglSwapBuffers");
-  eglTerminate = (EGLBoolean(*)(EGLDisplay))LOADFUNCT("eglTerminate");
-  eglWaitGL = (EGLBoolean(*)(void))LOADFUNCT("eglWaitGL");
-  eglWaitNative = (EGLBoolean(*)(EGLint))LOADFUNCT("eglWaitNative");
+  eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglChooseConfig");
+  eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))dlsym(v, "eglCopyBuffers");
+  eglCreateContext = (EGLContext(*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))dlsym(v, "eglCreateContext");
+  eglCreatePbufferSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferSurface");
+  eglCreatePixmapSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))dlsym(v, "eglCreatePixmapSurface");
+  eglCreateWindowSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))dlsym(v, "eglCreateWindowSurface");
+  eglDestroyContext = (EGLBoolean(*)(EGLDisplay, EGLContext))dlsym(v, "eglDestroyContext");
+  eglDestroySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface))dlsym(v, "eglDestroySurface");
+  eglGetConfigAttrib = (EGLBoolean(*)(EGLDisplay, EGLConfig, EGLint, EGLint *))dlsym(v, "eglGetConfigAttrib");
+  eglGetConfigs = (EGLBoolean(*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglGetConfigs");
+  eglGetCurrentDisplay = (EGLDisplay(*)(void))dlsym(v, "eglGetCurrentDisplay");
+  eglGetCurrentSurface = (EGLSurface(*)(EGLint))dlsym(v, "eglGetCurrentSurface");
+  eglGetDisplay = (EGLDisplay(*)(EGLNativeDisplayType))dlsym(v, "eglGetDisplay");
+  eglGetError = (EGLint(*)(void))dlsym(v, "eglGetError");
+  eglInitialize = (EGLBoolean(*)(EGLDisplay, EGLint *, EGLint *))dlsym(v, "eglInitialize");
+  eglMakeCurrent = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))dlsym(v, "eglMakeCurrent");
+  eglQueryContext = (EGLBoolean(*)(EGLDisplay, EGLContext, EGLint, EGLint *))dlsym(v, "eglQueryContext");
+  eglQueryString = (const char *(*)(EGLDisplay, EGLint))dlsym(v, "eglQueryString");
+  eglQuerySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint *))dlsym(v, "eglQuerySurface");
+  eglSwapBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface))dlsym(v, "eglSwapBuffers");
+  eglTerminate = (EGLBoolean(*)(EGLDisplay))dlsym(v, "eglTerminate");
+  eglWaitGL = (EGLBoolean(*)(void))dlsym(v, "eglWaitGL");
+  eglWaitNative = (EGLBoolean(*)(EGLint))dlsym(v, "eglWaitNative");
 
   // EGL 1.1 Functions
-  eglBindTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))LOADFUNCT("eglBindTexImage");
-  eglReleaseTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))LOADFUNCT("eglReleaseTexImage");
-  eglSurfaceAttrib = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint))LOADFUNCT("eglSurfaceAttrib");
-  eglSwapInterval = (EGLBoolean(*)(EGLDisplay, EGLint))LOADFUNCT("eglSwapInterval");
+  eglBindTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglBindTexImage");
+  eglReleaseTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglReleaseTexImage");
+  eglSurfaceAttrib = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint))dlsym(v, "eglSurfaceAttrib");
+  eglSwapInterval = (EGLBoolean(*)(EGLDisplay, EGLint))dlsym(v, "eglSwapInterval");
 
   // EGL 1.2 Functions
-  eglBindAPI = (EGLBoolean(*)(EGLenum))LOADFUNCT("eglBindAPI");
-  eglQueryAPI = (EGLenum(*)(void))LOADFUNCT("eglQueryAPI");
-  eglCreatePbufferFromClientBuffer = (EGLSurface(*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))LOADFUNCT("eglCreatePbufferFromClientBuffer");
-  eglReleaseThread = (EGLBoolean(*)(void))LOADFUNCT("eglReleaseThread");
-  eglWaitClient = (EGLBoolean(*)(void))LOADFUNCT("eglWaitClient");
-  return egllib;
-load_egl_err:
-  dlclose(egllib);
-load_egl_err_e:
-  return NULL;
-#undef LOADFUNCT
+  eglBindAPI = (EGLBoolean(*)(EGLenum))dlsym(v, "eglBindAPI");
+  eglQueryAPI = (EGLenum(*)(void))dlsym(v, "eglQueryAPI");
+  eglCreatePbufferFromClientBuffer = (EGLSurface(*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferFromClientBuffer");
+  eglReleaseThread = (EGLBoolean(*)(void))dlsym(v, "eglReleaseThread");
+  eglWaitClient = (EGLBoolean(*)(void))dlsym(v, "eglWaitClient");
+  return v;
 }
 // END IMPLEMENTS EGL
 
@@ -1225,6 +1214,8 @@ typedef void (*GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsi
 #define GL_MAX_VERTEX_ATTRIB_RELATIVE_OFFSET             0x82D9
 #define GL_MAX_VERTEX_ATTRIB_BINDINGS                    0x82DA
 #define GL_MAX_VERTEX_ATTRIB_STRIDE                      0x82E5
+// extension gl core
+#define GL_SHADER_BINARY_FORMAT_SPIR_V                   0x9551
 
 // --- GL ES 2.0 Core Functions ---
 static void (*glActiveTexture)(GLenum texture) = NULL;
@@ -1471,264 +1462,254 @@ static void (*glTexBufferRange)(GLenum target, GLenum internalformat, GLuint buf
 static void (*glTexImage2DMultisample)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations) = NULL;
 */
 static void *loadGLES(void) {
-  void *gleslib = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
-  if (!gleslib)
-    goto load_gles_err_e;
-  void *temp;
-#define LOADFUNCT(X)          \
-  (temp = dlsym(gleslib, X)); \
-  if (!temp)                  \
-    goto load_gles_err;
+  void *v = dlopen("libGLESv3.so", RTLD_NOW | RTLD_LOCAL);
+  if (!v) return NULL;
+
   // --- GL ES 2.0 Core Functions ---
-  glActiveTexture = (void (*)(GLenum))LOADFUNCT("glActiveTexture");
-  glAttachShader = (void (*)(GLuint, GLuint))LOADFUNCT("glAttachShader");
-  glBindAttribLocation = (void (*)(GLuint, GLuint, const GLchar *))LOADFUNCT("glBindAttribLocation");
-  glBindBuffer = (void (*)(GLenum, GLuint))LOADFUNCT("glBindBuffer");
-  glBindFramebuffer = (void (*)(GLenum, GLuint))LOADFUNCT("glBindFramebuffer");
-  glBindRenderbuffer = (void (*)(GLenum, GLuint))LOADFUNCT("glBindRenderbuffer");
-  glBindTexture = (void (*)(GLenum, GLuint))LOADFUNCT("glBindTexture");
-  glBlendColor = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glBlendColor");
-  glBlendEquation = (void (*)(GLenum))LOADFUNCT("glBlendEquation");
-  glBlendEquationSeparate = (void (*)(GLenum, GLenum))LOADFUNCT("glBlendEquationSeparate");
-  glBlendFunc = (void (*)(GLenum, GLenum))LOADFUNCT("glBlendFunc");
-  glBlendFuncSeparate = (void (*)(GLenum, GLenum, GLenum, GLenum))LOADFUNCT("glBlendFuncSeparate");
-  glClear = (void (*)(GLbitfield))LOADFUNCT("glClear");
-  glClearColor = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glClearColor");
-  glClearDepthf = (void (*)(GLfloat))LOADFUNCT("glClearDepthf");
-  glClearStencil = (void (*)(GLint))LOADFUNCT("glClearStencil");
-  glColorMask = (void (*)(GLboolean, GLboolean, GLboolean, GLboolean))LOADFUNCT("glColorMask");
-  glCompileShader = (void (*)(GLuint))LOADFUNCT("glCompileShader");
-  glCompressedTexImage2D = (void (*)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const void *))LOADFUNCT("glCompressedTexImage2D");
-  glCompressedTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLsizei, const void *))LOADFUNCT("glCompressedTexSubImage2D");
-  glCopyTexImage2D = (void (*)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))LOADFUNCT("glCopyTexImage2D");
-  glCopyTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))LOADFUNCT("glCopyTexSubImage2D");
-  glCreateProgram = (GLuint(*)(void))LOADFUNCT("glCreateProgram");
-  glCreateShader = (GLuint(*)(GLenum))LOADFUNCT("glCreateShader");
-  glCullFace = (void (*)(GLenum))LOADFUNCT("glCullFace");
-  glDeleteBuffers = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteBuffers");
-  glDeleteFramebuffers = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteFramebuffers");
-  glDeleteProgram = (void (*)(GLuint))LOADFUNCT("glDeleteProgram");
-  glDeleteRenderbuffers = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteRenderbuffers");
-  glDeleteShader = (void (*)(GLuint))LOADFUNCT("glDeleteShader");
-  glDeleteTextures = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteTextures");
-  glDepthFunc = (void (*)(GLenum))LOADFUNCT("glDepthFunc");
-  glDepthMask = (void (*)(GLboolean))LOADFUNCT("glDepthMask");
-  glDepthRangef = (void (*)(GLfloat, GLfloat))LOADFUNCT("glDepthRangef");
-  glDetachShader = (void (*)(GLuint, GLuint))LOADFUNCT("glDetachShader");
-  glDisable = (void (*)(GLenum))LOADFUNCT("glDisable");
-  glDisableVertexAttribArray = (void (*)(GLuint))LOADFUNCT("glDisableVertexAttribArray");
-  glDrawArrays = (void (*)(GLenum, GLint, GLsizei))LOADFUNCT("glDrawArrays");
-  glDrawElements = (void (*)(GLenum, GLsizei, GLenum, const void *))LOADFUNCT("glDrawElements");
-  glEnable = (void (*)(GLenum))LOADFUNCT("glEnable");
-  glEnableVertexAttribArray = (void (*)(GLuint))LOADFUNCT("glEnableVertexAttribArray");
-  glFinish = (void (*)(void))LOADFUNCT("glFinish");
-  glFlush = (void (*)(void))LOADFUNCT("glFlush");
-  glFramebufferRenderbuffer = (void (*)(GLenum, GLenum, GLenum, GLuint))LOADFUNCT("glFramebufferRenderbuffer");
-  glFramebufferTexture2D = (void (*)(GLenum, GLenum, GLenum, GLuint, GLint))LOADFUNCT("glFramebufferTexture2D");
-  glFrontFace = (void (*)(GLenum))LOADFUNCT("glFrontFace");
-  glGenBuffers = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenBuffers");
-  glGenerateMipmap = (void (*)(GLenum))LOADFUNCT("glGenerateMipmap");
-  glGenFramebuffers = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenFramebuffers");
-  glGenRenderbuffers = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenRenderbuffers");
-  glGenTextures = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenTextures");
-  glGetActiveAttrib = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))LOADFUNCT("glGetActiveAttrib");
-  glGetActiveUniform = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))LOADFUNCT("glGetActiveUniform");
-  glGetAttachedShaders = (void (*)(GLuint, GLsizei, GLsizei *, GLuint *))LOADFUNCT("glGetAttachedShaders");
-  glGetAttribLocation = (GLint(*)(GLuint, const GLchar *))LOADFUNCT("glGetAttribLocation");
-  glGetBooleanv = (void (*)(GLenum, GLboolean *))LOADFUNCT("glGetBooleanv");
-  glGetBufferParameteriv = (void (*)(GLenum, GLenum, GLint *))LOADFUNCT("glGetBufferParameteriv");
-  glGetError = (GLenum(*)(void))LOADFUNCT("glGetError");
-  glGetFloatv = (void (*)(GLenum, GLfloat *))LOADFUNCT("glGetFloatv");
-  glGetFramebufferAttachmentParameteriv = (void (*)(GLenum, GLenum, GLenum, GLint *))LOADFUNCT("glGetFramebufferAttachmentParameteriv");
-  glGetIntegerv = (void (*)(GLenum, GLint *))LOADFUNCT("glGetIntegerv");
-  glGetProgramiv = (void (*)(GLuint, GLenum, GLint *))LOADFUNCT("glGetProgramiv");
-  glGetProgramInfoLog = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetProgramInfoLog");
-  glGetRenderbufferParameteriv = (void (*)(GLenum, GLenum, GLint *))LOADFUNCT("glGetRenderbufferParameteriv");
-  glGetShaderiv = (void (*)(GLuint, GLenum, GLint *))LOADFUNCT("glGetShaderiv");
-  glGetShaderInfoLog = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetShaderInfoLog");
-  glGetShaderPrecisionFormat = (void (*)(GLenum, GLenum, GLint *, GLint *))LOADFUNCT("glGetShaderPrecisionFormat");
-  glGetShaderSource = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetShaderSource");
-  glGetString = (const GLubyte *(*)(GLenum))LOADFUNCT("glGetString");
-  glGetTexParameterfv = (void (*)(GLenum, GLenum, GLfloat *))LOADFUNCT("glGetTexParameterfv");
-  glGetTexParameteriv = (void (*)(GLenum, GLenum, GLint *))LOADFUNCT("glGetTexParameteriv");
-  glGetUniformLocation = (GLint(*)(GLuint, const GLchar *))LOADFUNCT("glGetUniformLocation");
-  glGetUniformfv = (void (*)(GLuint, GLint, GLfloat *))LOADFUNCT("glGetUniformfv");
-  glGetUniformiv = (void (*)(GLuint, GLint, GLint *))LOADFUNCT("glGetUniformiv");
-  glGetVertexAttribfv = (void (*)(GLuint, GLenum, GLfloat *))LOADFUNCT("glGetVertexAttribfv");
-  glGetVertexAttribiv = (void (*)(GLuint, GLenum, GLint *))LOADFUNCT("glGetVertexAttribiv");
-  glGetVertexAttribPointerv = (void (*)(GLuint, GLenum, void **))LOADFUNCT("glGetVertexAttribPointerv");
-  glHint = (void (*)(GLenum, GLenum))LOADFUNCT("glHint");
-  glIsBuffer = (GLboolean(*)(GLuint))LOADFUNCT("glIsBuffer");
-  glIsEnabled = (GLboolean(*)(GLenum))LOADFUNCT("glIsEnabled");
-  glIsFramebuffer = (GLboolean(*)(GLuint))LOADFUNCT("glIsFramebuffer");
-  glIsProgram = (GLboolean(*)(GLuint))LOADFUNCT("glIsProgram");
-  glIsRenderbuffer = (GLboolean(*)(GLuint))LOADFUNCT("glIsRenderbuffer");
-  glIsShader = (GLboolean(*)(GLuint))LOADFUNCT("glIsShader");
-  glIsTexture = (GLboolean(*)(GLuint))LOADFUNCT("glIsTexture");
-  glLineWidth = (void (*)(GLfloat))LOADFUNCT("glLineWidth");
-  glLinkProgram = (void (*)(GLuint))LOADFUNCT("glLinkProgram");
-  glPixelStorei = (void (*)(GLenum, GLint))LOADFUNCT("glPixelStorei");
-  glPolygonOffset = (void (*)(GLfloat, GLfloat))LOADFUNCT("glPolygonOffset");
-  glReadPixels = (void (*)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void *))LOADFUNCT("glReadPixels");
-  glReleaseShaderCompiler = (void (*)(void))LOADFUNCT("glReleaseShaderCompiler");
-  glRenderbufferStorage = (void (*)(GLenum, GLenum, GLsizei, GLsizei))LOADFUNCT("glRenderbufferStorage");
-  glSampleCoverage = (void (*)(GLfloat, GLboolean))LOADFUNCT("glSampleCoverage");
-  glScissor = (void (*)(GLint, GLint, GLsizei, GLsizei))LOADFUNCT("glScissor");
-  glShaderBinary = (void (*)(GLsizei, const GLuint *, GLenum, const void *, GLsizei))LOADFUNCT("glShaderBinary");
-  glShaderSource = (void (*)(GLuint, GLsizei, const GLchar *const *, const GLint *))LOADFUNCT("glShaderSource");
-  glStencilFunc = (void (*)(GLenum, GLint, GLuint))LOADFUNCT("glStencilFunc");
-  glStencilFuncSeparate = (void (*)(GLenum, GLenum, GLint, GLuint))LOADFUNCT("glStencilFuncSeparate");
-  glStencilMask = (void (*)(GLuint))LOADFUNCT("glStencilMask");
-  glStencilMaskSeparate = (void (*)(GLenum, GLuint))LOADFUNCT("glStencilMaskSeparate");
-  glStencilOp = (void (*)(GLenum, GLenum, GLenum))LOADFUNCT("glStencilOp");
-  glStencilOpSeparate = (void (*)(GLenum, GLenum, GLenum, GLenum))LOADFUNCT("glStencilOpSeparate");
-  glTexImage2D = (void (*)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *))LOADFUNCT("glTexImage2D");
-  glTexParameterf = (void (*)(GLenum, GLenum, GLfloat))LOADFUNCT("glTexParameterf");
-  glTexParameterfv = (void (*)(GLenum, GLenum, const GLfloat *))LOADFUNCT("glTexParameterfv");
-  glTexParameteri = (void (*)(GLenum, GLenum, GLint))LOADFUNCT("glTexParameteri");
-  glTexParameteriv = (void (*)(GLenum, GLenum, const GLint *))LOADFUNCT("glTexParameteriv");
-  glTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void *))LOADFUNCT("glTexSubImage2D");
-  glUniform1f = (void (*)(GLint, GLfloat))LOADFUNCT("glUniform1f");
-  glUniform1fv = (void (*)(GLint, GLsizei, const GLfloat *))LOADFUNCT("glUniform1fv");
-  glUniform1i = (void (*)(GLint, GLint))LOADFUNCT("glUniform1i");
-  glUniform1iv = (void (*)(GLint, GLsizei, const GLint *))LOADFUNCT("glUniform1iv");
-  glUniform2f = (void (*)(GLint, GLfloat, GLfloat))LOADFUNCT("glUniform2f");
-  glUniform2fv = (void (*)(GLint, GLsizei, const GLfloat *))LOADFUNCT("glUniform2fv");
-  glUniform2i = (void (*)(GLint, GLint, GLint))LOADFUNCT("glUniform2i");
-  glUniform2iv = (void (*)(GLint, GLsizei, const GLint *))LOADFUNCT("glUniform2iv");
-  glUniform3f = (void (*)(GLint, GLfloat, GLfloat, GLfloat))LOADFUNCT("glUniform3f");
-  glUniform3fv = (void (*)(GLint, GLsizei, const GLfloat *))LOADFUNCT("glUniform3fv");
-  glUniform3i = (void (*)(GLint, GLint, GLint, GLint))LOADFUNCT("glUniform3i");
-  glUniform3iv = (void (*)(GLint, GLsizei, const GLint *))LOADFUNCT("glUniform3iv");
-  glUniform4f = (void (*)(GLint, GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glUniform4f");
-  glUniform4fv = (void (*)(GLint, GLsizei, const GLfloat *))LOADFUNCT("glUniform4fv");
-  glUniform4i = (void (*)(GLint, GLint, GLint, GLint, GLint))LOADFUNCT("glUniform4i");
-  glUniform4iv = (void (*)(GLint, GLsizei, const GLint *))LOADFUNCT("glUniform4iv");
-  glUniformMatrix2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix2fv");
-  glUniformMatrix3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix3fv");
-  glUniformMatrix4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix4fv");
-  glUseProgram = (void (*)(GLuint))LOADFUNCT("glUseProgram");
-  glValidateProgram = (void (*)(GLuint))LOADFUNCT("glValidateProgram");
-  glVertexAttrib1f = (void (*)(GLuint, GLfloat))LOADFUNCT("glVertexAttrib1f");
-  glVertexAttrib1fv = (void (*)(GLuint, const GLfloat *))LOADFUNCT("glVertexAttrib1fv");
-  glVertexAttrib2f = (void (*)(GLuint, GLfloat, GLfloat))LOADFUNCT("glVertexAttrib2f");
-  glVertexAttrib2fv = (void (*)(GLuint, const GLfloat *))LOADFUNCT("glVertexAttrib2fv");
-  glVertexAttrib3f = (void (*)(GLuint, GLfloat, GLfloat, GLfloat))LOADFUNCT("glVertexAttrib3f");
-  glVertexAttrib3fv = (void (*)(GLuint, const GLfloat *))LOADFUNCT("glVertexAttrib3fv");
-  glVertexAttrib4f = (void (*)(GLuint, GLfloat, GLfloat, GLfloat, GLfloat))LOADFUNCT("glVertexAttrib4f");
-  glVertexAttrib4fv = (void (*)(GLuint, const GLfloat *))LOADFUNCT("glVertexAttrib4fv");
-  glVertexAttribPointer = (void (*)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *))LOADFUNCT("glVertexAttribPointer");
-  glViewport = (void (*)(GLint, GLint, GLsizei, GLsizei))LOADFUNCT("glViewport");
-  glBufferData = (void (*)(GLenum, GLsizeiptr, const void *, GLenum))LOADFUNCT("glBufferData");
-  glBufferSubData = (void (*)(GLenum, GLintptr, GLsizeiptr, const void *))LOADFUNCT("glBufferSubData");
+  glActiveTexture = (void (*)(GLenum))dlsym(v, "glActiveTexture");
+  glAttachShader = (void (*)(GLuint, GLuint))dlsym(v, "glAttachShader");
+  glBindAttribLocation = (void (*)(GLuint, GLuint, const GLchar *))dlsym(v, "glBindAttribLocation");
+  glBindBuffer = (void (*)(GLenum, GLuint))dlsym(v, "glBindBuffer");
+  glBindFramebuffer = (void (*)(GLenum, GLuint))dlsym(v, "glBindFramebuffer");
+  glBindRenderbuffer = (void (*)(GLenum, GLuint))dlsym(v, "glBindRenderbuffer");
+  glBindTexture = (void (*)(GLenum, GLuint))dlsym(v, "glBindTexture");
+  glBlendColor = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat))dlsym(v, "glBlendColor");
+  glBlendEquation = (void (*)(GLenum))dlsym(v, "glBlendEquation");
+  glBlendEquationSeparate = (void (*)(GLenum, GLenum))dlsym(v, "glBlendEquationSeparate");
+  glBlendFunc = (void (*)(GLenum, GLenum))dlsym(v, "glBlendFunc");
+  glBlendFuncSeparate = (void (*)(GLenum, GLenum, GLenum, GLenum))dlsym(v, "glBlendFuncSeparate");
+  glClear = (void (*)(GLbitfield))dlsym(v, "glClear");
+  glClearColor = (void (*)(GLfloat, GLfloat, GLfloat, GLfloat))dlsym(v, "glClearColor");
+  glClearDepthf = (void (*)(GLfloat))dlsym(v, "glClearDepthf");
+  glClearStencil = (void (*)(GLint))dlsym(v, "glClearStencil");
+  glColorMask = (void (*)(GLboolean, GLboolean, GLboolean, GLboolean))dlsym(v, "glColorMask");
+  glCompileShader = (void (*)(GLuint))dlsym(v, "glCompileShader");
+  glCompressedTexImage2D = (void (*)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint, GLsizei, const void *))dlsym(v, "glCompressedTexImage2D");
+  glCompressedTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLsizei, const void *))dlsym(v, "glCompressedTexSubImage2D");
+  glCopyTexImage2D = (void (*)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))dlsym(v, "glCopyTexImage2D");
+  glCopyTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))dlsym(v, "glCopyTexSubImage2D");
+  glCreateProgram = (GLuint(*)(void))dlsym(v, "glCreateProgram");
+  glCreateShader = (GLuint(*)(GLenum))dlsym(v, "glCreateShader");
+  glCullFace = (void (*)(GLenum))dlsym(v, "glCullFace");
+  glDeleteBuffers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteBuffers");
+  glDeleteFramebuffers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteFramebuffers");
+  glDeleteProgram = (void (*)(GLuint))dlsym(v, "glDeleteProgram");
+  glDeleteRenderbuffers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteRenderbuffers");
+  glDeleteShader = (void (*)(GLuint))dlsym(v, "glDeleteShader");
+  glDeleteTextures = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteTextures");
+  glDepthFunc = (void (*)(GLenum))dlsym(v, "glDepthFunc");
+  glDepthMask = (void (*)(GLboolean))dlsym(v, "glDepthMask");
+  glDepthRangef = (void (*)(GLfloat, GLfloat))dlsym(v, "glDepthRangef");
+  glDetachShader = (void (*)(GLuint, GLuint))dlsym(v, "glDetachShader");
+  glDisable = (void (*)(GLenum))dlsym(v, "glDisable");
+  glDisableVertexAttribArray = (void (*)(GLuint))dlsym(v, "glDisableVertexAttribArray");
+  glDrawArrays = (void (*)(GLenum, GLint, GLsizei))dlsym(v, "glDrawArrays");
+  glDrawElements = (void (*)(GLenum, GLsizei, GLenum, const void *))dlsym(v, "glDrawElements");
+  glEnable = (void (*)(GLenum))dlsym(v, "glEnable");
+  glEnableVertexAttribArray = (void (*)(GLuint))dlsym(v, "glEnableVertexAttribArray");
+  glFinish = (void (*)(void))dlsym(v, "glFinish");
+  glFlush = (void (*)(void))dlsym(v, "glFlush");
+  glFramebufferRenderbuffer = (void (*)(GLenum, GLenum, GLenum, GLuint))dlsym(v, "glFramebufferRenderbuffer");
+  glFramebufferTexture2D = (void (*)(GLenum, GLenum, GLenum, GLuint, GLint))dlsym(v, "glFramebufferTexture2D");
+  glFrontFace = (void (*)(GLenum))dlsym(v, "glFrontFace");
+  glGenBuffers = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenBuffers");
+  glGenerateMipmap = (void (*)(GLenum))dlsym(v, "glGenerateMipmap");
+  glGenFramebuffers = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenFramebuffers");
+  glGenRenderbuffers = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenRenderbuffers");
+  glGenTextures = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenTextures");
+  glGetActiveAttrib = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))dlsym(v, "glGetActiveAttrib");
+  glGetActiveUniform = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))dlsym(v, "glGetActiveUniform");
+  glGetAttachedShaders = (void (*)(GLuint, GLsizei, GLsizei *, GLuint *))dlsym(v, "glGetAttachedShaders");
+  glGetAttribLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetAttribLocation");
+  glGetBooleanv = (void (*)(GLenum, GLboolean *))dlsym(v, "glGetBooleanv");
+  glGetBufferParameteriv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetBufferParameteriv");
+  glGetError = (GLenum(*)(void))dlsym(v, "glGetError");
+  glGetFloatv = (void (*)(GLenum, GLfloat *))dlsym(v, "glGetFloatv");
+  glGetFramebufferAttachmentParameteriv = (void (*)(GLenum, GLenum, GLenum, GLint *))dlsym(v, "glGetFramebufferAttachmentParameteriv");
+  glGetIntegerv = (void (*)(GLenum, GLint *))dlsym(v, "glGetIntegerv");
+  glGetProgramiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetProgramiv");
+  glGetProgramInfoLog = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))dlsym(v, "glGetProgramInfoLog");
+  glGetRenderbufferParameteriv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetRenderbufferParameteriv");
+  glGetShaderiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetShaderiv");
+  glGetShaderInfoLog = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))dlsym(v, "glGetShaderInfoLog");
+  glGetShaderPrecisionFormat = (void (*)(GLenum, GLenum, GLint *, GLint *))dlsym(v, "glGetShaderPrecisionFormat");
+  glGetShaderSource = (void (*)(GLuint, GLsizei, GLsizei *, GLchar *))dlsym(v, "glGetShaderSource");
+  glGetString = (const GLubyte *(*)(GLenum))dlsym(v, "glGetString");
+  glGetTexParameterfv = (void (*)(GLenum, GLenum, GLfloat *))dlsym(v, "glGetTexParameterfv");
+  glGetTexParameteriv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetTexParameteriv");
+  glGetUniformLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetUniformLocation");
+  glGetUniformfv = (void (*)(GLuint, GLint, GLfloat *))dlsym(v, "glGetUniformfv");
+  glGetUniformiv = (void (*)(GLuint, GLint, GLint *))dlsym(v, "glGetUniformiv");
+  glGetVertexAttribfv = (void (*)(GLuint, GLenum, GLfloat *))dlsym(v, "glGetVertexAttribfv");
+  glGetVertexAttribiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetVertexAttribiv");
+  glGetVertexAttribPointerv = (void (*)(GLuint, GLenum, void **))dlsym(v, "glGetVertexAttribPointerv");
+  glHint = (void (*)(GLenum, GLenum))dlsym(v, "glHint");
+  glIsBuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsBuffer");
+  glIsEnabled = (GLboolean(*)(GLenum))dlsym(v, "glIsEnabled");
+  glIsFramebuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsFramebuffer");
+  glIsProgram = (GLboolean(*)(GLuint))dlsym(v, "glIsProgram");
+  glIsRenderbuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsRenderbuffer");
+  glIsShader = (GLboolean(*)(GLuint))dlsym(v, "glIsShader");
+  glIsTexture = (GLboolean(*)(GLuint))dlsym(v, "glIsTexture");
+  glLineWidth = (void (*)(GLfloat))dlsym(v, "glLineWidth");
+  glLinkProgram = (void (*)(GLuint))dlsym(v, "glLinkProgram");
+  glPixelStorei = (void (*)(GLenum, GLint))dlsym(v, "glPixelStorei");
+  glPolygonOffset = (void (*)(GLfloat, GLfloat))dlsym(v, "glPolygonOffset");
+  glReadPixels = (void (*)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, void *))dlsym(v, "glReadPixels");
+  glReleaseShaderCompiler = (void (*)(void))dlsym(v, "glReleaseShaderCompiler");
+  glRenderbufferStorage = (void (*)(GLenum, GLenum, GLsizei, GLsizei))dlsym(v, "glRenderbufferStorage");
+  glSampleCoverage = (void (*)(GLfloat, GLboolean))dlsym(v, "glSampleCoverage");
+  glScissor = (void (*)(GLint, GLint, GLsizei, GLsizei))dlsym(v, "glScissor");
+  glShaderBinary = (void (*)(GLsizei, const GLuint *, GLenum, const void *, GLsizei))dlsym(v, "glShaderBinary");
+  glShaderSource = (void (*)(GLuint, GLsizei, const GLchar *const *, const GLint *))dlsym(v, "glShaderSource");
+  glStencilFunc = (void (*)(GLenum, GLint, GLuint))dlsym(v, "glStencilFunc");
+  glStencilFuncSeparate = (void (*)(GLenum, GLenum, GLint, GLuint))dlsym(v, "glStencilFuncSeparate");
+  glStencilMask = (void (*)(GLuint))dlsym(v, "glStencilMask");
+  glStencilMaskSeparate = (void (*)(GLenum, GLuint))dlsym(v, "glStencilMaskSeparate");
+  glStencilOp = (void (*)(GLenum, GLenum, GLenum))dlsym(v, "glStencilOp");
+  glStencilOpSeparate = (void (*)(GLenum, GLenum, GLenum, GLenum))dlsym(v, "glStencilOpSeparate");
+  glTexImage2D = (void (*)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *))dlsym(v, "glTexImage2D");
+  glTexParameterf = (void (*)(GLenum, GLenum, GLfloat))dlsym(v, "glTexParameterf");
+  glTexParameterfv = (void (*)(GLenum, GLenum, const GLfloat *))dlsym(v, "glTexParameterfv");
+  glTexParameteri = (void (*)(GLenum, GLenum, GLint))dlsym(v, "glTexParameteri");
+  glTexParameteriv = (void (*)(GLenum, GLenum, const GLint *))dlsym(v, "glTexParameteriv");
+  glTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, const void *))dlsym(v, "glTexSubImage2D");
+  glUniform1f = (void (*)(GLint, GLfloat))dlsym(v, "glUniform1f");
+  glUniform1fv = (void (*)(GLint, GLsizei, const GLfloat *))dlsym(v, "glUniform1fv");
+  glUniform1i = (void (*)(GLint, GLint))dlsym(v, "glUniform1i");
+  glUniform1iv = (void (*)(GLint, GLsizei, const GLint *))dlsym(v, "glUniform1iv");
+  glUniform2f = (void (*)(GLint, GLfloat, GLfloat))dlsym(v, "glUniform2f");
+  glUniform2fv = (void (*)(GLint, GLsizei, const GLfloat *))dlsym(v, "glUniform2fv");
+  glUniform2i = (void (*)(GLint, GLint, GLint))dlsym(v, "glUniform2i");
+  glUniform2iv = (void (*)(GLint, GLsizei, const GLint *))dlsym(v, "glUniform2iv");
+  glUniform3f = (void (*)(GLint, GLfloat, GLfloat, GLfloat))dlsym(v, "glUniform3f");
+  glUniform3fv = (void (*)(GLint, GLsizei, const GLfloat *))dlsym(v, "glUniform3fv");
+  glUniform3i = (void (*)(GLint, GLint, GLint, GLint))dlsym(v, "glUniform3i");
+  glUniform3iv = (void (*)(GLint, GLsizei, const GLint *))dlsym(v, "glUniform3iv");
+  glUniform4f = (void (*)(GLint, GLfloat, GLfloat, GLfloat, GLfloat))dlsym(v, "glUniform4f");
+  glUniform4fv = (void (*)(GLint, GLsizei, const GLfloat *))dlsym(v, "glUniform4fv");
+  glUniform4i = (void (*)(GLint, GLint, GLint, GLint, GLint))dlsym(v, "glUniform4i");
+  glUniform4iv = (void (*)(GLint, GLsizei, const GLint *))dlsym(v, "glUniform4iv");
+  glUniformMatrix2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix2fv");
+  glUniformMatrix3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix3fv");
+  glUniformMatrix4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix4fv");
+  glUseProgram = (void (*)(GLuint))dlsym(v, "glUseProgram");
+  glValidateProgram = (void (*)(GLuint))dlsym(v, "glValidateProgram");
+  glVertexAttrib1f = (void (*)(GLuint, GLfloat))dlsym(v, "glVertexAttrib1f");
+  glVertexAttrib1fv = (void (*)(GLuint, const GLfloat *))dlsym(v, "glVertexAttrib1fv");
+  glVertexAttrib2f = (void (*)(GLuint, GLfloat, GLfloat))dlsym(v, "glVertexAttrib2f");
+  glVertexAttrib2fv = (void (*)(GLuint, const GLfloat *))dlsym(v, "glVertexAttrib2fv");
+  glVertexAttrib3f = (void (*)(GLuint, GLfloat, GLfloat, GLfloat))dlsym(v, "glVertexAttrib3f");
+  glVertexAttrib3fv = (void (*)(GLuint, const GLfloat *))dlsym(v, "glVertexAttrib3fv");
+  glVertexAttrib4f = (void (*)(GLuint, GLfloat, GLfloat, GLfloat, GLfloat))dlsym(v, "glVertexAttrib4f");
+  glVertexAttrib4fv = (void (*)(GLuint, const GLfloat *))dlsym(v, "glVertexAttrib4fv");
+  glVertexAttribPointer = (void (*)(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *))dlsym(v, "glVertexAttribPointer");
+  glViewport = (void (*)(GLint, GLint, GLsizei, GLsizei))dlsym(v, "glViewport");
+  glBufferData = (void (*)(GLenum, GLsizeiptr, const void *, GLenum))dlsym(v, "glBufferData");
+  glBufferSubData = (void (*)(GLenum, GLintptr, GLsizeiptr, const void *))dlsym(v, "glBufferSubData");
 
   // --- GL ES 3.0 Core Functions ---
-  glReadBuffer = (void (*)(GLenum))LOADFUNCT("glReadBuffer");
-  glDrawRangeElements = (void (*)(GLenum, GLuint, GLuint, GLsizei, GLenum, const void *))LOADFUNCT("glDrawRangeElements");
-  glTexImage3D = (void (*)(GLenum, GLint, GLint, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *))LOADFUNCT("glTexImage3D");
-  glTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const void *))LOADFUNCT("glTexSubImage3D");
-  glCopyTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))LOADFUNCT("glCopyTexSubImage3D");
-  glCompressedTexImage3D = (void (*)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLsizei, const void *))LOADFUNCT("glCompressedTexImage3D");
-  glCompressedTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLsizei, const void *))LOADFUNCT("glCompressedTexSubImage3D");
-  glGenQueries = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenQueries");
-  glDeleteQueries = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteQueries");
-  glIsQuery = (GLboolean(*)(GLuint))LOADFUNCT("glIsQuery");
-  glBeginQuery = (void (*)(GLenum, GLuint))LOADFUNCT("glBeginQuery");
-  glEndQuery = (void (*)(GLenum))LOADFUNCT("glEndQuery");
-  glGetQueryiv = (void (*)(GLenum, GLenum, GLint *))LOADFUNCT("glGetQueryiv");
-  glGetQueryObjectuiv = (void (*)(GLuint, GLenum, GLuint *))LOADFUNCT("glGetQueryObjectuiv");
-  glUnmapBuffer = (void (*)(GLenum))LOADFUNCT("glUnmapBuffer");
-  glMapBufferRange = (const void *(*)(GLenum, GLintptr, GLsizeiptr, GLbitfield))LOADFUNCT("glMapBufferRange");
-  glFlushMappedBufferRange = (void (*)(GLenum, GLintptr, GLsizeiptr))LOADFUNCT("glFlushMappedBufferRange");
-  glGenSamplers = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenSamplers");
-  glDeleteSamplers = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteSamplers");
-  glIsSampler = (GLboolean(*)(GLuint))LOADFUNCT("glIsSampler");
-  glBindSampler = (void (*)(GLuint, GLuint))LOADFUNCT("glBindSampler");
-  glSamplerParameterf = (void (*)(GLuint, GLenum, GLfloat))LOADFUNCT("glSamplerParameterf");
-  glSamplerParameterfv = (void (*)(GLuint, GLenum, const GLfloat *))LOADFUNCT("glSamplerParameterfv");
-  glSamplerParameteri = (void (*)(GLuint, GLenum, GLint))LOADFUNCT("glSamplerParameteri");
-  glSamplerParameteriv = (void (*)(GLuint, GLenum, const GLint *))LOADFUNCT("glSamplerParameteriv");
-  glGetSamplerParameterfv = (void (*)(GLuint, GLenum, GLfloat *))LOADFUNCT("glGetSamplerParameterfv");
-  glGetSamplerParameteriv = (void (*)(GLuint, GLenum, GLint *))LOADFUNCT("glGetSamplerParameteriv");
-  glVertexAttribDivisor = (void (*)(GLuint, GLuint))LOADFUNCT("glVertexAttribDivisor");
-  glBindTransformFeedback = (void (*)(GLenum, GLuint))LOADFUNCT("glBindTransformFeedback");
-  glDeleteTransformFeedbacks = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteTransformFeedbacks");
-  glIsTransformFeedback = (GLboolean(*)(GLuint))LOADFUNCT("glIsTransformFeedback");
-  glGenTransformFeedbacks = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenTransformFeedbacks");
-  glPauseTransformFeedback = (void (*)(void))LOADFUNCT("glPauseTransformFeedback");
-  glResumeTransformFeedback = (void (*)(void))LOADFUNCT("glResumeTransformFeedback");
-  glBeginTransformFeedback = (void (*)(GLenum))LOADFUNCT("glBeginTransformFeedback");
-  glEndTransformFeedback = (void (*)(void))LOADFUNCT("glEndTransformFeedback");
-  glTransformFeedbackVaryings = (void (*)(GLuint, GLsizei, const GLchar *const *, GLenum))LOADFUNCT("glTransformFeedbackVaryings");
-  glGetTransformFeedbackVarying = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLsizei *, GLenum *, GLchar *))LOADFUNCT("glGetTransformFeedbackVarying");
-  glBindBufferRange = (void (*)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr))LOADFUNCT("glBindBufferRange");
-  glBindBufferBase = (void (*)(GLenum, GLuint, GLuint))LOADFUNCT("glBindBufferBase");
-  glGetActiveUniformBlockName = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetActiveUniformBlockName");
-  glGetActiveUniformBlockiv = (void (*)(GLuint, GLuint, GLenum, GLint *))LOADFUNCT("glGetActiveUniformBlockiv");
-  glGetUniformBlockIndex = (void (*)(GLuint, const GLchar *))LOADFUNCT("glGetUniformBlockIndex");
-  glUniformBlockBinding = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glUniformBlockBinding");
-  glGetUniformIndices = (void (*)(GLuint, GLsizei, const GLchar *const *, GLuint *))LOADFUNCT("glGetUniformIndices");
-  glGetActiveUniformsiv = (void (*)(GLuint, GLsizei, const GLuint *, GLenum, GLint *))LOADFUNCT("glGetActiveUniformsiv");
-  glFenceSync = (GLsync(*)(GLenum, GLbitfield))LOADFUNCT("glFenceSync");
-  glIsSync = (GLboolean(*)(GLsync))LOADFUNCT("glIsSync");
-  glDeleteSync = (void (*)(GLsync))LOADFUNCT("glDeleteSync");
-  glClientWaitSync = (GLenum(*)(GLsync, GLbitfield, GLuint64))LOADFUNCT("glClientWaitSync");
-  glWaitSync = (void (*)(GLsync, GLbitfield, GLuint64))LOADFUNCT("glWaitSync");
-  glGetInteger64v = (void (*)(GLenum, GLint64 *))LOADFUNCT("glGetInteger64v");
-  glGetSynciv = (void (*)(GLsync, GLenum, GLsizei, GLsizei *, GLint *))LOADFUNCT("glGetSynciv");
-  glCopyBufferSubData = (void (*)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr))LOADFUNCT("glCopyBufferSubData");
-  glGetBufferParameteri64v = (void (*)(GLenum, GLenum, GLint64 *))LOADFUNCT("glGetBufferParameteri64v");
-  glBlitFramebuffer = (void (*)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))LOADFUNCT("glBlitFramebuffer");
-  glCheckFramebufferStatus = (GLenum(*)(GLenum))LOADFUNCT("glCheckFramebufferStatus");
-  glDrawArraysInstanced = (void (*)(GLenum, GLint, GLsizei, GLsizei))LOADFUNCT("glDrawArraysInstanced");
-  glDrawElementsInstanced = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei))LOADFUNCT("glDrawElementsInstanced");
-  glFramebufferTextureLayer = (void (*)(GLenum, GLenum, GLuint, GLint, GLint))LOADFUNCT("glFramebufferTextureLayer");
-  glGetIntegeri_v = (void (*)(GLenum, GLuint, GLint *))LOADFUNCT("glGetIntegeri_v");
-  glGetProgramBinary = (void (*)(GLuint, GLsizei, GLsizei *, GLenum *, void *))LOADFUNCT("glGetProgramBinary");
-  glGetStringi = (const GLubyte *(*)(GLenum, GLuint))LOADFUNCT("glGetStringi");
-  glProgramBinary = (void (*)(GLuint, GLenum, const void *, GLsizei))LOADFUNCT("glProgramBinary");
-  glProgramParameteri = (void (*)(GLuint, GLenum, GLint))LOADFUNCT("glProgramParameteri");
-  glTexStorage2D = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei))LOADFUNCT("glTexStorage2D");
-  glTexStorage3D = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei))LOADFUNCT("glTexStorage3D");
-  glUniformMatrix2x3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix2x3fv");
-  glUniformMatrix3x2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix3x2fv");
-  glUniformMatrix2x4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix2x4fv");
-  glUniformMatrix4x2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix4x2fv");
-  glUniformMatrix3x4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix3x4fv");
-  glUniformMatrix4x3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))LOADFUNCT("glUniformMatrix4x3fv");
-  glVertexAttribI4i = (void (*)(GLuint, GLint, GLint, GLint, GLint))LOADFUNCT("glVertexAttribI4i");
-  glVertexAttribI4iv = (void (*)(GLuint, const GLint *))LOADFUNCT("glVertexAttribI4iv");
-  glVertexAttribI4ui = (void (*)(GLuint, GLuint, GLuint, GLuint, GLuint))LOADFUNCT("glVertexAttribI4ui");
-  glVertexAttribI4uiv = (void (*)(GLuint, const GLuint *))LOADFUNCT("glVertexAttribI4uiv");
-  glVertexAttribIPointer = (void (*)(GLuint, GLint, GLenum, GLsizei, const void *))LOADFUNCT("glVertexAttribIPointer");
-  glGetVertexAttribIiv = (void (*)(GLuint, GLenum, GLint *))LOADFUNCT("glGetVertexAttribIiv");
-  glGetVertexAttribIuiv = (void (*)(GLuint, GLenum, GLuint *))LOADFUNCT("glGetVertexAttribIuiv");
-  glGetFragDataLocation = (GLint(*)(GLuint, const GLchar *))LOADFUNCT("glGetFragDataLocation");
-  glGenVertexArrays = (void (*)(GLsizei, GLuint *))LOADFUNCT("glGenVertexArrays");
-  glBindVertexArray = (void (*)(GLuint))LOADFUNCT("glBindVertexArray");
-  glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))LOADFUNCT("glDeleteVertexArrays");
+  glReadBuffer = (void (*)(GLenum))dlsym(v, "glReadBuffer");
+  glDrawRangeElements = (void (*)(GLenum, GLuint, GLuint, GLsizei, GLenum, const void *))dlsym(v, "glDrawRangeElements");
+  glTexImage3D = (void (*)(GLenum, GLint, GLint, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const void *))dlsym(v, "glTexImage3D");
+  glTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const void *))dlsym(v, "glTexSubImage3D");
+  glCopyTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))dlsym(v, "glCopyTexSubImage3D");
+  glCompressedTexImage3D = (void (*)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLsizei, const void *))dlsym(v, "glCompressedTexImage3D");
+  glCompressedTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLsizei, const void *))dlsym(v, "glCompressedTexSubImage3D");
+  glGenQueries = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenQueries");
+  glDeleteQueries = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteQueries");
+  glIsQuery = (GLboolean(*)(GLuint))dlsym(v, "glIsQuery");
+  glBeginQuery = (void (*)(GLenum, GLuint))dlsym(v, "glBeginQuery");
+  glEndQuery = (void (*)(GLenum))dlsym(v, "glEndQuery");
+  glGetQueryiv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetQueryiv");
+  glGetQueryObjectuiv = (void (*)(GLuint, GLenum, GLuint *))dlsym(v, "glGetQueryObjectuiv");
+  glUnmapBuffer = (void (*)(GLenum))dlsym(v, "glUnmapBuffer");
+  glMapBufferRange = (const void *(*)(GLenum, GLintptr, GLsizeiptr, GLbitfield))dlsym(v, "glMapBufferRange");
+  glFlushMappedBufferRange = (void (*)(GLenum, GLintptr, GLsizeiptr))dlsym(v, "glFlushMappedBufferRange");
+  glGenSamplers = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenSamplers");
+  glDeleteSamplers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteSamplers");
+  glIsSampler = (GLboolean(*)(GLuint))dlsym(v, "glIsSampler");
+  glBindSampler = (void (*)(GLuint, GLuint))dlsym(v, "glBindSampler");
+  glSamplerParameterf = (void (*)(GLuint, GLenum, GLfloat))dlsym(v, "glSamplerParameterf");
+  glSamplerParameterfv = (void (*)(GLuint, GLenum, const GLfloat *))dlsym(v, "glSamplerParameterfv");
+  glSamplerParameteri = (void (*)(GLuint, GLenum, GLint))dlsym(v, "glSamplerParameteri");
+  glSamplerParameteriv = (void (*)(GLuint, GLenum, const GLint *))dlsym(v, "glSamplerParameteriv");
+  glGetSamplerParameterfv = (void (*)(GLuint, GLenum, GLfloat *))dlsym(v, "glGetSamplerParameterfv");
+  glGetSamplerParameteriv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetSamplerParameteriv");
+  glVertexAttribDivisor = (void (*)(GLuint, GLuint))dlsym(v, "glVertexAttribDivisor");
+  glBindTransformFeedback = (void (*)(GLenum, GLuint))dlsym(v, "glBindTransformFeedback");
+  glDeleteTransformFeedbacks = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteTransformFeedbacks");
+  glIsTransformFeedback = (GLboolean(*)(GLuint))dlsym(v, "glIsTransformFeedback");
+  glGenTransformFeedbacks = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenTransformFeedbacks");
+  glPauseTransformFeedback = (void (*)(void))dlsym(v, "glPauseTransformFeedback");
+  glResumeTransformFeedback = (void (*)(void))dlsym(v, "glResumeTransformFeedback");
+  glBeginTransformFeedback = (void (*)(GLenum))dlsym(v, "glBeginTransformFeedback");
+  glEndTransformFeedback = (void (*)(void))dlsym(v, "glEndTransformFeedback");
+  glTransformFeedbackVaryings = (void (*)(GLuint, GLsizei, const GLchar *const *, GLenum))dlsym(v, "glTransformFeedbackVaryings");
+  glGetTransformFeedbackVarying = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLsizei *, GLenum *, GLchar *))dlsym(v, "glGetTransformFeedbackVarying");
+  glBindBufferRange = (void (*)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr))dlsym(v, "glBindBufferRange");
+  glBindBufferBase = (void (*)(GLenum, GLuint, GLuint))dlsym(v, "glBindBufferBase");
+  glGetActiveUniformBlockName = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLchar *))dlsym(v, "glGetActiveUniformBlockName");
+  glGetActiveUniformBlockiv = (void (*)(GLuint, GLuint, GLenum, GLint *))dlsym(v, "glGetActiveUniformBlockiv");
+  glGetUniformBlockIndex = (void (*)(GLuint, const GLchar *))dlsym(v, "glGetUniformBlockIndex");
+  glUniformBlockBinding = (void (*)(GLuint, GLuint, GLuint))dlsym(v, "glUniformBlockBinding");
+  glGetUniformIndices = (void (*)(GLuint, GLsizei, const GLchar *const *, GLuint *))dlsym(v, "glGetUniformIndices");
+  glGetActiveUniformsiv = (void (*)(GLuint, GLsizei, const GLuint *, GLenum, GLint *))dlsym(v, "glGetActiveUniformsiv");
+  glFenceSync = (GLsync(*)(GLenum, GLbitfield))dlsym(v, "glFenceSync");
+  glIsSync = (GLboolean(*)(GLsync))dlsym(v, "glIsSync");
+  glDeleteSync = (void (*)(GLsync))dlsym(v, "glDeleteSync");
+  glClientWaitSync = (GLenum(*)(GLsync, GLbitfield, GLuint64))dlsym(v, "glClientWaitSync");
+  glWaitSync = (void (*)(GLsync, GLbitfield, GLuint64))dlsym(v, "glWaitSync");
+  glGetInteger64v = (void (*)(GLenum, GLint64 *))dlsym(v, "glGetInteger64v");
+  glGetSynciv = (void (*)(GLsync, GLenum, GLsizei, GLsizei *, GLint *))dlsym(v, "glGetSynciv");
+  glCopyBufferSubData = (void (*)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr))dlsym(v, "glCopyBufferSubData");
+  glGetBufferParameteri64v = (void (*)(GLenum, GLenum, GLint64 *))dlsym(v, "glGetBufferParameteri64v");
+  glBlitFramebuffer = (void (*)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))dlsym(v, "glBlitFramebuffer");
+  glCheckFramebufferStatus = (GLenum(*)(GLenum))dlsym(v, "glCheckFramebufferStatus");
+  glDrawArraysInstanced = (void (*)(GLenum, GLint, GLsizei, GLsizei))dlsym(v, "glDrawArraysInstanced");
+  glDrawElementsInstanced = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei))dlsym(v, "glDrawElementsInstanced");
+  glFramebufferTextureLayer = (void (*)(GLenum, GLenum, GLuint, GLint, GLint))dlsym(v, "glFramebufferTextureLayer");
+  glGetIntegeri_v = (void (*)(GLenum, GLuint, GLint *))dlsym(v, "glGetIntegeri_v");
+  glGetProgramBinary = (void (*)(GLuint, GLsizei, GLsizei *, GLenum *, void *))dlsym(v, "glGetProgramBinary");
+  glGetStringi = (const GLubyte *(*)(GLenum, GLuint))dlsym(v, "glGetStringi");
+  glProgramBinary = (void (*)(GLuint, GLenum, const void *, GLsizei))dlsym(v, "glProgramBinary");
+  glProgramParameteri = (void (*)(GLuint, GLenum, GLint))dlsym(v, "glProgramParameteri");
+  glTexStorage2D = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei))dlsym(v, "glTexStorage2D");
+  glTexStorage3D = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei))dlsym(v, "glTexStorage3D");
+  glUniformMatrix2x3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix2x3fv");
+  glUniformMatrix3x2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix3x2fv");
+  glUniformMatrix2x4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix2x4fv");
+  glUniformMatrix4x2fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix4x2fv");
+  glUniformMatrix3x4fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix3x4fv");
+  glUniformMatrix4x3fv = (void (*)(GLint, GLsizei, GLboolean, const GLfloat *))dlsym(v, "glUniformMatrix4x3fv");
+  glVertexAttribI4i = (void (*)(GLuint, GLint, GLint, GLint, GLint))dlsym(v, "glVertexAttribI4i");
+  glVertexAttribI4iv = (void (*)(GLuint, const GLint *))dlsym(v, "glVertexAttribI4iv");
+  glVertexAttribI4ui = (void (*)(GLuint, GLuint, GLuint, GLuint, GLuint))dlsym(v, "glVertexAttribI4ui");
+  glVertexAttribI4uiv = (void (*)(GLuint, const GLuint *))dlsym(v, "glVertexAttribI4uiv");
+  glVertexAttribIPointer = (void (*)(GLuint, GLint, GLenum, GLsizei, const void *))dlsym(v, "glVertexAttribIPointer");
+  glGetVertexAttribIiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetVertexAttribIiv");
+  glGetVertexAttribIuiv = (void (*)(GLuint, GLenum, GLuint *))dlsym(v, "glGetVertexAttribIuiv");
+  glGetFragDataLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetFragDataLocation");
+  glGenVertexArrays = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenVertexArrays");
+  glBindVertexArray = (void (*)(GLuint))dlsym(v, "glBindVertexArray");
+  glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteVertexArrays");
   /*
     // --- GL ES 3.1 Core Functions ---
-    glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glDispatchCompute");
-    glDispatchComputeIndirect = (void (*)(GLintptr))LOADFUNCT("glDispatchComputeIndirect");
-    glDrawArraysIndirect = (void (*)(GLenum, const void *))LOADFUNCT("glDrawArraysIndirect");
-    glDrawElementsIndirect = (void (*)(GLenum, GLenum, const void *))LOADFUNCT("glDrawElementsIndirect");
-    glFramebufferTexture = (void (*)(GLenum, GLenum, GLuint, GLint))LOADFUNCT("glFramebufferTexture");
-    glGetProgramResourceIndex = (void (*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceIndex");
-    glGetProgramResourceName = (void (*)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *))LOADFUNCT("glGetProgramResourceName");
-    glGetProgramResourceiv = (void (*)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *))LOADFUNCT("glGetProgramResourceiv");
-    glGetProgramResourceLocation = (GLint(*)(GLuint, GLenum, const GLchar *))LOADFUNCT("glGetProgramResourceLocation");
-    glShaderStorageBlockBinding = (void (*)(GLuint, GLuint, GLuint))LOADFUNCT("glShaderStorageBlockBinding");
-    glTexBuffer = (void (*)(GLenum, GLenum, GLuint))LOADFUNCT("glTexBuffer");
-    glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))LOADFUNCT("glTexBufferRange");
-    glTexImage2DMultisample = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))LOADFUNCT("glTexImage2DMultisample");
+    glDispatchCompute = (void (*)(GLuint, GLuint, GLuint))dlsym(v, "glDispatchCompute");
+    glDispatchComputeIndirect = (void (*)(GLintptr))dlsym(v, "glDispatchComputeIndirect");
+    glDrawArraysIndirect = (void (*)(GLenum, const void *))dlsym(v, "glDrawArraysIndirect");
+    glDrawElementsIndirect = (void (*)(GLenum, GLenum, const void *))dlsym(v, "glDrawElementsIndirect");
+    glFramebufferTexture = (void (*)(GLenum, GLenum, GLuint, GLint))dlsym(v, "glFramebufferTexture");
+    glGetProgramResourceIndex = (void (*)(GLuint, GLenum, const GLchar *))dlsym(v, "glGetProgramResourceIndex");
+    glGetProgramResourceName = (void (*)(GLuint, GLenum, GLuint, GLsizei, GLsizei *, GLchar *))dlsym(v, "glGetProgramResourceName");
+    glGetProgramResourceiv = (void (*)(GLuint, GLenum, GLuint, GLsizei, const GLenum *, GLsizei, GLsizei *, GLint *))dlsym(v, "glGetProgramResourceiv");
+    glGetProgramResourceLocation = (GLint(*)(GLuint, GLenum, const GLchar *))dlsym(v, "glGetProgramResourceLocation");
+    glShaderStorageBlockBinding = (void (*)(GLuint, GLuint, GLuint))dlsym(v, "glShaderStorageBlockBinding");
+    glTexBuffer = (void (*)(GLenum, GLenum, GLuint))dlsym(v, "glTexBuffer");
+    glTexBufferRange = (void (*)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr))dlsym(v, "glTexBufferRange");
+    glTexImage2DMultisample = (void (*)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLboolean))dlsym(v, "glTexImage2DMultisample");
   */
-  return gleslib;
-load_gles_err:
-  dlclose(gleslib);
-load_gles_err_e:
-  return NULL;
-#undef LOADFUNCT
+  return v;
 }
 
 // END IMPLEMENTS OPENGL ES
@@ -1760,8 +1741,10 @@ static void checkCompileShader(GLint X) {
 }
 
 #define check(X) \
-  X;             \
-  getErrorGL(#X)
+  do {\
+    X;             \
+    getErrorGL(#X); \
+  } while (0)
 #define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
 // mesh flags for uniform update
@@ -1801,6 +1784,7 @@ static struct androidGraphics {
   EGLSurface surface;
   EGLContext context;
   EGLConfig eConfig;
+  int supportEXT;
   int flags;
 
   struct {
@@ -2027,6 +2011,7 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
+extern void assetBuffer (const char*,void*,int*);
 static int opengles_preRender(void) {
   if (!src->window)
     return 0;
@@ -2068,6 +2053,7 @@ static int opengles_preRender(void) {
         EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
         EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
         EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
+        EGL_CONFIG_EVA(EGL_SAMPLES);
         // TODO: and more attributes
 #undef EGL_CONFIG_EVA
         if (l > k) {
@@ -2092,6 +2078,31 @@ static int opengles_preRender(void) {
         return 0;
       }
     }
+    if (!src->supportEXT) {
+      GLint tempi, i;
+      // TODO: more extension support
+      glGetIntegerv(GL_NUM_EXTENSIONS, &tempi);
+      for (i = 0; i < tempi; ++i) {
+        if (!strcmp(glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv")) break;
+      }
+      if (i == tempi) {
+        LOGE("Opengles doesn't support SPIR-V shader binary format.");
+        return 0;
+      }
+      // shader binary formats
+      glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &tempi);
+      GLint *shaderFormat = (GLint*)malloc(sizeof(GLint) * tempi);
+      glGetIntegerv(GL_SHADER_BINARY_FORMATS, shaderFormat);
+      for (i = 0; i < tempi; ++i) {
+        if (shaderFormat[i] == GL_SHADER_BINARY_FORMAT_SPIR_V) break;
+      }
+      free (shaderFormat);
+      if (i == tempi) {
+        LOGE("Opengles doesn't support SPIR-V shader binary format.");
+        return 0;
+      }
+      src->supportEXT = 1;
+    }
     eglMakeCurrent(src->display, src->surface, src->surface, src->context);
     if (!textures[0].id) {
       // when validate, projection need to be update
@@ -2108,120 +2119,68 @@ static int opengles_preRender(void) {
       // enable blend
       check(glEnable(GL_BLEND));
       check(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-      // flat draw
       {
-        src->ui.shader = check(glCreateProgram());
-        GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-        const char *vt = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nuniform mat4 u_proj;"
-                         "\nlayout(location = 0) in vec4 a_position;"
-                         "\nlayout(location = 1) in vec2 a_texCoord;"
-                         "\nout vec2 v_texCoord;"
-                         "\nvoid main() {"
-                         "\n    v_texCoord = a_texCoord;"
-                         "\n    gl_Position = u_proj * a_position;"
-                         "\n}";
-        check(glShaderSource(vi, 1, &vt, 0));
-        checkCompileShader(vi);
-        check(glAttachShader(src->ui.shader, vi));
-        GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-        const char *ft = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nprecision MED float;"
-                         "\nuniform sampler2D u_tex;"
-                         "\nin vec2 v_texCoord;"
-                         "\nlayout(location = 0) out vec4 fragColor;"
-                         "\nvoid main() {"
-                         "\n    fragColor = texture(u_tex, v_texCoord);"
-                         "\n}";
-        check(glShaderSource(fi, 1, &ft, 0));
-        checkCompileShader(fi);
-        check(glAttachShader(src->ui.shader, fi));
-        checkLinkProgram(src->ui.shader);
-        check(glDeleteShader(vi));
-        check(glDeleteShader(fi));
-        src->ui.uniform_proj = check(glGetUniformLocation(src->ui.shader, "u_proj"));
-        src->ui.uniform_tex = check(glGetUniformLocation(src->ui.shader, "u_tex"));
-        check(glGenVertexArrays(1, &src->ui.vao));
-        check(glGenBuffers(2, &src->ui.vbo));
-        check(glBindVertexArray(src->ui.vao));
-        unsigned short indexs[MAX_UI_DRAW * 6];
-        for (unsigned short i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
-          indexs[j] = k++;
-          indexs[j + 1] = indexs[j + 5] = k++;
-          indexs[j + 2] = indexs[j + 4] = k++;
-          indexs[j + 3] = k++;
+        void *temp_buf = malloc(0xfffff);
+        int temp_buf_l;
+        GLuint vi, fi;
+        // flat draw
+        {
+          check(src->ui.shader = glCreateProgram());
+          check(vi = glCreateShader(GL_VERTEX_SHADER));
+          assetBuffer("assets/shaders/flatdraw.vert.spirv", temp_buf, &temp_buf_l);
+          check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          checkCompileShader(vi);
+          check(glAttachShader(src->ui.shader, vi));
+          check(fi = glCreateShader(GL_FRAGMENT_SHADER));
+          assetBuffer("assets/shaders/flatdraw.frag.spirv", temp_buf, &temp_buf_l);
+          check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          checkCompileShader(fi);
+          check(glAttachShader(src->ui.shader, fi));
+          checkLinkProgram(src->ui.shader);
+          check(glDeleteShader(vi));
+          check(glDeleteShader(fi));
+          check(src->ui.uniform_proj = glGetUniformLocation(src->ui.shader, "u_proj"));
+          check(src->ui.uniform_tex = glGetUniformLocation(src->ui.shader, "u_tex"));
+          check(glGenVertexArrays(1, &src->ui.vao));
+          check(glGenBuffers(2, &src->ui.vbo));
+          check(glBindVertexArray(src->ui.vao));
+          uint16_t *indexs = (uint16_t)temp_buf;
+          // 0, 1, 2, 3, 2, 1
+          for (uint16_t i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
+            indexs[j] = k++;
+            indexs[j + 1] = indexs[j + 5] = k++;
+            indexs[j + 2] = indexs[j + 4] = k++;
+            indexs[j + 3] = k++;
+          }
+          check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
+          check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(uint16_t), temp_buf, GL_STATIC_DRAW));
+          check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
+          check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
+          check(glEnableVertexAttribArray(0));
+          check(glEnableVertexAttribArray(1));
+          check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)0));
+          check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)sizeof(vec2)));
         }
-        // 0, 1, 2, 3, 2, 1
-        check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
-        check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void *)indexs, GL_STATIC_DRAW));
-        check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
-        check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
-        check(glEnableVertexAttribArray(0));
-        check(glEnableVertexAttribArray(1));
-        check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)0));
-        check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)sizeof(vec2)));
-      }
-      // world draw
-      {
-        src->world.shader = check(glCreateProgram());
-        GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-        const char *vt = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nuniform mat4 worldview_proj;"
-                         "\nuniform mat4 trans_proj;"
-                         "\nlayout(location = 0) in vec4 a_position;"
-                         "\nlayout(location = 1) in vec4 a_color;"
-                         "\nout vec4 v_color;"
-                         "\nvoid main() {"
-                         "\n    v_color = a_color;"
-                         "\n    gl_Position = worldview_proj * trans_proj * a_position;"
-                         "\n}";
-        check(glShaderSource(vi, 1, &vt, 0));
-        checkCompileShader(vi);
-        check(glAttachShader(src->world.shader, vi));
-        GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-        const char *ft = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nprecision MED float;"
-                         "\nin vec4 v_color;"
-                         "\nlayout(location = 0) out vec4 fragColor;"
-                         "\nvoid main() {"
-                         "\n    fragColor = v_color;"
-                         "\n}";
-        check(glShaderSource(fi, 1, &ft, 0));
-        checkCompileShader(fi);
-        check(glAttachShader(src->world.shader, fi));
-        checkLinkProgram(src->world.shader);
-        check(glDeleteShader(vi));
-        check(glDeleteShader(fi));
-        src->world.uniform_proj = check(glGetUniformLocation(src->world.shader, "worldview_proj"));
-        src->world.uniform_transProj = check(glGetUniformLocation(src->world.shader, "trans_proj"));
+        // world draw
+        {
+          check(src->world.shader = glCreateProgram());
+          check(vi = glCreateShader(GL_VERTEX_SHADER));
+          assetBuffer("assets/shaders/worlddraw.vert.spirv", temp_buf, &temp_buf_l);
+          check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          checkCompileShader(vi);
+          check(glAttachShader(src->world.shader, vi));
+          check(fi = glCreateShader(GL_FRAGMENT_SHADER));
+          assetBuffer("assets/shaders/worlddraw.frag.spirv", temp_buf, &temp_buf_l);
+          check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          checkCompileShader(fi);
+          check(glAttachShader(src->world.shader, fi));
+          checkLinkProgram(src->world.shader);
+          check(glDeleteShader(vi));
+          check(glDeleteShader(fi));
+          check(src->world.uniform_proj = glGetUniformLocation(src->world.shader, "worldview_proj"));
+          check(src->world.uniform_transProj = glGetUniformLocation(src->world.shader, "trans_proj"));
+        }
+        free (temp_buf);
       }
       // texture
       // start from 0 to validate default texture

@@ -21,5 +21,6 @@ extern void (*androidGraphics_postRender) (void);
 extern void (*androidGraphics_term) (void);
 
 extern int opengles_init(void);
+extern int vulkan_init(void);
 
 #endif // MANAGER_

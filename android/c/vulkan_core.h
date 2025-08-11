@@ -1,16 +1,62 @@
 #ifndef VULKAN_CORE_H_
 #define VULKAN_CORE_H_ 1
 
+/*
+** Copyright 2015-2025 The Khronos Group Inc.
+**
+** SPDX-License-Identifier: Apache-2.0
+*/
+
+/*
+** This header is generated from the Khronos Vulkan XML API Registry.
+**
+*/
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+// VK_VERSION_1_0 is a preprocessor guard. Do not pass it to API calls.
 #define VK_VERSION_1_0 1
+#include "vk_platform.h"
 
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
-#if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
-    #define VK_USE_64_BIT_PTR_DEFINES 1
-    #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) typedef struct object##_T *object;
-#else
-    #define VK_USE_64_BIT_PTR_DEFINES 0
-    #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) typedef uint64_t object;
+
+#ifndef VK_USE_64_BIT_PTR_DEFINES
+    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
+        #define VK_USE_64_BIT_PTR_DEFINES 1
+    #else
+        #define VK_USE_64_BIT_PTR_DEFINES 0
+    #endif
+#endif
+
+
+#ifndef VK_DEFINE_NON_DISPATCHABLE_HANDLE
+    #if (VK_USE_64_BIT_PTR_DEFINES==1)
+        #if (defined(__cplusplus) && (__cplusplus >= 201103L)) || (defined(_MSVC_LANG) && (_MSVC_LANG >= 201103L))
+            #define VK_NULL_HANDLE nullptr
+        #else
+            #define VK_NULL_HANDLE ((void*)0)
+        #endif
+    #else
+        #define VK_NULL_HANDLE 0ULL
+    #endif
+#endif
+#ifndef VK_NULL_HANDLE
+    #define VK_NULL_HANDLE 0
+#endif
+
+
+#ifndef VK_DEFINE_NON_DISPATCHABLE_HANDLE
+    #if (VK_USE_64_BIT_PTR_DEFINES==1)
+        #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) typedef struct object##_T *object;
+    #else
+        #define VK_DEFINE_NON_DISPATCHABLE_HANDLE(object) typedef uint64_t object;
+    #endif
 #endif
 
 #define VK_MAKE_API_VERSION(variant, major, minor, patch) \
@@ -23,7 +69,7 @@
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)// Patch version should always be set to 0
 
 // Version of this file
-#define VK_HEADER_VERSION 323
+#define VK_HEADER_VERSION 324
 
 // Complete version of this file
 #define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 4, VK_HEADER_VERSION)
@@ -1040,6 +1086,12 @@ typedef enum VkStructureType {
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ANTI_LAG_FEATURES_AMD = 1000476000,
     VK_STRUCTURE_TYPE_ANTI_LAG_DATA_AMD = 1000476001,
     VK_STRUCTURE_TYPE_ANTI_LAG_PRESENTATION_INFO_AMD = 1000476002,
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DENSE_GEOMETRY_FORMAT_FEATURES_AMDX = 1000478000,
+#endif
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+    VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_DENSE_GEOMETRY_FORMAT_TRIANGLES_DATA_AMDX = 1000478001,
+#endif
     VK_STRUCTURE_TYPE_SURFACE_CAPABILITIES_PRESENT_ID_2_KHR = 1000479000,
     VK_STRUCTURE_TYPE_PRESENT_ID_2_KHR = 1000479001,
     VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_2_FEATURES_KHR = 1000479002,
@@ -8054,6 +8106,9 @@ static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_RESOURCE_DESCRIPTOR_BUFFER
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_PUSH_DESCRIPTORS_DESCRIPTOR_BUFFER_BIT_EXT = 0x04000000ULL;
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_MICROMAP_BUILD_INPUT_READ_ONLY_BIT_EXT = 0x00800000ULL;
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_MICROMAP_STORAGE_BIT_EXT = 0x01000000ULL;
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_COMPRESSED_DATA_DGF1_BIT_AMDX = 0x200000000ULL;
+#endif
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_DATA_GRAPH_FOREIGN_DESCRIPTOR_BIT_ARM = 0x20000000ULL;
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_TILE_MEMORY_BIT_QCOM = 0x08000000ULL;
 static const VkBufferUsageFlagBits2 VK_BUFFER_USAGE_2_PREPROCESS_BUFFER_BIT_EXT = 0x80000000ULL;
@@ -13570,18 +13625,18 @@ typedef VkFlags64 VkAccessFlags3KHR;
 typedef VkFlags64 VkAccessFlagBits3KHR;
 static const VkAccessFlagBits3KHR VK_ACCESS_3_NONE_KHR = 0ULL;
 
-typedef struct VkPhysicalDeviceMaintenance8FeaturesKHR {
-    VkStructureType    sType;
-    void*              pNext;
-    VkBool32           maintenance8;
-} VkPhysicalDeviceMaintenance8FeaturesKHR;
-
 typedef struct VkMemoryBarrierAccessFlags3KHR {
     VkStructureType      sType;
     const void*          pNext;
     VkAccessFlags3KHR    srcAccessMask3;
     VkAccessFlags3KHR    dstAccessMask3;
 } VkMemoryBarrierAccessFlags3KHR;
+
+typedef struct VkPhysicalDeviceMaintenance8FeaturesKHR {
+    VkStructureType    sType;
+    void*              pNext;
+    VkBool32           maintenance8;
+} VkPhysicalDeviceMaintenance8FeaturesKHR;
 
 
 
@@ -15682,6 +15737,9 @@ typedef enum VkGeometryTypeKHR {
     VK_GEOMETRY_TYPE_INSTANCES_KHR = 2,
     VK_GEOMETRY_TYPE_SPHERES_NV = 1000429004,
     VK_GEOMETRY_TYPE_LINEAR_SWEPT_SPHERES_NV = 1000429005,
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+    VK_GEOMETRY_TYPE_DENSE_GEOMETRY_FORMAT_TRIANGLES_AMDX = 1000478000,
+#endif
     VK_GEOMETRY_TYPE_TRIANGLES_NV = VK_GEOMETRY_TYPE_TRIANGLES_KHR,
     VK_GEOMETRY_TYPE_AABBS_NV = VK_GEOMETRY_TYPE_AABBS_KHR,
     VK_GEOMETRY_TYPE_MAX_ENUM_KHR = 0x7FFFFFFF
@@ -23998,6 +24056,10 @@ VKAPI_ATTR void VKAPI_CALL vkCmdDrawMeshTasksIndirectCountEXT(
     uint32_t                                    maxDrawCount,
     uint32_t                                    stride);
 #endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
