@@ -2085,7 +2085,7 @@ static int opengles_preRender(void) {
       // TODO: more extension support
       glGetIntegerv(GL_NUM_EXTENSIONS, &tempi);
       for (i = 0; i < tempi; ++i) {
-        if (!strcmp(glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv"))
+        if (!strcmp((const char*)glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv"))
           break;
       }
       if (i == tempi) {
@@ -2148,7 +2148,7 @@ static int opengles_preRender(void) {
           check(glGenVertexArrays(1, &src->ui.vao));
           check(glGenBuffers(2, &src->ui.vbo));
           check(glBindVertexArray(src->ui.vao));
-          uint16_t *indexs = (uint16_t)temp_buf;
+          uint16_t *indexs = (uint16_t*)temp_buf;
           // 0, 1, 2, 3, 2, 1
           for (uint16_t i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
             indexs[j] = k++;

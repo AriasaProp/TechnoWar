@@ -21,10 +21,8 @@ extern "C" {
 
 // VK_VERSION_1_0 is a preprocessor guard. Do not pass it to API calls.
 #define VK_VERSION_1_0 1
-#include "vk_platform.h"
 
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
-
 
 #ifndef VK_USE_64_BIT_PTR_DEFINES
     #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
