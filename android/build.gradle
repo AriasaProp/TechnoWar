@@ -38,6 +38,7 @@ android {
 		    signingConfig signingConfigs.mainSign
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+				shaders.srcDirs = ['shaders']
 		}
 		buildTypes {
 				release {
@@ -47,11 +48,8 @@ android {
 						minifyEnabled false
 				}
 		}
-    sourceSets {
-        main.shaders.srcDirs = ['shaders']
-    }
-    // Shader compilation directives, shaders are sourced from 'shaders' directory.
-    // Gradle will compile them into APK/assets/shaders.
+    // Shader compilation directives, put glsl shaders to app/src/main/shaders
+    // android studio will pick them up and compile them into APK/assets/shaders
     // KNOWN ISSUE:  if shaders having errors, it takes long time for gradle to timeout
     //               but it will eventually time out and complain about shader compiling
     shaders {

@@ -33,7 +33,7 @@ case "$1" in
             exit 1
         fi
         # if there is a second arguments
-        if [ -z $2 ]; then
+        if [ -n $2 ]; then
             commit_message=$2
         else
             # default commit message
