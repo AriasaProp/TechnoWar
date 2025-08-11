@@ -1,4 +1,4 @@
-#version 300
+#version 320 es
 #define LOW lowp
 #define MED mediump
 #ifdef GL_FRAGMENT_PRECISION_HIGH
