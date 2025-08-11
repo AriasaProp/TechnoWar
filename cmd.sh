@@ -32,22 +32,22 @@ case "$1" in
             echo "This is currently not git repository. Return now"
             exit 1
         fi
-        # if there is a second arguments
-        if [ -n $2 ]; then
-            commit_message=$2
+        # if there are arguments after "upload"
+        if [ "$#" -gt 1 ]; then
+            shift # remove "upload" from arguments list
+            commit_message="$*" # join the rest of the arguments
         else
             # default commit message
             commit_message="Update repository at $(date '+%x %R')"
         fi
         git add .
         git commit -m "$commit_message"
-        if [ -n $? ]; then
+        if [ $? -eq 0 ]; then
             git push
+            echo "Changes uploaded"
         else
-            echo "Nothing is changed."
-            exit 1
+            echo "Nothing to commit, or commit failed."
         fi
-        echo "Changes uploaded"
         ;;
         
     *)
