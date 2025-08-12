@@ -1,5 +1,6 @@
 #define VK_NO_PROTOTYPES 1
 #include "log.h"
+#include "manager.h"
 
 #include <dlfcn.h>
 #include <stddef.h>
@@ -462,6 +463,7 @@ static struct vulkan_src {
   struct ANativeWindow *window;
   int isInitialized;
   int isResized;
+  void *libvulkan;
 
   VkInstance instance_;
   VkPhysicalDevice gpuDevice_;
