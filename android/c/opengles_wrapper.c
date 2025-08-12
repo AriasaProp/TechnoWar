@@ -2079,34 +2079,34 @@ static int opengles_preRender(void) {
         LOGW("Failed to create EGLSurface");
         return 0;
       }
-    }/*
-    if (!src->supportEXT) {
-      GLint tempi, i;
-      // TODO: more extension support
-      glGetIntegerv(GL_NUM_EXTENSIONS, &tempi);
-      for (i = 0; i < tempi; ++i) {
-        if (!strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv"))
-          break;
-      }
-      if (i == tempi) {
-        LOGE("Opengles doesn't support SPIR-V shader binary format.");
-        return 0;
-      }
-      // shader binary formats
-      glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &tempi);
-      GLint *shaderFormat = (GLint *)malloc(sizeof(GLint) * tempi);
-      glGetIntegerv(GL_SHADER_BINARY_FORMATS, shaderFormat);
-      for (i = 0; i < tempi; ++i) {
-        if (shaderFormat[i] == GL_SHADER_BINARY_FORMAT_SPIR_V)
-          break;
-      }
-      free(shaderFormat);
-      if (i == tempi) {
-        LOGE("Opengles doesn't support SPIR-V shader binary format.");
-        return 0;
-      }
-      src->supportEXT = 1;
-    }*/
+    } /*
+     if (!src->supportEXT) {
+       GLint tempi, i;
+       // TODO: more extension support
+       glGetIntegerv(GL_NUM_EXTENSIONS, &tempi);
+       for (i = 0; i < tempi; ++i) {
+         if (!strcmp((const char *)glGetStringi(GL_EXTENSIONS, i), "GL_ARB_gl_spirv"))
+           break;
+       }
+       if (i == tempi) {
+         LOGE("Opengles doesn't support SPIR-V shader binary format.");
+         return 0;
+       }
+       // shader binary formats
+       glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &tempi);
+       GLint *shaderFormat = (GLint *)malloc(sizeof(GLint) * tempi);
+       glGetIntegerv(GL_SHADER_BINARY_FORMATS, shaderFormat);
+       for (i = 0; i < tempi; ++i) {
+         if (shaderFormat[i] == GL_SHADER_BINARY_FORMAT_SPIR_V)
+           break;
+       }
+       free(shaderFormat);
+       if (i == tempi) {
+         LOGE("Opengles doesn't support SPIR-V shader binary format.");
+         return 0;
+       }
+       src->supportEXT = 1;
+     }*/
     eglMakeCurrent(src->display, src->surface, src->surface, src->context);
     if (!textures[0].id) {
       // when validate, projection need to be update
@@ -2133,13 +2133,13 @@ static int opengles_preRender(void) {
           check(vi = glCreateShader(GL_VERTEX_SHADER));
           assetBuffer("assets/shaders/flatdraw.vert", temp_buf, &temp_buf_l);
           check(glShaderSource(&vi, 1, temp_buf, temp_buf_l));
-          //check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          // check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(vi);
           check(glAttachShader(src->ui.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
           assetBuffer("assets/shaders/flatdraw.frag", temp_buf, &temp_buf_l);
           check(glShaderSource(&fi, 1, temp_buf, temp_buf_l));
-          //check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          // check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(fi);
           check(glAttachShader(src->ui.shader, fi));
           checkLinkProgram(src->ui.shader);
@@ -2173,13 +2173,13 @@ static int opengles_preRender(void) {
           check(vi = glCreateShader(GL_VERTEX_SHADER));
           assetBuffer("assets/shaders/worlddraw.vert", temp_buf, &temp_buf_l);
           check(glShaderSource(&vi, 1, temp_buf, temp_buf_l));
-          //check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          // check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(vi);
           check(glAttachShader(src->world.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
           assetBuffer("assets/shaders/worlddraw.frag", temp_buf, &temp_buf_l);
           check(glShaderSource(&fi, 1, temp_buf, temp_buf_l));
-          //check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          // check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(fi);
           check(glAttachShader(src->world.shader, fi));
           checkLinkProgram(src->world.shader);
