@@ -1,5 +1,5 @@
 #include <android/asset_manager.h>
-
+#include <string.h>
 #include "common.h"
 #include "engine.h"
 
