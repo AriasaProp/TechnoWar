@@ -1,4 +1,4 @@
-#version 450
+#version 300 es
 #define LOW lowp
 #define MED mediump
 #ifdef GL_FRAGMENT_PRECISION_HIGH
@@ -9,11 +9,10 @@
 
 precision MED float;
 
-layout(binding = 1) uniform sampler2D u_tex;
+uniform sampler2D u_tex;
 
-layout(location = 0) in vec2 v_texCoord;
-
-layout(location = 0) out vec4 fragColor;
+in vec2 v_texCoord;
+out vec4 fragColor;
 
 void main() {
     fragColor = texture(u_tex, v_texCoord);
