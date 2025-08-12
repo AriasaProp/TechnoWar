@@ -554,34 +554,34 @@ static void cleanupSwapChain() {
       vkDestroyFramebuffer(src->device_, src->framebuffers_[i], NULL);
     }
     free(src->framebuffers_);
-    src->framebuffers_ = NULL;
+    src->framebuffers_ = 0;
   }
   if (src->displayViews_) {
     for (uint32_t i = 0; i < src->swapchainLength_; i++) {
       vkDestroyImageView(src->device_, src->displayViews_[i], NULL);
     }
     free(src->displayViews_);
-    src->displayViews_ = NULL;
+    src->displayViews_ = 0;
   }
   if (src->pipeline_) {
     vkDestroyPipeline(src->device_, src->pipeline_, NULL);
-    src->pipeline_ = NULL;
+    src->pipeline_ = 0;
   }
   if (src->layout_) {
     vkDestroyPipelineLayout(src->device_, src->layout_, NULL);
-    src->layout_ = NULL;
+    src->layout_ = 0;
   }
   if (src->renderPass_) {
     vkDestroyRenderPass(src->device_, src->renderPass_, NULL);
-    src->renderPass_ = NULL;
+    src->renderPass_ = 0;
   }
   if (src->swapchain_) {
     vkDestroySwapchainKHR(src->device_, src->swapchain_, NULL);
-    src->swapchain_ = NULL;
+    src->swapchain_ = 0;
   }
   if (src->displayImages_) {
     free(src->displayImages_);
-    src->displayImages_ = NULL;
+    src->displayImages_ = 0;
   }
 }
 
@@ -593,7 +593,7 @@ static void vulkan_onWindowDestroy(void) {
   cleanupSwapChain();
   if (src->instance_ && src->surface_) {
     vkDestroySurfaceKHR(src->instance_, src->surface_, NULL);
-    src->surface_ = NULL;
+    src->surface_ = 0;
   }
   src->window = NULL;
   src->isInitialized = 0;
