@@ -31,7 +31,7 @@ case "$1" in
         rm -rf debug
         rm -rf release
         ;;
-    "upload")
+    "up")
         echo "Upload changes to github repository."
         # check position is in valid git repository
         if [ ! -d ".git" ]; then
@@ -54,8 +54,10 @@ case "$1" in
         else
             echo "Nothing to commit, or commit failed."
         fi
+        sleep 1
+        gh run watch $(gh run list --limit 1 --json databaseId -q '.[0].databaseId')
+        git pull
         ;;
-        
     *)
         exit_help
         ;;

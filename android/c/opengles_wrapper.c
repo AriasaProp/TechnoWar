@@ -1818,8 +1818,8 @@ static struct androidGraphics {
   vec4 insets;
 
   void *egllib, *gleslib;
-  opengles_texture textures[MAX_RESOURCES];
-  opengles_mesh meshes[MAX_RESOURCES];
+  opengles_texture textures[MAX_RESOURCE];
+  opengles_mesh meshes[MAX_RESOURCE];
 } *src = NULL;
 
 // core implementation
