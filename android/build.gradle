@@ -38,6 +38,10 @@ android {
 		    signingConfig signingConfigs.mainSign
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+				
+				shaders {
+            glslcArgs.addAll(['-c', '-g'])
+        }
 		}
 		buildTypes {
 				release {
