@@ -1759,11 +1759,11 @@ static void checkCompileShader(GLint X) {
   }
 }
 
-#define check(X)    \
-  do {              \
-    X;              \
-    getErrorGL(#X); \
-  } while (0)
+#define check(X) \
+do { \
+  X;             \
+  getErrorGL(#X); \
+} while (0)
 #define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
 // mesh flags for uniform update
@@ -1784,19 +1784,19 @@ enum {
   TERM_EGL_CONTEXT = 2,
   TERM_EGL_DISPLAY = 4,
 };
-static struct opengles_texture {
+typedef struct {
   GLuint id;
   uivec2 size;
   void *data;
-} *textures;
-static struct opengles_mesh {
+} opengles_texture;
+typedef struct {
   GLuint vao, vbo, ibo;
   int flags;
   size_t vertex_len, index_len;
   mesh_vertex *vertexs;
   mesh_index *indices;
   float trans[16];
-} *meshes;
+} opengles_mesh;
 static struct androidGraphics {
   ANativeWindow *window;
   EGLDisplay display;
@@ -1818,7 +1818,8 @@ static struct androidGraphics {
   vec4 insets;
 
   void *egllib, *gleslib;
-
+  opengles_texture textures[MAX_RESOURCES];
+  opengles_mesh meshes[MAX_RESOURCES];
 } *src = NULL;
 
 // core implementation
@@ -1839,16 +1840,16 @@ static void opengles_clearColor(const fcolor c) {
 static texture opengles_genTexture(const uivec2 size, void *data) {
   texture i = 1;
   while (i < MAX_RESOURCE) {
-    if (textures[i].size.x == 0)
+    if (src->textures[i].size.x == 0)
       break;
     ++i;
   }
   if (i >= MAX_RESOURCE)
     return 0; // reach limit texture total so return default texture
-  textures[i].size = size;
-  textures[i].data = data;
-  check(glGenTextures(1, &textures[i].id));
-  check(glBindTexture(GL_TEXTURE_2D, textures[i].id));
+  src->textures[i].size = size;
+  src->textures[i].data = data;
+  check(glGenTextures(1, &src->textures[i].id));
+  check(glBindTexture(GL_TEXTURE_2D, src->textures[i].id));
   check(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   check(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data));
   check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
@@ -1859,15 +1860,15 @@ static texture opengles_genTexture(const uivec2 size, void *data) {
   return i;
 }
 static void opengles_bindTexture(const texture t) {
-  check(glBindTexture(GL_TEXTURE_2D, textures[t].id));
+  check(glBindTexture(GL_TEXTURE_2D, src->textures[t].id));
 }
 static void opengles_setTextureParam(const int param, const int val) {
   check(glTexParameteri(GL_TEXTURE_2D, param, val));
 }
 static void opengles_deleteTexture(const texture t) {
-  check(glDeleteTextures(1, &textures[t].id));
-  free(textures[t].data);
-  memset((void *)(textures + t), 0, sizeof(struct opengles_texture));
+  check(glDeleteTextures(1, &src->textures[t].id));
+  free(src->textures[t].data);
+  memset((void *)(src->textures + t), 0, sizeof(opengles_texture));
 }
 static void opengles_flatRender(const texture t, flat_vertex *v, const size_t l) {
   check(glDisable(GL_DEPTH_TEST));
@@ -1883,7 +1884,7 @@ static void opengles_flatRender(const texture t, flat_vertex *v, const size_t l)
     src->flags &= ~UI_UPDATE;
   }
   check(glActiveTexture(GL_TEXTURE0));
-  check(glBindTexture(GL_TEXTURE_2D, textures[t].id));
+  check(glBindTexture(GL_TEXTURE_2D, src->textures[t].id));
   check(glUniform1i(src->ui.uniform_tex, 0));
   check(glBindVertexArray(src->ui.vao));
   check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
@@ -1896,35 +1897,35 @@ static void opengles_flatRender(const texture t, flat_vertex *v, const size_t l)
 static mesh opengles_genMesh(mesh_vertex *v, const size_t vl, mesh_index *i, const size_t il) {
   mesh m = 0;
   while (m < MAX_RESOURCE) {
-    if (meshes[m].vertex_len == 0)
+    if (src->meshes[m].vertex_len == 0)
       break;
     ++m;
   }
   if (m >= MAX_RESOURCE)
     return -1; // reach limit mesh total so return invalid number
-  meshes[m].vertex_len = vl;
-  meshes[m].vertexs = v;
-  meshes[m].index_len = il;
-  meshes[m].indices = i;
-  matrix4_idt(meshes[m].trans);
+  src->meshes[m].vertex_len = vl;
+  src->meshes[m].vertexs = v;
+  src->meshes[m].index_len = il;
+  src->meshes[m].indices = i;
+  matrix4_idt(src->meshes[m].trans);
 
-  check(glGenVertexArrays(1, &meshes[m].vao));
-  check(glGenBuffers(2, &meshes[m].vbo));
-  check(glBindVertexArray(meshes[m].vao));
-  check(glBindBuffer(GL_ARRAY_BUFFER, meshes[m].vbo));
+  check(glGenVertexArrays(1, &src->meshes[m].vao));
+  check(glGenBuffers(2, &src->meshes[m].vbo));
+  check(glBindVertexArray(src->meshes[m].vao));
+  check(glBindBuffer(GL_ARRAY_BUFFER, src->meshes[m].vbo));
   check(glBufferData(GL_ARRAY_BUFFER, vl * sizeof(mesh_vertex), (void *)v, GL_STATIC_DRAW));
   check(glEnableVertexAttribArray(0));
   check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void *)0));
   check(glEnableVertexAttribArray(1));
   check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(mesh_vertex), (void *)sizeof(vec3)));
-  check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
+  check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->meshes[m].ibo));
   check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, il * sizeof(mesh_index), (void *)i, GL_STATIC_DRAW));
   check(glBindVertexArray(0));
-  meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
+  src->meshes[m].flags |= MESH_VERTEX_DIRTY | MESH_INDEX_DIRTY;
   return m;
 }
 static void opengles_setMeshTransform(const mesh ms, float *mat) {
-  memcpy((void *)meshes[ms].trans, mat, 16 * sizeof(float));
+  memcpy((void *)src->meshes[ms].trans, mat, 16 * sizeof(float));
 }
 static void opengles_meshRender(mesh *ms, const size_t l) {
   check(glEnable(GL_DEPTH_TEST));
@@ -1938,7 +1939,7 @@ static void opengles_meshRender(mesh *ms, const size_t l) {
     src->flags &= ~WORLD_UPDATE;
   }
   for (size_t i = 0; i < l; i++) {
-    struct opengles_mesh m = meshes[ms[i]];
+    opengles_mesh m = src->meshes[ms[i]];
     check(glUniformMatrix4fv(src->world.uniform_transProj, 1, GL_FALSE, m.trans));
     check(glBindVertexArray(m.vao));
     if (m.flags & MESH_VERTEX_DIRTY) {
@@ -1958,17 +1959,17 @@ static void opengles_meshRender(mesh *ms, const size_t l) {
   check(glUseProgram(0));
 }
 static void opengles_deleteMesh(mesh m) {
-  check(glDeleteVertexArrays(1, &meshes[m].vao));
-  check(glDeleteBuffers(2, &meshes[m].vbo));
-  free(meshes[m].vertexs);
-  free(meshes[m].indices);
-  memset(meshes + m, 0, sizeof(struct opengles_mesh));
+  check(glDeleteVertexArrays(1, &src->meshes[m].vao));
+  check(glDeleteBuffers(2, &src->meshes[m].vbo));
+  free(src->meshes[m].vertexs);
+  free(src->meshes[m].indices);
+  memset(src->meshes + m, 0, sizeof(opengles_mesh));
 }
 
 static void killEGL(const int EGLTermReq) {
   if (!EGLTermReq || !src->display)
     return;
-  if (textures[0].id) {
+  if (src->textures[0].id) {
     // world draw
     check(glDeleteProgram(src->world.shader));
     // flat draw
@@ -1977,17 +1978,17 @@ static void killEGL(const int EGLTermReq) {
     check(glDeleteBuffers(2, &src->ui.vbo));
     // mesh
     for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-      if (meshes[i].vertex_len == 0)
+      if (src->meshes[i].vertex_len == 0)
         continue;
-      check(glDeleteVertexArrays(1, &meshes[i].vao));
-      check(glDeleteBuffers(2, &meshes[i].vbo));
+      check(glDeleteVertexArrays(1, &src->meshes[i].vao));
+      check(glDeleteBuffers(2, &src->meshes[i].vbo));
     }
     // texture
     for (texture i = 0; i < MAX_RESOURCE; ++i) {
-      if (textures[i].size.x == 0)
+      if (src->textures[i].size.x == 0)
         continue;
-      check(glDeleteTextures(1, &textures[i].id));
-      textures[i].id = 0;
+      check(glDeleteTextures(1, &src->textures[i].id));
+      src->textures[i].id = 0;
     }
   }
   eglMakeCurrent(src->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -2029,7 +2030,7 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-extern void assetBuffer(const char *, void *, int *);
+extern void assetBuffer(const char*, void*, int*);
 static int opengles_preRender(void) {
   if (!src->window)
     return 0;
@@ -2097,7 +2098,7 @@ static int opengles_preRender(void) {
       }
     }
     eglMakeCurrent(src->display, src->surface, src->surface, src->context);
-    if (!textures[0].id) {
+    if (!src->textures[0].id) {
       // when validate, projection need to be update
       src->flags |= WORLD_UPDATE | UI_UPDATE;
       // set clear
@@ -2121,12 +2122,12 @@ static int opengles_preRender(void) {
           check(src->ui.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
           assetBuffer("shaders/flatdraw.vert", tempbuf, &tempbufl);
-          check(glShaderSource(vi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          check(glShaderSource(vi, 1, (const GLchar**)&tempbuf, (const GLint*)&tempbufl));
           checkCompileShader(vi);
           check(glAttachShader(src->ui.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
           assetBuffer("shaders/flatdraw.frag", tempbuf, &tempbufl);
-          check(glShaderSource(fi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          check(glShaderSource(fi, 1, (const GLchar**)&tempbuf, (const GLint*)&tempbufl));
           checkCompileShader(fi);
           check(glAttachShader(src->ui.shader, fi));
           checkLinkProgram(src->ui.shader);
@@ -2137,7 +2138,7 @@ static int opengles_preRender(void) {
           check(glGenVertexArrays(1, &src->ui.vao));
           check(glGenBuffers(2, &src->ui.vbo));
           check(glBindVertexArray(src->ui.vao));
-          uint16_t *indexs = (uint16_t *)tempbuf;
+          uint16_t *indexs = (uint16_t*)tempbuf;
           for (uint16_t i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
             indexs[j] = k++;
             indexs[j + 1] = indexs[j + 5] = k++;
@@ -2159,12 +2160,12 @@ static int opengles_preRender(void) {
           check(src->world.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
           assetBuffer("shaders/worlddraw.vert", tempbuf, &tempbufl);
-          check(glShaderSource(vi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          check(glShaderSource(vi, 1, (const GLchar**)&tempbuf, (const GLint*)&tempbufl));
           checkCompileShader(vi);
           check(glAttachShader(src->world.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
           assetBuffer("shaders/worlddraw.frag", tempbuf, &tempbufl);
-          check(glShaderSource(fi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          check(glShaderSource(fi, 1, (const GLchar**)&tempbuf, (const GLint*)&tempbufl));
           checkCompileShader(fi);
           check(glAttachShader(src->world.shader, fi));
           checkLinkProgram(src->world.shader);
@@ -2173,17 +2174,17 @@ static int opengles_preRender(void) {
           check(src->world.uniform_proj = glGetUniformLocation(src->world.shader, "worldview_proj"));
           check(src->world.uniform_transProj = glGetUniformLocation(src->world.shader, "trans_proj"));
         }
-        free(tempbuf);
+        free (tempbuf);
       }
       // texture
       // start from 0 to validate default texture
       for (texture t = 0; t < MAX_RESOURCE; ++t) {
-        if (textures[t].size.x == 0)
+        if (src->textures[t].size.x == 0)
           continue;
-        check(glGenTextures(1, &textures[t].id));
-        check(glBindTexture(GL_TEXTURE_2D, textures[t].id));
+        check(glGenTextures(1, &src->textures[t].id));
+        check(glBindTexture(GL_TEXTURE_2D, src->textures[t].id));
         check(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-        check(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, textures[t].size.x, textures[t].size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, textures[t].data));
+        check(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, src->textures[t].size.x, src->textures[t].size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, src->textures[t].data));
         check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
         check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
         check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -2192,19 +2193,19 @@ static int opengles_preRender(void) {
       check(glBindTexture(GL_TEXTURE_2D, 0));
       // mesh
       for (mesh m = 0; m < MAX_RESOURCE; ++m) {
-        if (meshes[m].vertex_len == 0)
+        if (src->meshes[m].vertex_len == 0)
           continue;
-        check(glGenVertexArrays(1, &meshes[m].vao));
-        check(glGenBuffers(2, &meshes[m].vbo));
-        check(glBindVertexArray(meshes[m].vao));
-        check(glBindBuffer(GL_ARRAY_BUFFER, meshes[m].vbo));
-        check(glBufferData(GL_ARRAY_BUFFER, meshes[m].vertex_len * sizeof(mesh_vertex), (void *)meshes[m].vertexs, GL_STATIC_DRAW));
+        check(glGenVertexArrays(1, &src->meshes[m].vao));
+        check(glGenBuffers(2, &src->meshes[m].vbo));
+        check(glBindVertexArray(src->meshes[m].vao));
+        check(glBindBuffer(GL_ARRAY_BUFFER, src->meshes[m].vbo));
+        check(glBufferData(GL_ARRAY_BUFFER, src->meshes[m].vertex_len * sizeof(mesh_vertex), (void *)src->meshes[m].vertexs, GL_STATIC_DRAW));
         check(glEnableVertexAttribArray(0));
         check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(mesh_vertex), (void *)0));
         check(glEnableVertexAttribArray(1));
         check(glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(mesh_vertex), (void *)sizeof(vec3)));
-        check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshes[m].ibo));
-        check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshes[m].index_len * sizeof(mesh_index), (void *)meshes[m].indices, GL_STATIC_DRAW));
+        check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->meshes[m].ibo));
+        check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, src->meshes[m].index_len * sizeof(mesh_index), (void *)src->meshes[m].indices, GL_STATIC_DRAW));
       }
       check(glBindVertexArray(0));
     }
@@ -2259,19 +2260,17 @@ static void opengles_term(void) {
   dlclose(src->gleslib);
   // texture
   for (texture i = 0; i < MAX_RESOURCE; ++i) {
-    if (textures[i].size.x == 0)
+    if (src->textures[i].size.x == 0)
       continue;
-    free(textures[i].data);
+    free(src->textures[i].data);
   }
   // mesh
   for (mesh i = 0; i < MAX_RESOURCE; ++i) {
-    if (meshes[i].vertex_len == 0)
+    if (src->meshes[i].vertex_len == 0)
       continue;
-    free(meshes[i].vertexs);
-    free(meshes[i].indices);
+    free(src->meshes[i].vertexs);
+    free(src->meshes[i].indices);
   }
-  free(textures);
-  free(meshes);
   free(src);
 }
 
@@ -2304,14 +2303,12 @@ int opengles_init(void) {
   global_engine.meshRender = opengles_meshRender;
   global_engine.deleteMesh = opengles_deleteMesh;
 
-  textures = (struct opengles_texture *)calloc(sizeof(struct opengles_texture), MAX_RESOURCE);
   {
     // add default texture
-    textures[0].size.x = 1;
-    textures[0].size.y = 1;
-    textures[0].data = malloc(4);
-    memset(textures[0].data, 0xff, 4);
+    src->textures[0].size.x = 1;
+    src->textures[0].size.y = 1;
+    src->textures[0].data = malloc(4);
+    memset(src->textures[0].data, 0xff, 4);
   }
-  meshes = (struct opengles_mesh *)calloc(sizeof(struct opengles_mesh), MAX_RESOURCE);
   return 1;
 }
