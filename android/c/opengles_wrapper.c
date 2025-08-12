@@ -2027,6 +2027,7 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
+extern void assetBuffer(const char*, void*, int*);
 static int opengles_preRender(void) {
   if (!src->window)
     return 0;
@@ -2068,6 +2069,7 @@ static int opengles_preRender(void) {
         EGL_CONFIG_EVA(EGL_BUFFER_SIZE);
         EGL_CONFIG_EVA(EGL_DEPTH_SIZE);
         EGL_CONFIG_EVA(EGL_STENCIL_SIZE);
+        EGL_CONFIG_EVA(EGL_SAMPLES);
         // TODO: and more attributes
 #undef EGL_CONFIG_EVA
         if (l > k) {
@@ -2108,120 +2110,68 @@ static int opengles_preRender(void) {
       // enable blend
       check(glEnable(GL_BLEND));
       check(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-      // flat draw
       {
-        src->ui.shader = check(glCreateProgram());
-        GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-        const char *vt = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nuniform mat4 u_proj;"
-                         "\nlayout(location = 0) in vec4 a_position;"
-                         "\nlayout(location = 1) in vec2 a_texCoord;"
-                         "\nout vec2 v_texCoord;"
-                         "\nvoid main() {"
-                         "\n    v_texCoord = a_texCoord;"
-                         "\n    gl_Position = u_proj * a_position;"
-                         "\n}";
-        check(glShaderSource(vi, 1, &vt, 0));
-        checkCompileShader(vi);
-        check(glAttachShader(src->ui.shader, vi));
-        GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-        const char *ft = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nprecision MED float;"
-                         "\nuniform sampler2D u_tex;"
-                         "\nin vec2 v_texCoord;"
-                         "\nlayout(location = 0) out vec4 fragColor;"
-                         "\nvoid main() {"
-                         "\n    fragColor = texture(u_tex, v_texCoord);"
-                         "\n}";
-        check(glShaderSource(fi, 1, &ft, 0));
-        checkCompileShader(fi);
-        check(glAttachShader(src->ui.shader, fi));
-        checkLinkProgram(src->ui.shader);
-        check(glDeleteShader(vi));
-        check(glDeleteShader(fi));
-        src->ui.uniform_proj = check(glGetUniformLocation(src->ui.shader, "u_proj"));
-        src->ui.uniform_tex = check(glGetUniformLocation(src->ui.shader, "u_tex"));
-        check(glGenVertexArrays(1, &src->ui.vao));
-        check(glGenBuffers(2, &src->ui.vbo));
-        check(glBindVertexArray(src->ui.vao));
-        unsigned short indexs[MAX_UI_DRAW * 6];
-        for (unsigned short i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
-          indexs[j] = k++;
-          indexs[j + 1] = indexs[j + 5] = k++;
-          indexs[j + 2] = indexs[j + 4] = k++;
-          indexs[j + 3] = k++;
+        void *tempbuf = malloc(0xfffff);
+        int tempbufl;
+        GLuint vi, fi;
+        // flat draw
+        {
+          src->ui.shader = check(glCreateProgram());
+          vi = check(glCreateShader(GL_VERTEX_SHADER));
+          assetBuffer("shaders/flatdraw.vert", tempbuf, &tempbufl);
+          check(glShaderSource(vi, 1, (const GLchar**)&tempbuf, 0));
+          checkCompileShader(vi);
+          check(glAttachShader(src->ui.shader, vi));
+          fi = check(glCreateShader(GL_FRAGMENT_SHADER));
+          assetBuffer("shaders/flatdraw.frag", tempbuf, &tempbufl);
+          check(glShaderSource(fi, 1, (const GLchar**)&tempbuf, 0));
+          checkCompileShader(fi);
+          check(glAttachShader(src->ui.shader, fi));
+          checkLinkProgram(src->ui.shader);
+          check(glDeleteShader(vi));
+          check(glDeleteShader(fi));
+          src->ui.uniform_proj = check(glGetUniformLocation(src->ui.shader, "u_proj"));
+          src->ui.uniform_tex = check(glGetUniformLocation(src->ui.shader, "u_tex"));
+          check(glGenVertexArrays(1, &src->ui.vao));
+          check(glGenBuffers(2, &src->ui.vbo));
+          check(glBindVertexArray(src->ui.vao));
+          uint16_t *indexs = (uint16_t*)tempbuf;
+          for (uint16_t i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
+            indexs[j] = k++;
+            indexs[j + 1] = indexs[j + 5] = k++;
+            indexs[j + 2] = indexs[j + 4] = k++;
+            indexs[j + 3] = k++;
+          }
+          // 0, 1, 2, 3, 2, 1
+          check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
+          check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), tempbuf, GL_STATIC_DRAW));
+          check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
+          check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
+          check(glEnableVertexAttribArray(0));
+          check(glEnableVertexAttribArray(1));
+          check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)0));
+          check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)sizeof(vec2)));
         }
-        // 0, 1, 2, 3, 2, 1
-        check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
-        check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void *)indexs, GL_STATIC_DRAW));
-        check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
-        check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
-        check(glEnableVertexAttribArray(0));
-        check(glEnableVertexAttribArray(1));
-        check(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)0));
-        check(glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(flat_vertex), (void *)sizeof(vec2)));
-      }
-      // world draw
-      {
-        src->world.shader = check(glCreateProgram());
-        GLuint vi = check(glCreateShader(GL_VERTEX_SHADER));
-        const char *vt = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nuniform mat4 worldview_proj;"
-                         "\nuniform mat4 trans_proj;"
-                         "\nlayout(location = 0) in vec4 a_position;"
-                         "\nlayout(location = 1) in vec4 a_color;"
-                         "\nout vec4 v_color;"
-                         "\nvoid main() {"
-                         "\n    v_color = a_color;"
-                         "\n    gl_Position = worldview_proj * trans_proj * a_position;"
-                         "\n}";
-        check(glShaderSource(vi, 1, &vt, 0));
-        checkCompileShader(vi);
-        check(glAttachShader(src->world.shader, vi));
-        GLuint fi = check(glCreateShader(GL_FRAGMENT_SHADER));
-        const char *ft = "#version 300 es"
-                         "\n#define LOW lowp"
-                         "\n#define MED mediump"
-                         "\n#ifdef GL_FRAGMENT_PRECISION_HIGH"
-                         "\n    #define HIGH highp"
-                         "\n#else"
-                         "\n    #define HIGH mediump"
-                         "\n#endif"
-                         "\nprecision MED float;"
-                         "\nin vec4 v_color;"
-                         "\nlayout(location = 0) out vec4 fragColor;"
-                         "\nvoid main() {"
-                         "\n    fragColor = v_color;"
-                         "\n}";
-        check(glShaderSource(fi, 1, &ft, 0));
-        checkCompileShader(fi);
-        check(glAttachShader(src->world.shader, fi));
-        checkLinkProgram(src->world.shader);
-        check(glDeleteShader(vi));
-        check(glDeleteShader(fi));
-        src->world.uniform_proj = check(glGetUniformLocation(src->world.shader, "worldview_proj"));
-        src->world.uniform_transProj = check(glGetUniformLocation(src->world.shader, "trans_proj"));
+        // world draw
+        {
+          src->world.shader = check(glCreateProgram());
+          vi = check(glCreateShader(GL_VERTEX_SHADER));
+          assetBuffer("shaders/worlddraw.vert", tempbuf, &tempbufl);
+          check(glShaderSource(vi, 1, (const GLchar**)&tempbuf, 0));
+          checkCompileShader(vi);
+          check(glAttachShader(src->world.shader, vi));
+          fi = check(glCreateShader(GL_FRAGMENT_SHADER));
+          assetBuffer("shaders/worlddraw.frag", tempbuf, &tempbufl);
+          check(glShaderSource(fi, 1, (const GLchar**)&tempbuf, 0));
+          checkCompileShader(fi);
+          check(glAttachShader(src->world.shader, fi));
+          checkLinkProgram(src->world.shader);
+          check(glDeleteShader(vi));
+          check(glDeleteShader(fi));
+          src->world.uniform_proj = check(glGetUniformLocation(src->world.shader, "worldview_proj"));
+          src->world.uniform_transProj = check(glGetUniformLocation(src->world.shader, "trans_proj"));
+        }
+        free (tempbuf);
       }
       // texture
       // start from 0 to validate default texture
