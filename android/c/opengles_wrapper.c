@@ -2079,7 +2079,7 @@ static int opengles_preRender(void) {
         LOGW("Failed to create EGLSurface");
         return 0;
       }
-    }
+    }/*
     if (!src->supportEXT) {
       GLint tempi, i;
       // TODO: more extension support
@@ -2106,7 +2106,7 @@ static int opengles_preRender(void) {
         return 0;
       }
       src->supportEXT = 1;
-    }
+    }*/
     eglMakeCurrent(src->display, src->surface, src->surface, src->context);
     if (!textures[0].id) {
       // when validate, projection need to be update
@@ -2131,13 +2131,15 @@ static int opengles_preRender(void) {
         {
           check(src->ui.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
-          assetBuffer("assets/shaders/flatdraw.vert.spv", temp_buf, &temp_buf_l);
-          check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          assetBuffer("assets/shaders/flatdraw.vert", temp_buf, &temp_buf_l);
+          check(glShaderSource(&vi, 1, temp_buf, temp_buf_l));
+          //check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(vi);
           check(glAttachShader(src->ui.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
-          assetBuffer("assets/shaders/flatdraw.frag.spv", temp_buf, &temp_buf_l);
-          check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          assetBuffer("assets/shaders/flatdraw.frag", temp_buf, &temp_buf_l);
+          check(glShaderSource(&fi, 1, temp_buf, temp_buf_l));
+          //check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(fi);
           check(glAttachShader(src->ui.shader, fi));
           checkLinkProgram(src->ui.shader);
@@ -2169,13 +2171,15 @@ static int opengles_preRender(void) {
         {
           check(src->world.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
-          assetBuffer("assets/shaders/worlddraw.vert.spv", temp_buf, &temp_buf_l);
-          check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          assetBuffer("assets/shaders/worlddraw.vert", temp_buf, &temp_buf_l);
+          check(glShaderSource(&vi, 1, temp_buf, temp_buf_l));
+          //check(glShaderBinary(1, &vi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(vi);
           check(glAttachShader(src->world.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
-          assetBuffer("assets/shaders/worlddraw.frag.spv", temp_buf, &temp_buf_l);
-          check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
+          assetBuffer("assets/shaders/worlddraw.frag", temp_buf, &temp_buf_l);
+          check(glShaderSource(&fi, 1, temp_buf, temp_buf_l));
+          //check(glShaderBinary(1, &fi, GL_SHADER_BINARY_FORMAT_SPIR_V, temp_buf, temp_buf_l));
           checkCompileShader(fi);
           check(glAttachShader(src->world.shader, fi));
           checkLinkProgram(src->world.shader);

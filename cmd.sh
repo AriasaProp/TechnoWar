@@ -25,6 +25,12 @@ case "$1" in
         git pull
         echo "Done update."
         ;;
+    "artifact")
+        gh run download -n Android-APK
+        mv release/* /../../storage/emulated/0/
+        rm -rf debug
+        rm -rf release
+        ;;
     "upload")
         echo "Upload changes to github repository."
         # check position is in valid git repository
