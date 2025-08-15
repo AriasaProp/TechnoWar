@@ -7,6 +7,7 @@ exit_help() {
     echo "task: "
     echo "  ttool [target]      Quick test for tool test. if [target] defined it will run spesific test."
     echo "  update              Update this repository from github."
+    echo "  artifact            Download Artifact from github."
     echo "  up [message]        Upload changes to github."
     exit 1 # Exit with a non-zero status code to indicate an error
 }

@@ -163,23 +163,23 @@ void uistage_draw() {
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
     switch (src.actors[i].type) {
     case ACTOR_LABEL: {
-      float left = 0;
+      float left = 0, top = global_engine.getScreenSize().y * 0.5f;
       for (char *t = src.actors[i].d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
         src.vertex_buffer[i * 4] = (flat_vertex){
-          (vec2){left + A.size.x, A.size.y},
+          (vec2){left + A.size.x, top + A.size.y},
           (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
                  (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
         src.vertex_buffer[i * 4 + 1] = (flat_vertex){
-          (vec2){left + A.size.x, 0},
+          (vec2){left + A.size.x, top},
           (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
                  A.pos.y / src.font.bitmap_size.y}};
         src.vertex_buffer[i * 4 + 2] = (flat_vertex){
-          (vec2){left, A.size.x},
+          (vec2){left, top + A.size.x},
           (vec2){A.pos.x / src.font.bitmap_size.x,
                  (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
         src.vertex_buffer[i * 4 + 3] = (flat_vertex){
-          (vec2){left, 0},
+          (vec2){left, top},
           (vec2){A.pos.x / src.font.bitmap_size.x,
                  A.pos.y / src.font.bitmap_size.y}};
         left += A.size.x;
