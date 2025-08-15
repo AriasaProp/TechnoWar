@@ -166,19 +166,19 @@ void uistage_draw() {
       float left = 0, top = global_engine.getScreenSize().y * 0.5f;
       for (char *t = src.actors[i].d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
-        src.vertex_buffer[i * 4] = (flat_vertex){
+        src.vertex_buffer[v * 4] = (flat_vertex){
           (vec2){left + A.size.x, top + A.size.y},
           (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
                  (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
-        src.vertex_buffer[i * 4 + 1] = (flat_vertex){
+        src.vertex_buffer[v * 4 + 1] = (flat_vertex){
           (vec2){left + A.size.x, top},
           (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
                  A.pos.y / src.font.bitmap_size.y}};
-        src.vertex_buffer[i * 4 + 2] = (flat_vertex){
-          (vec2){left, top + A.size.x},
+        src.vertex_buffer[v * 4 + 2] = (flat_vertex){
+          (vec2){left, top + A.size.y},
           (vec2){A.pos.x / src.font.bitmap_size.x,
                  (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
-        src.vertex_buffer[i * 4 + 3] = (flat_vertex){
+        src.vertex_buffer[v * 4 + 3] = (flat_vertex){
           (vec2){left, top},
           (vec2){A.pos.x / src.font.bitmap_size.x,
                  A.pos.y / src.font.bitmap_size.y}};
@@ -193,6 +193,40 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v);
+  
+  for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
+    switch (src.actors[i].type) {
+    case ACTOR_LABEL: {
+      float left = 0, top = global_engine.getScreenSize().y * 0.3f + 200.f;
+      for (char *t = src.actors[i].d.label.text; *t; ++t) {
+        character A = src.font.chs[*t];
+        src.vertex_buffer[v * 4] = (flat_vertex){
+          (vec2){left + A.size.x, top},
+          (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
+                 A.pos.y / src.font.bitmap_size.y}};
+        src.vertex_buffer[v * 4 + 1] = (flat_vertex){
+          (vec2){left + A.size.x, top + A.size.y},
+          (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
+                 (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
+        src.vertex_buffer[v * 4 + 2] = (flat_vertex){
+          (vec2){left, top},
+          (vec2){A.pos.x / src.font.bitmap_size.x,
+                 A.pos.y / src.font.bitmap_size.y}};
+        src.vertex_buffer[v * 4 + 3] = (flat_vertex){
+          (vec2){left, top + A.size.y},
+          (vec2){A.pos.x / src.font.bitmap_size.x,
+                 (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
+        left += A.size.x;
+        ++v;
+      }
+      break;
+    }
+    default:
+      break;
+    }
+  }
+  if (v)
+    global_engine.flatRender(0, src.vertex_buffer, v);
 }
 void uistage_term() {
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
