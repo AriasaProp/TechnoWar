@@ -2,8 +2,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "stb/stb_image.h"
 #include "math/vec_math.h"
+#include "stb/stb_image.h"
 
 #define UISTAGE_IMPLEMENTATION
 #include "uistage.h"
@@ -165,24 +165,24 @@ void uistage_draw() {
       float left = 0, top = global_engine.getScreenSize().y * 0.5f;
       for (char *t = T.d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
-        vec2 isize = vec2_div((vec2){1.f,1.f}, src.font.bitmap_size);
-        
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y + A.size.y};
+        vec2 isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
+
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y + A.size.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
-        
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y};
+
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top};
-        
+
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y + A.size.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top + A.size.y};
-        
+
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top};
-        
+
         left += A.size.x;
       }
       break;
@@ -194,43 +194,42 @@ void uistage_draw() {
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v >> 2);
   v = 0;
-    /*
-  3 - 1
-  | / |
-  2 - 0
-  */
+  /*
+3 - 1
+| / |
+2 - 0
+*/
   {
     vec2 p = {.x = 50, .y = 50};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
-    
+
     p.x += 250;
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
-    
+
     p.x += 250;
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
-    
+
     p.y += 450;
     p.x -= 500;
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
-    
+
     p.x += 250;
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
     src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
-    
   }
   if (v)
     global_engine.flatRender(0, src.vertex_buffer, v >> 2);
