@@ -3,6 +3,7 @@
 
 #include "common.h"
 #define MAX_ASSET_READING 256
+#define MAX_UI_DRAW       200
 
 enum {
   GRAPHICS_CLEAR_COLOR = 1,

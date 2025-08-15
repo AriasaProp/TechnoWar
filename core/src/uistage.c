@@ -8,6 +8,10 @@
 #include "uistage.h"
 #define UISTAGE_MAX_ACTORS 128
 
+typedef enum {
+  ACTOR_INVALID = 0,
+  ACTOR_LABEL,
+} _actor_type;
 typedef struct {
   vec2 pos, size, off;
   float xadv;
@@ -39,13 +43,9 @@ static struct {
   flat_vertex vertex_buffer[MAX_UI_DRAW];
 } src;
 
-typedef enum {
-  ACTOR_INVALID = 0,
-  ACTOR_LABEL,
-} _actor_type;
-
 actor create_label(size_t strl) {
-  for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
+  actor i;
+  for (i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
     if (src.actors[i].type != ACTOR_INVALID)
       continue;
     src.actors[i].type = ACTOR_LABEL;

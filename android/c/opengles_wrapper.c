@@ -1764,7 +1764,6 @@ static void checkCompileShader(GLint X) {
     X;              \
     getErrorGL(#X); \
   } while (0)
-#define MAX_UI_DRAW  200
 #define MAX_RESOURCE 256
 // mesh flags for uniform update
 enum {
