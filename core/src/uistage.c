@@ -156,7 +156,6 @@ void uistage_draw() {
   // draw images
 
   // draw fonts
-  /*
   v = 0;
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
     _actor T = src.actors[i];
@@ -174,13 +173,13 @@ void uistage_draw() {
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top};
 
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
-        vec2_scl(&src.vertex_buffer[v].uv, isize);
-        src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
-
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y + A.size.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top};
+
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
+        src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
 
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
@@ -196,8 +195,8 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v >> 2);
-  */
-
+  
+  /*
   v = 0;
   {
     vec2 p = {.x = 50, .y = 50};
@@ -214,6 +213,7 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(0, src.vertex_buffer, v >> 2);
+  */
 }
 void uistage_term() {
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
