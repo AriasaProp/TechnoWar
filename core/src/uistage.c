@@ -193,7 +193,7 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v);
-  
+
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
     switch (src.actors[i].type) {
     case ACTOR_LABEL: {
