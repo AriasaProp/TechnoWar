@@ -2147,7 +2147,7 @@ static int opengles_preRender(void) {
           }
           // 0, 1, 2, 3, 2, 1
           check(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, src->ui.ibo));
-          check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), tempbuf, GL_STATIC_DRAW));
+          check(glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_UI_DRAW * 6 * sizeof(unsigned short), (void*)indexs, GL_STATIC_DRAW));
           check(glBindBuffer(GL_ARRAY_BUFFER, src->ui.vbo));
           check(glBufferData(GL_ARRAY_BUFFER, MAX_UI_DRAW * 4 * sizeof(flat_vertex), NULL, GL_DYNAMIC_DRAW));
           check(glEnableVertexAttribArray(0));
