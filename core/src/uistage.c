@@ -102,7 +102,7 @@ void uistage_init() {
       .eof = assetEOF_clbk,
     };
     void *ast = global_engine.openAsset("fonts/default/default.png");
-    void *img = stbi_load_from_callbacks(cf, ast, tempi, tempi + 1, tempi + 2, 4);
+    void *img = stbi_load_from_callbacks(&cf, ast, tempi, tempi + 1, tempi + 2, 4);
     src.font.bitmap = global_engine.genTexture((uivec2){(uint16_t)tempi[0], (uint16_t)tempi[1]}, img);
     src.font.bitmap_size = (vec2){(float)tempi[0], (float)tempi[1]};
     global_engine.assetClose(ast);
@@ -177,7 +177,7 @@ void uistage_draw() {
         src.vertex_buffer[i * 4 + 2] = (flat_vertex){
           (vec2){left, A.size.x},
           (vec2){A.pos.x / src.font.bitmap_size.x,
-                 (A.pos.y + A.size.w) / src.font.bitmap_size.y}};
+                 (A.pos.y + A.size.y) / src.font.bitmap_size.y}};
         src.vertex_buffer[i * 4 + 3] = (flat_vertex){
           (vec2){left, 0},
           (vec2){A.pos.x / src.font.bitmap_size.x,
