@@ -16,6 +16,16 @@ typedef struct {
   char a, b;
   float d;
 } kerning;
+typedef struct {
+  _actor_type type;
+  vec2 origin;
+  pivot_state origin_pivot, world_pivot;
+  union {
+    struct {
+      char *text;
+    } label;
+  } d;
+} _actor;
 static struct {
   struct {
     texture bitmap;
@@ -25,16 +35,7 @@ static struct {
     size_t kerning_length;
     kerning *kearns;
   } font;
-  struct {
-    _actor_type type;
-    vec2 origin;
-    pivot_state origin_pivot, world_pivot;
-    union {
-      struct {
-        char *text;
-      } label;
-    } d;
-  } actors[UISTAGE_MAX_ACTORS + 2];
+  _actor actors[UISTAGE_MAX_ACTORS + 2];
   flat_vertex vertex_buffer[MAX_UI_DRAW];
 } src;
 
@@ -61,7 +62,7 @@ actor destroy_actor(actor a) {
   default:
     break;
   }
-  memmove(src.actors + a, src.actors + a + 1, sizeof() * (UISTAGE_MAX_ACTORS - a + 1));
+  memmove(src.actors + a, src.actors + a + 1, sizeof(_actor) * (UISTAGE_MAX_ACTORS - a + 1));
   src.actors[a].type = ACTOR_INVALID;
 }
 
@@ -104,7 +105,7 @@ void uistage_init() {
     void *img = stbi_load_from_callbacks(cf, ast, tempi, tempi + 1, tempi + 2, 4);
     src.font.bitmap = global_engine.genTexture((uivec2){(uint16_t)tempi[0], (uint16_t)tempi[1]}, img);
     src.font.bitmap_size = (vec2){(float)tempi[0], (float)tempi[1]};
-    global_engine.closeAsset(ast);
+    global_engine.assetClose(ast);
 
     // load font sets
     size_t i, l;
@@ -145,7 +146,7 @@ void uistage_init() {
         }
       }
     } while (line = strtok(NULL, "\n"));
-    global_engine.closeAsset(ast);
+    global_engine.assetClose(ast);
   }
 }
 void uistage_draw() {
