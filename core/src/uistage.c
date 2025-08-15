@@ -47,11 +47,10 @@ static struct {
 actor create_label(size_t strl) {
   actor i;
   for (i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
-    _actor T = src.actors[i];
-    if (T.type != ACTOR_INVALID)
+    if (src.actors[i].type != ACTOR_INVALID)
       continue;
-    T.type = ACTOR_LABEL;
-    T.d.label.text = (char *)malloc(strl);
+    src.actors[i].type = ACTOR_LABEL;
+    src.actors[i].d.label.text = (char *)malloc(strl);
     break;
   }
   return i;
