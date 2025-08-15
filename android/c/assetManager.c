@@ -9,22 +9,22 @@ static void *assetBuffer(const char *filename, void **buf, size_t *len) {
   AAsset *reading = AAssetManager_open(mngr, filename, AASSET_MODE_BUFFER);
   *len = (size_t)AAsset_getLength(reading);
   *buf = AAsset_getBuffer(reading);
-  return (void*)reading;
+  return (void *)reading;
 }
 static void *openAsset(const char *filename) {
-  return (void*)AAssetManager_open(mngr, filename, AASSET_MODE_STREAMING);
+  return (void *)AAssetManager_open(mngr, filename, AASSET_MODE_STREAMING);
 }
 static int assetRead(void *a, void *buf, size_t count) {
-  return AAsset_read((AAsset*)a, buf, count);
+  return AAsset_read((AAsset *)a, buf, count);
 }
 static void assetSeek(void *a, int l) {
-  AAsset_seek((AAsset*)a, l, SEEK_CUR);
+  AAsset_seek((AAsset *)a, l, SEEK_CUR);
 }
 static size_t assetLength(void *a) {
-  return (size_t)AAsset_getRemainingLength64((AAsset*)a);
+  return (size_t)AAsset_getRemainingLength64((AAsset *)a);
 }
 static void assetClose(void *a) {
-  AAsset_close((AAsset*)a);
+  AAsset_close((AAsset *)a);
 }
 
 void androidAssetManager_init(void *m) {

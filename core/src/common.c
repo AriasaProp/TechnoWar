@@ -15,7 +15,8 @@ int convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t *input) 
 
 // math
 void flipBytes(uint8_t *b, const size_t l) {
-  if (l <= 1) return;
+  if (l <= 1)
+    return;
   for (size_t i = 0, j = l - 1, k = l >> 1; i < k; ++i, --j) {
     b[i] ^= b[j];
     b[j] ^= b[i];

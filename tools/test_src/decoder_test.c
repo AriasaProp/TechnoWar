@@ -4,14 +4,14 @@
 #include "stb/stb_image.h"
 
 int main(int argc, char **argv) {
-  int x,y, c;
+  int x, y, c;
   image_info inf;
   for (size_t i = 1; i < argc; ++i) {
-    
+
     printf("file: %s\n", argv[i]);
-    void *b = decoder_image_load_fromFile (argv[i], &inf);
+    void *b = decoder_image_load_fromFile(argv[i], &inf);
     if (!b) {
-      //printf("Error: %s", decoder_get_error());
+      // printf("Error: %s", decoder_get_error());
       continue;
     }
     free(b);

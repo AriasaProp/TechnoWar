@@ -39,7 +39,7 @@ static void Main_init() {
   uistage_init();
   game_init();
   label_hello = create_label(128);
-  set_actor_origin(label_hello, (vec2){0,0});
+  set_actor_origin(label_hello, (vec2){0, 0});
   set_actor_pivot_origin(label_hello, PIVOT_CENTER);
   set_actor_pivot_world(label_hello, PIVOT_CENTER);
   set_label_text(label_hello, "Hello World!");

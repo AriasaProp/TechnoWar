@@ -24,7 +24,7 @@ extern void *decoder_image_load_fromCallback(callback, image_info *);
 #endif // DECODER_IMAGE_IMPLEMENTATIONS_
 
 #if defined(DECODER_IMAGE_IMPLEMENTATIONS_)
-extern void decoder_write_error(const char*,...);
+extern void decoder_write_error(const char *, ...);
 #endif // other decoder
 
 #ifndef DECODER_IMPLEMENTATIONS_
