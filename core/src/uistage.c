@@ -167,7 +167,7 @@ void uistage_draw() {
       float left = 0, top = global_engine.getScreenSize().y * 0.5f;
       for (char *t = T.d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
-        vec2 isize = vec2_div((vec2){1.f,1.f}, src.font.bitmap_size);
+        vec2 isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
 
         src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y + A.size.y};
         vec2_scl(&src.vertex_buffer[v].uv, isize);
@@ -195,7 +195,7 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v >> 2);
-  
+
   /*
   v = 0;
   {
