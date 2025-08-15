@@ -5,8 +5,9 @@ set -e
 exit_help() {
     echo "Usage: $0 <task> [optional]"
     echo "task: "
+    echo "  ttool [target]      Quick test for tool test. if [target] defined it will run spesific test."
     echo "  update              Update this repository from github."
-    echo "  upload [message]    Upload changes to github."
+    echo "  up [message]        Upload changes to github."
     exit 1 # Exit with a non-zero status code to indicate an error
 }
 
@@ -16,6 +17,17 @@ if [ "$#" -eq 0 ]; then
 fi
 
 case "$1" in
+    "ttool")
+        cd tools
+        cmake . -DDO_TEST=1
+        if [ ! -z $2 ]; then
+            cmake --build . --target $2
+        else
+            cmake --build .
+        fi
+        ctest -V
+        cd ..
+        ;;
     "update")
         git status --porcelain
         if [ -z $? ]; then

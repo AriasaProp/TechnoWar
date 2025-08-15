@@ -43,12 +43,12 @@ struct engine {
   float (*deltaTime)(void);
 
   // asset function
-  void *data;
-  void (*assetBuffer)(const char *, void *, int *);
-  int (*openAsset)(const char *);
-  int (*assetRead)(int, void *, size_t);
-  size_t (*assetLength)(int);
-  void (*assetClose)(int);
+  void *(*assetBuffer)(const char *, void **, size_t *);
+  void *(*openAsset)(const char *);
+  int (*assetRead)(void*, void *, size_t);
+  void (*assetSeek)(void*, int);
+  size_t (*assetLength)(void*);
+  void (*assetClose)(void*);
 
   // input function
   vec2 (*getTouch)(size_t);

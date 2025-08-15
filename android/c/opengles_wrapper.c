@@ -2030,7 +2030,6 @@ static void opengles_resizeInsets(float x, float y, float z, float w) {
   src->screenSize.y = src->viewportSize.y - y - w;
   src->flags |= UI_UPDATE;
 }
-extern void assetBuffer(const char *, void *, int *);
 static int opengles_preRender(void) {
   if (!src->window)
     return 0;
@@ -2114,20 +2113,22 @@ static int opengles_preRender(void) {
       check(glEnable(GL_BLEND));
       check(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
       {
-        void *tempbuf = malloc(0xfffff);
-        int tempbufl;
+        void *tempbuf, *ast;
+        size_t tempbufl;
         GLuint vi, fi;
         // flat draw
         {
           check(src->ui.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
-          assetBuffer("shaders/flatdraw.vert", tempbuf, &tempbufl);
+          ast = global_engine.assetBuffer("shaders/flatdraw.vert", &tempbuf, &tempbufl);
           check(glShaderSource(vi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          global_engine.assetClose(ast);
           checkCompileShader(vi);
           check(glAttachShader(src->ui.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
-          assetBuffer("shaders/flatdraw.frag", tempbuf, &tempbufl);
+          ast = global_engine.assetBuffer("shaders/flatdraw.frag", &tempbuf, &tempbufl);
           check(glShaderSource(fi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          global_engine.assetClose(ast);
           checkCompileShader(fi);
           check(glAttachShader(src->ui.shader, fi));
           checkLinkProgram(src->ui.shader);
@@ -2138,7 +2139,7 @@ static int opengles_preRender(void) {
           check(glGenVertexArrays(1, &src->ui.vao));
           check(glGenBuffers(2, &src->ui.vbo));
           check(glBindVertexArray(src->ui.vao));
-          uint16_t *indexs = (uint16_t *)tempbuf;
+          uint16_t indexs[MAX_UI_DRAW * 6];
           for (uint16_t i = 0, j = 0, k = 0; i < MAX_UI_DRAW; i++, j += 6) {
             indexs[j] = k++;
             indexs[j + 1] = indexs[j + 5] = k++;
@@ -2159,13 +2160,15 @@ static int opengles_preRender(void) {
         {
           check(src->world.shader = glCreateProgram());
           check(vi = glCreateShader(GL_VERTEX_SHADER));
-          assetBuffer("shaders/worlddraw.vert", tempbuf, &tempbufl);
+          ast = global_engine.assetBuffer("shaders/worlddraw.vert", &tempbuf, &tempbufl);
           check(glShaderSource(vi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          global_engine.assetClose(ast);
           checkCompileShader(vi);
           check(glAttachShader(src->world.shader, vi));
           check(fi = glCreateShader(GL_FRAGMENT_SHADER));
-          assetBuffer("shaders/worlddraw.frag", tempbuf, &tempbufl);
+          ast = global_engine.assetBuffer("shaders/worlddraw.frag", &tempbuf, &tempbufl);
           check(glShaderSource(fi, 1, (const GLchar **)&tempbuf, (const GLint *)&tempbufl));
+          global_engine.assetClose(ast);
           checkCompileShader(fi);
           check(glAttachShader(src->world.shader, fi));
           checkLinkProgram(src->world.shader);
@@ -2174,7 +2177,6 @@ static int opengles_preRender(void) {
           check(src->world.uniform_proj = glGetUniformLocation(src->world.shader, "worldview_proj"));
           check(src->world.uniform_transProj = glGetUniformLocation(src->world.shader, "trans_proj"));
         }
-        free(tempbuf);
       }
       // texture
       // start from 0 to validate default texture

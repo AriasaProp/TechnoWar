@@ -32,11 +32,17 @@ enum {
   STATE_SYSTEM_RUNNING = 2,
 };
 static int stateSystem = 0;
+static actor label_hello;
 // only called in Main_update when stateSystem not init
 static void Main_init() {
   stateSystem |= STATE_SYSTEM_INIT;
   uistage_init();
   game_init();
+  label_hello = create_label(128);
+  set_actor_origin(label_hello, (vec2){0,0});
+  set_actor_pivot_origin(label_hello, PIVOT_CENTER);
+  set_actor_pivot_world(label_hello, PIVOT_CENTER);
+  set_label_text(label_hello, "Hello World!");
 }
 // only called in Main_update when stateSystem not running
 static void Main_resume() {
@@ -52,12 +58,14 @@ void Main_update() {
   unsigned int lb;
   mesh *v = game_update(&lb, global_engine.deltaTime());
   global_engine.meshRender(v, lb);
+  uistage_draw();
 }
 void Main_pause() {
   stateSystem &= ~STATE_SYSTEM_RUNNING;
 }
 
 void Main_term() {
+  destroy_actor(label_hello);
   uistage_term();
   stateSystem = 0;
   memset(&state, 0, sizeof(state));

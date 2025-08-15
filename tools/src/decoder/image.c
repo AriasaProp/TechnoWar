@@ -1,59 +1,23 @@
-#include "codec.h"
+#define DECODER_IMAGE_IMPLEMENTATIONS_
+#include "decoder.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
-// ***
-// 
-extern void codec_write_error(const char*,...);
 
 // ***
 // useful tool
 #define BUFFER_SIZE64 128
 typedef union {
-  uint8_t u8_[BUFFER_SIZE64 * 8];
-  uint16_t u16_[BUFFER_SIZE64 * 4];
-  uint32_t u32_[BUFFER_SIZE64 * 2];
+  uint8_t u8_[BUFFER_SIZE64 << 3];
+  uint16_t u16_[BUFFER_SIZE64 << 2];
+  uint32_t u32_[BUFFER_SIZE64 << 1];
   uint64_t u64_[BUFFER_SIZE64];
 } buffer_;
 
-// cross compiler support
-static FILE *c_fileopen(char const *filename, char const *mode) {
-   FILE *f;
-#if defined(_WIN32)
-   wchar_t wMode[64];
-   wchar_t wFilename[1024];
-	if ((!MultiByteToWideChar(65001, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename))) ||
-	    (!MultiByteToWideChar(65001, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
-  ) return 0;
-#if defined(_MSC_VER) && _MSC_VER >= 1400
-	if (0 != _wfopen_s(&f, wFilename, wMode)) f = 0;
-#else
-   f = _wfopen(wFilename, wMode);
-#endif
+// TODO: make decoder for all image
 
-#elif defined(_MSC_VER) && _MSC_VER >= 1400
-   if (0 != fopen_s(&f, filename, mode)) f = 0;
-#else
-   f = fopen(filename, mode);
-#endif
-   return f;
-}
-
-
-typedef struct {
-  void *user;
-  // is read succes
-  bool (*read)(void *, void *, size_t);
-  void (*seek)(void *, size_t);
-  // is end
-  bool (*eof)(void *);
-} funct;
-
-// todo: make decoder for all image
-
-void *load_png(funct f, image_info *out, bool *sig) {
+static void *load_png(callback f, image_info *out, bool *sig) {
 #define MAX_CHUNK_TYPE 256
   static const uint32_t crc_table[256] = {
       0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
@@ -103,11 +67,21 @@ void *load_png(funct f, image_info *out, bool *sig) {
 #define CRC_APPENDS(X,Y) for (k = 0; k < Y; ++k) CRC_APPEND(X[i])
 #define COMBO(A, B, C, D) (uint32_t)(A | (B << 8) | (C << 16) | (D << 24))
 #define COMBINE(A, B, C, D) case COMBO(A,B,C,D)
-#define REORDER_BUFF32(X) (uint32_t)((buff.u8_[X] << 24) | (buff.u8_[X+1] << 16) | (buff.u8_[X+2] << 8) | buff.u8_[X+3])
-#define REORDER_BUFF16(X) (uint16_t)((buff.u8_[X] << 8) | buff.u8_[X+1])
-#define ERROR_PNG(...) codec_write_error(__VA_ARGS__); goto end_load_png
-#define READ_PNG(X) if (!f.read(f.user, buff.u8_, X)) { ERROR_PNG("PNG: error on read"); }
-#define CHUNK_CHECK(X, Y) uint32_t *x = (uint32_t*)X; \
+#define ERROR_PNG(...) \
+do { \
+  decoder_write_error(__VA_ARGS__); \
+  goto end_load_png; \
+} while(0)
+
+#define READ_PNG(X) \
+do { \
+  if (!f.read(f.user, buff.u8_, X)) \
+    ERROR_PNG("PNG: error on read"); \
+} while(0)
+
+#define CHUNK_CHECK(X, Y) \
+do { \
+  uint32_t *x = (uint32_t*)X; \
   for (i = 0; i < chunk_added; ++i) { \
     for (j = 0; j < Y; ++j) { \
       if (once_chunk[i] == x[j]) { \
@@ -115,6 +89,7 @@ void *load_png(funct f, image_info *out, bool *sig) {
       } \
     } \
   } \
+} while (0)
 
   // check signature
   READ_PNG(8);
@@ -142,31 +117,32 @@ void *load_png(funct f, image_info *out, bool *sig) {
         once_chunk[0] = buff.u32_[1];
         
         READ_PNG(buff.u32_[0] + 4);
-        out->width = REORDER_BUFF32(0);
-        out->height = REORDER_BUFF32(4);
-        out->bit_depth = buff.u8_[9];
-        if (out->bit_depth < 8) {
+        flipBytes(buff.u8_, 8);
+        out->height = buff.u32_[0];
+        out->width = buff.u32_[1];
+        out->bpc = buff.u8_[9];
+        if (out->bpc < 8) {
           ERROR_PNG ("PNG: i not ready for bit depth < 8");
         }
         // allow 8, 16
-        if (!out->bit_depth || (out->bit_depth > 16) || (out->bit_depth & (out->bit_depth - 1))) {
-        	ERROR_PNG("PNG: %d bit-depth is invalid", out->bit_depth);
+        if (!out->bpc || (out->bpc > 16) || (out->bpc & (out->bpc - 1))) {
+        	ERROR_PNG("PNG: %d bit-depth is invalid", out->bpc);
         }
-        // valid pair of color_type & bit_depth
+        // valid pair of color_type & bpc
         uint8_t color_type = buff.u8_[10];
         if (color_type) {
           if (color_type & 1) {
-            if (out->bit_depth & 16) {
-              ERROR_PNG("PNG: %d depth %d color type is not valid", out->bit_depth, color_type);
+            if (out->bpc & 16) {
+              ERROR_PNG("PNG: %d depth %d color type is not valid", out->bpc, color_type);
             }
           } else {
-            if (out->bit_depth & 7) {
-              ERROR_PNG("PNG: %d depth %d color type is not valid", out->bit_depth, color_type);
+            if (out->bpc & 7) {
+              ERROR_PNG("PNG: %d depth %d color type is not valid", out->bpc, color_type);
             }
           }
         }
         out->channel = 1 + (color_type & 2) + ((color_type >> 2) & 1);
-        ret = malloc(out->width * out->height * out->bit_depth * out->channel / 8);
+        ret = malloc(out->width * out->height * out->bpc * out->channel / 8);
         // todo: compress support
         if (buff.u8_[11]) {
         	ERROR_PNG("PNG: not ready for compressed method");
@@ -265,7 +241,7 @@ void *load_png(funct f, image_info *out, bool *sig) {
             CRC_APPEND(*pltec);
           }
           out->channel += 1;
-          ret = realloc(ret, out->width * out->height * out->bit_depth * out->channel / 8);
+          ret = realloc(ret, out->width * out->height * out->bpc * out->channel / 8);
         } else {
           if (!(out->channel & 1)) {
             ERROR_PNG("PNG: color type not match for tRNS");
@@ -273,13 +249,13 @@ void *load_png(funct f, image_info *out, bool *sig) {
           if (buff.u32_[0] != (out->channel * 2)) {
             ERROR_PNG("PNG: bad tRNS len");
           }
-          // todo: here is why i am not ready for 1,2,4 bit depth
-          uint8_t bytes = out->bit_depth / 8; // only 1 or 2
+          // TODO: here is why i am not ready for 1,2,4 bit depth
+          uint8_t bytes = out->bpc / 8; // only 1 or 2
           uint8_t *trns = (uint8_t*) malloc(bytes * out->channel);
           READ_PNG(2 * out->channel);
           for (i = 0; i < out->channel; ++i) {
-            uint16_t r = REORDER_BUFF16(i * 2);
-            memcpy(trns + (i * bytes), &r, bytes);
+            flipBytes(buff.u8_ + (i << 1), 2);
+            memcpy(trns + (i * bytes), buff.u16_ + i, bytes);
           }
           CRC_APPENDS(buff.u8_, 2 * out->channel);
           uint8_t *u8ret = (uint8_t*)ret;
@@ -360,7 +336,8 @@ void *load_png(funct f, image_info *out, bool *sig) {
       }
     }
     READ_PNG(4);
-    if (crc ^ ~REORDER_BUFF32(0)) { ERROR_PNG("PNG: crc invalid"); }
+    flipBytes(buff.u8_, 4);
+    if (crc ^ ~buff.u32_[0]) ERROR_PNG("PNG: crc invalid");
   } while (f.eof(f.user));
 calc_load_png:
 
@@ -369,8 +346,6 @@ end_load_png:
 #undef CHUNK_ONCE
 #undef READ_PNG
 #undef COMBINE
-#undef REORDER_BUFF32
-#undef REORDER_BUFF16
 #undef ERROR_PNG
 
 #undef CRC_APPENDS
@@ -378,7 +353,10 @@ end_load_png:
 
 #undef MAX_CHUNK_TYPE
 }
-void *image_read_main(funct f, image_info *out) {
+
+
+
+void *decoder_image_load_fromCallback(callback f, image_info *out) {
    bool sig = false;
    void *ret = NULL;
    
@@ -402,6 +380,7 @@ void *image_read_main(funct f, image_info *out) {
 end_main_load:
    return ret;
 }
+
 static bool f_read(void *user, void *data, size_t size) {
    return fread(data, 1 ,size , (FILE*) user) == size;
 }
@@ -416,14 +395,30 @@ static void f_seek(void *user, size_t n) {
 static bool f_eof(void *user) {
    return feof((FILE*) user) || ferror((FILE *) user);
 }
+void *decoder_image_load_fromFile(char const *filename, image_info *out) {
+   FILE *f;
+#if defined(_WIN32)
+   wchar_t wMode[64];
+   wchar_t wFilename[1024];
+	if ((!MultiByteToWideChar(65001, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename))) ||
+	    (!MultiByteToWideChar(65001, 0, "rb", -1, wMode, sizeof(wMode)/sizeof(*wMode)))
+  ) return 0;
+#if defined(_MSC_VER) && _MSC_VER >= 1400
+	if (_wfopen_s(&f, wFilename, wMode)) f = 0;
+#else
+   f = _wfopen(wFilename, wMode);
+#endif
 
-void *image_read(char const *filename, image_info *out) {
-  FILE *file = c_fileopen(filename, "rb");
+#elif defined(_MSC_VER) && _MSC_VER >= 1400
+   if (fopen_s(&f, filename, "rb")) f = 0;
+#else
+   f = fopen(filename, "rb");
+#endif
   void *ret = NULL;
-  if (file) {
-    funct f = {.user = (void*)file, .read = f_read, .seek = f_seek, .eof = f_eof}; 
-    ret = image_read_main(f, out);
-    fclose(file);
-  } else codec_write_error("IMG READ: cannot open %s", filename);
+  if (f) {
+    callback c = {.user = (void*)f, .read = f_read, .seek = f_seek, .eof = f_eof}; 
+    ret = decoder_image_load_fromCallback(c, out);
+    fclose(f);
+  } else decoder_write_error("IMG READ: cannot open %s", filename);
   return ret;
 }

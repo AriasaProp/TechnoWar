@@ -1,3 +1,4 @@
+#define COMMON_IMPLEMENTATION_
 #include "common.h"
 
 #include <math.h>
@@ -6,15 +7,21 @@
 #include <string.h>
 
 // helper
-#if defined(_WIN32)
-extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int cp, unsigned long flags, const char *str, int cbmb, wchar_t *widestr, int cchwide);
-extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int cp, unsigned long flags, const wchar_t *widestr, int cchwide, char *str, int cbmb, const char *defchar, int *used_default);
+#ifdef _WIN32
 int convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t *input) {
   return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int)bufferlen, NULL, NULL);
 }
 #endif
 
 // math
+void flipBytes(uint8_t *b, const size_t l) {
+  if (l <= 1) return;
+  for (size_t i = 0, j = l - 1, k = l >> 1; i < k; ++i, --j) {
+    b[i] ^= b[j];
+    b[j] ^= b[i];
+    b[i] ^= b[j];
+  }
+}
 int lrotl(int x, size_t n) {
 #if (defined(__GNUC__) || defined(__clang__)) && __has_builtin(__builtin_rotateleft32) // GCC 12+ / Clang 14+
   return __builtin_rotateleft32(x, n);

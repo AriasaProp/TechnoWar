@@ -1,35 +1,206 @@
-#include "uistage.h"
-#include "common.h"
+#include <string.h>
+#include <stdio.h>
+
+#include "stb/stb_image.h"
 #include "engine.h"
 
-texture texture_pack;
-static struct images {
-  int x, y, w, h;
-  int *horizontal_patch;
-  int *vertical_patch;
-  int padding[4];
-} *image_packs = NULL;
+#define UISTAGE_IMPLEMENTATION
+#include "uistage.h"
+#define UISTAGE_MAX_ACTORS 128
 
-void uistage_init() {
-  image_packs = (struct images *)malloc(sizeof(struct images) * IMAGE_TYPE_TOTAL);
-  /*
-  // load uiskin
-  {
-          char *buf;
-          int len;
-          int asset = get_engine ()->a.assetBuffer("uiskin/pack_list.txt", (void**)&buf, &len);
-          char *read = buf;
-          do {
-                  struct images im;
-                  int id;
-                  sscanf(buf, "%d: %d %d %d %d", &id, &im.x, &im.y, &im.w, &im.h);
+typedef struct {
+  vec2 pos, size, off;
+  float xadv;
+} character;
+typedef struct {
+  char a, b;
+  float d;
+} kerning;
+static struct {
+  struct {
+    texture bitmap;
+    vec2 bitmap_size;
+    float size, lineHeight, base;
+    character chs[0xff];
+    size_t kerning_length;
+    kerning *kearns;
+  } font;
+  struct {
+    _actor_type type;
+    vec2 origin;
+    pivot_state origin_pivot, world_pivot;
+    union {
+      struct { char *text; } label;
+    } d;
+  } actors[UISTAGE_MAX_ACTORS + 2];
+  flat_vertex vertex_buffer[MAX_UI_DRAW];
+} src;
 
-                  image_packs[id] = im;
-          }
-          get_engine ()->a.assetClose(asset);
+typedef enum {
+  ACTOR_INVALID = 0,
+  ACTOR_LABEL,
+} _actor_type;
+
+actor create_label(size_t strl) {
+  for(actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
+    if (src.actors[i].type != ACTOR_INVALID) continue;
+    src.actors[i].type = ACTOR_LABEL;
+    src.actors[i].d.label.text = (char*)malloc(strl);
+    break;
   }
+  return i;
+}
+actor destroy_actor(actor a) {
+  switch (src.actors[a].type) {
+    case ACTOR_LABEL:
+      free(src.actors[a].d.label.text);
+      break;
+    default: break;
+  }
+  memmove(src.actors + a, src.actors + a + 1, sizeof() * (UISTAGE_MAX_ACTORS - a + 1));
+  src.actors[a].type = ACTOR_INVALID;
+}
+
+void set_actor_origin(actor a, const vec2 v) {
+  src.actors[a].origin = v;
+}
+void set_actor_pivot_origin(actor a, const pivot_state p) {
+  src.actors[a].origin_pivot = p;
+}
+void set_actor_pivot_world(actor a, const pivot_state p) {
+  src.actors[a].world_pivot = p;
+}
+void set_label_text(actor a, const char *t) {
+  if (src.actors[a].type != ACTOR_LABEL) return;
+  strcpy(src.actors[a].d.label.text, t);
+}
+
+
+static int assetRead_clbk (void *a, char *b, int l) {
+  return global_engine.assetRead(a, (void*)b, (size_t)l);
+}
+static void assetSeek_clbk (void *a, int l) {
+  global_engine.assetSeek(a, l);
+}
+static int assetEOF_clbk (void *a) {
+  return global_engine.assetLength(a) == 0;
+}
+void uistage_init() {
+  memset(&src, 0, sizeof(src));
+  // default usage
+  {
+    int tempi[9];
+    // load font image
+    stbi_io_callbacks cf = {
+      .read = assetRead_clbk,
+      .skip = assetSeek_clbk,
+      .eof = assetEOF_clbk,
+    };
+    void *ast = global_engine.openAsset("fonts/default/default.png");
+    void *img = stbi_load_from_callbacks(cf, ast, tempi, tempi + 1, tempi + 2, 4);
+    src.font.bitmap = global_engine.genTexture((uivec2){(uint16_t)tempi[0], (uint16_t)tempi[1]}, img);
+    src.font.bitmap_size = (vec2){(float)tempi[0], (float)tempi[1]};
+    global_engine.closeAsset(ast);
+    
+    // load font sets
+    size_t i, l;
+    char *line;
+    ast = global_engine.assetBuffer("fonts/default/default.fnt", (void**)&line, &l);
+    line = strtok(line, "\n");
+    do {
+      if (strstr(line, "info")) {
+        char tname[64], tchar[64];
+        sscanf(line, "info face=%s size=%d bold=%d italic=%d charset=%s unicode=%d stretchH=%d smooth=%d aa=%d",
+          tname, tempi, tempi + 1, tempi + 2, tchar, tempi + 3, tempi + 4, tempi + 5, tempi + 6
+        );
+        src.font.size = (float)tempi[0];
+      } else if (strstr(line, "common")) {
+        sscanf(line, "common lineHeight=%d base=%d scaleW=%d scaleH=%d pages=%d packed=%d",
+          tempi, tempi + 1, tempi + 2, tempi + 3, tempi + 4, tempi + 5);
+        src.font.lineHeight = (float)tempi[0];
+        src.font.base = (float)tempi[1];
+      } else if (strstr(line, "chars ")) {
+        sscanf(line, "chars count=%d", tempi + 8);
+        for (i = 0; i < tempi[8]; ++i) {
+          line = strtok(NULL, "\n");
+          sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d",
+            tempi, tempi + 1, tempi + 2, tempi + 3, tempi + 4, tempi + 5, tempi + 6, tempi + 7);
+          src.font.chs[tempi[0]].pos = (vec2){(float)tempi[1], (float)tempi[2]};
+          src.font.chs[tempi[0]].size = (vec2){(float)tempi[3], (float)tempi[4]};
+          src.font.chs[tempi[0]].off = (vec2){(float)tempi[5], (float)tempi[6]};
+          src.font.chs[tempi[0]].xadv = (float)tempi[7];
+        }
+      } else if (strstr(line, "kernings ")) {
+        sscanf(line, "kernings count=%lu", &src.font.kerning_length);
+        src.font.kearns = (kerning*)malloc(sizeof(kerning)*src.font.kerning_length);
+        for (i = 0; i < src.font.kerning_length; ++i) {
+          line = strtok(NULL, "\n");
+          sscanf(line, "kerning first=%d second=%d amount=%d", tempi, tempi + 1, tempi + 2);
+          src.font.kearns[i].a = (char)tempi[0];
+          src.font.kearns[i].b = (char)tempi[1];
+          src.font.kearns[i].d = (float)tempi[2];
+        }
+      }
+    } while (line = strtok(NULL, "\n"));
+    global_engine.closeAsset(ast);
+  }
+}
+void uistage_draw() {
+  
+  size_t v = 0;
+  // draw images
+  
+  // draw fonts
+  /*
+  3 - 1
+  | / |
+  2 - 0
   */
+  for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
+    switch (src.actors[i].type) {
+      case ACTOR_LABEL:
+        float left = 0;
+        for (char *t = src.actors[i].d.label.text; *t; ++t) {
+          character A = src.font.chs[*t];
+          src.vertex_buffer[i * 4    ] = (flat_vertex){
+            (vec2){left + A.size.x, A.size.y },
+            (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
+                   (A.pos.y + A.size.y) / src.font.bitmap_size.y }
+          };
+          src.vertex_buffer[i * 4 + 1] = (flat_vertex){
+            (vec2){left + A.size.x, 0},
+            (vec2){(A.pos.x + A.size.x) / src.font.bitmap_size.x,
+                   A.pos.y / src.font.bitmap_size.y }
+          };
+          src.vertex_buffer[i * 4 + 2] = (flat_vertex){
+            (vec2){left, A.size.x },
+            (vec2){A.pos.x / src.font.bitmap_size.x,
+                   (A.pos.y + A.size.w) / src.font.bitmap_size.y }
+          };
+          src.vertex_buffer[i * 4 + 3] = (flat_vertex){
+            (vec2){left, 0 },
+            (vec2){A.pos.x / src.font.bitmap_size.x,
+                   A.pos.y / src.font.bitmap_size.y }
+          };
+          left += A.size.x;
+          ++v;
+        }
+        break;
+      default: break;
+    }
+  }
+  if (v)
+    global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v);
 }
 void uistage_term() {
-  free(image_packs);
+  for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
+    switch (src.actors[i].type) {
+      case ACTOR_LABEL:
+        free(src.actors[i].d.label.text);
+        break;
+      default: break;
+    }
+  }
+  free(src.font.kearns);
+  global_engine.deleteTexture(src.font.bitmap);
 }

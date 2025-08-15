@@ -5,35 +5,26 @@
 
 static AAssetManager *mngr = NULL;
 
-static AAsset *reading[MAX_ASSET_READING] = {0};
-
-void assetBuffer(const char *filename, void *buf, int *len) {
-  if (!mngr)
-    return;
+static void *assetBuffer(const char *filename, void **buf, size_t *len) {
   AAsset *reading = AAssetManager_open(mngr, filename, AASSET_MODE_BUFFER);
-  *len = AAsset_getLength(reading);
-  memcpy(buf, AAsset_getBuffer(reading), *len);
-  AAsset_close(reading);
+  *len = (size_t)AAsset_getLength(reading);
+  *buf = AAsset_getBuffer(reading);
+  return (void*)reading;
 }
-
-static int openAsset(const char *filename) {
-  for (size_t i = 0; i < MAX_ASSET_READING; ++i) {
-    if (!reading[i]) {
-      reading[i] = AAssetManager_open(mngr, filename, AASSET_MODE_STREAMING);
-      return i;
-    }
-  }
-  return -1;
+static void *openAsset(const char *filename) {
+  return (void*)AAssetManager_open(mngr, filename, AASSET_MODE_STREAMING);
 }
-static int assetRead(int a, void *buf, size_t count) {
-  return AAsset_read(reading[a], buf, count);
+static int assetRead(void *a, void *buf, size_t count) {
+  return AAsset_read((AAsset*)a, buf, count);
 }
-static size_t assetLength(int a) {
-  return AAsset_getRemainingLength(reading[a]);
+static void assetSeek(void *a, int l) {
+  AAsset_seek((AAsset*)a, l, SEEK_CUR);
 }
-static void assetClose(int a) {
-  AAsset_close(reading[a]);
-  reading[a] = NULL;
+static size_t assetLength(void *a) {
+  return (size_t)AAsset_getRemainingLength64((AAsset*)a);
+}
+static void assetClose(void *a) {
+  AAsset_close((AAsset*)a);
 }
 
 void androidAssetManager_init(void *m) {
@@ -42,6 +33,7 @@ void androidAssetManager_init(void *m) {
   global_engine.assetBuffer = assetBuffer;
   global_engine.openAsset = openAsset;
   global_engine.assetRead = assetRead;
+  global_engine.assetSeek = assetSeek;
   global_engine.assetLength = assetLength;
   global_engine.assetClose = assetClose;
 }

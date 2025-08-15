@@ -51,10 +51,7 @@ typedef unsigned __int64 size_t;
 #define UNUSED(x)     ((void)x)
 #define UNUSED_ARG(x) __attribute__((unused)) x
 #else
-#define INLINE        inline
-#define CDECL         /* no translate */
-#define UNUSED(x)     /* no parameter */
-#define UNUSED_ARG(x) /* no parameter */
+#error("unknown Compiler action")
 #endif
 
 #include <assert.h>
@@ -95,15 +92,18 @@ typedef struct {
 // ===============================
 
 // helper
-
+#ifndef COMMON_IMPLEMENTATION_
 #ifdef _WIN32
-extern int convert_wchar_to_utf8(char *, size_t, const wchar_t *);
+extern __declspec(dllimport) int __stdcall MultiByteToWideChar(unsigned int, unsigned long, const char *, int, wchar_t *, int);
+extern __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int, unsigned long, const wchar_t *, int, char *, int, const char *, int *);
+extern int convert_wchar_to_utf8(char *, size_t, const wchar_t*);
 #endif
-
 // math
+extern void flipBytes(uint8_t *, const size_t);
 extern int lrotl(int, size_t);
 extern int lrotr(int, size_t);
 extern void matrix4_idt(float *);
 extern void matrix4_rotateDeg(float *, vec3);
+#endif //COMMON_IMPLEMENTATION_
 
 #endif // COMMON_INCLUDED_
