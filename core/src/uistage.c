@@ -145,7 +145,7 @@ void uistage_init() {
           src.font.kearns[i].d = (float)tempi[2];
         }
       }
-    } while (line = strtok(NULL, "\n"));
+    } while ((line = strtok(NULL, "\n")));
     global_engine.assetClose(ast);
   }
 }
@@ -162,7 +162,7 @@ void uistage_draw() {
   */
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
     switch (src.actors[i].type) {
-    case ACTOR_LABEL:
+    case ACTOR_LABEL: {
       float left = 0;
       for (char *t = src.actors[i].d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
@@ -186,6 +186,7 @@ void uistage_draw() {
         ++v;
       }
       break;
+    }
     default:
       break;
     }
