@@ -4,7 +4,7 @@
 #include "common.h"
 
 typedef enum : uint8_t {
-  PIVOT_INVALID = 0;
+  PIVOT_INVALID = 0,
 
   PIVOT_VTOP_HLEFT = 1,
   PIVOT_TOP = 2,
