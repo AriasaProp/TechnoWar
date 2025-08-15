@@ -2,8 +2,8 @@
 #include <string.h>
 
 #include "engine.h"
-#include "math/vec_math.h"
 #include "stb/stb_image.h"
+#include "math/vec_math.h"
 
 #define UISTAGE_IMPLEMENTATION
 #include "uistage.h"
@@ -169,24 +169,24 @@ void uistage_draw() {
       float left = 0, top = global_engine.getScreenSize().y * 0.5f;
       for (char *t = T.d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
-        vec2 isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
-
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y + A.size.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2 isize = vec2_div((vec2){1.f,1.f}, src.font.bitmap_size);
+        
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y + A.size.y};
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
-
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y};
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top};
-
+        
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y + A.size.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top + A.size.y};
-
+        
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top};
-
+        
         left += A.size.x;
       }
       break;
@@ -205,24 +205,24 @@ void uistage_draw() {
       float left = 0, top = global_engine.getScreenSize().y * 0.3f + 200.f;
       for (char *t = T.d.label.text; *t; ++t) {
         character A = src.font.chs[*t];
-        vec2 isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
-
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y + A.size.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2 isize = vec2_div((vec2){1.f,1.f}, src.font.bitmap_size);
+        
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y + A.size.y};
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top};
-
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        
+        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x,A.pos.y};
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
-
+        
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y + A.size.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top};
-
+        
         src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y};
-        vec2_scl(src.vertex_buffer[v].uv, isize);
+        vec2_scl(&src.vertex_buffer[v].uv, isize);
         src.vertex_buffer[v++].pos = (vec2){left, top + A.size.y};
-
+        
         left += A.size.x;
       }
       break;
