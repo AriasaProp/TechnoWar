@@ -1,8 +1,8 @@
-#include "engine.h"
 #include "common.h"
+#include "engine.h"
 
-#include <time.h>
 #include <string.h>
+#include <time.h>
 
 #define DELTA_TIME_ARRAY 7
 
@@ -11,10 +11,10 @@ static struct {
   clock_t deltaTime, lastSecond, lastFrame, tempClock;
 } src;
 static const float deltaConst = 1000.f / CLOCKS_PER_SEC;
-static float getDeltaTimeMs (void) {
+static float getDeltaTimeMs(void) {
   return (float)src.deltaTime * deltaConst;
 }
-static size_t getFPS (void) {
+static size_t getFPS(void) {
   return src.lastFPS;
 }
 
@@ -22,7 +22,7 @@ void androidTimerManager_init(void) {
   memset(&src, 0, sizeof(src));
   global_engine.getDeltaTimeMs = getDeltaTimeMs;
   global_engine.getFPS = getFPS;
-  
+
   src.lastFrame = src.lastSecond = clock();
 }
 
@@ -37,7 +37,7 @@ void androidTimerManager_onFrame(void) {
   }
   // delta time
   src.deltaTime = src.tempClock - src.lastFrame;
-  
+
   src.lastFrame = src.tempClock;
 }
 
