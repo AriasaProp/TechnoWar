@@ -59,14 +59,7 @@ struct android_app {
   pthread_t thread;
 
   int stateApp;
-  // deltaTime game
-  clock_t currentTime;
-  float deltaTime;
 } *app = NULL;
-// deltaTime game
-static float android_deltaTime(void) {
-  return app->deltaTime;
-}
 
 enum {
   APP_CMD_NONE,
@@ -146,9 +139,9 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   ALooper_addFd(looper, app->msgread, 1, ALOOPER_EVENT_INPUT, process_cmd, NULL);
 
   androidAssetManager_init(app->activity->assetManager);
+  androidTimerManager_init();
   androidInput_init(looper);
   opengles_init();
-  global_engine.deltaTime = android_deltaTime;
 
   pthread_mutex_lock(&app->mutex);
   app->stateApp |= STATE_APP_INIT;
@@ -167,6 +160,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
         Main_pause();
       }
+      androidTimerManager_onFrame();
       androidGraphics_postRender();
     }
     switch (app->delayed_cmdState) {
@@ -187,6 +181,7 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
   Main_term();
   androidGraphics_term();
   androidInput_term();
+  androidTimerManager_term();
   androidAssetManager_term();
 
   memset(&global_engine, 0, sizeof(struct engine));

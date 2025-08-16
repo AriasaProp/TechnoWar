@@ -28,6 +28,7 @@ typedef struct {
   pivot_state origin_pivot, world_pivot;
   union {
     struct {
+      size_t length;
       char *text;
     } label;
   } d;
@@ -51,6 +52,7 @@ actor create_label(size_t strl) {
     if (src.actors[i].type != ACTOR_INVALID)
       continue;
     src.actors[i].type = ACTOR_LABEL;
+    src.actors[i].d.label.length = strl;
     src.actors[i].d.label.text = (char *)malloc(strl);
     break;
   }
@@ -77,10 +79,12 @@ void set_actor_pivot_origin(actor a, const pivot_state p) {
 void set_actor_pivot_world(actor a, const pivot_state p) {
   src.actors[a].world_pivot = p;
 }
-void set_label_text(actor a, const char *t) {
-  if (src.actors[a].type != ACTOR_LABEL)
-    return;
-  strcpy(src.actors[a].d.label.text, t);
+void set_label_text(actor a, const char *t, ...) {
+  if (src.actors[a].type != ACTOR_LABEL) return;
+  va_list args;
+  va_start(args, t);
+  vsnprintf(src.actors[a].d.label.text, src.actors[i].d.label.length, t, args);
+  va_end(args);
 }
 
 static int assetRead_clbk(void *a, char *b, int l) {
@@ -132,13 +136,14 @@ void uistage_init() {
           sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d",
                  tempi, tempi + 1, tempi + 2, tempi + 3, tempi + 4, tempi + 5, tempi + 6, tempi + 7);
           character A;
+          static const float scaleup = 2.5f;
           A.uv = vec2_mul((vec2){(float)tempi[1], (float)tempi[2]}, textureSize);
           A.size = (vec2){(float)tempi[3], (float)tempi[4]};
           A.uvm = vec2_add(A.uv, vec2_mul(A.size, textureSize));
-          A.off = (vec2){(float)tempi[5], (float)tempi[6]};
-          A.xadv = (float)tempi[7] * 2.0f;
-          vec2_sclf(&A.size, 2.0f);
-          vec2_sclf(&A.off, 2.0f);
+          A.off = (vec2){(float)tempi[5], -(float)tempi[6] /* system 2d coordinate fliped upside-down */};
+          A.xadv = (float)tempi[7] * scaleup;
+          vec2_sclf(&A.size, scaleup);
+          vec2_sclf(&A.off, scaleup);
           src.font.chs[tempi[0]] = A;
         }
       } else if (strstr(line, "kernings ")) {

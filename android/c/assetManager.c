@@ -37,6 +37,6 @@ void androidAssetManager_init(void *m) {
   global_engine.assetLength = assetLength;
   global_engine.assetClose = assetClose;
 }
-void androidAssetManager_term() {
+void androidAssetManager_term(void) {
   mngr = NULL;
 }

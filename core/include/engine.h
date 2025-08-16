@@ -41,7 +41,8 @@ struct engine {
   void (*deleteMesh)(const mesh);
 
   // time function
-  float (*deltaTime)(void);
+  float (*getDeltaTimeMs)(void);
+  size_t (*getFPS)(void);
 
   // asset function
   void *(*assetBuffer)(const char *, void **, size_t *);

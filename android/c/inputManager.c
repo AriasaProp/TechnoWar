@@ -100,11 +100,11 @@ void androidInput_createInputQueue(void *queue) {
   AInputQueue_attachLooper(queue, m->looper, ALOOPER_POLL_CALLBACK, androidInput_processInput, (void *)m);
   m->inputQueue = (AInputQueue *)queue;
 }
-void androidInput_destroyInputQueue() {
+void androidInput_destroyInputQueue(void) {
   AInputQueue_detachLooper(m->inputQueue);
   m->inputQueue = NULL;
 }
-void androidInput_enableSensor() {
+void androidInput_enableSensor(void) {
   if (!(m->flags & INPUT_SENSOR_ENABLED)) {
     // attach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -115,7 +115,7 @@ void androidInput_enableSensor() {
     androidInput_processSensor(0, 0, m);
   }
 }
-void androidInput_disableSensor() {
+void androidInput_disableSensor(void) {
   if (m->flags & INPUT_SENSOR_ENABLED) {
     // detach
     for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
@@ -127,7 +127,7 @@ void androidInput_disableSensor() {
     m->flags &= ~INPUT_SENSOR_ENABLED;
   }
 }
-void androidInput_term() {
+void androidInput_term(void) {
   // disable sensor
   for (size_t i = 0; i < MAX_SENSOR_COUNT; ++i) {
     ASensorEventQueue_disableSensor(m->sensorQueue, m->sensor_data[i].sensor);

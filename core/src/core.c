@@ -42,7 +42,6 @@ static void Main_init() {
   set_actor_origin(label_hello, (vec2){0, 0});
   set_actor_pivot_origin(label_hello, PIVOT_CENTER);
   set_actor_pivot_world(label_hello, PIVOT_CENTER);
-  set_label_text(label_hello, "Hello World!");
 }
 // only called in Main_update when stateSystem not running
 static void Main_resume() {
@@ -55,8 +54,9 @@ void Main_update() {
   if (!(stateSystem & STATE_SYSTEM_RUNNING))
     Main_resume();
 
+  set_label_text(label_hello, "%05.2f ms, %03lu FPS", global_engine.getDeltaTimeMs(), global_engine.getFPS());
   unsigned int lb;
-  mesh *v = game_update(&lb, global_engine.deltaTime());
+  mesh *v = game_update(&lb, global_engine.getDeltaTimeMs());
   global_engine.meshRender(v, lb);
   uistage_draw();
 }
