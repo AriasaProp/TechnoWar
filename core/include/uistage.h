@@ -17,8 +17,7 @@ typedef enum : uint8_t {
   PIVOT_VBOTTOM_HLEFT = 7,
   PIVOT_VBOTTOM = 8,
   PIVOT_VBOTTOM_HRIGHT = 9,
-}
-pivot_state;
+} pivot_state;
 
 // actor
 typedef uint16_t actor;

@@ -80,7 +80,8 @@ void set_actor_pivot_world(actor a, const pivot_state p) {
   src.actors[a].world_pivot = p;
 }
 void set_label_text(actor a, const char *t, ...) {
-  if (src.actors[a].type != ACTOR_LABEL) return;
+  if (src.actors[a].type != ACTOR_LABEL)
+    return;
   va_list args;
   va_start(args, t);
   vsnprintf(src.actors[a].d.label.text, src.actors[i].d.label.length, t, args);
