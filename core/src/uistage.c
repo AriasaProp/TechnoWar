@@ -208,7 +208,6 @@ void uistage_draw() {
   }
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v >> 2);
-
 }
 void uistage_term() {
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
