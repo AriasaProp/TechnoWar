@@ -106,7 +106,6 @@ static int process_cmd(int fd, int UNUSED_ARG(event), void *UNUSED_ARG(data)) {
     break;
   case APP_CMD_RESUME:
     app->stateApp |= STATE_APP_RUNNING;
-    app->currentTime = clock();
     break;
   case APP_CMD_CONTENT_RECT_CHANGED:
     androidGraphics_onWindowResize();
@@ -153,8 +152,6 @@ static void *android_app_entry(void *UNUSED_ARG(param)) {
     if (ALooper_pollOnce(!ready * -1, NULL, NULL, NULL) == ALOOPER_POLL_ERROR)
       LOGE("ALooper_pollOnce returned an error");
     if (ready && androidGraphics_preRender()) {
-      clock_t old = app->currentTime;
-      app->deltaTime = (float)((app->currentTime = clock()) - old) / (float)CLOCKS_PER_SEC;
       Main_update();
       if ((app->delayed_cmdState == APP_CMD_WINDOW_DESTROYED) ||
           (app->delayed_cmdState == APP_CMD_PAUSE)) {
@@ -293,7 +290,7 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
-  app->currentTime = clock();
+  
 
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
