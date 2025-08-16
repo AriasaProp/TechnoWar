@@ -1,4 +1,5 @@
-#include "math/vec_math.h"
+#define MATH_UTIL_IMPLEMENTATION_
+#include "math_util.h"
 #include <math.h>
 
 static inline float inv_sqrt(float v) {
@@ -53,6 +54,9 @@ vec2 vec2_div(vec2 a, vec2 b) {
     a.x/b.x,
     a.y/b.y
   };
+}
+vec2 vec2_inv(vec2 a) {
+  return (vec2){1.0f / a.x, 1.0f / a.y};
 }
 vec2 vec2_mulf(vec2 a, float s) {
   return (vec2) {

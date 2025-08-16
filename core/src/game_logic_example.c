@@ -5,7 +5,7 @@
 
 #include "common.h"
 #include "engine.h"
-#include "math/vec_math.h"
+#include "math_util.h"
 
 // at least 4
 #define CIRCLE_PRECISION 20

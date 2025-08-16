@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "engine.h"
-#include "math/vec_math.h"
+#include "math_util.h"
 #include "stb/stb_image.h"
 
 #define UISTAGE_IMPLEMENTATION
@@ -14,7 +14,8 @@ typedef enum {
   ACTOR_LABEL,
 } _actor_type;
 typedef struct {
-  vec2 pos, size, off;
+  vec2 uv, uvm;
+  vec2 size, off;
   float xadv;
 } character;
 typedef struct {
@@ -105,7 +106,7 @@ void uistage_init() {
     void *ast = global_engine.openAsset("fonts/default/default.png");
     void *img = stbi_load_from_callbacks(&cf, ast, tempi, tempi + 1, tempi + 2, 4);
     src.font.bitmap = global_engine.genTexture((uivec2){(uint16_t)tempi[0], (uint16_t)tempi[1]}, img);
-    src.font.bitmap_size = (vec2){(float)tempi[0], (float)tempi[1]};
+    vec2 textureSize = vec2_inv((vec2){(float)tempi[0], (float)tempi[1]});
     global_engine.assetClose(ast);
 
     // load font sets
@@ -130,10 +131,15 @@ void uistage_init() {
           line = strtok(NULL, "\n");
           sscanf(line, "char id=%d x=%d y=%d width=%d height=%d xoffset=%d yoffset=%d xadvance=%d",
                  tempi, tempi + 1, tempi + 2, tempi + 3, tempi + 4, tempi + 5, tempi + 6, tempi + 7);
-          src.font.chs[tempi[0]].pos = (vec2){(float)tempi[1], (float)tempi[2]};
-          src.font.chs[tempi[0]].size = (vec2){(float)tempi[3], (float)tempi[4]};
-          src.font.chs[tempi[0]].off = (vec2){(float)tempi[5], (float)tempi[6]};
-          src.font.chs[tempi[0]].xadv = (float)tempi[7];
+          character A;
+          A.uv = vec2_mul((vec2){(float)tempi[1], (float)tempi[2]}, textureSize);
+          A.size = (vec2){(float)tempi[3], (float)tempi[4]};
+          A.uvm = vec2_add(A.uv, vec2_mul(A.size, textureSize));
+          A.off = (vec2){(float)tempi[5], (float)tempi[6]};
+          A.xadv = (float)tempi[7] * 2.0f;
+          vec2_sclf(&A.size, 2.0f);
+          vec2_sclf(&A.off, 2.0f);
+          src.font.chs[tempi[0]] = A;
         }
       } else if (strstr(line, "kernings ")) {
         sscanf(line, "kernings count=%lu", &src.font.kerning_length);
@@ -165,27 +171,34 @@ void uistage_draw() {
       break;
     case ACTOR_LABEL: {
       float left = 0, top = global_engine.getScreenSize().y * 0.5f;
+      flat_vertex fv;
+      character A;
+      vec2 isize;
       for (char *t = T.d.label.text; *t; ++t) {
-        character A = src.font.chs[*t];
-        vec2 isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
+        A = src.font.chs[*t];
+        isize = vec2_div((vec2){1.f, 1.f}, src.font.bitmap_size);
 
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y + A.size.y};
-        vec2_scl(&src.vertex_buffer[v].uv, isize);
-        src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top};
+        fv.uv = (vec2){A.uvm.x, A.uvm.y};
+        fv.pos = (vec2){left + A.size.x, top};
+        vec2_trn(&fv.pos, A.off);
+        src.vertex_buffer[v++] = fv;
 
-        src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y + A.size.y};
-        vec2_scl(&src.vertex_buffer[v].uv, isize);
-        src.vertex_buffer[v++].pos = (vec2){left, top};
+        fv.uv = (vec2){A.uv.x, A.uvm.y};
+        fv.pos = (vec2){left, top};
+        vec2_trn(&fv.pos, A.off);
+        src.vertex_buffer[v++] = fv;
 
-        src.vertex_buffer[v].uv = (vec2){A.pos.x + A.size.x, A.pos.y};
-        vec2_scl(&src.vertex_buffer[v].uv, isize);
-        src.vertex_buffer[v++].pos = (vec2){left + A.size.x, top + A.size.y};
+        fv.uv = (vec2){A.uvm.x, A.uv.y};
+        fv.pos = (vec2){left + A.size.x, top + A.size.y};
+        vec2_trn(&fv.pos, A.off);
+        src.vertex_buffer[v++] = fv;
 
-        src.vertex_buffer[v].uv = (vec2){A.pos.x, A.pos.y};
-        vec2_scl(&src.vertex_buffer[v].uv, isize);
-        src.vertex_buffer[v++].pos = (vec2){left, top + A.size.y};
+        fv.uv = (vec2){A.uv.x, A.uv.y};
+        fv.pos = (vec2){left, top + A.size.y};
+        vec2_trn(&fv.pos, A.off);
+        src.vertex_buffer[v++] = fv;
 
-        left += A.size.x;
+        left += A.xadv;
       }
       break;
     }
@@ -196,24 +209,6 @@ void uistage_draw() {
   if (v)
     global_engine.flatRender(src.font.bitmap, src.vertex_buffer, v >> 2);
 
-  /*
-  v = 0;
-  {
-    vec2 p = {.x = 50, .y = 50};
-    src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
-    src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
-    src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
-    src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
-
-    p.x += 250;
-    src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y};
-    src.vertex_buffer[v++].pos = (vec2){p.x, p.y};
-    src.vertex_buffer[v++].pos = (vec2){p.x + 150, p.y + 150};
-    src.vertex_buffer[v++].pos = (vec2){p.x, p.y + 150};
-  }
-  if (v)
-    global_engine.flatRender(0, src.vertex_buffer, v >> 2);
-  */
 }
 void uistage_term() {
   for (actor i = 0; i < UISTAGE_MAX_ACTORS; ++i) {
