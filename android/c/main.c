@@ -290,7 +290,6 @@ void ANativeActivity_onCreate(ANativeActivity *activity, void *savedState, size_
 
   app = (struct android_app *)calloc(1, sizeof(struct android_app));
   app->activity = activity;
-  
 
   pthread_mutex_init(&app->mutex, NULL);
   pthread_cond_init(&app->cond, NULL);
