@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "engine.h"
 #include "math_util.h"
@@ -84,7 +85,7 @@ void set_label_text(actor a, const char *t, ...) {
     return;
   va_list args;
   va_start(args, t);
-  vsnprintf(src.actors[a].d.label.text, src.actors[i].d.label.length, t, args);
+  vsnprintf(src.actors[a].d.label.text, src.actors[a].d.label.length, t, args);
   va_end(args);
 }
 
