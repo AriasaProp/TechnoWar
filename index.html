@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
+  </head>
+
+  <body>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+    <main></main>
+    <script>
+      const State = {
+        NONE: 0,
+        SELECTED: 1,
+        COLLIDED: 2
+      };
+      class Body {
+        constructor(vertexs, indexs) {
+          this.v = vertexs;
+          this.i = indexs;
+          this.state = State.NONE;
+          this.r = 0;
+          this.t = {x: 0, y: 0};
+        }
+        hit(p) {
+          // collect m
+          for (trig of this.i) {
+            // check bounding
+          }
+          this.state |= State.COLLIDED;
+        }
+        translate (p) {
+          // translate matrix update
+          this.t.x += p.x;
+          this.t.y += p.y;
+        }
+        rotate (rad) {
+          this.r += rad;
+          this.r %= 2 * Math.PI;
+        }
+        update() {
+          let nVert = [];
+          for (let v of this.v) {
+            let x = v.x * Math.cos(this.r) - v.y * Math.sin(this.r) + this.t.x;
+            let y = v.x * Math.sin(this.r) + v.y * Math.cos(this.r) + this.t.y;
+            nVert.push({x: x,y: y});
+          }
+          fill(
+            88 + (this.state & State.COLLIDED != 0) * 120,
+            88 + (this.state & State.SELECTED != 0) * 120,
+            88
+          );
+          for (const ind of this.i) {
+            triangle(
+              nVert[ind.a].x, nVert[ind.a].y,
+              nVert[ind.b].x, nVert[ind.b].y,
+              nVert[ind.c].x, nVert[ind.c].y
+            );
+          }
+        }
+        // all convex polygon
+        //  3 points
+        static Triangle(a, b, c) {
+          return new Body([a, b, c], [{a:0,b:1,c:2}]);
+        }
+        // width, height
+        static Rectangle(w, h) {
+          let ws = w / 2.0;
+          let hs = h / 2.0;
+          let verts = [
+            {x:  ws, y:  hs},
+            {x:  ws, y: -hs},
+            {x: -ws, y:  hs},
+            {x: -ws, y: -hs}
+          ];
+
+          let indcs = [
+            {a: 0, b: 1, c: 2},
+            {a: 1, b: 2, c: 3}
+          ];
+          return new Body(verts, indcs);
+        }
+        // d detail, r radius
+        static Circle(d, r) {
+          let verts = [];
+          for (let i = 0; i < d * 2; i++) {
+            let deg = Math.PI * i / d;
+            verts.push({
+              x: r * Math.cos(deg),
+              y: r * Math.sin(deg)
+            });
+          }
+          let indcs = [];
+          let d2 = d * 2 - 1;
+          for (let i = 0; i < d; i++) {
+            let j = i + 1;
+            let k = d2 - i;
+            indcs.push({a: j, b: i, c: k});
+            indcs.push({a: j, b: k, c: k - 1});
+          }
+          return new Body(verts, indcs);
+        }
+      }
+    </script>
+    <script>
+      let bodies = [];
+      function setup() {
+        createCanvas(400, 650, WEBGL);
+        //translate(150, 350);
+        stroke(0);
+        strokeWeight(0);
+
+        bodies.push(Body.Circle(20, 35));
+        bodies[0].translate({x: -15, y: 12});
+        //bodies[0].state |= State.SELECTED;
+        bodies.push(Body.Rectangle(75, 35));
+        bodies[1].translate({x: 50, y: -120});
+        bodies.push(Body.Triangle(
+          {x: 12, y: -1}, {x: 2, y: -10}, {x: -15, y: 21}));
+        bodies[2].translate({x: 70, y: -80});
+        bodies.push(new Body(
+          [{x:0,y:0},{x:20,y:5},{x:0,y:-45},{x:-20,y:5}],
+          [{a:0,b:1,c:2},{a:0,b:2,c:3}]
+        ));
+        /*
+        let fbutton = createButton("Foward");
+        fbutton.mousePressed(function() {
+          body_selected.move = true;
+        });
+        createButton("Rotate").mousePressed(function() {
+          body_selected.rotate = true;
+        });
+        createButton("Change").mousePressed(function() {
+          bodies[body_selected.index].state &= ~State.SELECTED;
+          body_selected.index++;
+          body_selected.index %= bodies.length;
+          bodies[body_selected.index].state |= State.SELECTED;
+        });
+        
+      }
+      function mouseRelease () {
+        body_selected.move = false;
+        body_selected.rotate = false;
+        */
+      }
+      let buttL = [false, false, false, false];
+      function mousePressed () {
+        if (mouseY > 550) {
+          for (let x = 0; x < 4; x++) {
+            if ((mouseX > (x * 100)) &&
+                (mouseX < (x * 100 + 100))) {
+                buttL[x] = true;
+                console.log(mouseX, mouseY);
+                break;
+              }
+          }
+        }
+      }
+      function mouseReleased () {
+        buttL = [false, false, false, false];
+        console.log("release");
+      }
+      function draw() {
+        background(225);
+        /*
+        if (body_selected.move)
+          bodies[body_selected.index].translate({x:0,y:2});
+        if (body_selected.rotate)
+          bodies[body_selected.index].rotate(Math.PI / 180);
+        */
+        for (const b of bodies) {
+          b.update();
+        }
+        let xbutt = -200;
+        if (buttL[0]) fill(0,0,255);
+        else fill(70,70,190);
+        rect(xbutt, 225, 100, 100);
+        if (buttL[1]) fill(0,160,180);
+        else fill(25,150,150);
+        xbutt += 100;
+        rect(xbutt, 225, 100, 100);
+        if (buttL[2]) fill(0,200,70);
+        else fill(0,100,35);
+        xbutt += 100;
+        rect(xbutt, 225, 100, 100);
+        if (buttL[3]) fill(130,80,70);
+        else fill(60,80,70);
+        xbutt += 100;
+        rect(xbutt, 225, 100, 100);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.11.0'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.application'
+
+android {
+    signingConfigs {
+        mainSign {
+            storeFile file('sign.keystore')
+            storePassword '123456'
+            keyAlias = 'demo'
+            keyPassword '123456'
+        }
+    }
+    compileSdkVersion 34
+    ndkVersion '26.3.11579264'
+    namespace 'com.ariasaproject.technowar'
+    defaultConfig {
+		    applicationId 'com.ariasaproject.technowar'
+		    minSdkVersion 25
+		    targetSdkVersion 34
+		    versionCode 1
+		    versionName '0'
+		    signingConfig signingConfigs.mainSign
+		    multiDexEnabled true
+				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+				
+				shaders {
+            glslcArgs.addAll(['-c', '-g'])
+        }
+		}
+		buildTypes {
+				release {
+						minifyEnabled true
+				}
+				debug {
+						minifyEnabled false
+				}
+		}
+    sourceSets {
+        main.shaders.srcDirs = ['shaders']
+    }
+    externalNativeBuild {
+        cmake.path 'CMakeLists.txt'
+    }
+    compileOptions {
+				sourceCompatibility JavaVersion.VERSION_18
+				targetCompatibility JavaVersion.VERSION_18
+    }
+}
+
+dependencies {
+}
+
