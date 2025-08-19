@@ -1821,7 +1821,7 @@ static const char *opengles_info(void) {
 
     // error when implemented
     /*
-    
+
     if (glGetIntegerv == NULL) {
       strcat(src->opengles_info_temp, "null call");
     } else {
