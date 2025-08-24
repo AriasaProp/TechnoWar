@@ -1826,8 +1826,8 @@ static const char *opengles_info(void) {
     if (j > 30)
       j = 30;
     for (i = 0; i < j; ++i) {
-      s = (const char *)glGetStringi(GL_EXTENSIONS, i);
-      strcat(src->opengles_info_temp, s);
+      c = (const char *)glGetStringi(GL_EXTENSIONS, i);
+      strcat(src->opengles_info_temp, c);
       strcat(src->opengles_info_temp, (i % 3) ? ", " : "\n");
     }
   }
