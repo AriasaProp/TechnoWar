@@ -1820,7 +1820,6 @@ static const char *opengles_info(void) {
     strcat(src->opengles_info_temp, c);
 
     // error when implemented
-    /*
 
     if (glGetIntegerv == NULL) {
       strcat(src->opengles_info_temp, "null call");
@@ -1829,6 +1828,7 @@ static const char *opengles_info(void) {
       glGetIntegerv(GL_NUM_EXTENSIONS, &j);
       strcat(src->opengles_info_temp, "hello");
     }
+    /*
     GLuint i;
     if (j > 10)
       j = 10;
