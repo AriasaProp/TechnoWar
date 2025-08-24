@@ -1823,12 +1823,11 @@ static const char *opengles_info(void) {
     GLint j;
     glGetIntegerv(GL_NUM_EXTENSIONS, &j);
     GLuint i;
-    if (j > 30)
-      j = 30;
+    if (j > 30) j = 30;
     for (i = 0; i < j; ++i) {
       c = (const char *)glGetStringi(GL_EXTENSIONS, i);
       strcat(src->opengles_info_temp, c);
-      strcat(src->opengles_info_temp, (i % 3) ? ", " : "\n");
+      strcat(src->opengles_info_temp, (i % 3) ? "," : "\n");
     }
   }
   return src->opengles_info_temp;
