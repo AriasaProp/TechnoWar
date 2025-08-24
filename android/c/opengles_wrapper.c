@@ -1820,24 +1820,15 @@ static const char *opengles_info(void) {
     strcat(src->opengles_info_temp, c);
 
     // error when implemented
-
-    if (glGetIntegerv == NULL) {
-      strcat(src->opengles_info_temp, "null call");
-    } else {
-      GLint j;
-      glGetIntegerv(GL_NUM_EXTENSIONS, &j);
-      strcat(src->opengles_info_temp, "hello");
-    }
-    /*
+    GLint j;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &j);
     GLuint i;
-    if (j > 10)
-      j = 10;
+    if (j > 30) j = 30;
     for (i = 0; i < j; ++i) {
       s = (const char *)glGetStringi(GL_EXTENSIONS, i);
       strcat(src->opengles_info_temp, s);
-      strcat(src->opengles_info_temp, "\n");
+      strcat(src->opengles_info_temp, (i % 3 == 2) ? "\n" : ", ");
     }
-    */
   }
   return src->opengles_info_temp;
 }
