@@ -43,7 +43,7 @@ static struct {
     texture bitmap;
     vec2 bitmap_size;
     float size, lineHeight, base;
-    character chs[0xff];
+    character chs[0x80];
     size_t kerning_length;
     kerning *kearns;
   } font;
@@ -193,7 +193,7 @@ void uistage_draw() {
               if (maxSize.x < width)
                 maxSize.x = width;
               width = 0.0f;
-            } else {
+            } else if (*t < 0x80) {
               width += src.font.chs[*t].xadv;
             }
           }
@@ -259,6 +259,9 @@ void uistage_draw() {
       flat_vertex fv;
       character A;
       for (char *t = T.d.label.text; *t; ++t) {
+        if (*t > 0x7f) {
+          continue;
+        }
         if (*t == '\n') {
           start_.x = vorig.x;
           start_.y -= src.font.lineHeight;
