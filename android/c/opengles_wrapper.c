@@ -1,15 +1,13 @@
-#include <android/native_window.h>
-#include <dlfcn.h>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "common.h"
 #include "engine.h"
 #include "log.h"
 #include "manager.h"
+
+#include <android/native_window.h>
+#include <dlfcn.h>
+#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 
 typedef int32_t khronos_int32_t;
 typedef uint32_t khronos_uint32_t;
@@ -292,42 +290,42 @@ static void *loadEGL(void) {
     goto load_egl_err_e;
 
   // EGL Core Functions
-  eglChooseConfig = (EGLBoolean(*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglChooseConfig");
-  eglCopyBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLNativePixmapType))dlsym(v, "eglCopyBuffers");
-  eglCreateContext = (EGLContext(*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))dlsym(v, "eglCreateContext");
-  eglCreatePbufferSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferSurface");
-  eglCreatePixmapSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))dlsym(v, "eglCreatePixmapSurface");
-  eglCreateWindowSurface = (EGLSurface(*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))dlsym(v, "eglCreateWindowSurface");
-  eglDestroyContext = (EGLBoolean(*)(EGLDisplay, EGLContext))dlsym(v, "eglDestroyContext");
-  eglDestroySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface))dlsym(v, "eglDestroySurface");
-  eglGetConfigAttrib = (EGLBoolean(*)(EGLDisplay, EGLConfig, EGLint, EGLint *))dlsym(v, "eglGetConfigAttrib");
-  eglGetConfigs = (EGLBoolean(*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglGetConfigs");
-  eglGetCurrentDisplay = (EGLDisplay(*)(void))dlsym(v, "eglGetCurrentDisplay");
-  eglGetCurrentSurface = (EGLSurface(*)(EGLint))dlsym(v, "eglGetCurrentSurface");
-  eglGetDisplay = (EGLDisplay(*)(EGLNativeDisplayType))dlsym(v, "eglGetDisplay");
-  eglGetError = (EGLint(*)(void))dlsym(v, "eglGetError");
-  eglInitialize = (EGLBoolean(*)(EGLDisplay, EGLint *, EGLint *))dlsym(v, "eglInitialize");
-  eglMakeCurrent = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))dlsym(v, "eglMakeCurrent");
-  eglQueryContext = (EGLBoolean(*)(EGLDisplay, EGLContext, EGLint, EGLint *))dlsym(v, "eglQueryContext");
+  eglChooseConfig = (EGLBoolean (*)(EGLDisplay, const EGLint *, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglChooseConfig");
+  eglCopyBuffers = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLNativePixmapType))dlsym(v, "eglCopyBuffers");
+  eglCreateContext = (EGLContext (*)(EGLDisplay, EGLConfig, EGLContext, const EGLint *))dlsym(v, "eglCreateContext");
+  eglCreatePbufferSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferSurface");
+  eglCreatePixmapSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, EGLNativePixmapType, const EGLint *))dlsym(v, "eglCreatePixmapSurface");
+  eglCreateWindowSurface = (EGLSurface (*)(EGLDisplay, EGLConfig, EGLNativeWindowType, const EGLint *))dlsym(v, "eglCreateWindowSurface");
+  eglDestroyContext = (EGLBoolean (*)(EGLDisplay, EGLContext))dlsym(v, "eglDestroyContext");
+  eglDestroySurface = (EGLBoolean (*)(EGLDisplay, EGLSurface))dlsym(v, "eglDestroySurface");
+  eglGetConfigAttrib = (EGLBoolean (*)(EGLDisplay, EGLConfig, EGLint, EGLint *))dlsym(v, "eglGetConfigAttrib");
+  eglGetConfigs = (EGLBoolean (*)(EGLDisplay, EGLConfig *, EGLint, EGLint *))dlsym(v, "eglGetConfigs");
+  eglGetCurrentDisplay = (EGLDisplay (*)(void))dlsym(v, "eglGetCurrentDisplay");
+  eglGetCurrentSurface = (EGLSurface (*)(EGLint))dlsym(v, "eglGetCurrentSurface");
+  eglGetDisplay = (EGLDisplay (*)(EGLNativeDisplayType))dlsym(v, "eglGetDisplay");
+  eglGetError = (EGLint (*)(void))dlsym(v, "eglGetError");
+  eglInitialize = (EGLBoolean (*)(EGLDisplay, EGLint *, EGLint *))dlsym(v, "eglInitialize");
+  eglMakeCurrent = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLSurface, EGLContext))dlsym(v, "eglMakeCurrent");
+  eglQueryContext = (EGLBoolean (*)(EGLDisplay, EGLContext, EGLint, EGLint *))dlsym(v, "eglQueryContext");
   eglQueryString = (const char *(*)(EGLDisplay, EGLint))dlsym(v, "eglQueryString");
-  eglQuerySurface = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint *))dlsym(v, "eglQuerySurface");
-  eglSwapBuffers = (EGLBoolean(*)(EGLDisplay, EGLSurface))dlsym(v, "eglSwapBuffers");
-  eglTerminate = (EGLBoolean(*)(EGLDisplay))dlsym(v, "eglTerminate");
-  eglWaitGL = (EGLBoolean(*)(void))dlsym(v, "eglWaitGL");
-  eglWaitNative = (EGLBoolean(*)(EGLint))dlsym(v, "eglWaitNative");
+  eglQuerySurface = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint *))dlsym(v, "eglQuerySurface");
+  eglSwapBuffers = (EGLBoolean (*)(EGLDisplay, EGLSurface))dlsym(v, "eglSwapBuffers");
+  eglTerminate = (EGLBoolean (*)(EGLDisplay))dlsym(v, "eglTerminate");
+  eglWaitGL = (EGLBoolean (*)(void))dlsym(v, "eglWaitGL");
+  eglWaitNative = (EGLBoolean (*)(EGLint))dlsym(v, "eglWaitNative");
 
   // EGL 1.1 Functions
-  eglBindTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglBindTexImage");
-  eglReleaseTexImage = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglReleaseTexImage");
-  eglSurfaceAttrib = (EGLBoolean(*)(EGLDisplay, EGLSurface, EGLint, EGLint))dlsym(v, "eglSurfaceAttrib");
-  eglSwapInterval = (EGLBoolean(*)(EGLDisplay, EGLint))dlsym(v, "eglSwapInterval");
+  eglBindTexImage = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglBindTexImage");
+  eglReleaseTexImage = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint))dlsym(v, "eglReleaseTexImage");
+  eglSurfaceAttrib = (EGLBoolean (*)(EGLDisplay, EGLSurface, EGLint, EGLint))dlsym(v, "eglSurfaceAttrib");
+  eglSwapInterval = (EGLBoolean (*)(EGLDisplay, EGLint))dlsym(v, "eglSwapInterval");
 
   // EGL 1.2 Functions
-  eglBindAPI = (EGLBoolean(*)(EGLenum))dlsym(v, "eglBindAPI");
-  eglQueryAPI = (EGLenum(*)(void))dlsym(v, "eglQueryAPI");
-  eglCreatePbufferFromClientBuffer = (EGLSurface(*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferFromClientBuffer");
-  eglReleaseThread = (EGLBoolean(*)(void))dlsym(v, "eglReleaseThread");
-  eglWaitClient = (EGLBoolean(*)(void))dlsym(v, "eglWaitClient");
+  eglBindAPI = (EGLBoolean (*)(EGLenum))dlsym(v, "eglBindAPI");
+  eglQueryAPI = (EGLenum (*)(void))dlsym(v, "eglQueryAPI");
+  eglCreatePbufferFromClientBuffer = (EGLSurface (*)(EGLDisplay, EGLenum, EGLClientBuffer, EGLConfig, const EGLint *))dlsym(v, "eglCreatePbufferFromClientBuffer");
+  eglReleaseThread = (EGLBoolean (*)(void))dlsym(v, "eglReleaseThread");
+  eglWaitClient = (EGLBoolean (*)(void))dlsym(v, "eglWaitClient");
   return v;
 load_egl_err:
   dlclose(v);
@@ -1486,8 +1484,8 @@ static void *loadGLES(void) {
   glCompressedTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum, GLsizei, const void *))dlsym(v, "glCompressedTexSubImage2D");
   glCopyTexImage2D = (void (*)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))dlsym(v, "glCopyTexImage2D");
   glCopyTexSubImage2D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLint, GLsizei, GLsizei))dlsym(v, "glCopyTexSubImage2D");
-  glCreateProgram = (GLuint(*)(void))dlsym(v, "glCreateProgram");
-  glCreateShader = (GLuint(*)(GLenum))dlsym(v, "glCreateShader");
+  glCreateProgram = (GLuint (*)(void))dlsym(v, "glCreateProgram");
+  glCreateShader = (GLuint (*)(GLenum))dlsym(v, "glCreateShader");
   glCullFace = (void (*)(GLenum))dlsym(v, "glCullFace");
   glDeleteBuffers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteBuffers");
   glDeleteFramebuffers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteFramebuffers");
@@ -1518,10 +1516,10 @@ static void *loadGLES(void) {
   glGetActiveAttrib = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))dlsym(v, "glGetActiveAttrib");
   glGetActiveUniform = (void (*)(GLuint, GLuint, GLsizei, GLsizei *, GLint *, GLenum *, GLchar *))dlsym(v, "glGetActiveUniform");
   glGetAttachedShaders = (void (*)(GLuint, GLsizei, GLsizei *, GLuint *))dlsym(v, "glGetAttachedShaders");
-  glGetAttribLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetAttribLocation");
+  glGetAttribLocation = (GLint (*)(GLuint, const GLchar *))dlsym(v, "glGetAttribLocation");
   glGetBooleanv = (void (*)(GLenum, GLboolean *))dlsym(v, "glGetBooleanv");
   glGetBufferParameteriv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetBufferParameteriv");
-  glGetError = (GLenum(*)(void))dlsym(v, "glGetError");
+  glGetError = (GLenum (*)(void))dlsym(v, "glGetError");
   glGetFloatv = (void (*)(GLenum, GLfloat *))dlsym(v, "glGetFloatv");
   glGetFramebufferAttachmentParameteriv = (void (*)(GLenum, GLenum, GLenum, GLint *))dlsym(v, "glGetFramebufferAttachmentParameteriv");
   glGetIntegerv = (void (*)(GLenum, GLint *))dlsym(v, "glGetIntegerv");
@@ -1535,20 +1533,20 @@ static void *loadGLES(void) {
   glGetString = (const GLubyte *(*)(GLenum))dlsym(v, "glGetString");
   glGetTexParameterfv = (void (*)(GLenum, GLenum, GLfloat *))dlsym(v, "glGetTexParameterfv");
   glGetTexParameteriv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetTexParameteriv");
-  glGetUniformLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetUniformLocation");
+  glGetUniformLocation = (GLint (*)(GLuint, const GLchar *))dlsym(v, "glGetUniformLocation");
   glGetUniformfv = (void (*)(GLuint, GLint, GLfloat *))dlsym(v, "glGetUniformfv");
   glGetUniformiv = (void (*)(GLuint, GLint, GLint *))dlsym(v, "glGetUniformiv");
   glGetVertexAttribfv = (void (*)(GLuint, GLenum, GLfloat *))dlsym(v, "glGetVertexAttribfv");
   glGetVertexAttribiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetVertexAttribiv");
   glGetVertexAttribPointerv = (void (*)(GLuint, GLenum, void **))dlsym(v, "glGetVertexAttribPointerv");
   glHint = (void (*)(GLenum, GLenum))dlsym(v, "glHint");
-  glIsBuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsBuffer");
-  glIsEnabled = (GLboolean(*)(GLenum))dlsym(v, "glIsEnabled");
-  glIsFramebuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsFramebuffer");
-  glIsProgram = (GLboolean(*)(GLuint))dlsym(v, "glIsProgram");
-  glIsRenderbuffer = (GLboolean(*)(GLuint))dlsym(v, "glIsRenderbuffer");
-  glIsShader = (GLboolean(*)(GLuint))dlsym(v, "glIsShader");
-  glIsTexture = (GLboolean(*)(GLuint))dlsym(v, "glIsTexture");
+  glIsBuffer = (GLboolean (*)(GLuint))dlsym(v, "glIsBuffer");
+  glIsEnabled = (GLboolean (*)(GLenum))dlsym(v, "glIsEnabled");
+  glIsFramebuffer = (GLboolean (*)(GLuint))dlsym(v, "glIsFramebuffer");
+  glIsProgram = (GLboolean (*)(GLuint))dlsym(v, "glIsProgram");
+  glIsRenderbuffer = (GLboolean (*)(GLuint))dlsym(v, "glIsRenderbuffer");
+  glIsShader = (GLboolean (*)(GLuint))dlsym(v, "glIsShader");
+  glIsTexture = (GLboolean (*)(GLuint))dlsym(v, "glIsTexture");
   glLineWidth = (void (*)(GLfloat))dlsym(v, "glLineWidth");
   glLinkProgram = (void (*)(GLuint))dlsym(v, "glLinkProgram");
   glPixelStorei = (void (*)(GLenum, GLint))dlsym(v, "glPixelStorei");
@@ -1616,7 +1614,7 @@ static void *loadGLES(void) {
   glCompressedTexSubImage3D = (void (*)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLsizei, const void *))dlsym(v, "glCompressedTexSubImage3D");
   glGenQueries = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenQueries");
   glDeleteQueries = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteQueries");
-  glIsQuery = (GLboolean(*)(GLuint))dlsym(v, "glIsQuery");
+  glIsQuery = (GLboolean (*)(GLuint))dlsym(v, "glIsQuery");
   glBeginQuery = (void (*)(GLenum, GLuint))dlsym(v, "glBeginQuery");
   glEndQuery = (void (*)(GLenum))dlsym(v, "glEndQuery");
   glGetQueryiv = (void (*)(GLenum, GLenum, GLint *))dlsym(v, "glGetQueryiv");
@@ -1626,7 +1624,7 @@ static void *loadGLES(void) {
   glFlushMappedBufferRange = (void (*)(GLenum, GLintptr, GLsizeiptr))dlsym(v, "glFlushMappedBufferRange");
   glGenSamplers = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenSamplers");
   glDeleteSamplers = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteSamplers");
-  glIsSampler = (GLboolean(*)(GLuint))dlsym(v, "glIsSampler");
+  glIsSampler = (GLboolean (*)(GLuint))dlsym(v, "glIsSampler");
   glBindSampler = (void (*)(GLuint, GLuint))dlsym(v, "glBindSampler");
   glSamplerParameterf = (void (*)(GLuint, GLenum, GLfloat))dlsym(v, "glSamplerParameterf");
   glSamplerParameterfv = (void (*)(GLuint, GLenum, const GLfloat *))dlsym(v, "glSamplerParameterfv");
@@ -1637,7 +1635,7 @@ static void *loadGLES(void) {
   glVertexAttribDivisor = (void (*)(GLuint, GLuint))dlsym(v, "glVertexAttribDivisor");
   glBindTransformFeedback = (void (*)(GLenum, GLuint))dlsym(v, "glBindTransformFeedback");
   glDeleteTransformFeedbacks = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteTransformFeedbacks");
-  glIsTransformFeedback = (GLboolean(*)(GLuint))dlsym(v, "glIsTransformFeedback");
+  glIsTransformFeedback = (GLboolean (*)(GLuint))dlsym(v, "glIsTransformFeedback");
   glGenTransformFeedbacks = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenTransformFeedbacks");
   glPauseTransformFeedback = (void (*)(void))dlsym(v, "glPauseTransformFeedback");
   glResumeTransformFeedback = (void (*)(void))dlsym(v, "glResumeTransformFeedback");
@@ -1653,17 +1651,17 @@ static void *loadGLES(void) {
   glUniformBlockBinding = (void (*)(GLuint, GLuint, GLuint))dlsym(v, "glUniformBlockBinding");
   glGetUniformIndices = (void (*)(GLuint, GLsizei, const GLchar *const *, GLuint *))dlsym(v, "glGetUniformIndices");
   glGetActiveUniformsiv = (void (*)(GLuint, GLsizei, const GLuint *, GLenum, GLint *))dlsym(v, "glGetActiveUniformsiv");
-  glFenceSync = (GLsync(*)(GLenum, GLbitfield))dlsym(v, "glFenceSync");
-  glIsSync = (GLboolean(*)(GLsync))dlsym(v, "glIsSync");
+  glFenceSync = (GLsync (*)(GLenum, GLbitfield))dlsym(v, "glFenceSync");
+  glIsSync = (GLboolean (*)(GLsync))dlsym(v, "glIsSync");
   glDeleteSync = (void (*)(GLsync))dlsym(v, "glDeleteSync");
-  glClientWaitSync = (GLenum(*)(GLsync, GLbitfield, GLuint64))dlsym(v, "glClientWaitSync");
+  glClientWaitSync = (GLenum (*)(GLsync, GLbitfield, GLuint64))dlsym(v, "glClientWaitSync");
   glWaitSync = (void (*)(GLsync, GLbitfield, GLuint64))dlsym(v, "glWaitSync");
   glGetInteger64v = (void (*)(GLenum, GLint64 *))dlsym(v, "glGetInteger64v");
   glGetSynciv = (void (*)(GLsync, GLenum, GLsizei, GLsizei *, GLint *))dlsym(v, "glGetSynciv");
   glCopyBufferSubData = (void (*)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr))dlsym(v, "glCopyBufferSubData");
   glGetBufferParameteri64v = (void (*)(GLenum, GLenum, GLint64 *))dlsym(v, "glGetBufferParameteri64v");
   glBlitFramebuffer = (void (*)(GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))dlsym(v, "glBlitFramebuffer");
-  glCheckFramebufferStatus = (GLenum(*)(GLenum))dlsym(v, "glCheckFramebufferStatus");
+  glCheckFramebufferStatus = (GLenum (*)(GLenum))dlsym(v, "glCheckFramebufferStatus");
   glDrawArraysInstanced = (void (*)(GLenum, GLint, GLsizei, GLsizei))dlsym(v, "glDrawArraysInstanced");
   glDrawElementsInstanced = (void (*)(GLenum, GLsizei, GLenum, const void *, GLsizei))dlsym(v, "glDrawElementsInstanced");
   glFramebufferTextureLayer = (void (*)(GLenum, GLenum, GLuint, GLint, GLint))dlsym(v, "glFramebufferTextureLayer");
@@ -1687,7 +1685,7 @@ static void *loadGLES(void) {
   glVertexAttribIPointer = (void (*)(GLuint, GLint, GLenum, GLsizei, const void *))dlsym(v, "glVertexAttribIPointer");
   glGetVertexAttribIiv = (void (*)(GLuint, GLenum, GLint *))dlsym(v, "glGetVertexAttribIiv");
   glGetVertexAttribIuiv = (void (*)(GLuint, GLenum, GLuint *))dlsym(v, "glGetVertexAttribIuiv");
-  glGetFragDataLocation = (GLint(*)(GLuint, const GLchar *))dlsym(v, "glGetFragDataLocation");
+  glGetFragDataLocation = (GLint (*)(GLuint, const GLchar *))dlsym(v, "glGetFragDataLocation");
   glGenVertexArrays = (void (*)(GLsizei, GLuint *))dlsym(v, "glGenVertexArrays");
   glBindVertexArray = (void (*)(GLuint))dlsym(v, "glBindVertexArray");
   glDeleteVertexArrays = (void (*)(GLsizei, const GLuint *))dlsym(v, "glDeleteVertexArrays");

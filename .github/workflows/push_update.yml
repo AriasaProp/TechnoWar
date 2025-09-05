@@ -10,6 +10,7 @@ on:
       - '**'
     paths:
       - 'core/**'
+      - 'tests/**'
       - 'tools/**'
       - 'android/**'
       - '.github/workflows/push_update.yml'
@@ -32,49 +33,18 @@ jobs:
           filters: |
             core:
               - 'core/**'
+              - 'tests/**'
               - 'tools/**'
             android:
               - 'android/**'
-            src:
-              - added|modified: 'core/src/*.c'
-              - added|modified: 'core/include/*.h'
-              - added|modified: 'tools/src/*.c'
-              - added|modified: 'tools/include/*.h'
-              - added|modified: 'tools/test_src/*.c'
-              - added|modified: 'android/c/*.c'
-              - added|modified: 'android/src/main/java/**/*.java'
-
-      - name: Format Source Code
-        if: steps.changes.outputs.src == 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-format
-          echo "${{ steps.changes.outputs.src_files }}" | xargs -n 1 clang-format -i
-          git config --global user.email "ikomangwidiadaariasa12@gmail.com"
-          git config --global user.name "AriasaProp"
-          git add .
-          # Check if there are changes to commit
-          if ! git diff --staged --quiet; then
-            echo "Formatting changes detected, committing and pushing."
-            # Add [skip ci] to the commit message to prevent workflow loops
-            git commit -m "Reformatting Code Sources [skip ci]"
-            git push
-          else
-            echo "No formatting changes needed."
-          fi
 
       - name: Run Test
         if: steps.changes.outputs.core == 'true'
-        run: |
-          cd tools
-          cmake .
-          cmake --build .
-          ctest -V
+        run: make test
 
   android:
     runs-on: ubuntu-latest
     needs: format-core
-    # This job will run if files in 'android/**' or 'core/**' were changed, or if triggered manually.
     if: github.event_name == 'workflow_dispatch' || needs.format-core.outputs.android == 'true' || needs.format-core.outputs.core == 'true'
     steps:
       - name: Checkout

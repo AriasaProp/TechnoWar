@@ -1,12 +1,11 @@
 #define VK_NO_PROTOTYPES 1
 #include "log.h"
 #include "manager.h"
+#include "common.h"
 
 #include <dlfcn.h>
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #if defined(__ARM_ARCH) && __ARM_ARCH < 7
@@ -798,7 +797,7 @@ static int vulkan_preRender(void) {
       .layout = src->layout_,
       .renderPass = src->renderPass_,
     };
-    CALLVK(vkCreateGraphicsPipelines(src->device_, VK_NULL_HANDLE, 1, &pipelineCreateInfo, NULL, &src->pipeline_));
+    CALLVK(vkCreateGraphicsPipelines(src->device_, NULL, 1, &pipelineCreateInfo, NULL, &src->pipeline_));
 
     vkDestroyShaderModule(src->device_, vertexShader, NULL);
     vkDestroyShaderModule(src->device_, fragmentShader, NULL);
@@ -887,7 +886,7 @@ static void vulkan_postRender(void) {
   vkResetFences(src->device_, 1, &src->inFlightFences_[src->currentFrame]);
 
   uint32_t imageIndex;
-  vkAcquireNextImageKHR(src->device_, src->swapchain_, UINT64_MAX, src->imageAvailableSemaphore_, VK_NULL_HANDLE, &imageIndex);
+  vkAcquireNextImageKHR(src->device_, src->swapchain_, UINT64_MAX, src->imageAvailableSemaphore_, NULL, &imageIndex);
 
   VkSubmitInfo submitInfo = {.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO};
   VkSemaphore waitSemaphores[] = {src->imageAvailableSemaphore_};

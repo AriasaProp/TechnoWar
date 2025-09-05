@@ -4,15 +4,3 @@
 # Ignore Gradle build output directory
 build
 android/build
-
-# tools
-tools/build
-tools/CMakeFiles
-tools/core
-tools/Testing
-tools/cmake_install.cmake
-tools/CMakeCache.txt
-tools/CTestTestfile.cmake
-tools/image_codec
-tools/rect_pack
-tools/Makefile
