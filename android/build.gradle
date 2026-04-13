@@ -1,21 +1,6 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:8.11.0'
-    }
+plugins {
+    alias(libs.plugins.android.application) apply true
 }
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-apply plugin: 'com.android.application'
 
 android {
     signingConfigs {
@@ -26,15 +11,16 @@ android {
             keyPassword '123456'
         }
     }
-    compileSdkVersion 34
-    ndkVersion '26.3.11579264'
-    namespace 'com.ariasaproject.technowar'
+    compileSdkVersion libs.versions.compileSdk.get() as Integer
+    ndkVersion libs.versions.ndk.get() as String
+    namespace libs.versions.packageName.get() as String
+
     defaultConfig {
-		    applicationId 'com.ariasaproject.technowar'
-		    minSdkVersion 25
-		    targetSdkVersion 34
-		    versionCode 1
-		    versionName '0'
+		    applicationId libs.versions.packageName.get() as String
+		    minSdkVersion libs.versions.minSdk.get() as Integer
+		    targetSdkVersion libs.versions.targetSdk.get() as Integer
+		    versionCode libs.versions.versionCode.get() as Integer
+		    versionName libs.versions.versionName.get() as String
 		    signingConfig signingConfigs.mainSign
 		    multiDexEnabled true
 				proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -46,9 +32,12 @@ android {
 		buildTypes {
 				release {
 						minifyEnabled true
+						shrinkResources true
 				}
 				debug {
-						minifyEnabled false
+				    applicationIdSuffix = ".debug"
+						debuggable true
+            testCoverageEnabled true
 				}
 		}
     sourceSets {
@@ -63,6 +52,4 @@ android {
     }
 }
 
-dependencies {
-}
-
+dependencies {}

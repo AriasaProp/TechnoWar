@@ -14,7 +14,8 @@
         android:name=".MainApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/appIcon"
+        android:roundIcon="@mipmap/appIcon_round"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:theme="@style/MainTheme">
